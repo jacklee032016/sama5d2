@@ -6,7 +6,7 @@
 ================================================================================
 
 Open bootconfig applet with device sama5d2x through JTAG link
-
+::
 
    /d/Xilinx/sam-ba_3.2.2/sam-ba.exe -p j-link -d sama5d2 -a bootconfig
    /d/Xilinx/sam-ba_3.2.2/sam-ba.exe -p jlink -d sama5d2 -a bootconfig
@@ -33,7 +33,8 @@ When try to program, it complains "qml/SAMBA/Applet.qml:232: Error: Could not in
 
 	
 When this happens, try later:
-   
+::
+
    $ sam-ba -p jlink -d sama5d2 -a bootconfig
    Opening J-Link with S/N '29424457'
    Error: Unsupported device   
@@ -41,7 +42,8 @@ When this happens, try later:
    
 2 Partitions
 ================================================================================
-   
+::
+
    13 ofpart partitions found on MTD device f0020000.spi
    Creating 13 MTD partitions on "f0020000.spi":
    0x000000000000-0x000000010000 : "at91bootstrap"
@@ -62,11 +64,13 @@ When this happens, try later:
 ## 2.1 Compile DataFlashBoot
 
 Clear all configuration:
+::
 
     make mrproper
 
 Configure sama5d2:
-	
+::
+
     make sama5d2_xplaineddf_qspi_uboot_defconfig
 
     make menuconfig
