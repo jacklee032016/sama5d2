@@ -68,9 +68,13 @@ static inline void dbg_hexdump(const unsigned char *buf,
 #define dbg_very_loud(fmt_str, arg...)		\
 	dbg_log(DEBUG_VERY_LOUD, fmt_str , ## arg)
 
-#define	TRACE()		\
-	dbg_info("%s-%u.%s()\n",  __FILE__, __LINE__, __FUNCTION__)
-
+#ifdef CONFIG_DEBUG
+	#define	TRACE()		\
+		{}
+		
+//		dbg_info("%s-%u.%s()\n",  __FILE__, __LINE__, __FUNCTION__)
+#else
+#endif	
 
 
 #endif /* #ifndef __DEBUG_H__ */

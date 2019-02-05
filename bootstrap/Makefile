@@ -200,7 +200,9 @@ ifeq ($(CONFIG_LOAD_NONE), y)
 TARGET_NAME:=$(basename $(IMAGE_NAME))
 endif
 
-BOOT_NAME=$(BOARDNAME)-$(PROJECT)$(CARD_SUFFIX)boot-$(TARGET_NAME)$(BLOB)-$(VERSION)$(REV)
+# comment as new 
+# BOOT_NAME=$(BOARDNAME)-$(PROJECT)$(CARD_SUFFIX)boot-$(TARGET_NAME)$(BLOB)-$(VERSION)$(REV)
+BOOT_NAME=767samaBootstrap
 AT91BOOTSTRAP:=$(BINDIR)/$(BOOT_NAME).bin
 
 ifeq ($(IMAGE),)
@@ -231,7 +233,8 @@ INCL = $(BOARD_LOCATE)
 
 include	lib/lib.mk
 include	driver/driver.mk
-include	contrib/driver/driver.mk
+# comment, JL
+# include	contrib/driver/driver.mk
 include	fs/src/fat.mk
 
 GC_SECTIONS=--gc-sections

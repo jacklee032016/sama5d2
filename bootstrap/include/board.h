@@ -104,7 +104,8 @@
 #include "sama5d2_lpddr2sip_vb.h"
 #endif
 
-#include "contrib_board.h"
+// Jack Lee, 02.05, 2019 
+// #include "contrib_board.h"
 
 /*
  * Functions Prototype
