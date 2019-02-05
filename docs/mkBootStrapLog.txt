@@ -1,0 +1,97 @@
+[root@localhost at91bootstrap]# make V=1
+make: Warning: File 'Makefile' has modification time 49 s in the future
+CC
+========
+arm-linux-gnueabihf-gcc 6.3.1
+
+as FLAGS
+========
+-g -Os -Wall -I/media/sf_rtos/sama5d2/at91bootstrap/board/sama5d2_xplained -Iinclude -Icontrib/include -DJUMP_ADDR=0x26F00000 -DTOP_OF_MEMORY=0x210000 -DMACH_TYPE=9999 -Dsama5d2_xplained -DMACH_TYPE=9999 -DTOP_OF_MEMORY=0x210000 -DCRYSTAL_12_000MHZ -DSAMA5D2 -mcpu=cortex-a5 -mtune=cortex-a5 -DCONFIG_CPU_V7 -DCONFIG_SAMA5D2_XPLAINED
+
+gcc FLAGS
+=========
+-nostdinc -isystem /root/gcc-linaro-6.3.1-2017.05-i686_arm-linux-gnueabihf/bin/../lib/gcc/arm-linux-gnueabihf/6.3.1/include -ffunction-sections -g -Os -Wall -mno-unaligned-access -fno-stack-protector -fno-common -fno-builtin -fno-jump-tables -fno-pie -I/media/sf_rtos/sama5d2/at91bootstrap/board/sama5d2_xplained -Icontrib/include -Iinclude -Ifs/include -I/media/sf_rtos/sama5d2/at91bootstrap/config/at91bootstrap-config -DAT91BOOTSTRAP_VERSION="3.8.12-00005-g1137861-dirty" -DCOMPILE_TIME="Tue Feb  5 11:13:33 EST 2019" -DIMG_ADDRESS=0x00040000 -DIMG_SIZE=0x000a0000 -DJUMP_ADDR=0x26F00000 -DOF_OFFSET= -DOF_ADDRESS= -DMEM_BANK= -DMEM_SIZE= -DIMAGE_NAME="" -DCMDLINE="" -DCMDLINE_FILE="" -DTOP_OF_MEMORY=0x210000 -DMACH_TYPE=9999 -DCONFIG_DEBUG -DBANNER="\n\nAT91Bootstrap " AT91BOOTSTRAP_VERSION " (" COMPILE_TIME ")\n\n" -DCONFIG_HW_DISPLAY_BANNER -DCONFIG_HW_INIT -Dsama5d2_xplained -DMACH_TYPE=9999 -DTOP_OF_MEMORY=0x210000 -DCRYSTAL_12_000MHZ -DSAMA5D2 -mcpu=cortex-a5 -mtune=cortex-a5 -DCONFIG_SCLK -DCONFIG_CRYSTAL_12_000MHZ -DCONFIG_CPU_CLK_498MHZ -DCONFIG_BUS_SPEED_166MHZ -DCONFIG_LOAD_EEPROM -DCONFIG_CPU_V7 -DCONFIG_MATRIX -DCONFIG_REDIRECT_ALL_INTS_AIC -DCPU_HAS_H32MXDIV -DCONFIG_SAMA5D2_XPLAINED -DCONFIG_DDRC -DCONFIG_DDR3 -DCONFIG_RAM_512MB -DCONFIG_DATAFLASH -DAT91C_SPI_CLK=33000000 -DAT91C_SPI_PCS_DATAFLASH= -DBOOTSTRAP_DEBUG_LEVEL=DEBUG_INFO -DCONFIG_DISABLE_WATCHDOG -DCONFIG_TWI -DCONFIG_TWI0 -DCONFIG_TWI1 -DCONFIG_ACT8865 -DCONFIG_ACT8865_SET_VOLTAGE -DCONFIG_SUSPEND_ACT8945A_CHARGER -DCONFIG_LOAD_HW_INFO -DCONFIG_AUTOCONFIG_TWI_BUS -DCPU_HAS_PIO4 -DCONFIG_QSPI_BUS0 -DCONFIG_QSPI0_IOSET_3 -DCONFIG_QSPI_4B_OPCODES -DCONFIG_QSPI
+
+ld FLAGS
+========
+-nostartfiles -Map=/media/sf_rtos/sama5d2/at91bootstrap/binaries/sama5d2_xplained-dataflashboot--3.8.12.map --cref -static -T elf32-littlearm.lds --gc-sections -Ttext 0x200000
+
+  AS        /media/sf_rtos/sama5d2/at91bootstrap/crt0_gnu.S
+  CC        /media/sf_rtos/sama5d2/at91bootstrap/main.c
+  CC        /media/sf_rtos/sama5d2/at91bootstrap/board/sama5d2_xplained/sama5d2_xplained.c
+  CC        /media/sf_rtos/sama5d2/at91bootstrap/lib/string.c
+  CC        /media/sf_rtos/sama5d2/at91bootstrap/lib/eabi_utils.c
+  CC        /media/sf_rtos/sama5d2/at91bootstrap/lib/div.c
+  CC        /media/sf_rtos/sama5d2/at91bootstrap/driver/debug.c
+  CC        /media/sf_rtos/sama5d2/at91bootstrap/driver/at91_slowclk.c
+  CC        /media/sf_rtos/sama5d2/at91bootstrap/driver/common.c
+  CC        /media/sf_rtos/sama5d2/at91bootstrap/driver/at91_pio.c
+  CC        /media/sf_rtos/sama5d2/at91bootstrap/driver/pmc.c
+  CC        /media/sf_rtos/sama5d2/at91bootstrap/driver/at91_pit.c
+  CC        /media/sf_rtos/sama5d2/at91bootstrap/driver/at91_wdt.c
+  CC        /media/sf_rtos/sama5d2/at91bootstrap/driver/at91_usart.c
+  CC        /media/sf_rtos/sama5d2/at91bootstrap/driver/at91_rstc.c
+  CC        /media/sf_rtos/sama5d2/at91bootstrap/driver/lp310_l2cc.c
+  CC        /media/sf_rtos/sama5d2/at91bootstrap/driver/ddramc.c
+  CC        /media/sf_rtos/sama5d2/at91bootstrap/driver/spi_flash/spi_flash.c
+  CC        /media/sf_rtos/sama5d2/at91bootstrap/driver/spi_flash/sfdp.c
+  CC        /media/sf_rtos/sama5d2/at91bootstrap/driver/spi_flash/spi_nor.c
+  CC        /media/sf_rtos/sama5d2/at91bootstrap/driver/spi_flash/spi_nor_ids.c
+  CC        /media/sf_rtos/sama5d2/at91bootstrap/driver/at91_qspi.c
+  CC        /media/sf_rtos/sama5d2/at91bootstrap/driver/dataflash.c
+  CC        /media/sf_rtos/sama5d2/at91bootstrap/driver/at24xx.c
+  CC        /media/sf_rtos/sama5d2/at91bootstrap/driver/board_hw_info.c
+  CC        /media/sf_rtos/sama5d2/at91bootstrap/driver/matrix.c
+  CC        /media/sf_rtos/sama5d2/at91bootstrap/driver/at91_twi.c
+  CC        /media/sf_rtos/sama5d2/at91bootstrap/driver/act8865.c
+  CC        /media/sf_rtos/sama5d2/at91bootstrap/driver/at91_aicredir.c
+  LD        sama5d2_xplained-dataflashboot--3.8.12.elf
+arm-linux-gnueabihf-ld -nostartfiles -Map=/media/sf_rtos/sama5d2/at91bootstrap/binaries/sama5d2_xplained-dataflashboot--3.8.12.map --cref -static -T elf32-littlearm.lds --gc-sections -Ttext 0x200000 -n -o /media/sf_rtos/sama5d2/at91bootstrap/binaries/sama5d2_xplained-dataflashboot--3.8.12.elf /media/sf_rtos/sama5d2/at91bootstrap/crt0_gnu.o /media/sf_rtos/sama5d2/at91bootstrap/main.o /media/sf_rtos/sama5d2/at91bootstrap/board/sama5d2_xplained/sama5d2_xplained.o /media/sf_rtos/sama5d2/at91bootstrap/lib/string.o /media/sf_rtos/sama5d2/at91bootstrap/lib/eabi_utils.o /media/sf_rtos/sama5d2/at91bootstrap/lib/div.o /media/sf_rtos/sama5d2/at91bootstrap/driver/debug.o /media/sf_rtos/sama5d2/at91bootstrap/driver/at91_slowclk.o /media/sf_rtos/sama5d2/at91bootstrap/driver/common.o /media/sf_rtos/sama5d2/at91bootstrap/driver/at91_pio.o /media/sf_rtos/sama5d2/at91bootstrap/driver/pmc.o /media/sf_rtos/sama5d2/at91bootstrap/driver/at91_pit.o /media/sf_rtos/sama5d2/at91bootstrap/driver/at91_wdt.o /media/sf_rtos/sama5d2/at91bootstrap/driver/at91_usart.o /media/sf_rtos/sama5d2/at91bootstrap/driver/at91_rstc.o /media/sf_rtos/sama5d2/at91bootstrap/driver/lp310_l2cc.o /media/sf_rtos/sama5d2/at91bootstrap/driver/ddramc.o /media/sf_rtos/sama5d2/at91bootstrap/driver/spi_flash/spi_flash.o /media/sf_rtos/sama5d2/at91bootstrap/driver/spi_flash/sfdp.o /media/sf_rtos/sama5d2/at91bootstrap/driver/spi_flash/spi_nor.o /media/sf_rtos/sama5d2/at91bootstrap/driver/spi_flash/spi_nor_ids.o /media/sf_rtos/sama5d2/at91bootstrap/driver/at91_qspi.o /media/sf_rtos/sama5d2/at91bootstrap/driver/dataflash.o /media/sf_rtos/sama5d2/at91bootstrap/driver/at24xx.o /media/sf_rtos/sama5d2/at91bootstrap/driver/board_hw_info.o /media/sf_rtos/sama5d2/at91bootstrap/driver/matrix.o /media/sf_rtos/sama5d2/at91bootstrap/driver/at91_twi.o /media/sf_rtos/sama5d2/at91bootstrap/driver/act8865.o /media/sf_rtos/sama5d2/at91bootstrap/driver/at91_aicredir.o
+Size of sama5d2_xplained-dataflashboot--3.8.12.bin is 12640 bytes
+[Succeeded] It's OK to fit into SRAM area
+[Attention] The space left for stack is 52896 bytes
+make: warning:  Clock skew detected.  Your build may be incomplete.
+
+
+ CC        /media/sf_rtos/sama5d2/at91bootstrap/driver/spi_flash/spi_nor_ids.c
+arm-linux-gnueabihf-gcc \
+	-nostdinc -isystem /root/gcc-linaro-6.3.1-2017.05-i686_arm-linux-gnueabihf/bin/../lib/gcc/arm-linux-gnueabihf/6.3.1/include 
+	-ffunction-sections -g -Os -Wall -mno-unaligned-access -fno-stack-protector -fno-common -fno-builtin -fno-jump-tables -fno-pie \
+	-I/media/sf_rtos/sama5d2/at91bootstrap/board/sama5d2_xplained -Icontrib/include -Iinclude \
+	-Ifs/include -I/media/sf_rtos/sama5d2/at91bootstrap/config/at91bootstrap-config \
+	-DAT91BOOTSTRAP_VERSION=\"3.8.12\" \
+	-DCOMPILE_TIME="\"Tue Feb  5 12:59:46 EST 2019\"" \
+	-DIMG_ADDRESS=0x00020000 -DIMG_SIZE=0x00080000 \
+	-DJUMP_ADDR=0x26F00000 -DOF_OFFSET= -DOF_ADDRESS= \
+	-DMEM_BANK= \
+	-DMEM_SIZE= \
+	-DIMAGE_NAME="\"\"" -DCMDLINE="\"\"" -DCMDLINE_FILE="\"\"" \
+	-DTOP_OF_MEMORY=0x210000 -DMACH_TYPE=9999  \
+	-DCONFIG_DEBUG \
+	-DBANNER="""\"\\n\\nAT91Bootstrap \" AT91BOOTSTRAP_VERSION \" (\" COMPILE_TIME \")\\n\\n\"""" \
+	-DCONFIG_HW_DISPLAY_BANNER \
+	-DCONFIG_HW_INIT \
+	-Dsama5d2_xplained -DMACH_TYPE=9999 \
+	-DTOP_OF_MEMORY=0x210000 \
+	-DCRYSTAL_12_000MHZ \
+	-DSAMA5D2 \
+	-mcpu=cortex-a5 -mtune=cortex-a5 \
+	-DCONFIG_SCLK \
+	-DCONFIG_CRYSTAL_12_000MHZ \
+	-DCONFIG_CPU_CLK_498MHZ \
+	-DCONFIG_BUS_SPEED_166MHZ \
+	-DCONFIG_LOAD_EEPROM \
+	-DCONFIG_CPU_V7 \
+	-DCONFIG_MATRIX \
+	-DCONFIG_REDIRECT_ALL_INTS_AIC \
+	-DCPU_HAS_H32MXDIV -DCONFIG_SAMA5D2_XPLAINED \
+	-DCONFIG_DDRC -DCONFIG_DDR3 -DCONFIG_RAM_128MB \
+	-DCONFIG_DATAFLASH -DAT91C_SPI_CLK=33000000 \
+	-DAT91C_SPI_PCS_DATAFLASH=  \
+	-DBOOTSTRAP_DEBUG_LEVEL=DEBUG_INFO \
+	-DCONFIG_DISABLE_WATCHDOG -DCONFIG_TWI -DCONFIG_TWI0 -DCONFIG_TWI1 -DCONFIG_ACT8865 \
+	-DCONFIG_ACT8865_SET_VOLTAGE -DCONFIG_SUSPEND_ACT8945A_CHARGER -DCONFIG_LOAD_HW_INFO \
+	-DCONFIG_AUTOCONFIG_TWI_BUS -DCPU_HAS_PIO4 -DCONFIG_QSPI_BUS0 -DCONFIG_QSPI0_IOSET_3 \
+	-DCONFIG_QSPI_4B_OPCODES -DCONFIG_QSPI \
+	-c -o /media/sf_rtos/sama5d2/at91bootstrap/driver/spi_flash/spi_nor_ids.o \
+	/media/sf_rtos/sama5d2/at91bootstrap/driver/spi_flash/spi_nor_ids.c

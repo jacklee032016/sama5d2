@@ -1,0 +1,238 @@
+
+
+AT91Bootstrap 3.8.10 (Wed Sep 26 11:56:24 EDT 2018)
+
+EEPROM: Loading AT24xx information ...
+EEPROM: BoardName | [Revid] | VendorName
+
+EEPROM: Using default information
+
+EEPROM: Board sn: 0xd300000 revision: 0x248000
+
+SF: Got Manufacturer and Device ID: 20ba19
+SF: WARNING: can't read above 16MiB
+SF: Copy 0x80000 bytes from 0x20000 to 0x26f00000
+SF: Done to load image
+...................
+AQR105 Firmware version 0x2.0xc
+AQR105 Temperature 31.205
+DIP SW: 0x30 
+read 03 reg 0x0
+FPGA version 0x81 0x7 0x1
+FPGA TX unit 
+init ADV7619 
+init ADV7619 
+FPGA(60.0) 0x0 0x1c 0x0 0x0 
+<debug_uart> 
+
+U-Boot 2017.03-linux4sam_5.7 (Aug 21 2018 - 16:27:04 -0400)
+
+CPU: SAMA5D26-CU
+Crystal frequency:       12 MHz
+CPU clock        :      498 MHz
+Master clock     :      166 MHz
+Model: Atmel SAMA5D2 Xplained
+DRAM:  128 MiB
+SF: Detected n25q256 with page size 256 Bytes, erase size 4 KiB, total 32 MiB
+In:    serial
+Out:   serial
+Err:   serial
+p5 : 4 2 1 0 1 1
+p6 : 2 2 1 1 1 1
+Net:   eth0: ethernet@f8008000
+Hit any key to stop autoboot:  0 
+SF: Detected n25q256 with page size 256 Bytes, erase size 4 KiB, total 32 MiB
+device 0 offset 0xb0000, size 0x400000
+SF: 4194304 bytes @ 0xb0000 Read: OK
+device 0 offset 0x4d0000, size 0x1000000
+SF: 16777216 bytes @ 0x4d0000 Read: OK
+device 0 offset 0xa0000, size 0x10000
+SF: 65536 bytes @ 0xa0000 Read: OK
+## Flattened Device Tree blob at 21000000
+   Booting using the fdt blob at 0x21000000
+   Loading Device Tree to 27b45000, end 27b5007c ... OK
+
+Starting kernel ...
+
+Booting Linux on physical CPU 0x0
+Linux version 4.9.75-linux4sam_5.7-01637-g8f511fd-dirty (root@alex-VirtualBox) (gcc version 5.4.0 20160609 (Ubuntu/Linaro 5.4.0-6ubuntu1~16.04.9) ) #33 Mon Aug 13 11:21:28 EDT 2018
+CPU: ARMv7 Processor [410fc051] revision 1 (ARMv7), cr=10c53c7d
+CPU: PIPT / VIPT nonaliasing data cache, VIPT aliasing instruction cache
+OF: fdt:Machine model: Atmel SAMA5D2 Xplained
+cma: Failed to reserve 64 MiB
+Memory policy: Data cache writeback
+CPU: All CPU(s) started in SVC mode.
+Built 1 zonelists in Zone order, mobility grouping off.  Total pages: 32480
+Kernel command line: initrd=0x25000000,40M root=/dev/ram0 rw init=/linuxrc console=ttyS0,115200
+PID hash table entries: 512 (order: -1, 2048 bytes)
+Dentry cache hash table entries: 16384 (order: 4, 65536 bytes)
+Inode-cache hash table entries: 8192 (order: 3, 32768 bytes)
+Memory: 82148K/131072K available (4096K kernel code, 172K rwdata, 796K rodata, 1024K init, 170K bss, 48924K reserved, 0K cma-reserved)
+Virtual kernel memory layout:
+    vector  : 0xffff0000 - 0xffff1000   (   4 kB)
+    fixmap  : 0xffc00000 - 0xfff00000   (3072 kB)
+    vmalloc : 0xc8800000 - 0xff800000   ( 880 MB)
+    lowmem  : 0xc0000000 - 0xc8000000   ( 128 MB)
+    modules : 0xbf000000 - 0xc0000000   (  16 MB)
+      .text : 0xc0008000 - 0xc0500000   (5088 kB)
+      .init : 0xc0600000 - 0xc0700000   (1024 kB)
+      .data : 0xc0700000 - 0xc072b360   ( 173 kB)
+       .bss : 0xc072b360 - 0xc0755d50   ( 171 kB)
+NR_IRQS:16 nr_irqs:16 16
+L2C-310 ID prefetch enabled, offset 2 lines
+L2C-310 dynamic clock gating enabled, standby mode enabled
+L2C-310 cache controller enabled, 8 ways, 128 kB
+L2C-310: CACHE_ID 0x410000c9, AUX_CTRL 0x36020000
+clocksource: pit: mask: 0x7ffffff max_cycles: 0x7ffffff, max_idle_ns: 11513617062 ns
+sched_clock: 32 bits at 100 Hz, resolution 10000000ns, wraps every 21474836475000000ns
+Console: colour dummy device 80x30
+Calibrating delay loop... 329.31 BogoMIPS (lpj=1646592)
+pid_max: default: 32768 minimum: 301
+Mount-cache hash table entries: 1024 (order: 0, 4096 bytes)
+Mountpoint-cache hash table entries: 1024 (order: 0, 4096 bytes)
+CPU: Testing write buffer coherency: ok
+Setting up static identity map for 0x20100000 - 0x20100058
+devtmpfs: initialized
+VFP support v0.3: implementor 41 architecture 2 part 30 variant 5 rev 1
+clocksource: jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 19112604462750000 ns
+futex hash table entries: 256 (order: -1, 3072 bytes)
+pinctrl core: initialized pinctrl subsystem
+NET: Registered protocol family 16
+DMA: preallocated 256 KiB pool for atomic coherent allocations
+cpuidle: using governor menu
+AT91: PM: standby: standby, suspend: ulp0
+clocksource: tcb_clksrc: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 184217874325 ns
+at_xdmac f0010000.dma-controller: 16 channels, mapped at 0xc885b000
+at_xdmac f0004000.dma-controller: 16 channels, mapped at 0xc885d000
+AT91: Detected SoC family: sama5d2
+AT91: Detected SoC: sama5d26, revision 1
+SCSI subsystem initialized
+usbcore: registered new interface driver usbfs
+usbcore: registered new interface driver hub
+usbcore: registered new device driver usb
+at91_i2c f8028000.i2c: could not find pctldev for node /ahb/apb/pinctrl@fc038000/i2c0_default, deferring probe
+at91_i2c fc028000.i2c: could not find pctldev for node /ahb/apb/pinctrl@fc038000/i2c1_default, deferring probe
+clocksource: Switched to clocksource tcb_clksrc
+NET: Registered protocol family 2
+TCP established hash table entries: 1024 (order: 0, 4096 bytes)
+TCP bind hash table entries: 1024 (order: 0, 4096 bytes)
+TCP: Hash tables configured (established 1024 bind 1024)
+UDP hash table entries: 256 (order: 0, 4096 bytes)
+UDP-Lite hash table entries: 256 (order: 0, 4096 bytes)
+NET: Registered protocol family 1
+RPC: Registered named UNIX socket transport module.
+RPC: Registered udp transport module.
+RPC: Registered tcp transport module.
+RPC: Registered tcp NFSv4.1 backchannel transport module.
+Trying to unpack rootfs image as initramfs...
+rootfs image is not initramfs (no cpio magic); looks like an initrd
+Freeing initrd memory: 40960K
+workingset: timestamp_bits=14 max_order=15 bucket_order=1
+jffs2: version 2.2. (NAND) ? 2001-2006 Red Hat, Inc.
+io scheduler noop registered (default)
+pinctrl-at91-pio4 fc038000.pinctrl: atmel pinctrl initialized
+f8020000.serial: ttyS0 at MMIO 0xf8020000 (irq = 34, base_baud = 5187500) is a ATMEL_SERIAL
+console [ttyS0] enabled
+fc008000.serial: ttyS1 at MMIO 0xfc008000 (irq = 40, base_baud = 5187500) is a ATMEL_SERIAL
+[drm] Initialized
+brd: module loaded
+loop: module loaded
+at91_i2c fc018600.i2c: can't get DMA channel, continue without DMA support
+at91_i2c fc018600.i2c: Using FIFO (16 data)
+at91_i2c fc018600.i2c: AT91 i2c bus driver (hw version: 0x704).
+atmel_qspi f0020000.spi: n25q256a (32768 Kbytes)
+13 ofpart partitions found on MTD device f0020000.spi
+Creating 13 MTD partitions on "f0020000.spi":
+0x000000000000-0x000000010000 : "at91bootstrap"
+0x000000010000-0x000000020000 : "uboot env"
+0x000000020000-0x0000000a0000 : "uboot"
+0x0000000a0000-0x0000000b0000 : "device tree"
+0x0000000b0000-0x0000004b0000 : "kernel"
+0x0000004b0000-0x0000004c0000 : "configuration"
+0x0000004c0000-0x0000004d0000 : "edid"
+0x0000004d0000-0x0000014d0000 : "rootfs"
+0x0000014d0000-0x0000018d0000 : "app"
+0x0000018d0000-0x0000018e0000 : "datacfg0"
+0x0000018e0000-0x0000018f0000 : "datacfg1"
+0x0000018f0000-0x000001900000 : "datacfg2"
+0x000001900000-0x000002000000 : "reserved"
+atmel_spi f8000000.spi: Using dma0chan0 (tx) and dma0chan1 (rx) for DMA transfers
+atmel_spi f8000000.spi: Using FIFO (16 data)
+atmel_spi f8000000.spi: Atmel SPI Controller version 0x311 at 0xf8000000 (irq 28)
+libphy: Fixed MDIO Bus: probed
+libphy: MACB_mii_bus: probed
+Generic PHY f8008000.ethernet-ffffffff:01: attached PHY driver [Generic PHY] (mii_bus:phy_addr=f8008000.ethernet-ffffffff:01, irq=-1)
+macb f8008000.ethernet eth0: Cadence GEM rev 0x00020203 at 0xf8008000 irq 29 (00:12:23:34:45:56)
+i2c /dev entries driver
+AT91: Starting after general reset
+sama5d4_wdt f8048040.watchdog: initialized (timeout = 16 sec, nowayout = 0)
+ledtrig-cpu: registered to indicate activity on CPUs
+atmel_aes f002c000.aes: version: 0x500
+atmel_aes f002c000.aes: Atmel AES - Using dma0chan2, dma0chan3 for DMA transfers
+atmel_sha f0028000.sha: version: 0x510
+random: fast init done
+atmel_sha f0028000.sha: using dma0chan4 for DMA transfers
+atmel_sha f0028000.sha: Atmel SHA1/SHA256/SHA224/SHA384/SHA512
+atmel_tdes fc044000.tdes: version: 0x703
+atmel_tdes fc044000.tdes: using dma0chan5, dma0chan6 for DMA transfers
+atmel_tdes fc044000.tdes: Atmel DES/TDES
+usbcore: registered new interface driver usbhid
+usbhid: USB HID core driver
+fc030000.adc supply vddana not found, using dummy regulator
+fc030000.adc supply vref not found, using dummy regulator
+at91-sama5d2_adc: probe of fc030000.adc failed with error -22
+NET: Registered protocol family 17
+at91_i2c f8028000.i2c: can't get DMA channel, continue without DMA support
+at91_i2c f8028000.i2c: Using FIFO (16 data)
+i2c i2c-1: Added multiplexed i2c bus 2
+i2c i2c-1: Added multiplexed i2c bus 3
+i2c i2c-1: Added multiplexed i2c bus 4
+i2c i2c-1: Added multiplexed i2c bus 5
+pca954x 1-0070: registered 4 multiplexed busses for I2C mux pca9544
+at91_i2c f8028000.i2c: AT91 i2c bus driver (hw version: 0x704).
+at91_i2c fc028000.i2c: can't get DMA channel, continue without DMA support
+at91_i2c fc028000.i2c: Using FIFO (16 data)
+at91_i2c fc028000.i2c: AT91 i2c bus driver (hw version: 0x704).
+RAMDISK: gzip image found at block 0
+VFS: Mounted root (ext2 filesystem) on device 1:0.
+devtmpfs: mounted
+Freeing unused kernel memory: 1024K
+Starting logging: OK
+Initializing random number generator... done.
+Starting system message bus: done
+Starting network: OK
+Starting php-fpm  done
+Starting telnetd: OK
+Starting vsftpd: OK
+macb f8008000.ethernet eth0: link up (100/Full)
+RAMDISK 101901.
+actled: loading out-of-tree module taints kernel.
+TX App Ver 110101.
+httpd not running, trying to start
+
+Welcome to Buildroot
+m500768 login: get EDID from drive.
+CMD_COMPUTE_READ_PAGE_MAC second CRC error!
+COMPUTE_READ_MAC read_auth_page FAIL!
+DS IOCTL COMPUTE_READ_MAC FAIL!
+Dip ON, change multicast ip to : 239.0.0.1
+Read mac from rom : 00:66:9A:99:AA:09
+json init set irPauseFlag = 1
+init IR to emitter mode.
+setChipIRMode set to idle mode.
+setChipIRMode set to emitter mode.
+json init set irPauseFlag = 0
+fpga init get mcastip : 239.0.0.1
+random: crng init done
+iframe colorspace: 0
+Color Depth: 0
+rawmode: 1
+fpga video config: 0x1c
+video_4k_mode = 0
+macb f8008000.ethernet eth0: link up (100/Full)
+HDMI NOT stable. tmdsfreq now=0 prev=0; colorspace now=0 prev=0, vic now=0, prev=0
+HDMI NOT stable. tmdsfreq now=0 prev=0; colorspace now=0 prev=0, vic now=0, prev=0
+HDMI NOT stable. tmdsfreq now=0 prev=0; colorspace now=0 prev=0, vic now=0, prev=0
+HDMI NOT stable. tmdsfreq now=0 prev=0; colorspace now=0 prev=0, vic now=0, prev=0
+HDMI NOT stable. tmdsfreq now=0 prev=0; colorspace now=0 prev=0, vic now=0, prev=0
+HDMI NOT stable. tmdsfreq now=0 prev=0; colorspace now=0 prev=0, vic now=0, prev=0
