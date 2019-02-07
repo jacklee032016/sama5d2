@@ -114,7 +114,8 @@ else #  Have DOT Config
 
 HOSTARCH := $(shell uname -m | sed -e s/arm.*/arm/)
 
-CROSS_COMPILE:=arm-linux-gnueabihf-
+#CROSS_COMPILE:=arm-linux-gnueabihf-
+CROSS_COMPILE:=arm-linux-gnueabi-
 
 AS=$(CROSS_COMPILE)gcc
 CC=$(CROSS_COMPILE)gcc
