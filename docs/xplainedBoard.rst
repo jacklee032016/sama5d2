@@ -34,12 +34,14 @@ serial flash
 ---------------
 
 Detected memory size is 4194304 bytes: 4MB
+
 Page size is 256 bytes.
 
 QSPI Flash
 ------------------
 
 Detected memory size is 33554432 bytes: 32MB
+
 Page size is 256 bytes.
 
 
