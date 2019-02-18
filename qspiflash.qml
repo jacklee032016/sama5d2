@@ -45,8 +45,8 @@ JLinkConnection {
 		// applet.erase(0, 0x100000)
 		//applet.erase(0, 0xa0000)
 		// write files
-		applet.write(0x00000, "767samaBootstrap.bin", true)//
-		//applet.write(0x00000, "muxlab_500768-dataflashboot--3.8.10.bin", true)//
+		//applet.write(0x00000, "767samaBootstrap.bin", true)//
+		applet.write(0x00000, "at91bootstrap-sama5d2_xplained.bin", true)//
 		//applet.write(0x00000, "bootstrap.bin", true)//
 		// applet.write(0x20000, "u-boot.bin")
 		//applet.write(0xa0000, "m500768_0717.dtb")
