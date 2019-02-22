@@ -32,6 +32,7 @@ Hardware
 
 serial flash
 ---------------
+at25df321a
 
 Detected memory size is 4194304 bytes: 4MB
 

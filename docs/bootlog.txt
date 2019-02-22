@@ -1,3 +1,4 @@
+# boot message for atmel images
 
 
 AT91Bootstrap 3.8.10 (Wed Sep 26 11:56:24 EDT 2018)

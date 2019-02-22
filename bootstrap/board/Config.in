@@ -8,26 +8,26 @@ choice
 	help
 	  Select which board you want to build for
 
-source "board/at91sam9260ek/Config.in.board"
-source "board/at91sam9261ek/Config.in.board"
-source "board/at91sam9263ek/Config.in.board"
-source "board/at91sam9rlek/Config.in.board"
-source "board/at91sam9xeek/Config.in.board"
-source "board/at91sam9g10ek/Config.in.board"
-source "board/at91sam9g20ek/Config.in.board"
-source "board/at91sam9m10g45ek/Config.in.board"
-source "board/at91sam9x5ek/Config.in.board"
-source "board/at91sam9n12ek/Config.in.board"
-source "board/sama5d3xek/Config.in.board"
-source "board/sama5d3_xplained/Config.in.board"
-source "board/sama5d3x_cmp/Config.in.board"
-source "board/sama5d4ek/Config.in.board"
-source "board/sama5d4_xplained/Config.in.board"
+# source "board/at91sam9260ek/Config.in.board"
+# source "board/at91sam9261ek/Config.in.board"
+# source "board/at91sam9263ek/Config.in.board"
+# source "board/at91sam9rlek/Config.in.board"
+# source "board/at91sam9xeek/Config.in.board"
+# source "board/at91sam9g10ek/Config.in.board"
+# source "board/at91sam9g20ek/Config.in.board"
+# source "board/at91sam9m10g45ek/Config.in.board"
+# source "board/at91sam9x5ek/Config.in.board"
+# source "board/at91sam9n12ek/Config.in.board"
+# source "board/sama5d3xek/Config.in.board"
+# source "board/sama5d3_xplained/Config.in.board"
+# source "board/sama5d3x_cmp/Config.in.board"
+# source "board/sama5d4ek/Config.in.board"
+# source "board/sama5d4_xplained/Config.in.board"
 source "board/sama5d2_ptc_ek/Config.in.board"
 source "board/sama5d2_xplained/Config.in.board"
 source "board/sama5d27_som1_ek/Config.in.board"
 source "board/sama5d2_lpddr2sip_vb/Config.in.board"
-source "contrib/board/Config.in.board"
+# source "contrib/board/Config.in.board"
 
 endchoice
 
@@ -52,7 +52,7 @@ config CONFIG_BOARDNAME
 	default "sama5d2_xplained" if CONFIG_SAMA5D2_XPLAINED
 	default "sama5d27_som1_ek" if CONFIG_SAMA5D27_SOM1_EK
 	default "sama5d2_lpddr2sip_vb" if CONFIG_SAMA5D2_LPDDR2SIP_VB
-source "contrib/board/Config.in.boardname"
+# source "contrib/board/Config.in.boardname"
 
 config AT91SAM9260
 	select CORE_ARM926EJS

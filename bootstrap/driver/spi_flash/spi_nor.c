@@ -54,8 +54,12 @@ static const struct spi_nor_info *spi_nor_read_id(struct spi_flash *flash)
 	dbg_info("SF: Got Manufacturer and Device ID: %s\n", id_str);
 
 	for (info = spi_nor_ids; info->name; info++) {
+//		dbg_info("SF: Flash: %s\n", info->name);
 		if (!memcmp(info->id, flash->id, info->id_len))
+		{
+			dbg_info("SF: Found Flash: %s\n", info->name);
 			return info;
+		}
 	}
 
 	return NULL;

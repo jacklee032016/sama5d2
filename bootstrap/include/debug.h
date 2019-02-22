@@ -56,10 +56,23 @@ static inline void dbg_hexdump(const unsigned char *buf,
 #define console_printf(fmt_str, args...) \
 	dbg_printf(fmt_str , ## args)
 
+#if 1
+#include <string.h>
+
+//#define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
+
+#define __FILENAME__ (__builtin_strrchr(__FILE__, '/') ? __builtin_strrchr(__FILE__, '/') + 1 : __FILE__)
+
 #define dbg_log(level, fmt_str, args...) \
 	({ \
-		(level) <= BOOTSTRAP_DEBUG_LEVEL ? dbg_printf((fmt_str), ##args) : 0; \
+		(level) <= BOOTSTRAP_DEBUG_LEVEL ? dbg_printf(("[%s-%u]" fmt_str), __FILENAME__, __LINE__, ##args) : 0; \
 	})
+#else
+#define dbg_log(level, fmt_str, args...) \
+	({ \
+		(level) <= BOOTSTRAP_DEBUG_LEVEL ? dbg_printf(( fmt_str), ##args) : 0; \
+	})
+#endif
 
 #define dbg_info(fmt_str, arg...)		\
 	dbg_log(DEBUG_INFO, fmt_str , ## arg)

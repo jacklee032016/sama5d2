@@ -1,0 +1,14 @@
+setenv ipaddr 192.168.168.126
+setenv serverip 192.168.168.101
+
+ping 192.168.168.1
+
+tftp 0x25000000 ramdisk.gz
+
+
+setenv bootargs "initrd=0x25000000,40M root=/dev/ram0 rw init=/linuxrc console=ttyS0,115200"
+
+
+
+genext2fs -b 40960 -d DIR ramdiakName
+gzip -9 -f ramdiskName

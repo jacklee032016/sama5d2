@@ -19,3 +19,8 @@ JTAG
 debug serial COM: DBGU
 EDBG port, other chip from Atmel
 
+
+xplained board
+==============================
+
+Serial Flash: mx25l25635f
