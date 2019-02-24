@@ -3,7 +3,7 @@ README for Bootstrap
 
 02.22, 2019
 ----------------
-* Load u-boot from 0x60000,with size of 0xA0000;
+* Load u-boot from 0x60000,with size of 0xA0000: .config
 * Add debug info in code;
 
 
