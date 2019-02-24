@@ -2,6 +2,17 @@ README for u-boot
 ################################
 02.18, 2019
 
+02.22, 2019
+----------------
+* Only support QSPI bootup, CONFIG_QSPI_BOOT, disable CONFIG_SPI_BOOT
+  * when both options are enabled, something weired happens, such as env can't be erased because the erase size is SPI,not QSPI;
+* Add ipaddr, sererip and mask definition defaultly in env.c;
+* Move environment to 0x2,0000 and size of 0x1,0000;
+* Load DTB from 0x4,0000, and size of 0x1,0000;
+* Load kernel from 0x10,0000, and size of 0x50,0000;
+* Load RAM disk from 0x60,0000, and size of 0x70,0000;
+* bootarg: initrd=0x25000000,40M root=/dev/ram0 rw init=/linuxrc console=ttyS0,115200 earlyprintk
+
 
 
 baudrate=115200

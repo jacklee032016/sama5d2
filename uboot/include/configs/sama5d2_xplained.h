@@ -55,14 +55,34 @@
 #endif
 
 #ifdef CONFIG_QSPI_BOOT
+
+#if 1
+#define	_DTB_START 		"0x40000"
+#define	_DTB_SIZE 			"0x10000"
+
+#define	_KERNEL_START 		"0x100000"
+#define	_KERNEL_SIZE 		"0x500000"
+
+#define	_RAMDISK_START	"0x600000"
+#define	_RAMDISK_SIZE		"0x700000"
+
+#else
+#define	_DTB_START 			"0x180000"
+#define	_DTB_SIZE 			"0x10000"
+
+#define	_KERNEL_START 		"0x200000"
+#define	_KERNEL_SIZE 		"0x600000"
+#endif
+
 #undef CONFIG_ENV_SPI_BUS
 #undef CONFIG_ENV_SPI_CS
 #undef CONFIG_BOOTCOMMAND
 #define CONFIG_ENV_SPI_BUS		1
 #define CONFIG_ENV_SPI_CS		0
 #define CONFIG_BOOTCOMMAND              "sf probe 1:0; "				\
-                                        "sf read 0x21000000 0x180000 0x80000; "		\
-                                        "sf read 0x22000000 0x200000 0x600000; "	\
+                                        "sf read 0x25000000 "_RAMDISK_START" "_RAMDISK_SIZE"; "		\
+                                        "sf read 0x21000000 "_DTB_START" "_DTB_SIZE"; "		\
+                                        "sf read 0x22000000 "_KERNEL_START" "_KERNEL_SIZE"; "	\
                                         "bootm 0x22000000 - 0x21000000"
 
 #endif

@@ -9,6 +9,11 @@
 
 #include <env_callback.h>
 
+#define	CONFIG_IPADDR		192.168.168.181
+#define	CONFIG_SERVERIP	192.168.168.113
+#define	CONFIG_NETMASK	255.255.255.0
+
+
 #ifdef DEFAULT_ENV_INSTANCE_EMBEDDED
 env_t environment __UBOOT_ENV_SECTION__(environment) = {
 	ENV_CRC,	/* CRC Sum */
