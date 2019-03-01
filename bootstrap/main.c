@@ -44,6 +44,8 @@ static void display_banner (void)
 }
 #endif
 
+int muxHwInit(void);
+
 int main(void)
 {
 #if !defined(CONFIG_LOAD_NONE)
@@ -129,6 +131,8 @@ int main(void)
 
 	/* point never reached with TZ support */
 #endif
+
+	muxHwInit();
 
 #if !defined(CONFIG_LOAD_NONE)
 	return JUMP_ADDR;

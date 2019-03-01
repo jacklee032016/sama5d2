@@ -11,4 +11,5 @@
 MEM_ADDRESS=22000000
 NAME=MuxLab-AN767
 
+echo ""
 mkimage -A arm -O linux -C none -T kernel -a $MEM_ADDRESS -e $MEM_ADDRESS -n $NAME -d zImage uImage

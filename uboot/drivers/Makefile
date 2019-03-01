@@ -15,6 +15,7 @@ obj-$(CONFIG_$(SPL_TPL_)SPI_FLASH_SUPPORT) += mtd/spi/
 obj-$(CONFIG_$(SPL_TPL_)SPI_SUPPORT) += spi/
 obj-$(CONFIG_$(SPL_TPL_)TIMER) += timer/
 
+
 ifndef CONFIG_TPL_BUILD
 ifdef CONFIG_SPL_BUILD
 
@@ -105,4 +106,7 @@ obj-$(CONFIG_W1) += w1/
 obj-$(CONFIG_W1_EEPROM) += w1-eeprom/
 
 obj-$(CONFIG_MACH_PIC32) += ddr/microchip/
+
+obj-$(CONFIG_MUX7XX) += mux/rtl8307h/
+
 endif

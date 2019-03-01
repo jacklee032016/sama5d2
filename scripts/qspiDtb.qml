@@ -22,24 +22,9 @@ JLinkConnection {
 		// initialize QSPI applet
 		initializeApplet("qspiflash")
 
-		// erase all memory
-		//applet.erase(0, applet.memorySize)
-		// erase 1M flash
-		applet.erase(0x20000, 0x80000)
+		applet.erase(0x40000, 0x10000)
 
-		// applet.erase(0, 0x100000)
-		//applet.erase(0, 0xa0000)
-		// write files
-		applet.write(0x20000, "u-boot.bin", true)//
-		//applet.write(0x00000, "muxlab_500768-dataflashboot--3.8.10.bin", true)//
-		//applet.write(0x00000, "bootstrap.bin", true)//
-		// applet.write(0x20000, "u-boot.bin")
-		//applet.write(0xa0000, "m500768_0717.dtb")
-		//applet.write(0xb0000, "zImage_0813")
-		//applet.write(0x4d0000, "ramdisk0813.gz")
-		//applet.write(0x18d0000, "jffs2_txapp")
-
-              
+		applet.write(0x40000, "at91-sama5d2_xplained.dtb", true)//
 
 		// initialize boot config applet
 //		initializeApplet("bootconfig")

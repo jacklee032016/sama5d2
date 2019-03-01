@@ -1,6 +1,8 @@
 #!/bin/bash
  
-source hwConfig.sh
+DIR_SRC=`dirname "$0"`
+
+source $DIR_SRC/hwConfig.sh
 
 UBOOT_BIN=u-boot.bin
 

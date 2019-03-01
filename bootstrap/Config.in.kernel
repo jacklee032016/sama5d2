@@ -12,24 +12,25 @@ if CONFIG_OVERRIDE_CMDLINE
 config CONFIG_LINUX_KERNEL_ARG_STRING
 	depends on CONFIG_LOAD_LINUX
 	string "Linux kernel command-line"
-source "board/at91sam9261ek/Config.in.linux_arg"
-source "board/at91sam9263ek/Config.in.linux_arg"
-source "board/at91sam9g10ek/Config.in.linux_arg"
-source "board/at91sam9g20ek/Config.in.linux_arg"
-source "board/at91sam9rlek/Config.in.linux_arg"
-source "board/at91sam9xeek/Config.in.linux_arg"
-source "board/at91sam9m10g45ek/Config.in.linux_arg"
-source "board/at91sam9x5ek/Config.in.linux_arg"
-source "board/at91sam9n12ek/Config.in.linux_arg"
-source "board/sama5d3xek/Config.in.linux_arg"
-source "board/sama5d3_xplained/Config.in.linux_arg"
-source "board/sama5d3x_cmp/Config.in.linux_arg"
-source "board/sama5d4ek/Config.in.linux_arg"
-source "board/sama5d4_xplained/Config.in.linux_arg"
-source "board/sama5d2_ptc_ek/Config.in.linux_arg"
+
+# source "board/at91sam9261ek/Config.in.linux_arg"
+# source "board/at91sam9263ek/Config.in.linux_arg"
+# source "board/at91sam9g10ek/Config.in.linux_arg"
+# source "board/at91sam9g20ek/Config.in.linux_arg"
+# source "board/at91sam9rlek/Config.in.linux_arg"
+# source "board/at91sam9xeek/Config.in.linux_arg"
+# source "board/at91sam9m10g45ek/Config.in.linux_arg"
+# source "board/at91sam9x5ek/Config.in.linux_arg"
+# source "board/at91sam9n12ek/Config.in.linux_arg"
+# source "board/sama5d3xek/Config.in.linux_arg"
+# source "board/sama5d3_xplained/Config.in.linux_arg"
+# source "board/sama5d3x_cmp/Config.in.linux_arg"
+# source "board/sama5d4ek/Config.in.linux_arg"
+# source "board/sama5d4_xplained/Config.in.linux_arg"
+# source "board/sama5d2_ptc_ek/Config.in.linux_arg"
 source "board/sama5d2_xplained/Config.in.linux_arg"
-source "board/sama5d27_som1_ek/Config.in.linux_arg"
-source "contrib/board/Config.in.linux_arg"
+# source "board/sama5d27_som1_ek/Config.in.linux_arg"
+# source "contrib/board/Config.in.linux_arg"
 
 endif
 
@@ -54,7 +55,7 @@ endif
 config CONFIG_LINUX_KERNEL_ARG_STRING
 	depends on CONFIG_LOAD_ANDROID
 	string "Android kernel command-line"
-source "board/sama5d3xek/Config.in.android_arg"
+# source "board/sama5d3xek/Config.in.android_arg"
 
 config CONFIG_MEM_BANK
 	string "Extern Memory Bank Base Address"

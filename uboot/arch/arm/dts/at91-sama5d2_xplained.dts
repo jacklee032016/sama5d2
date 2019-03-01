@@ -128,6 +128,14 @@
 				u-boot,dm-pre-reloc;
 			};
 
+			/* add i2c0, for UCLASS_I2C and seq 0, 02.26, 2019 */
+			i2c0: i2c@f8028000 {
+				pinctrl-names = "default";
+				pinctrl-0 = <&pinctrl_i2c0_default>;
+				status = "okay";
+
+			};
+
 			i2c1: i2c@fc028000 {
 				pinctrl-names = "default";
 				pinctrl-0 = <&pinctrl_i2c1_default>;
@@ -137,10 +145,17 @@
 					compatible = "atmel,24mac402";
 					reg = <0x5c>;
 				};
+				
 			};
 
 			pioA: gpio@fc038000 {
 				pinctrl {
+					pinctrl_i2c0_default: i2c0_default {
+						pinmux = <PIN_PD29__TWD0>,
+							 <PIN_PD30__TWCK0>;
+						bias-disable;
+					};
+					
 					pinctrl_i2c1_default: i2c1_default {
 						pinmux = <PIN_PD4__TWD1>,
 							 <PIN_PD5__TWCK1>;

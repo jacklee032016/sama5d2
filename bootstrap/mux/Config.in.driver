@@ -1,0 +1,5 @@
+#
+# Config.in for the contributed drivers
+#
+
+#source "rtl8307h_sdk/Config.in.rtl8307"

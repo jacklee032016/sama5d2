@@ -220,9 +220,10 @@ int twi_read(unsigned int bus, unsigned char device_addr,
 
 	twi_base = get_twi_base(bus);
 	if (!twi_base) {
-		dbg_loud("%s: the base address is NULL\n", __func__);
+		dbg_info("%s: the base address is NULL\n", __func__);
 		return -1;
 	}
+	dbg_loud("read twi base: 0x%x\n", twi_base);
 
 	twi_startread(twi_base, device_addr, internal_addr, iaddr_size);
 
@@ -235,7 +236,7 @@ int twi_read(unsigned int bus, unsigned char device_addr,
 			;
 
 		if (!timeout) {
-			dbg_loud("twi read: timeout to wait RXRDY bit\n");
+			dbg_info("twi read: timeout to wait RXRDY bit on device 0x%x\n", device_addr);
 			return -1;
 		}
 
@@ -247,10 +248,11 @@ int twi_read(unsigned int bus, unsigned char device_addr,
 	while (!twi_check_txcompleted(twi_base) && (--timeout))
 		;
 	if (!timeout) {
-		dbg_loud("twi read: timeout to wait TXCOMP bit\n");
+		dbg_info("twi read: timeout to wait TXCOMP bit\n");
 		return -1;
 	}
 
+TRACE();
 	return 0;
 }
 
@@ -263,7 +265,12 @@ int twi_write(unsigned int bus, unsigned char device_addr,
 
 	twi_base = get_twi_base(bus);
 	if (!twi_base)
+	{
+		dbg_info("twi write: bus is invalidate\n");
+TRACE();
 		return -1;
+	}
+	dbg_loud("twi base: 0x%x\n", twi_base);
 
 	twi_startwrite(twi_base, device_addr,
 				internal_addr, iaddr_size, *data++);
@@ -275,7 +282,8 @@ int twi_write(unsigned int bus, unsigned char device_addr,
 			;
 
 		if (!timeout) {
-			dbg_loud("twi write: timeout to wait TXRDY bit\n");
+			dbg_info("twi write: timeout to wait TXRDY bit on device address:0x%x\n", device_addr);
+TRACE();
 			return -1;
 		}
 
@@ -290,7 +298,8 @@ int twi_write(unsigned int bus, unsigned char device_addr,
 	while (!twi_check_txcompleted(twi_base) && (--timeout))
 		;
 	if (!timeout) {
-		dbg_loud("twi write: timeout to wait TXCOMP bit\n");
+TRACE();
+		dbg_info("twi write: timeout to wait TXCOMP bit\n");
 		return -1;
 	}
 

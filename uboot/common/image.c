@@ -205,6 +205,8 @@ int image_check_hcrc(const image_header_t *hdr)
 	image_set_hcrc(&header, 0);
 
 	hcrc = crc32(0, (unsigned char *)&header, len);
+	
+	printf("HCRC:%p; read: %p\n", hcrc, image_get_hcrc(hdr) );
 
 	return (hcrc == image_get_hcrc(hdr));
 }

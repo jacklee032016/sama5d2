@@ -1,14 +1,65 @@
+
+set I2C bus as 0
+i2c dev 0
+ 
+
+
+
 setenv ipaddr 192.168.168.126
 setenv serverip 192.168.168.101
 
 ping 192.168.168.1
 
+tftp 0x22000000 uImage
+
+tftp 0x21000000 at91-sama5d2_xplained.dtb
+
 tftp 0x25000000 ramdisk.gz
 
+
+setenv bootargs "initrd=0x25000000,40M root=/dev/ram0 rw console=ttyS0,115200"
+
+bootm 0x22000000 - 0x21000000
 
 setenv bootargs "initrd=0x25000000,40M root=/dev/ram0 rw init=/linuxrc console=ttyS0,115200"
 
 
-
 genext2fs -b 40960 -d DIR ramdiakName
 gzip -9 -f ramdiskName
+
+
+sf probe 0; sf read 0x22000000 0x100000 0x400000; sf read 0x25000000 0x600000 0x700000; sf read 0x21000000 0x40000 0x10000; bootm 0x22000000 - 0x21000000
+
+setenv bootcmd "sf probe 0; sf read 0x22000000 0x100000 0x400000; sf read 0x25000000 0x600000 0x700000; sf read 0x21000000 0x40000 0x10000; bootm 0x22000000 - 0x21000000"
+
+
+
+=> printenv
+arch=arm
+baudrate=115200
+board=muxlab_m500768
+board_name=muxlab_m500768
+bootargs=initrd=0x25000000,40M root=/dev/ram0 rw init=/linuxrc console=ttyS0,115200
+bootcmd=sf probe 0; sf read 0x22000000 0xB0000 0x400000; sf read 0x25000000 0x4D0000 0x1400000; sf read 0x21000000 0xA0000 0x10000; bootz 0x22000000 - 0x21000000
+bootdelay=3
+cpu=armv7
+erall=if sf probe 0; then sf erase 0xa0000 0x1f50000; fi
+erapp=if sf probe 0; then sf erase 0x18d0000 0x730000; fi
+fdtcontroladdr=2fb506f8
+gatewayip=192.168.168.1
+ipaddr=192.168.168.185
+netmask=255.255.255.0
+serverip=192.168.168.101
+setmac=if setenv ethaddr '00:12:23:34:45:56'; then saveenv; fi
+setmacrx=if setenv ethaddr '00:12:23:34:45:02'; then saveenv; fi
+setmactx=if setenv ethaddr '00:12:23:34:45:01'; then saveenv; fi
+soc=at91
+vendor=atmel
+ver=U-Boot 2017.03-linux4sam_5.7 (Nov 12 2018 - 21:17:16 -0500)
+wrapprx=if tftpboot 0x21000000 500774/m500774_rxapp; then sf write 0x21000000 0x18d0000 0x730000; fi
+wrapptx=if tftpboot 0x21000000 500774/m500774_txapp; then sf write 0x21000000 0x18d0000 0x730000; fi
+wrdtbrx=if tftpboot 0x21000000 500774/m500774_rxdtb.dtb; then sf write 0x21000000 0xa0000 0x10000; fi
+wrdtbtx=if tftpboot 0x21000000 500774/m500774_txdtb.dtb; then sf write 0x21000000 0xa0000 0x10000; fi
+wredid=if tftpboot 0x21000000 500774/m500774_edid_default.bin; then sf write 0x21000000 0x4c0000 0x10000; fi
+wrroot=if tftpboot 0x21000000 500774/m500774_ramdisk.gz; then sf write 0x21000000 0x4d0000 0x1400000; fi
+wrzim=if tftpboot 0x21000000 500774/m500774_zImage; then sf write 0x21000000 0xb0000 0x400000; fi

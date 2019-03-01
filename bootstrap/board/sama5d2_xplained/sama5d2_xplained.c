@@ -261,6 +261,7 @@ static void ddramc_reg_config(struct ddramc_register *ddramc_config)
 	ddramc_config->mdr = (AT91C_DDRC2_DBW_32_BITS
 				| AT91C_DDRC2_MD_DDR3_SDRAM);
 #else
+	/* muxLab */
 	ddramc_config->mdr = (AT91C_DDRC2_DBW_16_BITS
 				| AT91C_DDRC2_MD_DDR3_SDRAM);
 #endif
@@ -634,11 +635,21 @@ void at91_init_can_message_ram(void)
 	       (AT91C_BASE_SFR + SFR_CAN));
 }
 
+
 #ifdef CONFIG_HW_INIT
 void hw_init(void)
 {
 	/* Disable watchdog */
 	at91_disable_wdt();
+	/*
+	 * while coming from the ROM code, we run on PLLA @ 396 MHz / 132 MHz
+	 * so we need to slow down and configure MCKR accordingly.
+	 * This is why we have a special flavor of the switching function.
+	 */
+
+	/* Switch PCK/MCK on Main Clock output */
+	//pmc_cfg_mck_down(BOARD_PRESCALER_MAIN_CLOCK);
+	pmc_cfg_mck(BOARD_PRESCALER_MAIN_CLOCK);	//3.8.10 has no pmc_cfg_mck_down
 
 	/* Configure PLLA */
 	pmc_cfg_plla(PLLA_SETTINGS);
@@ -894,6 +905,7 @@ unsigned int at91_twi0_hw_init(void)
 		{(char *)0, 0, 0, PIO_DEFAULT, PIO_PERIPH_A},
 	};
 
+	dbg_info("*** Init TWI0...\n");
 	pio_configure(twi_pins);
 
 	pmc_sam9x5_enable_periph_clk(AT91C_ID_TWI0);
@@ -911,6 +923,7 @@ unsigned int at91_twi1_hw_init(void)
 		{(char *)0, 0, 0, PIO_DEFAULT, PIO_PERIPH_A},
 	};
 
+	dbg_info("*** Init TWI1...\n");
 	pio_configure(twi_pins);
 
 	pmc_sam9x5_enable_periph_clk(AT91C_ID_TWI1);
@@ -975,3 +988,390 @@ int at91_board_act8865_set_reg_voltage(void)
 	return 0;
 }
 #endif
+
+static void AQR105_hw_reset(void)
+{
+	pio_set_gpio_output(XAUI_RX_DC_RST, 0);
+	pio_set_gpio_output(XAUI_RESET, 0);
+	pio_set_value(XAUI_RESET, 1);
+	udelay(500);
+	pio_set_value(XAUI_RESET, 0);
+}
+
+
+static void _rtl8307hReset(void)
+{
+	dbg_info("*** Reset RTL8307...\n");
+	/* reset realtek ethernet switch */
+	pio_set_gpio_output(ETH_RST_N, 1);
+	pio_set_value(ETH_RST_N, 0);
+	udelay(500);
+	pio_set_value(ETH_RST_N, 1);
+}
+
+#include "register_map_500768.h"
+
+#define	SI5351B_BUS	0
+#define PCA9544_ADDR	(0xE0>>1)
+#define	SI5351B_ADDR	(0xC0>>1)
+
+static unsigned int si5351b_get_twi_bus(void)
+{
+	unsigned int bus = 0;
+
+#if defined(CONFIG_TWI0)
+	bus = 0;
+#elif defined(CONFIG_TWI1)
+	bus = 1;
+#elif defined(CONFIG_TWI2)
+	bus = 2;
+#elif defined(CONFIG_TWI3)
+	bus = 3;
+#endif
+	return bus;
+}
+
+
+void  init_si5351b(void)
+{
+	int i;
+	unsigned char	buffer[2];
+	unsigned int bus;
+
+	dbg_info("*** Init SI5351B...\n");
+
+	bus = si5351b_get_twi_bus();
+	buffer[0] = 0x04 | SI5351B_BUS;	// set mux for si5351b 
+	if(twi_write(bus, PCA9544_ADDR, 0, 0, buffer, 1) )
+	{
+		dbg_info("Can't connect to PCA9544\n");
+		return;
+	}
+
+
+	buffer[0] = 0xff;
+	twi_write(bus, SI5351B_ADDR, 3, 1, buffer, 1);
+
+	buffer[0] = 0x80;
+	twi_write(bus, SI5351B_ADDR, 16, 1, buffer, 1);
+	twi_write(bus, SI5351B_ADDR, 17, 1, buffer, 1);
+	twi_write(bus, SI5351B_ADDR, 18, 1, buffer, 1);
+	twi_write(bus, SI5351B_ADDR, 19, 1, buffer, 1);
+	twi_write(bus, SI5351B_ADDR, 20, 1, buffer, 1);
+	twi_write(bus, SI5351B_ADDR, 21, 1, buffer, 1);
+	twi_write(bus, SI5351B_ADDR, 22, 1, buffer, 1);
+	twi_write(bus, SI5351B_ADDR, 23, 1, buffer, 1);
+
+
+	for (i=0; i<NUM_REGS_MAX; i++) {
+		buffer[0] = Reg_Store[i].Reg_Val;
+		twi_write(bus, SI5351B_ADDR, Reg_Store[i].Reg_Addr, 1, buffer, 1);
+	}
+
+	// adjust crystal capacitante register
+	buffer[0] = 0x12;
+	twi_write(bus, SI5351B_ADDR, 183, 1, buffer, 1);
+	// reset PLL
+	buffer[0] = 0xAC;
+	twi_write(bus, SI5351B_ADDR, 177, 1, buffer, 1);
+	buffer[0] = 0x00;
+	twi_write(bus, SI5351B_ADDR, 3, 1, buffer, 1);
+
+
+	if(twi_write(bus, PCA9544_ADDR, 0, 0, buffer, 1))
+	{
+		dbg_info("Can't connect to PCA9544 when try to read Si5351B\n");
+		return;
+	}
+	if(twi_read(bus, PCA9544_ADDR, 0, 1, buffer, 1) )
+	{
+		dbg_info("Can't read PCA9544\n");
+		return;
+	}
+	dbg_info("PCA9544 status: 0x%x\n", buffer[0]);
+
+	if(twi_read(bus, SI5351B_ADDR, 0, 1, buffer, 1) )
+	{
+		dbg_info("Can't read Si5351B\n");
+		return;
+	}
+	
+	dbg_info("SI5351B status: 0x%x\n", buffer[0]);
+	
+	return;
+}
+
+
+#define I2C_ADDR_MDIO	(0x64 >> 1)		// 8 bits addr format
+#define I2C_MDIO_MUX	TWI_NONE
+
+#define	MDIO_OPS_ADDR	0x00
+#define	MDIO_OPS_WRITE	0x01
+#define	MDIO_OPS_READ_INC	0x02
+#define	MDIO_OPS_READ	0x03
+
+#define MDIO_OPS		0x00
+#define MDIO_PRTAD		0x01
+#define FPGA_DEVAD		0x02
+#define FPGA_DATA		0x03
+#define FPGA_DATA_MSB	0x04
+#define FPGA_CONTROL	0x05
+#define FPGA_STATUS		0x06
+
+
+#define TLK_PRTAD	0x00
+#define AQR105_PRTAD	0x00
+//#define TLK_DEVAD	0x1E
+
+
+
+static unsigned int mdio_get_twi_bus(void)
+{
+	unsigned int bus = 0;
+
+#if defined(CONFIG_TWI0)
+	bus = 0;
+#elif defined(CONFIG_TWI1)
+	bus = 1;
+#elif defined(CONFIG_TWI2)
+	bus = 2;
+#elif defined(CONFIG_TWI3)
+	bus = 3;
+#endif
+	return bus;
+}
+
+// --------------------------------------------
+// Init FPGA registers
+//
+unsigned char  mdio_init(void)
+{
+	
+	return 1;
+}
+
+
+unsigned char  mdio_write_addr(unsigned char  prtad, unsigned char  devad, unsigned int  data)
+{
+int i;
+unsigned char	buf[6];
+unsigned int bus;
+
+	bus = mdio_get_twi_bus();
+
+	buf[0] = MDIO_OPS_ADDR;		// op code
+	buf[1] = prtad;
+	buf[2] = devad;
+	buf[3] = data;
+	buf[4] = (data>>8);
+	buf[5] = 0x01;	// start cmd
+		
+	if(twi_write(bus, I2C_ADDR_MDIO, MDIO_OPS, 1, buf, 6))
+	{
+		dbg_info("MDIO write addr failed!\n");
+		return 1;
+	}
+
+	return 0;
+}
+
+unsigned char  mdio_write_data(unsigned char  prtad, unsigned char  devad, unsigned int  data)
+{
+int i;
+unsigned char	buf[6];
+unsigned int bus;
+
+	bus = mdio_get_twi_bus();
+
+	buf[0] = MDIO_OPS_WRITE;		// op code
+	buf[1] = prtad;
+	buf[2] = devad;
+	buf[3] = data;
+	buf[4] = (data>>8);
+	buf[5] = 0x01;	// start cmd
+
+	if(twi_write(bus, I2C_ADDR_MDIO, MDIO_OPS, 1, buf, 6))
+	{
+		dbg_info("MDIO write data failed!\n");
+		return 1;
+	}
+
+	return 1;
+}
+
+unsigned char  mdio_read_data(unsigned char  prtad, unsigned char  devad, unsigned int  *data)
+{
+int i;
+unsigned char	buf[6];
+unsigned int bus;
+
+	bus = mdio_get_twi_bus();
+
+	buf[0] = MDIO_OPS_READ;		// op code
+	buf[1] = prtad;
+	buf[2] = devad;
+	buf[3] = 0x55;
+	buf[4] = 0x55;
+	buf[5] = 0x01;	// start cmd
+
+	if(twi_write(bus, I2C_ADDR_MDIO, MDIO_OPS, 1, buf, 6))
+	{
+		dbg_info("MDIO write address when read data: failed!\n");
+		return 1;
+	}
+
+	if(twi_read(bus, I2C_ADDR_MDIO, FPGA_DATA, 1, buf, 2))  // read data register
+	{
+		dbg_info("MDIO read data failed!\n");
+		return 1;
+	}
+	
+	*data = (buf[1]<<8 | buf[0]);
+	
+	return 0;
+}
+
+unsigned char  mdio_read_data_incr(unsigned char  prtad, unsigned char  devad, unsigned int  *data)
+{
+int i;
+unsigned char	buf[6];
+unsigned int bus;
+
+	bus = mdio_get_twi_bus();
+
+	buf[0] = MDIO_OPS_READ_INC;		// op code
+	buf[1] = prtad;
+	buf[2] = devad;
+	buf[3] = 0xDE;
+	buf[4] = 0xAD;
+	buf[5] = 0x01;	// start cmd
+
+	twi_write(bus, I2C_ADDR_MDIO, MDIO_OPS, 1, buf, 6);
+
+	twi_read(bus, I2C_ADDR_MDIO, FPGA_DATA, 1, buf, 2);  // read data register
+	*data = (buf[1]<<8 | buf[0]);
+	return 1;
+}
+
+unsigned char  mdio_read_data_buf(unsigned int  *data)
+{
+int i;
+unsigned char	buf[6];
+unsigned int bus;
+
+	bus = mdio_get_twi_bus();
+
+	twi_read(bus, I2C_ADDR_MDIO, FPGA_DATA, 1, buf, 2);  // read data register
+	*data = (buf[1]<<8 | buf[0]);
+	
+	return 1;
+}
+
+
+
+void initMdio(void)
+{
+	int timeout;
+	unsigned int mdio_page;
+	unsigned int mdio_addr;
+	unsigned int mdio_data;
+
+	dbg_info("MDIO init....");
+	timeout = 1000 / 50;	// 5 sec delay max
+	mdio_page=0x1;  mdio_addr=0xcc02;
+	mdio_write_addr(AQR105_PRTAD, mdio_page, mdio_addr);	 // set reg addr
+
+	while (--timeout!=0)
+	{
+		if(mdio_read_data(AQR105_PRTAD, mdio_page, &mdio_data))
+		{
+			dbg_info("MDIO Failed!");
+			break;		
+		}
+		
+		dbg_printf("%x", mdio_data);
+		if ((mdio_data & 0x03) == 0x01)
+		{
+			dbg_info("MDIO OK!");
+			break;		
+		}
+		//udelay(50000);
+		mdelay(500);
+		dbg_printf(".");
+	}
+
+	mdio_page=0x1e;  mdio_addr=0x0020;
+	mdio_write_addr(AQR105_PRTAD, mdio_page, mdio_addr);	 	// set reg addr
+	mdio_read_data(AQR105_PRTAD, mdio_page, &mdio_data);		// read data
+	dbg_info("\nAQR105 Firmware version %x.%x\n", (mdio_data>>8), (mdio_data&0xff) );
+
+
+	mdio_page=0x1e;  mdio_addr=0xC820;
+	mdio_write_addr(AQR105_PRTAD, mdio_page, mdio_addr);      	// set reg addr
+	mdio_read_data(AQR105_PRTAD, mdio_page, &mdio_data);     	// read data
+	dbg_info("AQR105 Temperature %d.%d\n", (mdio_data>>8), (mdio_data&0xff) );
+
+	// change LED behaviour
+	dbg_info("Change TX/RX LED....\n" );
+	mdio_page=0x1e;  mdio_addr=0xC430; mdio_data= 0x000F;        	// blink on TX & RX, strech activity by 100 ms
+	mdio_write_addr(AQR105_PRTAD, mdio_page, mdio_addr);      	// set reg addr
+	mdio_write_data(AQR105_PRTAD, mdio_page, mdio_data);      	// read data
+
+	dbg_info("Change 10G LED....\n" );
+	mdio_page=0x1e;  mdio_addr=0xC431; mdio_data= 0x0083;        	// Link 10G, strech activity by 100 ms
+	mdio_write_addr(AQR105_PRTAD, mdio_page, mdio_addr);      	// set reg addr
+	mdio_write_data(AQR105_PRTAD, mdio_page, mdio_data);      	// read data
+
+	mdelay(5000);
+	TRACE();
+}
+
+static void FPGA_reload(void)
+{
+	/* reset both HDMI chips */
+	pio_set_gpio_output(FPGA_PROGRAM, 1);
+	pio_set_value(FPGA_PROGRAM, 0);
+	udelay(500);
+	pio_set_value(FPGA_PROGRAM, 1);
+}
+
+
+static void LED_RESET(void)
+{
+	/* reset both HDMI chips */
+	pio_set_gpio_output(LED_VIDEO, 1);
+	pio_set_gpio_output(LED_ACT, 1);
+	pio_set_gpio_output(LED_POWER, 1);
+	pio_set_gpio_output(LED_LINK, 1);
+}
+
+
+int muxHwInit(void)
+{
+	init_si5351b();
+
+
+	AQR105_hw_reset();
+	//RTL8307H_hw_reset();
+//	_rtl8307hReset();
+//	HDMI_hw_reset();
+
+TRACE();
+
+	LED_RESET();
+	FPGA_reload();
+	//udelay(200000);	// wait for FPGA to finish loading
+	mdelay(2000);	// wait for FPGA to finish loading
+	
+
+	pio_set_gpio_output(LED_VIDEO, 0);
+	pio_set_gpio_output(LED_ACT, 0);
+	pio_set_gpio_output(LED_LINK, 0);
+
+
+	initMdio();
+	
+	return 0;
+}
+
+

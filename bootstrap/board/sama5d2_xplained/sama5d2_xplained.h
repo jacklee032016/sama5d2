@@ -139,4 +139,41 @@ PCK: 348MHz, MCK: 116MHz */
 #define CONFIG_SYS_ID_SDHC	AT91C_ID_SDMMC1
 #endif
 
+
+#define DIPSW_01				AT91C_PIN_PA(18)
+#define DIPSW_02				AT91C_PIN_PA(19)
+#define DIPSW_03				AT91C_PIN_PA(20)
+#define DIPSW_04				AT91C_PIN_PA(21)
+
+#define CONFIG_SYS_PWM_IR		AT91C_PIN_PB(1)
+
+
+#define FPGA_PROGRAM			AT91C_PIN_PC(12)
+#define FPGA_DONE				AT91C_PIN_PC(13)
+
+#define RX_SELECT1				AT91C_PIN_PC(14)
+#define RX_SELECT2				AT91C_PIN_PC(15)
+#define POWER_1V_OK			AT91C_PIN_PC(16)
+
+
+#define XAUI_RESET				AT91C_PIN_PC(17)
+#define XAUI_RX_DC_RST			AT91C_PIN_PC(18)
+
+#define EXPL_RST_N				AT91C_PIN_PC(19)
+#define HDMI_RST_N				AT91C_PIN_PC(20)
+#define ETH_RST_N				AT91C_PIN_PC(21)
+
+#define EXPL_COMP_ENA			AT91C_PIN_PC(24)
+
+
+#define LED_VIDEO				AT91C_PIN_PB(0)
+#define LED_ACT					AT91C_PIN_PB(4)
+#define LED_POWER				AT91C_PIN_PB(5)
+#define LED_LINK					AT91C_PIN_PB(7)
+
+
+#define  ADV7619_BUS			2
+
+
 #endif
+

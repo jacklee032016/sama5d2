@@ -1,0 +1,9 @@
+menu "MuxLab 7XX support"
+
+config MUX7XX
+	bool "enable MuxLab 5007XX support function"
+	help
+	  Support MuxLab 500774, 500767, and 500768, ethernet and others.
+
+
+endmenu

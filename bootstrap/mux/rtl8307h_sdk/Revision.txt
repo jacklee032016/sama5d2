@@ -1,0 +1,22 @@
+SDK V1.0 ~ V2.0 
+	Internal Version
+SDK V3.0 	2011-4-29
+	Initial Version
+SDK V3.1 	2011-5-3
+	Fix compile issue because of the introduction new MIB API
+SDK V3.2
+	*Fastern Init code burning by adding one irom set API
+	*Separate HEAC function into hec & arc function independently
+	*fix one bug in rtk_port_linkAbility_set: switch to phy page 0 before trigger MAC configure PHY
+	+Add function rtk_mac6_interface_set & rtk_mac6_interface_get
+	+Add DTV adapter file rtk_dtv_adapter.c
+	*Configure GPIOB as WOL when enter WOL function
+SDK V3.3 2011-6-3
+	+Add more DTV adapter function
+	+Add MIB function
+	*Fix one bug in ARC mode set
+SDK V3.4 2011-7-1
+  	+Add function rtk_stp_forwardDelay_set & rtk_stp_forwardDelay_get
+SDK V3.5 2011-8-10
+  	*Fix one bug in MIB function
+	*fix one bug when EEPROM autoloads

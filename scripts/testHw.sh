@@ -1,6 +1,8 @@
 #!/bin/bash
  
-source hwConfig.sh
+DIR_SRC=`dirname "$0"`
+
+source $DIR_SRC/hwConfig.sh
 
 # CMD_READ=readcfg:fuse
 CMD_READ=readcfg:bscr
