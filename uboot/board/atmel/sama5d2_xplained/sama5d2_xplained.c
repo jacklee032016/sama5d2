@@ -40,9 +40,8 @@ static int _select_i2c_ch_pca(u8 ch)
 	struct udevice *bus, *dev;
 	u8 addr, data[8];
 	int err;
-	int ret;
-	struct i2c_msg msg[2];
-	u8 i2c_addr[3], i2c_data[4];
+//	struct i2c_msg msg[2];
+//	u8 i2c_addr[3], i2c_data[4];
 
 	uclass_get_device_by_seq(UCLASS_I2C, 0, &bus);
 	if(bus == NULL)
@@ -64,11 +63,12 @@ static int _select_i2c_ch_pca(u8 ch)
 	data[0] = 0x04 | ch;
 	addr = 0x04 | ch; // I2C_MUX_PCA_ADDR;
 	
+	printf("I2C bus: %s write device %s\n", bus->name, dev->name );
 	err = dm_i2c_write(dev, addr, data, 0);
 	//ret = i2c_write(I2C_MUX_PCA_ADDR, 0x0, 1, &ch, 1);
-	if (ret) {
+	if (err) {
 		printf("PCA: failed to select proper channel.\n");
-		return ret;
+		return err;
 	}
 #if 0
 	msg[0].addr  = 0x54;
@@ -82,17 +82,17 @@ static int _select_i2c_ch_pca(u8 ch)
 	dm_i2c_xfer(dev, msg, 2);
 #endif
 
-	printf("return 0\n");
+//	printf("return 0\n");
 	return 0;
 }
 
 static void rtl830x_init(void)
 {
-	rtk_port_link_ability_t		P5_ability;
-	rtk_port_link_ability_t		P6_ability;
+	rtk_port_link_ability_t		P5_ability; /* FPGA */
+	rtk_port_link_ability_t		P6_ability; /* MCU */
 
-	rtk_port_link_ability_t		heac0;
-	rtk_port_link_ability_t		heac1; 
+//	rtk_port_link_ability_t		heac0;
+//	rtk_port_link_ability_t		heac1; 
 
 	if(_select_i2c_ch_pca(3) )
 	{
@@ -115,10 +115,14 @@ static void rtl830x_init(void)
 	rtk_hec_mode_set(PN_PORT0, HEC_MODE_ENABLE);
 	rtk_hec_mode_set(PN_PORT1, HEC_MODE_ENABLE); 
 
-	printf("p5 : %d %d %d %d %d %d\n", 
-		P5_ability.speed, P5_ability.duplex, P5_ability.link, P5_ability.nway, P5_ability.txpause, P5_ability.rxpause);
-	printf("p6 : %d %d %d %d %d %d\n", 
-		P6_ability.speed, P6_ability.duplex, P6_ability.link, P6_ability.nway, P6_ability.txpause, P6_ability.rxpause);
+	printf("Port-5: BW:%s; Duplex:%s; Status:%s; %d %d %d\n", 
+		(P5_ability.speed==PORT_SPEED_1000M)?"1000M":(P5_ability.speed==PORT_SPEED_100M)?"100M":"None", 
+		(P5_ability.duplex==PORT_FULL_DUPLEX)?"Full":"Half", (P5_ability.link==PORT_LINKUP)?"Up":"Down", P5_ability.nway, P5_ability.txpause, P5_ability.rxpause);
+	printf("Port-6: BW:%s; Duplex:%s; Status:%s; %d %d %d\n", 
+		(P6_ability.speed==PORT_SPEED_1000M)?"1000M":(P6_ability.speed==PORT_SPEED_100M)?"100M":"None", 
+		(P6_ability.duplex==PORT_FULL_DUPLEX)?"Full":"Half", (P6_ability.link==PORT_LINKUP)?"Up":"Down", P6_ability.nway, P6_ability.txpause, P6_ability.rxpause);
+//	printf("p6 : %d %d %d %d %d %d\n", 
+//		P6_ability.speed, P6_ability.duplex, P6_ability.link, P6_ability.nway, P6_ability.txpause, P6_ability.rxpause);
 
 }
 
@@ -202,7 +206,7 @@ void spl_board_init(void)
 
 static void ddrc_conf(struct atmel_mpddrc_config *ddrc)
 {
-#if 1
+#if WITH_MUXLAB_BOARD
 	/* MuxLab */
 	ddrc->md = (ATMEL_MPDDRC_MD_DBW_16_BITS | ATMEL_MPDDRC_MD_DDR3_SDRAM);
 #else

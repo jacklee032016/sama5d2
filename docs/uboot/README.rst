@@ -2,6 +2,13 @@ README for u-boot
 ################################
 02.18, 2019
 
+
+uImage and zImage
+-------------------------------
+zImage: from kernel building, it is extracted by itselt; no mkimage is needed;
+uImage: mkimage, like that "mkimage -A arm -O linux -C none -T kernel -a $MEM_ADDRESS -e $MEM_ADDRESS -n $NAME -d zImage uImage"
+
+
 02.26, 2019
 -------------------------------
 Device Tree:

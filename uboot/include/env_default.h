@@ -10,7 +10,7 @@
 #include <env_callback.h>
 
 #define	CONFIG_IPADDR		192.168.168.181
-#define	CONFIG_SERVERIP	192.168.168.113
+#define	CONFIG_SERVERIP	192.168.168.101
 #define	CONFIG_NETMASK	255.255.255.0
 
 

@@ -14,9 +14,11 @@
 #define CONFIG_MISC_INIT_R
 
 /* SDRAM */
-#define CONFIG_NR_DRAM_BANKS		1
-#define CONFIG_SYS_SDRAM_BASE           0x20000000
-#define CONFIG_SYS_SDRAM_SIZE		0x20000000
+#define CONFIG_NR_DRAM_BANKS			1
+#define CONFIG_SYS_SDRAM_BASE           	0x20000000
+
+/*#define CONFIG_SYS_SDRAM_SIZE			0x20000000 */
+#define CONFIG_SYS_SDRAM_SIZE			0x8000000
 
 #ifdef CONFIG_SPL_BUILD
 #define CONFIG_SYS_INIT_SP_ADDR		0x218000
@@ -56,22 +58,24 @@
 
 #ifdef CONFIG_QSPI_BOOT
 
-#if 1
-#define	_DTB_START 		"0x40000"
+ #if WITH_MUXLAB_OLD_VERSION
+#define	_DTB_START 			"0xA0000"	/* offset: 640K */
+#define	_DTB_SIZE 			"0x10000"	/* size: 64K */
+
+#define	_KERNEL_START 		"0xB0000"	/* offset: 704KB=640+64 */
+#define	_KERNEL_SIZE 		"0x400000"	/* size : 4MB */
+
+#define	_RAMDISK_START		"0x4D0000"	/* offset: */
+#define	_RAMDISK_SIZE		"0x1000000"	/* size: 16MB */
+#else
+#define	_DTB_START 			"0x40000"
 #define	_DTB_SIZE 			"0x10000"
 
 #define	_KERNEL_START 		"0x100000"
 #define	_KERNEL_SIZE 		"0x500000"
 
-#define	_RAMDISK_START	"0x600000"
+#define	_RAMDISK_START		"0x600000"
 #define	_RAMDISK_SIZE		"0x700000"
-
-#else
-#define	_DTB_START 			"0x180000"
-#define	_DTB_SIZE 			"0x10000"
-
-#define	_KERNEL_START 		"0x200000"
-#define	_KERNEL_SIZE 		"0x600000"
 #endif
 
 #undef CONFIG_ENV_SPI_BUS
@@ -83,8 +87,7 @@
                                         "sf read 0x25000000 "_RAMDISK_START" "_RAMDISK_SIZE"; "		\
                                         "sf read 0x21000000 "_DTB_START" "_DTB_SIZE"; "		\
                                         "sf read 0x22000000 "_KERNEL_START" "_KERNEL_SIZE"; "	\
-                                        "bootm 0x22000000 - 0x21000000"
-
+                                        "bootz 0x22000000 - 0x21000000"
 #endif
 
 /* SPL */

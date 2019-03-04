@@ -366,8 +366,7 @@ int dm_i2c_probe(struct udevice *bus, uint chip_addr, uint chip_flags,
 
 	/* First probe that chip */
 	ret = i2c_probe_chip(bus, chip_addr, chip_flags);
-	printf("%s: bus='%s', address %02x, ret=%d\n", __func__, bus->name,
-	      chip_addr, ret);
+	printf("%s: bus='%s', address %02x, ret=%d\n", __func__, bus->name, chip_addr, ret);
 	if (ret)
 		return ret;
 

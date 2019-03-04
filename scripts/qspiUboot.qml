@@ -22,30 +22,16 @@ JLinkConnection {
 		// initialize QSPI applet
 		initializeApplet("qspiflash")
 
-		// erase all memory
-		//applet.erase(0, applet.memorySize)
-		// erase 1M flash
-		//applet.erase(0x20000, 0x80000)
-		applet.erase(0x60000, 0x100000)
+		// old version: 0x20000, size 0x80000
+		applet.erase(0x20000, 0x80000)
+		// write old
+		applet.write(0x20000, "u-boot.bin", true)//
+		
+		
+		// new version 0x60000, size 0x100000
+		// applet.erase(0x60000, 0x100000)
+		// write new version
+		// applet.write(0x60000, "u-boot.bin", true)//
 
-		// applet.erase(0, 0x100000)
-		//applet.erase(0, 0xa0000)
-		// write files
-		//applet.write(0x20000, "u-boot.bin", true)//
-		applet.write(0x60000, "u-boot.bin", true)//
-
-
-		// initialize boot config applet
-//		initializeApplet("bootconfig")
-
-		// Use BUREG0 as boot configuration word
-//		applet.writeBootCfg(BootCfg.BSCR, BSCR.fromText("VALID,BUREG0"))
-
-		// Enable external boot only on QSPI0 IOSET3
-//		applet.writeBootCfg(BootCfg.BUREG0,
-//			BCW.fromText("EXT_MEM_BOOT,UART1_IOSET1,JTAG_IOSET1," +
-//			             "SDMMC1_DISABLED,SDMMC0_DISABLED,NFC_DISABLED," +
-//			             "SPI1_DISABLED,SPI0_DISABLED," +
-//			             "QSPI1_DISABLED,QSPI0_IOSET3"))
 	}
 }

@@ -1,0 +1,98 @@
+
+DDR Test from 0x20000000 to 0x26000000 Passed.
+DDR Test from 0x28000000 to 0x2f000000 Passed.
+
+root:Angelica_L768
+
+mkfs.jffs2 -r ./txapp0816 -e 0x10000 -p 0x400000 -n -l -o jffs2_txapp
+
+mkfs.jffs2 -r ./rxapp0813 -e 0x10000 -p 0x400000 -n -l -o jffs2_rxapp
+
+//erase app mtd  4M
+
+flash_erase /dev/mtd8 0 64
+
+flashcp txapp /dev/mtd8
+
+flashcp rxapp /dev/mtd8
+
+//erase app mtd  4M
+
+flash_erase /dev/mtd8 0 64
+
+flashcp txapp /dev/mtd8
+
+flashcp rxapp /dev/mtd8
+ 
+
+ 
+
+//erase file system 20M
+
+flash_erase /dev/mtd7 0 320
+
+ 
+
+//erase file system 16M
+
+flash_erase /dev/mtd7 0 256
+
+ 
+
+ 
+
+ 
+
+make ramdisk
+
+genext2fs -b 40960 -d rootfs1019 ramdisk
+
+gzip -9 -f ramdisk
+
+
+Use muxds_test_key to set security chip key.
+
+ 
+
+setenv bootargs ¡°initrd=0x25000000,40M root=/dev/ram0 rw init=/linuxrc console=ttyS0,115200
+
+ 
+
+setenv bootcmd ¡°sf probe 0; sf read 0x22000000 0xB0000 0x400000; sf read 0x25000000 0x4D0000 0x1000000; sf read 0x21000000 0xA0000 0x10000;bootz 0x22000000 - 0x21000000¡±
+
+
+
+2. Bootstrap
+
+        Cd /home/500768/laurent20180125/at91bootstrap-master 
+make mrproper
+make muxlab_500768_defconfig
+make
+
+3. Uboot
+/home/500768/laurent20180125/u-boot-at91-master# cp m500768.config .config
+root@alex-VirtualBox:/home/500768/laurent20180125/u-boot-at91-master# make
+
+4. Kernel
+
+root@alex-VirtualBox:/home/500768/laurent20180125/linux-at91# cp muxlab_m500768.config .config
+root@alex-VirtualBox:/home/500768/laurent20180125/linux-at91# make ARCH=arm
+make ARCH=arm menuconfig
+dts : make ARCH=arm dtbs
+
+5. Buildroot
+Add ethtool, ssh, gdbserver, avahi£¬ udhcpc
+
+Steps:
+(1) Set sshd_config(remove in release version)
+(2) Copy rcs in init.d
+(3) Mkdir /home/ftpadmin,
+(4) change /etc/hostname 
+(5) Mkdir /etc/vsftpd/userconfig, create ftpadmin file, modify vsftpd.conf
+(6) Cp httpd.conf to /etc/apache2/
+
+make ramdisk
+
+genext2fs -b 40960 -d rootfs1019 ramdisk
+
+gzip -9 -f ramdisk

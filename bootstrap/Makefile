@@ -203,7 +203,8 @@ endif
 
 # comment as new 
 # BOOT_NAME=$(BOARDNAME)-$(PROJECT)$(CARD_SUFFIX)boot-$(TARGET_NAME)$(BLOB)-$(VERSION)$(REV)
-BOOT_NAME=767samaBootstrap
+#BOOT_NAME=767samaBootstrap
+BOOT_NAME=Mux7XX-bootStrap-3.8.10
 AT91BOOTSTRAP:=$(BINDIR)/$(BOOT_NAME).bin
 
 ifeq ($(IMAGE),)

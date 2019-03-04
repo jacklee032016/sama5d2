@@ -24,6 +24,9 @@
 #define CONFIG_AT91_GPIO
 #endif
 
+#define	WITH_MUXLAB_BOARD				1
+
+#define	WITH_MUXLAB_OLD_VERSION			1
 
 /*
  * BOOTP options
@@ -73,13 +76,15 @@
 					"sf read 0x22000000 0x6c000 0x394000; "	\
 					"bootz 0x22000000 - 0x21000000"
 #elif CONFIG_QSPI_BOOT
-#if 0
-#define CONFIG_ENV_OFFSET		0x140000
-#define CONFIG_ENV_SIZE			0x20000
+
+#if WITH_MUXLAB_OLD_VERSION
+/* the second 64 KB of QSPI is for env, now only 64K is used. JL */
+#define CONFIG_ENV_OFFSET		0x10000
+#define CONFIG_ENV_SIZE			0x10000
 #else
 /* the second 128 KB of QSPI is for env, now only 64K is used. JL */
 #define CONFIG_ENV_OFFSET		0x20000	
-#define CONFIG_ENV_SIZE		0x10000
+#define CONFIG_ENV_SIZE			0x10000
 #endif
 
 #define CONFIG_ENV_SECT_SIZE		0x1000
