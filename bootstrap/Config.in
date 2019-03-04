@@ -8,6 +8,8 @@ config HAVE_DOT_CONFIG
 
 source "board/Config.in"
 
+source "mux/ConfigMux.in"
+
 source "driver/Config.in.driver"
 
 config CONFIG_PROJECT

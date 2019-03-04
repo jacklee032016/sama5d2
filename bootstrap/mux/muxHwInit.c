@@ -1,46 +1,8 @@
 
-#include "common.h"
-#include "hardware.h"
-#include "pmc.h"
-#include "usart.h"
-#include "debug.h"
-#include "ddramc.h"
+#include "muxStrapCmn.h"
+
 #include "gpio.h"
-#include "timer.h"
-#include "watchdog.h"
-#include "string.h"
-
-#include "arch/at91_pmc.h"
-#include "arch/at91_rstc.h"
 #include "arch/at91_pio.h"
-#include "arch/at91_ddrsdrc.h"
-#include "arch/at91_sfr.h"
-#include "muxlab_500768.h"
-#include "l2cc.h"
-#include "act8865.h"
-#include "twi.h"
-#include "arch/tz_matrix.h"
-#include "matrix.h"
-
-#include "si5351b.h"
-#include "mdio_drv.h"
-
-#include <rtk_api.h>
-#include <rtk_api_ext.h>
-#include <rtl8307h_types.h> 
-
-#include <rx_lib.h> 
-#include <adv7619_init.h> 
-
-
-enum
-{
-    Y1Y0_RGB = 0,                   /* Color space in Y1Y0 of AV Infoframe */
-    Y1Y0_YCBCR_422,
-    Y1Y0_YCBCR_444,
-    Y1Y0_INVALID
-};
-
 
  unsigned char _acsamsung_edid[256UL + 1] = {
   0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x4C, 0x2D, 0x1F, 0x04, 0x35, 0x32, 0x59, 0x4D, 0x0B, 0x18, 0x01, 0x04, 0xC2, 0x33, 0x1D, 0x78, 0x2A, 0xEE, 0x91, 0xA3, 0x54, 0x4C, 0x99, 0x26, 0x0F, 0x50, 0x54, 0x2F, 0xCE, 0x00, 0x81, 0x80,
@@ -52,24 +14,6 @@ enum
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFD, 0x00
 };
 
-const unsigned char _acComplete_EDID_SEIKI_4K[256UL + 1] = {
-  0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x4C, 0xAB, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x23, 0x17, 0x01, 0x03, 0x81, 0x56, 0x30, 0x78, 0x8A, 0xA5, 0x8E, 0xA6, 0x54, 0x4A, 0x9C, 0x26, 0x12, 0x45, 0x46, 0xAD, 0xCE, 0x00, 0x81, 0x40,
-  0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x04, 0x74, 0x00, 0x30, 0xF2, 0x70, 0x5A, 0x80, 0xB0, 0x58, 0x8A, 0x00, 0x56, 0xE1, 0x31, 0x00, 0x00, 0x1E, 0x9A, 0x29, 0xA0, 0xD0, 0x51, 0x84, 0x22, 0x30,
-  0x50, 0x98, 0x36, 0x00, 0x60, 0xE1, 0x31, 0x00, 0x00, 0x1C, 0x00, 0x00, 0x00, 0xFD, 0x00, 0x32, 0x4B, 0x18, 0x3C, 0x0B, 0x00, 0x0A, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x00, 0x00, 0x00, 0xFC, 0x00, 0x53, 0x45, 0x33, 0x39, 0x55, 0x59, 0x30,
-  0x34, 0x0A, 0x20, 0x20, 0x20, 0x20, 0x01, 0x65, 0x02, 0x03, 0x2A, 0x71, 0x4F, 0x06, 0x07, 0x02, 0x03, 0x15, 0x96, 0x11, 0x12, 0x13, 0x04, 0x14, 0x05, 0x1F, 0x90, 0x20, 0x23, 0x09, 0x07, 0x07, 0x83, 0x01, 0x00, 0x00, 0x6D, 0x03, 0x0C, 0x00,
-  0x20, 0x00, 0x08, 0x3C, 0x20, 0x40, 0x68, 0x01, 0x02, 0x03, 0x8C, 0x0A, 0xD0, 0x90, 0x20, 0x40, 0x31, 0x20, 0x0C, 0x40, 0x55, 0x00, 0x56, 0xE1, 0x31, 0x00, 0x00, 0x18, 0x01, 0x1D, 0x80, 0x18, 0x71, 0x1C, 0x16, 0x20, 0x58, 0x2C, 0x25, 0x00,
-  0x56, 0xE1, 0x31, 0x00, 0x00, 0x9E, 0x01, 0x1D, 0x80, 0xD0, 0x72, 0x1C, 0x16, 0x20, 0x10, 0x2C, 0x25, 0x80, 0x56, 0xE1, 0x31, 0x00, 0x00, 0x9E, 0x01, 0x1D, 0x00, 0xBC, 0x52, 0xD0, 0x1E, 0x20, 0xB8, 0x28, 0x55, 0x40, 0x56, 0xE1, 0x31, 0x00,
-  0x00, 0x1E, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x88, 0x00
-};
-
-
-STATIC CONSTANT RX_PIN Pin[] = 
-{
-    RX_LLC_OUT_PIN,     RX_SYNC_OUT_PINS,  
-    RX_PIX_OUT_PINS,    RX_AUD_OUT_PINS,
-    RX_INT2_OUT_PIN,
-    (RX_PIN)0xff 
-};
 
 
 static void AQR105_hw_reset(void)
@@ -104,13 +48,112 @@ static void HDMI_hw_reset(void)
 	pio_set_value(HDMI_RST_N, 1);
 }
 
+
+
+/* Wait for FPGA to load firmware from SPI memory */
+static char  _extBspFpgaWaitDone(unsigned int  seconds)
+{
+//	char data;
+	unsigned int	timeout;
+	char  done = 0;
+	
+	timeout = seconds;
+
+	while (1)
+	{
+		done = pio_get_value(FPGA_DONE);
+		if (done== 0)
+		{
+			dbg_printf("L");
+		}
+		else
+		{
+			dbg_printf("H");
+			break;
+		}
+		
+		if (timeout == 0)
+		{
+			dbg_printf("Timeout in waiting FPGA Done\n");
+			break;
+		}
+
+		timeout--;
+		mdelay(1000);
+	}
+	
+	return done;
+}
+
 static void FPGA_reload(void)
 {
 	/* reset both HDMI chips */
 	pio_set_gpio_output(FPGA_PROGRAM, 1);
+	pio_set_gpio_input(FPGA_DONE, PIO_DEFAULT);
+
 	pio_set_value(FPGA_PROGRAM, 0);
 	udelay(500);
 	pio_set_value(FPGA_PROGRAM, 1);
+
+	mdelay(50);
+
+//	_extBspFpgaWaitDone(20);
+}
+
+
+int mdioInit(void)
+{
+	int timeout;
+	unsigned int mdio_page;
+	unsigned int mdio_addr;
+	unsigned int mdio_data;
+
+	dbg_info("MDIO init....");
+	timeout = 1000 / 50;	// 5 sec delay max
+	mdio_page=0x1;  mdio_addr=0xcc02;
+	mdio_write_addr(AQR105_PRTAD, mdio_page, mdio_addr);	 // set reg addr
+
+	while (--timeout!=0)
+	{
+		mdio_read_data(AQR105_PRTAD, mdio_page, &mdio_data);	// read data
+		dbg_printf("%x", mdio_data);
+		if ((mdio_data & 0x03) == 0x01)
+		{
+			dbg_info("MDIO OK!");
+			break;		
+		}
+		udelay(50000);
+		dbg_printf(".");
+	}
+
+	if(timeout == 0)
+	{
+		dbg_info("Timeout when MDIO access\n");
+		return -1;
+	}
+
+	mdio_page=0x1e;  mdio_addr=0x0020;
+	mdio_write_addr(AQR105_PRTAD, mdio_page, mdio_addr);	 	// set reg addr
+	mdio_read_data(AQR105_PRTAD, mdio_page, &mdio_data);		// read data
+	dbg_info("\nAQR105 Firmware version %x.%x\n", (mdio_data>>8), (mdio_data&0xff) );
+
+
+	mdio_page=0x1e;  mdio_addr=0xC820;
+	mdio_write_addr(AQR105_PRTAD, mdio_page, mdio_addr);      	// set reg addr
+	mdio_read_data(AQR105_PRTAD, mdio_page, &mdio_data);     	// read data
+	dbg_info("AQR105 Temperature %d.%d\n", (mdio_data>>8), (mdio_data&0xff) );
+
+	// change LED behaviour
+	mdio_page=0x1e;  mdio_addr=0xC430; mdio_data= 0x000F;        	// blink on TX & RX, strech activity by 100 ms
+	mdio_write_addr(AQR105_PRTAD, mdio_page, mdio_addr);      	// set reg addr
+	mdio_write_data(AQR105_PRTAD, mdio_page, mdio_data);      	// read data
+
+	mdio_page=0x1e;  mdio_addr=0xC431; mdio_data= 0x0083;        	// Link 10G, strech activity by 100 ms
+	mdio_write_addr(AQR105_PRTAD, mdio_page, mdio_addr);      	// set reg addr
+	mdio_write_data(AQR105_PRTAD, mdio_page, mdio_data);      	// read data
+
+//	mdelay(5000);
+	return 0;
 }
 
 
@@ -125,14 +168,15 @@ static void LED_RESET(void)
 
 unsigned read_dipsw(void)
 {
-const struct pio_desc pio_pins[] = {
-	{"SW1", DIPSW_01, 1, PIO_DEFAULT, PIO_INPUT},
-	{"SW2", DIPSW_02, 1, PIO_DEFAULT, PIO_INPUT},
-	{"SW3", DIPSW_03, 1, PIO_DEFAULT, PIO_INPUT},
-	{"SW4", DIPSW_04, 1, PIO_DEFAULT, PIO_INPUT},
-	{"SEL1", RX_SELECT1, 1, PIO_DEFAULT, PIO_INPUT},
-	{"SEL2", RX_SELECT2, 1, PIO_DEFAULT, PIO_INPUT},
-	{(char *)0, 0, 0, PIO_DEFAULT, PIO_INPUT},
+	const struct pio_desc pio_pins[] =
+	{
+		{"SW1", DIPSW_01, 1, PIO_DEFAULT, PIO_INPUT},
+		{"SW2", DIPSW_02, 1, PIO_DEFAULT, PIO_INPUT},
+		{"SW3", DIPSW_03, 1, PIO_DEFAULT, PIO_INPUT},
+		{"SW4", DIPSW_04, 1, PIO_DEFAULT, PIO_INPUT},
+		{"SEL1", RX_SELECT1, 1, PIO_DEFAULT, PIO_INPUT},
+		{"SEL2", RX_SELECT2, 1, PIO_DEFAULT, PIO_INPUT},
+		{(char *)0, 0, 0, PIO_DEFAULT, PIO_INPUT},
 	};
 
 //	pio_set_gpio_input(RX_SELECT2, PIO_PULLUP);
@@ -165,54 +209,43 @@ static void pwm_init(void)
 }
 
 
-void hw_config_late(void)
+int muxBoardConfig(void)
 {
-	int timeout;
-	unsigned int mdio_page;
-	unsigned int mdio_addr;
-	unsigned int mdio_data;
-
-	//unsigned char	version[32];
-	//unsigned char	buffer[4];
-	unsigned char	data[16];
-	unsigned int bus;
-	//unsigned int chan = 2;
-
-	//unsigned int	RxRev;
-	//RX_OP_MODE 	OpMode = RX_OPMODE_HDMI;
-	//RX_PIX_BUS_INFO PixBusInfo;
-
-	BOOL  Encrypted;
-	RX_DEV_STATE DevState[2];
-	unsigned char  bRet;
-	RX_OP_MODE_CFG  OpModeCfg;
-
-	unsigned char  twi_data;
-	unsigned char  twi_addr;
-	unsigned char  twi_dev;
-	UINT16	Noise =0;
-	UINT16	Calib =0;
-	unsigned char  cfg;
-
 	// init M500768 hw specific
-	init_si5351b();
+	int ret = muxSi5351bInit();
+	if(ret)
+	{
+//		return -1;
+	}
+	
+	extSensorGetTemperatureCelsius();
+
 
 	AQR105_hw_reset();
 	//RTL8307H_hw_reset();
 	HDMI_hw_reset();
 
+TRACE();
 	LED_RESET();
 	FPGA_reload();
-	udelay(200000);	// wait for FPGA to finish loading
+//	udelay(200000);	// wait for FPGA to finish loading
+	mdelay(5000);	// wait for FPGA to finish loading
 	
 
 	pio_set_gpio_output(LED_VIDEO, 0);
 	pio_set_gpio_output(LED_ACT, 0);
 	pio_set_gpio_output(LED_LINK, 0);
 	
+	mdelay(200);	// wait for FPGA to finish loading
 
 	pwm_init();	
-	
+
+	if (!twi_init_done)
+		twi_init();
+
+#if 1	
+
+TRACE();
 
 #if 0
 	bus = 0;
@@ -324,46 +357,46 @@ void hw_config_late(void)
 
 #endif
 
-
-
-#if 1
-	timeout = 1000 / 50;	// 5 sec delay max
-	mdio_page=0x1;  mdio_addr=0xcc02;
-	mdio_write_addr(AQR105_PRTAD, mdio_page, mdio_addr);	 // set reg addr
-
-	while (--timeout!=0) {
-		mdio_read_data(AQR105_PRTAD, mdio_page, &mdio_data);	// read data
-		if ((mdio_data & 0x03) == 0x01) break;		
-		udelay(50000);
-		dbg_info(".");
+	if(mdioInit() )
+	{
+//		return -1;
 	}
-#endif
 
-	mdio_page=0x1e;  mdio_addr=0x0020;
-	mdio_write_addr(AQR105_PRTAD, mdio_page, mdio_addr);	 	// set reg addr
-	mdio_read_data(AQR105_PRTAD, mdio_page, &mdio_data);		// read data
-	dbg_info("\nAQR105 Firmware version %x.%x\n", (mdio_data>>8), (mdio_data&0xff) );
+TRACE();
 
-
-	mdio_page=0x1e;  mdio_addr=0xC820;
-	mdio_write_addr(AQR105_PRTAD, mdio_page, mdio_addr);      	// set reg addr
-	mdio_read_data(AQR105_PRTAD, mdio_page, &mdio_data);     	// read data
-	dbg_info("AQR105 Temperature %d.%d\n", (mdio_data>>8), (mdio_data&0xff) );
-
-	// change LED behaviour
-	mdio_page=0x1e;  mdio_addr=0xC430; mdio_data= 0x000F;        	// blink on TX & RX, strech activity by 100 ms
-	mdio_write_addr(AQR105_PRTAD, mdio_page, mdio_addr);      	// set reg addr
-	mdio_write_data(AQR105_PRTAD, mdio_page, mdio_data);      	// read data
-
-	mdio_page=0x1e;  mdio_addr=0xC431; mdio_data= 0x0083;        	// Link 10G, strech activity by 100 ms
-	mdio_write_addr(AQR105_PRTAD, mdio_page, mdio_addr);      	// set reg addr
-	mdio_write_data(AQR105_PRTAD, mdio_page, mdio_data);      	// read data
 
 	// read DIP switch value
-	cfg = read_dipsw();
+	unsigned cfg = read_dipsw();
 	dbg_info("DIP SW: %x \n", cfg);
 
+#if 	1
 
+TRACE();
+	unsigned char	version[32];
+	unsigned char	buffer[4];
+//	unsigned char	data[16];
+//	unsigned int bus;
+	//unsigned int chan = 2;
+
+	//unsigned int	RxRev;
+	//RX_OP_MODE 	OpMode = RX_OPMODE_HDMI;
+	//RX_PIX_BUS_INFO PixBusInfo;
+unsigned char	data[16];
+unsigned int bus;
+//unsigned int chan = 2;
+
+//unsigned int	RxRev;
+//RX_OP_MODE 	OpMode = RX_OPMODE_HDMI;
+//RX_PIX_BUS_INFO PixBusInfo;
+
+BOOL  Encrypted;
+RX_DEV_STATE DevState[2];
+unsigned char  bRet;
+RX_OP_MODE_CFG  OpModeCfg;
+
+unsigned char  twi_data;
+unsigned char  twi_addr;
+unsigned char  twi_dev;
 
 	bus = 0;
 	twi_dev = (0x60>>1);
@@ -403,12 +436,20 @@ void hw_config_late(void)
 
 	// read fpga version,revision
 	twi_addr = 29;
-	twi_read(bus, twi_dev, twi_addr, 1, &data, 3);
+	
+	if(twi_read(bus, twi_dev, twi_addr, 1, data, 3))
+	{
+		dbg_info("read FPGA version failed\n");
+	}
+	else
+	{
+		dbg_info("read FPGA version successfully\n");
+	}
+	
 	dbg_info("FPGA version %x %x %x\n", data[0],data[1],data[2] );
 
 
-	if ((data[0] & 0x80) == 0)
-	{
+	if ((data[0] & 0x80) == 0) {
 		dbg_info("FPGA RX unit \n");
 		dac_param(1000);
 
@@ -418,21 +459,26 @@ void hw_config_late(void)
 		init_video_param();
 		Sil9136_init();
 
-	}
-	else
-	{
+	} else {		
 		dbg_info("FPGA TX unit \n");
 		dac_param(0);
 		init_adv7619();
 		init_adv7619_B();
 		fpag_init_tx();
 	}
+#endif
 
-
+TRACE();
 
 //	while (1) {
 //		ADIAPI_RxHouseKeeping ();
 //		udelay(500);
 //	}
+
+#endif
+
+	TRACE();
+
+	return 0;
 }
 

@@ -1,10 +1,10 @@
 import SAMBA 3.2
-//import SAMBA.Connection.Serial 3.2
-import SAMBA.Connection.JLink 3.2
+import SAMBA.Connection.Serial 3.2
+//import SAMBA.Connection.JLink 3.2
 import SAMBA.Device.SAMA5D2 3.2
 
-//SerialConnection {
-JLinkConnection {
+SerialConnection {
+//JLinkConnection {
 
 	//device: SAMA5D2Xplained {
 		// to use a custom config, replace SAMA5D2Xplained by SAMA5D2 and
@@ -41,10 +41,10 @@ JLinkConnection {
 		applet.erase(0, 0x10000)
 
 		// write files
-		applet.write(0x00000, "767samaBootstrap.bin", true)//
+		//applet.write(0x00000, "767samaBootstrap.bin", true)//
 		
 		// test code
-		// applet.write(0x00000, "muxlab_500768-dataflashboot--3.8.10.bin", true)//
+		applet.write(0x00000, "muxlab_500768-dataflashboot--3.8.10.bin", true)//
 		
 		// 768 firmware
 		// applet.write(0x00000, "at91bootstrap.bin", true)//

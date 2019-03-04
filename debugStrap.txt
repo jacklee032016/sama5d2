@@ -1,0 +1,300 @@
+Read failed, but works 
+----------------------------
+
+AT91Bootstrap 3.8.10 (Sun Mar  3 11:36:26 EST 2019)
+
+EEPROM: Loading AT24xx information ...
+EEPROM: BoardName | [Revid] | VendorName
+
+EEPROM: Using default information
+
+EEPROM: Board sn: 0xd300000 revision: 0x248000
+
+SF: Got Manufacturer and Device ID: 20ba19
+SF: WARNING: can't read above 16MiB
+SF: Copy 0x100000 bytes from 0x60000 to 0x26f00000
+SF: Done to load image
+SI5351B status: 0xf1, Failed
+si5351b end!
+read failed
+...................
+AQR105 Firmware version 0x2.0xc
+AQR105 Temperature 37.230
+DIP SW: 0x30 
+read 03 reg 0x0
+before FPGA version 0xa0 0xf 0x20
+FPGA version 0x81 0x7 0x1
+FPGA TX unit 
+init ADV7619 
+init ADV7619 
+FPGA(60.0) 0x0 0x1c 0x0 0x0 
+SI5351B status: 0xf1, Failed
+si5351b end!<debug_uart> 
+
+U-Boot 2017.03-linux4sam_5.7 (Feb 27 2019 - 15:50:54 -0500)
+
+CPU: SAMA5D26-CU
+Crystal frequency:       12 MHz
+CPU clock        :      498 MHz
+Master clock     :      166 MHz
+Model: Atmel SAMA5D2 Xplained
+DRAM:  128 MiB
+SF: Detected n25q256 with page size 256 Bytes, erase size 4 KiB, total 32 MiB
+In:    serial
+Out:   serial
+Err:   serial
+p5 : 4 2 1 0 1 1
+p6 : 2 2 1 1 1 1
+Net:   eth0: ethernet@f8008000
+Hit any key to stop autoboot:  0 
+SF: Detected n25q256 with page size 256 Bytes, erase size 4 KiB, total 32 MiB
+device 0 offset 0xb0000, size 0x400000
+SF: 4194304 bytes @ 0xb0000 Read: OK
+device 0 offset 0x4d0000, size 0x1000000
+SF: 16777216 bytes @ 0x4d0000 Read: OK
+device 0 offset 0xa0000, size 0x10000
+SF: 65536 bytes @ 0xa0000 Read: OK
+=> 
+RomBOOT
+
+
+Correct version:
+---------------------
+	AQR105 Firmware version 0x2.0xc
+	AQR105 Temperature 39.96
+	DIP SW: 0x3f 
+	read 03 reg 0x0
+	FPGA version 0x81 0x1 0x1
+	FPGA TX unit 
+	init ADV7619 
+	init ADV7619 
+	FPGA(60.0) 0x0 0x1c 0x0 0x0 
+
+AT91Bootstrap 3.8.10 (Wed Sep 26 11:56:24 EDT 2018)
+
+EEPROM: Loading AT24xx information ...
+EEPROM: BoardName | [Revid] | VendorName
+
+EEPROM: Using default information
+
+EEPROM: Board sn: 0xd300000 revision: 0x248000
+
+SF: Got Manufacturer and Device ID: 20ba19
+SF: WARNING: can't read above 16MiB
+SF: Copy 0x80000 bytes from 0x20000 to 0x26f00000
+SF: Done to load image
+...................
+AQR105 Firmware version 0x2.0xc
+AQR105 Temperature 39.96
+DIP SW: 0x3f 
+read 03 reg 0x0
+FPGA version 0x81 0x1 0x1
+FPGA TX unit 
+init ADV7619 
+init ADV7619 
+FPGA(60.0) 0x0 0x1c 0x0 0x0 
+<debug_uart> 
+
+U-Boot 2017.03-linux4sam_5.7 (May 02 2018 - 17:17:22 -0400)
+
+CPU: SAMA5D26-CU
+Crystal frequency:       12 MHz
+CPU clock        :      498 MHz
+Master clock     :      166 MHz
+Model: Atmel SAMA5D2 Xplained
+DRAM:  128 MiB
+SF: Detected n25q256 with page size 256 Bytes, erase size 4 KiB, total 32 MiB
+*** Warning - bad CRC, using default environment
+
+In:    serial
+Out:   serial
+Err:   serial
+Failed to read ethernet address from EEPROM
+p5 : 4 2 1 0 1 1
+p6 : 2 2 1 1 1 1
+Net:   
+Error: ethernet@f8008000 address not set.
+No ethernet found.
+Hit any key to stop autoboot:  0 
+SF: Detected n25q256 with page size 256 Bytes, erase size 4 KiB, total 32 MiB
+AT91Bootstrap 3.8.10 (Sun Mar  3 07:48:02 EST 2019)
+
+[at91_aicredir.c-45]All interrupts redirected to AIC
+[spi_nor.c-54]SF: Got Manufacturer and Device ID: 20ba19
+[spi_nor.c-423]SF: WARNING: can't read above 16MiB
+[spi_flash.c-372]SF: Copy 0x100000 bytes from 0x60000 to 0x26f00000
+SF: Done to load image
+[muxlab_500768.c-473]si5351b init....
+[at91_twi.c-318]twi clock: 83000000
+[at91_twi.c-154]twi bus version 0x704: 0 configured as master: bus clock:83000000; i2c clock:100000
+[at91_twi.c-154]twi bus version 0x704: 1 configured as master: bus clock:83000000; i2c clock:100000
+[at91_twi.c-347]Auto-Config the TWI Bus by the board
+[at91_twi.c-352]twi base: 0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[at91_twi.c-278]twi base: 0x0xf8028000
+[muxlab_500768.c-522]SI5351B status: 0x11, OK
+[muxlab_500768.c-524]si5351b end![at91_twi.c-278]twi base: 0x0xf8028000
+[muxlab_500768.c-335]LM95245 Temp(MSB): 32
+[at91_twi.c-278]twi base: 0x0xf8028000
+[muxlab_500768.c-342]LM95245 Temp(LSB): 7*0.125;
+[muxlab_500768.c-1458]
+
+
+
+SF: Got Manufacturer and Device ID: 20ba19
+SF: WARNING: can't read above 16MiB
+SF: Copy 0x100000 bytes from 0x60000 to 0x26f00000
+SF: Done to load image
+...................
+AQR105 Firmware version 0x0.0x3
+AQR105 Temperature 0.3
+DIP SW: 0x30 
+read 03 reg 0x0
+FPGA version 0x67 0xf 0x20
+FPGA RX unit 
+FPGA(60.0) 0xff 0xfe 0xfd 0xfc 
+HDMI RX unit 
+DRP read 0x82 0x10 0x8
+HDMI resp 0x6 0xff 0x20 
+<debug_uart> 
+
+AQR105 Firmware version 0x0.0x3
+AQR105 Temperature 0.3
+DIP SW: 0x30 
+read 03 reg 0x0
+FPGA version 0x67 0xf 0x20
+FPGA RX unit 
+FPGA(60.0) 0xff 0xfe 0xfd 0xfc 
+HDMI RX unit 
+DRP read 0x82 0x10 0x8
+HDMI resp 0x6 0xff 0x20 
+
+
+My program:
+
+read failed
+AQR105 Temperature 0.3
+DIP SW: 0x30 
+read 03 reg 0x0
+FPGA version 0x7f 0xf 0x20
+FPGA RX unit 
+FPGA(60.0) 0xff 0xfe 0xfd 0xfc 
+HDMI RX unit 
+before DRP read 0x82 0x10 0x8
+read DRP failed
+DRP read 0x82 0x10 0x8
+HDMI resp 0x6 0xff 0x20 
+Write PCA failed
+SI5351B read failed
+<debug_uart> 

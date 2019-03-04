@@ -23,10 +23,10 @@ choice
 # source "board/sama5d3x_cmp/Config.in.board"
 # source "board/sama5d4ek/Config.in.board"
 # source "board/sama5d4_xplained/Config.in.board"
-source "board/sama5d2_ptc_ek/Config.in.board"
+# source "board/sama5d2_ptc_ek/Config.in.board"
 source "board/sama5d2_xplained/Config.in.board"
-source "board/sama5d27_som1_ek/Config.in.board"
-source "board/sama5d2_lpddr2sip_vb/Config.in.board"
+# source "board/sama5d27_som1_ek/Config.in.board"
+# source "board/sama5d2_lpddr2sip_vb/Config.in.board"
 # source "contrib/board/Config.in.board"
 
 endchoice

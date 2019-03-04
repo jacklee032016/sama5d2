@@ -89,9 +89,11 @@ static inline void dbg_hexdump(const unsigned char *buf,
 #endif
 
 #ifdef CONFIG_DEBUG
-//	#define	TRACE()		\
-//		{}
-		
+/*
+	#define	TRACE()		\
+		{}
+*/
+
 //		dbg_info("%s-%u.%s()\n",  __FILE__, __LINE__, __FUNCTION__)
 #else
 #endif	

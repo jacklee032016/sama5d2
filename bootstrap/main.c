@@ -132,7 +132,13 @@ int main(void)
 	/* point never reached with TZ support */
 #endif
 
-	muxHwInit();
+	if(muxBoardConfig() )
+	{
+		dbg_printf("Mux Board initialization failed" );
+		while(1)
+		{
+		}
+	}
 
 #if !defined(CONFIG_LOAD_NONE)
 	return JUMP_ADDR;

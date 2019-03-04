@@ -655,8 +655,10 @@ static int load_eeprom_info(unsigned char *buff, unsigned int size,
 
 	dbg_info("EEPROM: Mux767 | [1.0] | MuxLab\n");
 
+#if 0
 	if (load_ek_at24xx(buff, size))
 		return -1;
+#endif
 
 	if (get_board_hw_info(buff, boardsn, bd_info))
 		return -1;

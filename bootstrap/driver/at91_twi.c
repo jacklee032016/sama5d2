@@ -27,10 +27,10 @@
  */
 #include "hardware.h"
 #include "board.h"
-#include "arch/at91_twi.h"
 #include "div.h"
 #include "debug.h"
 #include "pmc.h"
+#include "arch/at91_twi.h"
 
 #if defined(AT91SAM9X5)
 #define TWI_CLK_OFFSET (4)
@@ -83,7 +83,10 @@ static unsigned int get_twi_base(unsigned int bus)
 	unsigned int twi_base;
 
 	if (bus >= AT91C_NUM_TWI)
+	{
+		dbg_info("bus: %x\n", bus);
 		return 0;
+	}
 
 	switch (bus) {
 #ifdef CONFIG_TWI0
@@ -107,6 +110,7 @@ static unsigned int get_twi_base(unsigned int bus)
 		break;
 #endif
 	default:
+		dbg_info("bus: %x\n", bus);
 		twi_base = 0;
 		break;
 	}
@@ -236,7 +240,7 @@ int twi_read(unsigned int bus, unsigned char device_addr,
 			;
 
 		if (!timeout) {
-			dbg_info("twi read: timeout to wait RXRDY bit on device 0x%x\n", device_addr);
+			dbg_info("twi read: timeout to wait RXRDY bit on device %x, reg value:%x\n", device_addr, twi_reg_read(twi_base, TWI_SR));
 			return -1;
 		}
 
@@ -252,7 +256,6 @@ int twi_read(unsigned int bus, unsigned char device_addr,
 		return -1;
 	}
 
-TRACE();
 	return 0;
 }
 
@@ -267,10 +270,9 @@ int twi_write(unsigned int bus, unsigned char device_addr,
 	if (!twi_base)
 	{
 		dbg_info("twi write: bus is invalidate\n");
-TRACE();
 		return -1;
 	}
-	dbg_loud("twi base: 0x%x\n", twi_base);
+//	dbg_loud("twi write base: 0x%x\n", twi_base);
 
 	twi_startwrite(twi_base, device_addr,
 				internal_addr, iaddr_size, *data++);
@@ -283,7 +285,6 @@ TRACE();
 
 		if (!timeout) {
 			dbg_info("twi write: timeout to wait TXRDY bit on device address:0x%x\n", device_addr);
-TRACE();
 			return -1;
 		}
 
@@ -298,7 +299,6 @@ TRACE();
 	while (!twi_check_txcompleted(twi_base) && (--timeout))
 		;
 	if (!timeout) {
-TRACE();
 		dbg_info("twi write: timeout to wait TXCOMP bit\n");
 		return -1;
 	}

@@ -238,6 +238,8 @@ include	driver/driver.mk
 # include	contrib/driver/driver.mk
 include	fs/src/fat.mk
 
+include	mux/mux.mk
+
 GC_SECTIONS=--gc-sections
 
 NOSTDINC_FLAGS=-nostdinc -isystem $(shell $(CC) -print-file-name=include)
