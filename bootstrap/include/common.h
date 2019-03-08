@@ -98,5 +98,6 @@ static inline unsigned int swap_uint32(unsigned int data)
 	return a | b | c | d;
 }
 
+#include "muxCompact.h"
 
 #endif /* #ifdef __COMMON_H__ */

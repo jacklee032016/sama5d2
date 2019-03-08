@@ -303,7 +303,12 @@ PCK: 348MHz, MCK: 116MHz */
 
 
 #define LED_VIDEO	AT91C_PIN_PB(0)
+#ifdef	MUX_BOARD
+#define LED_ACT		AT91C_PIN_PB(9)
+#else
 #define LED_ACT		AT91C_PIN_PB(4)
+#endif
+
 #define LED_POWER	AT91C_PIN_PB(5)
 #define LED_LINK	AT91C_PIN_PB(7)
 

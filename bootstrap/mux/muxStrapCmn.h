@@ -61,6 +61,11 @@
 #define AQR105_PRTAD	0x00
 //#define TLK_DEVAD	0x1E
 
+#define	SI5351B_BUS	0
+#define	SI5351B_ADDR	(0xC0>>1)
+
+
+
 #define	EXT_I2C_PCA9554_CS_MAC				(4)	/* CS0, MAC address; not used */
 #define	EXT_I2C_PCA9554_CS_SENSOR			(5)	/* CS1, sensor and EEPROM  */
 #define	EXT_I2C_PCA9554_CS_FPGA				(6)	/* CS2, FPGA */
@@ -129,6 +134,8 @@ void  init_pll_drp(unsigned char mode);
 unsigned int muxHwGetTwiBus(void);
 
 short extSensorGetTemperatureCelsius(void);
+
+int extDdrMemoryTest(void);
 
 
 #endif

@@ -1,4 +1,41 @@
 
+/*				
+				mux@70 {
+					compatible = "nxp,pca9548";
+					reg = <0x70>;
+					#address-cells = <1>;
+					#size-cells = <0>;
+
+					/*
+					i2c@3 {
+						#address-cells = <1>;
+						#size-cells = <0>;
+						reg = <3>;
+
+						gpio1: gpio@38 {
+							compatible = "nxp,pca8574";
+							reg = <0x38>;
+							#gpio-cells = <2>;
+							gpio-controller;
+						};
+					};
+					i2c@4 {
+						#address-cells = <1>;
+						#size-cells = <0>;
+						reg = <4>;
+
+						gpio2: gpio@38 {
+							compatible = "nxp,pca8574";
+							reg = <0x38>;
+							#gpio-cells = <2>;
+							gpio-controller;
+						};
+					};
+					*/
+				};
+*/
+
+
 set I2C bus as 0
 i2c dev 0
  

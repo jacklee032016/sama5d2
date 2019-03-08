@@ -37,6 +37,8 @@
 #include "secure.h"
 #include "sfr_aicredir.h"
 
+#include "debug.h"
+
 #ifdef CONFIG_HW_DISPLAY_BANNER
 static void display_banner (void)
 {
@@ -44,7 +46,7 @@ static void display_banner (void)
 }
 #endif
 
-int muxHwInit(void);
+int muxBoardConfig(void);
 
 int main(void)
 {
@@ -100,6 +102,18 @@ int main(void)
 	act8945a_suspend_charger();
 #endif
 
+
+#ifdef	MUX_BOARD
+	if(muxBoardConfig() )
+	{
+		dbg_printf("Mux Board initialization failed" );
+		while(1)
+		{
+		}
+	}
+#endif
+
+
 #if !defined(CONFIG_LOAD_NONE)
 	init_load_image(&image);
 
@@ -132,13 +146,6 @@ int main(void)
 	/* point never reached with TZ support */
 #endif
 
-	if(muxBoardConfig() )
-	{
-		dbg_printf("Mux Board initialization failed" );
-		while(1)
-		{
-		}
-	}
 
 #if !defined(CONFIG_LOAD_NONE)
 	return JUMP_ADDR;

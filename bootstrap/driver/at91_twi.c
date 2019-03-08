@@ -69,13 +69,22 @@ static unsigned int at91_twi3_base;
 static inline unsigned int twi_reg_read(unsigned int twi_base,
 					unsigned int offset)
 {
-	return readl(twi_base + offset);
+#if 0
+	return readl( (twi_base + offset ));
+#else
+	unsigned int value = (*(volatile unsigned int *)(twi_base + offset ));
+	return value;
+#endif
 }
 
 static inline void twi_reg_write(unsigned int twi_base,
 				unsigned int offset, unsigned int value)
 {
-	writel(value, twi_base + offset);
+#if 0
+	writel(value, (twi_base + offset));
+#else
+	(*(volatile unsigned int *)(twi_base + offset)) = (value);
+#endif
 }
 
 static unsigned int get_twi_base(unsigned int bus)

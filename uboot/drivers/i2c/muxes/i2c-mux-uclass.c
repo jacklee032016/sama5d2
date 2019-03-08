@@ -105,7 +105,15 @@ int i2c_mux_select(struct udevice *dev)
 {
 	struct i2c_mux_bus *plat = dev_get_parent_platdata(dev);
 	struct udevice *mux = dev->parent;
-	struct i2c_mux_ops *ops = i2c_mux_get_ops(mux);
+	struct i2c_mux_ops *ops;
+
+	if(plat == NULL)
+	{
+		debug("%s: no mux in %s\n", __func__, dev->name);
+		return -ENOSYS;
+	}
+	
+	ops = i2c_mux_get_ops(mux);
 
 	if (!ops->select)
 		return -ENOSYS;

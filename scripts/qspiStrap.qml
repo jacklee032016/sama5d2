@@ -44,7 +44,8 @@ JLinkConnection {
 		applet.write(0x00000, "Mux7XX-bootStrap-3.8.10.bin", true)//
 		
 		// test code
-		// applet.write(0x00000, "muxlab_500768-dataflashboot--3.8.10.bin", true)//
+		// applet.write(0x00000, "m500774-bootstrap.bin", true)//
+		// applet.write(0x00000, "muxlab_500774-dataflashboot--1.0.2.bin", true)//
               
 	}
 }

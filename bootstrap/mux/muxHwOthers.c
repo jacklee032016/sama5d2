@@ -314,8 +314,10 @@ unsigned char	data[16];
 
 	twi_addr = 1;
 	twi_data = (7<<2) | (0<<0);
+	// Set the video format as: bits(4:2) = RGB Raw, bits(1:0) = 8-bits per pixel
 	twi_write(bus, twi_dev, twi_addr, 1, &twi_data, 1);
 
+  // for debug
 	twi_addr = 0;
 	data[0] = 0xff;
 	data[1] = 0xfe;
@@ -332,10 +334,12 @@ unsigned char	data[16];
 	data[3] = 0xE5;
 	data[4] = 0xA0;
 	data[5] = 0x00;
+	// Set the 48-bit Local MAC address 
 	twi_write(bus, twi_dev, twi_addr, 1, data, 6);
 
 	twi_addr = 10;
 	data[0] = 0x10; //0x11;
+	// Set the 48-bit Destination MAC address
 	twi_write(bus, twi_dev, twi_addr, 1, data, 6);
 
 	twi_addr = 16;
@@ -343,7 +347,9 @@ unsigned char	data[16];
 	data[1] = 4;
 	data[2] = 0;
 	data[3] = 10;
+	// Set the 32-bit Local Video IP address 
 	twi_write(bus, twi_dev, twi_addr, 1, data, 4);
+	
 #if 1
 // video dest ip
 	twi_addr = 20;
@@ -351,6 +357,7 @@ unsigned char	data[16];
 	data[1] = 4;
 	data[2] = 0;
 	data[3] = 10;
+	// Set the 32-bit Destination Video IP address  
 	twi_write(bus, twi_dev, twi_addr, 1, data, 4);
 #endif
 
@@ -365,22 +372,28 @@ unsigned char	data[16];
 #endif
 
 	twi_addr = 32;
+	// Set the 16-bit Local UDP Video Port 
 	data[0] = 0x30;
 	data[1] = 0xc2;
+	// Set the 16-bit Destination UDP Video Port
 	data[2] = 0x20;
 	data[3] = 0xc2;
 	twi_write(bus, twi_dev, twi_addr, 1, data, 4);
 
 	twi_addr = 36;
+	// Set the 16-bit Local UDP Audio Port 
 	data[0] = 0x50;
 	data[1] = 0xc2;
+	// Set the 16-bit Destination UDP Audio Port
 	data[2] = 0x40;
 	data[3] = 0xc2;
 	twi_write(bus, twi_dev, twi_addr, 1, data, 4);
 
 	twi_addr = 40;
+	// Set the 16-bit Local UDP Ancillary Port 
 	data[0] = 0x70;
 	data[1] = 0xc2;
+	// Set the 16-bit Destination UDP Ancillary Port
 	data[2] = 0x60;
 	data[3] = 0xc2;
 	twi_write(bus, twi_dev, twi_addr, 1, data, 4);
@@ -680,10 +693,13 @@ unsigned int sx, sy;
 
 	twi_addr = 6;
 	// video active
+	// Number of active pixels 
 	data[0] = (x & 0xff);
 	data[1] = (x >> 8);
+	// Number of active rows 
 	data[2] = (y & 0xff);
 	data[3] = (y >> 8);
+	// Setting the active horizontal and vertical video size
 	twi_write(bus, twi_dev, twi_addr, 1, data, 4);
 
 
@@ -691,6 +707,8 @@ unsigned int sx, sy;
 	sx = x + sync_x -1;
 	sy = y + sync_y -1;
 	// video size total
+	// Total number of cycles per row 
+#if	(MUX_BOARD == MUX_BOARD_768)
 	data[0] = (sx & 0xff);
 	data[1] = (sx >> 8);
 	data[2] = (sy & 0xff);
@@ -707,6 +725,31 @@ unsigned int sx, sy;
 	data[3] = (sy >> 8);
 	twi_write(bus, twi_dev, twi_addr, 1, data, 4);
 
+#elif (MUX_BOARD == MUX_BOARD_774)
+	data[0] = (sx & 0xff);
+	data[1] = (sx >> 8);
+	data[2] = 0;
+	data[3] = 0;
+	// Total number of rows per frame
+	data[4] = (sy & 0xff);
+	data[5] = (sy >> 8);
+	data[6] = 0;
+	data[7] = 0;
+	twi_write(bus, twi_dev, twi_addr, 1, data, 8);
+
+	// FPGA does not have video offset registers ???
+	/*
+	twi_addr = 14;
+	sx = sync_x-1;
+	sy = sync_y-1;
+	// video offset
+	data[0] = (sx & 0xff);
+	data[1] = (sx >> 8);
+	data[2] = (sy & 0xff);
+	data[3] = (sy >> 8);
+	twi_write(bus, twi_dev, twi_addr, 1, data, 4);
+	*/
+#endif
 	return;
 }
 

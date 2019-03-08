@@ -80,6 +80,10 @@
 #include "arch/sama5d2.h"
 #endif
 
+
+#include "muxCompact.h"
+
+
 /* I/O Function Macro */
 #define writel(value, addr) \
 	(*(volatile unsigned int *)(addr)) = (value)

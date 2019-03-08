@@ -113,14 +113,7 @@ Reg_Data const Reg_Store[NUM_REGS_MAX] = {
 
 #define  ADV7619_BUS	2
 
-
-#define	SI5351B_BUS	0
-
 #define	MDIO_BUS		0xFF
-
-
-#define	SI5351B_ADDR	(0xC0>>1)
-
 
 int  muxSi5351bInit(void)
 {
@@ -171,14 +164,15 @@ int  muxSi5351bInit(void)
 	buffer[0] = 0x00;
 	twi_write(bus, SI5351B_ADDR, 3, 1, buffer, 1);
 	
-
+#if 0
 	if(twi_read(bus, SI5351B_ADDR, 0, 1, buffer, 1))
 	{
 		dbg_info("SI5351B read failed\n");
 		return -1;
 	}
 	dbg_info("SI5351B status: %x, %s\n", buffer[0], (buffer[0]==0x11)?"OK":"Failed");
-	
+#endif
+
 	dbg_info("si5351b end!");
 	return 0;
 }
