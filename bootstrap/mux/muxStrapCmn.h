@@ -64,6 +64,10 @@
 #define	SI5351B_BUS	0
 #define	SI5351B_ADDR	(0xC0>>1)
 
+#define	I2C_DEV_ADDR_FPGA		(0x60>>1)
+
+
+#define	FPGA_REG_VERSION		(0x1d)	// 29
 
 
 #define	EXT_I2C_PCA9554_CS_MAC				(4)	/* CS0, MAC address; not used */

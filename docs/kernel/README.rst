@@ -1,6 +1,24 @@
 README for Bootstrap
 ################################
 
+* make image
+--------------------
+Add following lines in Makefile, otherwise 'make' will prompt parameters input:
+
+::
+
+   ARCH=arm
+   export ARCH
+
+In order to make dtb in kernel directory:
+
+::
+
+   make ARCH=arm dtbs or make dtbs
+
+	result in arch/arm/boot/dts/m500774_at91-sama5d2_rx.dtb and m500774_at91-sama5d2_tx.dtb 
+
+
 02.23, 2019
 --------------------
 * Support RAM Disk:

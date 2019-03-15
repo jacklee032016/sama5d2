@@ -19,7 +19,8 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-#define I2C_TIMEOUT_MS	100
+//#define I2C_TIMEOUT_MS	100
+#define I2C_TIMEOUT_MS	200
 
 static int at91_wait_for_xfer(struct at91_i2c_bus *bus, u32 status)
 {

@@ -1,0 +1,322 @@
+
+Modify file system
+----------------------------------
+::
+
+  sudo mount -o loop m500774_ramdisk /mnt/ -t ext4
+
+
+  
+
+download and write kernel
+----------------------------------
+
+**File System**
+
+tftpboot 0x21000000 m774/rootfs.gz
+sf probe 0
+sf erase 0x4d0000 0x1400000
+sf write 0x21000000 0x4d0000 0x1400000
+ 
+**kernel**
+
+tftpboot 0x21000000 m774/zImage
+sf probe 0
+sf erase 0xb0000 0x400000
+sf write 0x21000000 0xb0000 0x400000
+
+**Device Tree**
+tftpboot 0x21000000 m774/m500774_at91-sama5d2_tx.dtb
+sf probe 0
+sf erase 0xa0000 0x10000
+sf write 0x21000000 0xa0000 0x10000
+
+
+bootz 0x22000000 - 0x21000000
+
+setenv bootcmd ¡°sf probe 0; sf read 0x22000000 0xB0000 0x400000; sf read 0x25000000 0x4D0000 0x1000000; sf read 0x21000000 0xA0000 0x10000;bootz 0x22000000 - 0x21000000¡±
+
+
+sf erase 0xA0000 0x10000
+sf erase 0xB0000 0x400000
+
+0x4D0000 0x1000000
+
+DDR Test from 0x20000000 to 0x26000000 Passed.
+DDR Test from 0x28000000 to 0x2f000000 Passed.
+
+root:Angelica_L768
+
+mkfs.jffs2 -r ./txapp0816 -e 0x10000 -p 0x400000 -n -l -o jffs2_txapp
+
+mkfs.jffs2 -r ./rxapp0813 -e 0x10000 -p 0x400000 -n -l -o jffs2_rxapp
+
+//erase app mtd  4M
+
+flash_erase /dev/mtd8 0 64
+
+flashcp txapp /dev/mtd8
+
+flashcp rxapp /dev/mtd8
+
+//erase app mtd  4M
+
+flash_erase /dev/mtd8 0 64
+
+flashcp txapp /dev/mtd8
+
+flashcp rxapp /dev/mtd8
+ 
+
+ 
+
+//erase file system 20M
+
+flash_erase /dev/mtd7 0 320
+
+ 
+
+//erase file system 16M
+
+flash_erase /dev/mtd7 0 256
+
+ 
+
+ 
+
+ 
+
+make ramdisk
+
+genext2fs -b 40960 -d rootfs1019 ramdisk
+
+gzip -9 -f ramdisk
+
+
+Use muxds_test_key to set security chip key.
+
+ 
+
+setenv bootargs ¡°initrd=0x25000000,40M root=/dev/ram0 rw init=/linuxrc console=ttyS0,115200
+
+ 
+
+setenv bootcmd ¡°sf probe 0; sf read 0x22000000 0xB0000 0x400000; sf read 0x25000000 0x4D0000 0x1000000; sf read 0x21000000 0xA0000 0x10000;bootz 0x22000000 - 0x21000000¡±
+
+
+
+2. Bootstrap
+
+        Cd /home/500768/laurent20180125/at91bootstrap-master 
+make mrproper
+make muxlab_500768_defconfig
+make
+
+3. Uboot
+/home/500768/laurent20180125/u-boot-at91-master# cp m500768.config .config
+root@alex-VirtualBox:/home/500768/laurent20180125/u-boot-at91-master# make
+
+4. Kernel
+
+root@alex-VirtualBox:/home/500768/laurent20180125/linux-at91# cp muxlab_m500768.config .config
+root@alex-VirtualBox:/home/500768/laurent20180125/linux-at91# make ARCH=arm
+make ARCH=arm menuconfig
+dts : make ARCH=arm dtbs
+
+5. Buildroot
+Add ethtool, ssh, gdbserver, avahi£¬ udhcpc
+
+Steps:
+(1) Set sshd_config(remove in release version)
+(2) Copy rcs in init.d
+(3) Mkdir /home/ftpadmin,
+(4) change /etc/hostname 
+(5) Mkdir /etc/vsftpd/userconfig, create ftpadmin file, modify vsftpd.conf
+(6) Cp httpd.conf to /etc/apache2/
+
+make ramdisk
+
+genext2fs -b 40960 -d rootfs1019 ramdisk
+
+gzip -9 -f ramdisk
+
+
+
+Booting Linux on physical CPU 0x0
+Linux version 4.9.75-linux4sam_5.7-01637-g8f511fd-dirty (linux@linux-VirtualBox) (gcc version 4.7.3 (Ubuntu/Linaro 4.7.3-12ubuntu1) ) #35 Sun Sep 23 13:30:36 EDT 2018
+CPU: ARMv7 Processor [410fc051] revision 1 (ARMv7), cr=10c53c7d
+CPU: PIPT / VIPT nonaliasing data cache, VIPT aliasing instruction cache
+OF: fdt:Machine model: Atmel SAMA5D2 Xplained
+cma: Reserved 64 MiB at 0x28000000
+Memory policy: Data cache writeback
+CPU: All CPU(s) started in SVC mode.
+Built 1 zonelists in Zone order, mobility grouping off.  Total pages: 64960
+Kernel command line: initrd=0x25000000,40M root=/dev/ram0 rw init=/linuxrc console=ttyS0,115200
+PID hash table entries: 1024 (order: 0, 4096 bytes)
+Dentry cache hash table entries: 32768 (order: 5, 131072 bytes)
+Inode-cache hash table entries: 16384 (order: 4, 65536 bytes)
+Memory: 146300K/262144K available (4096K kernel code, 173K rwdata, 800K rodata, 1024K init, 170K bss, 50308K reserved, 65536K cma-reserved)
+Virtual kernel memory layout:
+    vector  : 0xffff0000 - 0xffff1000   (   4 kB)
+    fixmap  : 0xffc00000 - 0xfff00000   (3072 kB)
+    vmalloc : 0xd0800000 - 0xff800000   ( 752 MB)
+    lowmem  : 0xc0000000 - 0xd0000000   ( 256 MB)
+    modules : 0xbf000000 - 0xc0000000   (  16 MB)
+      .text : 0xc0008000 - 0xc0500000   (5088 kB)
+      .init : 0xc0600000 - 0xc0700000   (1024 kB)
+      .data : 0xc0700000 - 0xc072b400   ( 173 kB)
+       .bss : 0xc072b400 - 0xc0755ea0   ( 171 kB)
+NR_IRQS:16 nr_irqs:16 16
+L2C-310 ID prefetch enabled, offset 2 lines
+L2C-310 dynamic clock gating enabled, standby mode enabled
+L2C-310 cache controller enabled, 8 ways, 128 kB
+L2C-310: CACHE_ID 0x410000c9, AUX_CTRL 0x36020000
+clocksource: pit: mask: 0x7ffffff max_cycles: 0x7ffffff, max_idle_ns: 11513617062 ns
+sched_clock: 32 bits at 100 Hz, resolution 10000000ns, wraps every 21474836475000000ns
+Console: colour dummy device 80x30
+Calibrating delay loop... 329.31 BogoMIPS (lpj=1646592)
+pid_max: default: 32768 minimum: 301
+Mount-cache hash table entries: 1024 (order: 0, 4096 bytes)
+Mountpoint-cache hash table entries: 1024 (order: 0, 4096 bytes)
+CPU: Testing write buffer coherency: ok
+Setting up static identity map for 0x20100000 - 0x20100058
+devtmpfs: initialized
+VFP support v0.3: implementor 41 architecture 2 part 30 variant 5 rev 1
+clocksource: jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 19112604462750000 ns
+futex hash table entries: 256 (order: -1, 3072 bytes)
+pinctrl core: initialized pinctrl subsystem
+NET: Registered protocol family 16
+DMA: preallocated 256 KiB pool for atomic coherent allocations
+cpuidle: using governor menu
+AT91: PM: standby: standby, suspend: ulp0
+clocksource: tcb_clksrc: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 184217874325 ns
+at_xdmac f0010000.dma-controller: 16 channels, mapped at 0xd0841000
+at_xdmac f0004000.dma-controller: 16 channels, mapped at 0xd0843000
+AT91: Detected SoC family: sama5d2
+AT91: Detected SoC: sama5d26, revision 1
+SCSI subsystem initialized
+usbcore: registered new interface driver usbfs
+usbcore: registered new interface driver hub
+usbcore: registered new device driver usb
+at91_i2c f8028000.i2c: could not find pctldev for node /ahb/apb/pinctrl@fc038000/i2c0_default, deferring probe
+at91_i2c fc028000.i2c: could not find pctldev for node /ahb/apb/pinctrl@fc038000/i2c1_default, deferring probe
+clocksource: Switched to clocksource tcb_clksrc
+NET: Registered protocol family 2
+TCP established hash table entries: 2048 (order: 1, 8192 bytes)
+TCP bind hash table entries: 2048 (order: 1, 8192 bytes)
+TCP: Hash tables configured (established 2048 bind 2048)
+UDP hash table entries: 256 (order: 0, 4096 bytes)
+UDP-Lite hash table entries: 256 (order: 0, 4096 bytes)
+NET: Registered protocol family 1
+RPC: Registered named UNIX socket transport module.
+RPC: Registered udp transport module.
+RPC: Registered tcp transport module.
+RPC: Registered tcp NFSv4.1 backchannel transport module.
+Trying to unpack rootfs image as initramfs...
+rootfs image is not initramfs (no cpio magic); looks like an initrd
+Freeing initrd memory: 40960K
+workingset: timestamp_bits=14 max_order=16 bucket_order=2
+jffs2: version 2.2. (NAND) ? 2001-2006 Red Hat, Inc.
+io scheduler noop registered (default)
+pinctrl-at91-pio4 fc038000.pinctrl: atmel pinctrl initialized
+f8020000.serial: ttyS0 at MMIO 0xf8020000 (irq = 34, base_baud = 5187500) is a ATMEL_SERIAL
+console [ttyS0] enabled
+fc008000.serial: ttyS1 at MMIO 0xfc008000 (irq = 40, base_baud = 5187500) is a ATMEL_SERIAL
+[drm] Initialized
+brd: module loaded
+loop: module loaded
+at91_i2c fc018600.i2c: can't get DMA channel, continue without DMA support
+at91_i2c fc018600.i2c: Using FIFO (16 data)
+at91_i2c fc018600.i2c: AT91 i2c bus driver (hw version: 0x704).
+atmel_qspi f0020000.spi: n25q256a (32768 Kbytes)
+10 ofpart partitions found on MTD device f0020000.spi
+Creating 10 MTD partitions on "f0020000.spi":
+0x000000000000-0x000000010000 : "at91bootstrap"
+0x000000010000-0x000000020000 : "bootloader env"
+0x000000020000-0x0000000a0000 : "bootloader"
+0x0000000a0000-0x0000000b0000 : "device tree"
+0x0000000b0000-0x0000004b0000 : "kernel"
+0x0000004b0000-0x0000004c0000 : "configuration"
+0x0000004c0000-0x0000004d0000 : "edid"
+0x0000004d0000-0x0000014d0000 : "rootfs"
+0x0000014d0000-0x0000018d0000 : "app"
+0x0000018d0000-0x000002000000 : "reserved"
+atmel_spi f8000000.spi: Using dma0chan0 (tx) and dma0chan1 (rx) for DMA transfers
+atmel_spi f8000000.spi: Using FIFO (16 data)
+atmel_spi f8000000.spi: Atmel SPI Controller version 0x311 at 0xf8000000 (irq 28)
+libphy: Fixed MDIO Bus: probed
+libphy: MACB_mii_bus: probed
+Generic PHY f8008000.ethernet-ffffffff:01: attached PHY driver [Generic PHY] (mii_bus:phy_addr=f8008000.ethernet-ffffffff:01, irq=-1)
+macb f8008000.ethernet eth0: Cadence GEM rev 0x00020203 at 0xf8008000 irq 29 (00:12:23:34:45:56)
+i2c /dev entries driver
+AT91: Starting after general reset
+sama5d4_wdt f8048040.watchdog: initialized (timeout = 16 sec, nowayout = 0)
+ledtrig-cpu: registered to indicate activity on CPUs
+atmel_aes f002c000.aes: version: 0x500
+atmel_aes f002c000.aes: Atmel AES - Using dma0chan2, dma0chan3 for DMA transfers
+atmel_sha f0028000.sha: version: 0x510
+atmel_sha f0028000.sha: using dma0chan4 for DMA transfers
+atmel_sha f0028000.sha: Atmel SHA1/SHA256/SHA224/SHA384/SHA512
+atmel_tdes fc044000.tdes: version: 0x703
+atmel_tdes fc044000.tdes: using dma0chan5, dma0chan6 for DMA transfers
+atmel_tdes fc044000.tdes: Atmel DES/TDES
+usbcore: registered new interface driver usbhid
+usbhid: USB HID core driver
+fc030000.adc supply vddana not found, using dummy regulator
+fc030000.adc supply vref not found, using dummy regulator
+at91-sama5d2_adc: probe of fc030000.adc failed with error -22
+NET: Registered protocol family 17
+at91_i2c f8028000.i2c: can't get DMA channel, continue without DMA support
+at91_i2c f8028000.i2c: Using FIFO (16 data)
+random: fast init done
+i2c i2c-1: Added multiplexed i2c bus 2
+i2c i2c-1: Added multiplexed i2c bus 3
+i2c i2c-1: Added multiplexed i2c bus 4
+i2c i2c-1: Added multiplexed i2c bus 5
+pca954x 1-0070: registered 4 multiplexed busses for I2C mux pca9544
+at91_i2c f8028000.i2c: AT91 i2c bus driver (hw version: 0x704).
+at91_i2c fc028000.i2c: can't get DMA channel, continue without DMA support
+at91_i2c fc028000.i2c: Using FIFO (16 data)
+at91_i2c fc028000.i2c: controller timed out
+at91_i2c fc028000.i2c: AT91 i2c bus driver (hw version: 0x704).
+RAMDISK: gzip image found at block 0
+VFS: Mounted root (ext2 filesystem) on device 1:0.
+devtmpfs: mounted
+Freeing unused kernel memory: 1024K
+Starting logging: OK
+Initializing random number generator... done.
+Starting system message bus: done
+Starting network: OK
+Starting php-fpm  done
+Starting telnetd: OK
+Starting vsftpd: OK
+macb f8008000.ethernet eth0: link up (100/Full)
+RAMDISK 082801.
+actled: loading out-of-tree module taints kernel.
+TX app ver 000005.
+MAC compare ERROR!
+SHA check error!
+SPI device opened: spi mode 0, 8 bits per word, 50000000 Hz max
+SPI test: 0xFFFF vs 0x5AC3
+read_page second CRC error!
+READ_CHIP_MEM read page 0 FAIL!
+DS IOCTL READ_ROM read ds error!
+Defined to use default multicast ip : 239.0.1.254
+read_page second CRC error!
+READ_CHIP_MEM read page 0 FAIL!
+DS IOCTL READ_ROM read ds error!
+ 00 12 23 34 45 56
+
+MAC_ADDRESS: 00:12:23:34:45:56
+fpga init get mcastip : 239.0.1.254
+
+Microblaze video info changed: (reg 44-45): 00 00
+Set ColorSpace (reg 01): 10
+
+PCS PMA original status (reg 32-43):
+c8 1c 02 60 5c 02 00 00 00 00 00 7c 
+PCS PMA control (reg 0,17,20): 00 00 00
+httpd not running, trying to start
+
+Welcome to Buildroot
+m500768 login: random: crng init done

@@ -36,6 +36,7 @@ static void RTL8307H_hw_reset(void)
 
 static void HDMI_hw_reset(void)
 {
+#if 0
 	pio_set_gpio_output(EXPL_COMP_ENA, 1);
 
 	/* reset both HDMI chips */
@@ -46,6 +47,13 @@ static void HDMI_hw_reset(void)
 	udelay(5000);
 	pio_set_value(EXPL_RST_N, 1);
 	pio_set_value(HDMI_RST_N, 1);
+#else
+	/* reset HDMI chip */
+	pio_set_gpio_output(HDMI_RST_N, 1);
+	pio_set_value(HDMI_RST_N, 0);
+	udelay(5000);
+	pio_set_value(HDMI_RST_N, 1);
+#endif	
 }
 
 
@@ -89,13 +97,13 @@ static void FPGA_reload(void)
 {
 	/* reset both HDMI chips */
 	pio_set_gpio_output(FPGA_PROGRAM, 1);
-	pio_set_gpio_input(FPGA_DONE, PIO_DEFAULT);
+//	pio_set_gpio_input(FPGA_DONE, PIO_DEFAULT);
 
 	pio_set_value(FPGA_PROGRAM, 0);
 	udelay(500);
 	pio_set_value(FPGA_PROGRAM, 1);
 
-	mdelay(50);
+//	mdelay(50);
 
 //	_extBspFpgaWaitDone(20);
 }
@@ -176,6 +184,7 @@ unsigned read_dipsw(void)
 		{"SW4", DIPSW_04, 1, PIO_DEFAULT, PIO_INPUT},
 		{"SEL1", RX_SELECT1, 1, PIO_DEFAULT, PIO_INPUT},
 		{"SEL2", RX_SELECT2, 1, PIO_DEFAULT, PIO_INPUT},
+		{"FPDN", FPGA_DONE, 1, PIO_DEFAULT, PIO_INPUT},
 		{(char *)0, 0, 0, PIO_DEFAULT, PIO_INPUT},
 	};
 
@@ -249,11 +258,40 @@ void init_hdmi (void)
 
 }
 
+int testFpga(void)
+{
+	unsigned int bus = muxHwGetTwiBus();
+	unsigned char	buffer[2];
 
+	dbg_info("Read FPGA version...\n" );
+	if(twi_read(bus, I2C_DEV_ADDR_FPGA, FPGA_REG_VERSION, 1, buffer, 1))
+	{
+		dbg_info("FPGA version read failed\n");
+		return -1;
+	}
+	
+	dbg_info("FPGA version: %x, %s\n", buffer[0], (buffer[0]==0x81)?"OK":"Failed");
+
+	return  (buffer[0]==0x81);
+}
+
+static void FPGA_hw_reset(void)
+{
+	/* reset FPGA chip */
+	pio_set_gpio_output(FPGA_RST_N, 1);
+	pio_set_value(FPGA_RST_N, 0);
+	udelay(5000);
+	pio_set_value(FPGA_RST_N, 1);
+}
+
+
+#if 0
 int muxBoardConfig(void)
 {
 	// init M500768 hw specific
 	dbg_printf(EXT_OS_NAME);
+
+//	testFpga();
 	
 	int ret = muxSi5351bInit();
 	if(ret)
@@ -261,19 +299,20 @@ int muxBoardConfig(void)
 //		return -1;
 	}
 	
-	extSensorGetTemperatureCelsius();
+//	extSensorGetTemperatureCelsius();
 
 #if	(MUX_BOARD == MUX_BOARD_768)
-	AQR105_hw_reset();
+//	AQR105_hw_reset();
 #endif
 	//RTL8307H_hw_reset();
 	HDMI_hw_reset();
 
-TRACE();
+	FPGA_hw_reset();
+
 	LED_RESET();
 	FPGA_reload();
-//	udelay(200000);	// wait for FPGA to finish loading
-	mdelay(500);	// wait for FPGA to finish loading
+	udelay(200000);	// wait for FPGA to finish loading
+//	mdelay(500);	// wait for FPGA to finish loading
 	
 
 #if	(MUX_BOARD == MUX_BOARD_768)
@@ -289,11 +328,11 @@ TRACE();
 	mdelay(200);	// wait for FPGA to finish loading
 
 #if	(MUX_BOARD == MUX_BOARD_768)
-	pwm_init();	
+//	pwm_init();	
 #endif
 
-	if (!twi_init_done)
-		twi_init();
+//	if (!twi_init_done)
+//		twi_init();
 
 #if 1	
 
@@ -408,7 +447,7 @@ TRACE();
 #endif
 
 #if	(MUX_BOARD == MUX_BOARD_768)
-	if(mdioInit() )
+//	if(mdioInit() )
 	{
 //		return -1;
 	}
@@ -422,8 +461,14 @@ TRACE();
 	if(wait_FPGA_done() == 0){
 		dbg_info("FPGA reload timeout error.\n");
 	}
+	else
+	{
+		dbg_info("FPGA reload OK!\n");
+	}
 
+#if 0
 	extDdrMemoryTest();
+#endif
 
 	unsigned char	version[32];
 	unsigned char	buffer[4];
@@ -545,4 +590,155 @@ TRACE();
 
 	return 0;
 }
+#endif
+
+
+
+int muxBoardConfig(void)
+{
+int timeout;
+unsigned int mdio_page;
+unsigned int mdio_addr;
+unsigned int mdio_data;
+
+unsigned char	data[16];
+unsigned int bus;
+
+unsigned char  twi_data;
+unsigned char  twi_addr;
+unsigned char  twi_dev;
+unsigned char  cfg;
+
+	// init M500774 hw specific
+	muxSi5351bInit();
+
+	HDMI_hw_reset();
+	FPGA_hw_reset();
+
+	LED_RESET();
+	FPGA_reload();
+	udelay(200000);	// wait for FPGA to finish loading
+	
+  // 500774 board	
+	pio_set_value(LED_VIDEO, 0);
+	pio_set_value(LED_ACT, 0);
+	pio_set_value(LED_LINK, 0);
+
+	// read DIP switch value
+	cfg = read_dipsw();
+	dbg_info("DIP SW: %x \n", cfg&0x0F);
+	dbg_info("RX_SELECT: %x \n", (cfg>>4)&0x03);
+	if(wait_FPGA_done() == 0){
+		dbg_info("FPGA reload timeout error.\n");
+	}
+	else
+	{
+		dbg_info("FPGA reload OK.\n");
+	}
+
+#if 0	
+	dbg_info("DDR Memory Testing...\n");
+	ddr_memory_test();
+#endif
+
+	bus = 0;
+	twi_dev = (0x60>>1);
+	twi_addr = 0;
+
+	// sw reset fpga global
+	twi_data = 0x80;	// reset FPGA
+	// Assert global reset
+	twi_write(bus, twi_dev, twi_addr, 1, &twi_data, 1);	
+	twi_data = 0x0;	// clear reset
+	// De-assert global reset
+	twi_write(bus, twi_dev, twi_addr, 1, &twi_data, 1);
+
+	// sw reset sub modules
+	twi_data = 0x7f;	// reset all FPGA sub modules
+	// Assert reset to each FPGA sub-system: XAUI, Video, PCS/PMA, 1GB Ethernet, HDMI/Microblaze
+	twi_write(bus, twi_dev, twi_addr, 1, &twi_data, 1);
+	twi_data = 0x0;		// clear reset
+	// De-assert reset to each FPGA sub-system: XAUI, Video, PCS/PMA, 1GB Ethernet, HDMI/Microblaze
+	twi_write(bus, twi_dev, twi_addr, 1, &twi_data, 1);
+
+  // reset PCS/PMA
+	twi_dev = (0x6E>>1);
+	twi_addr = 0;
+	twi_data = 0x12;		// set reset
+	// Assert reset to PCS and PMA
+	twi_write(bus, twi_dev, twi_addr, 1, &twi_data, 1);
+	twi_data = 0x0;		// clear reset
+	// De-assert reset to PCS and PMA
+	twi_write(bus, twi_dev, twi_addr, 1, &twi_data, 1);
+	
+	twi_dev = (0x60>>1);
+
+	// disable all stream (video, audio, etc)
+	twi_addr = 3;
+	twi_data = 0x0;
+	// Disable all streams: Video, Audio, SIO, 1GB Ethernet, Ancillary, and Auxiliary	
+	twi_write(bus, twi_dev, twi_addr, 1, &twi_data, 1);
+
+	//read reg 03 value, if not 0, disable it again.
+	if(twi_read(bus, twi_dev, twi_addr, 1, &twi_data, 1) )
+	{
+		dbg_info("read reg %x %x failed\n", twi_addr, twi_data);
+	}
+	
+	if(twi_data != 0x0)
+	{
+		twi_data = 0x0;
+		twi_addr = 3;	
+		twi_write(bus, twi_dev, twi_addr, 1, &twi_data, 1);
+		dbg_info("set reg 03 to 0 again %x\n");
+	}
+	else
+	{
+		dbg_info("read 03 reg %x\n", twi_data);
+	}
+
+
+	// read fpga version,revision
+	twi_addr = 29;
+	if(twi_read(bus, twi_dev, twi_addr, 1, &data, 3) )
+	{
+		dbg_info("FPGA version read failed\n" );
+	}
+	else
+	{
+		dbg_info("FPGA version read OK\n" );
+	}
+	dbg_info("FPGA version %x %x %x\n", data[0],data[1],data[2] );
+
+
+	extSensorGetTemperatureCelsius();
+
+
+	if ((data[0] & 0x80) == 0) {
+		dbg_info("FPGA RX unit \n");
+		dac_param(1000);
+		fpag_init_rx();
+
+		dbg_info("HDMI RX unit \n");
+//		init_video_param();
+
+	} else {		
+		set_tx_si5351b();
+		dbg_info("FPGA TX unit \n");
+		dac_param(0);
+		fpag_init_tx();
+		
+		dbg_info("HDMI TX unit \n");
+		init_hdmi();
+		
+	}
+
+
+
+//	while (1) {
+//		ADIAPI_RxHouseKeeping ();
+//		udelay(500);
+//	}
+}
+
 

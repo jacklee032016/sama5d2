@@ -1,6 +1,10 @@
 README for Bootstrap
 ################################
 
+03.14, 2019
+----------------
+* remove directory of 'config/at91bootstrap-config': this is for 'make menuconfig', a lot of header files with size of 0;
+
 
 Memory map
 ----------------

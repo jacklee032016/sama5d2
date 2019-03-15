@@ -103,16 +103,6 @@ int main(void)
 #endif
 
 
-#ifdef	MUX_BOARD
-	if(muxBoardConfig() )
-	{
-		dbg_printf("Mux Board initialization failed" );
-		while(1)
-		{
-		}
-	}
-#endif
-
 
 #if !defined(CONFIG_LOAD_NONE)
 	init_load_image(&image);
@@ -144,6 +134,16 @@ int main(void)
 	switch_normal_world();
 
 	/* point never reached with TZ support */
+#endif
+
+#ifdef	MUX_BOARD
+	if(muxBoardConfig() )
+	{
+		dbg_printf("Mux Board initialization failed" );
+		while(1)
+		{
+		}
+	}
 #endif
 
 
