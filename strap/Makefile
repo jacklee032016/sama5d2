@@ -470,6 +470,7 @@ PROJECT_NAME:=mux7xxStrap
 BUILDTIME := $(shell TZ=CN date -u "+%Y_%m_%d")
 	
 package:clean
+	rm -rf binaries
 	cd ..; tar cvjf $(PROJECT_NAME).$(BUILDTIME).tar.bz2 strap
 	
 
