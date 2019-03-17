@@ -311,7 +311,6 @@ int spi_flash_loadimage(struct spi_flash *flash, struct image_info *image)
 #endif
 	int ret = 0;
 
-TRACE();
 
 #ifdef CONFIG_DATAFLASH_RECOVERY
 	if (!spi_flash_recovery(flash)) {
@@ -369,8 +368,6 @@ TRACE();
 
 	image->length = length;
 #endif
-
-TRACE();
 
 	dbg_info("SF: Copy %x bytes from %x to %x\n",
 		 image->length, image->offset, image->dest);

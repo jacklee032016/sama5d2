@@ -367,8 +367,6 @@ int qspi_loadimage(struct image_info *image)
 	flash.ops = &qspi_ops;
 	spi_flash_set_priv(&flash, &qspi);
 
-TRACE();
-
 	/* Init the SPI controller. */
 	ret = spi_flash_init(&flash);
 	if (ret) {
@@ -383,8 +381,6 @@ TRACE();
 		spi_flash_cleanup(&flash);
 		return -1;
 	}
-
-TRACE();
 
 	return spi_flash_loadimage(&flash, image);
 }

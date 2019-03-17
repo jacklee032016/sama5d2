@@ -27,7 +27,7 @@
  */
 #include "common.h"
 #include "hardware.h"
-#include "board.h"
+//#include "board.h"
 #include "pmc.h"
 #include "usart.h"
 #include "debug.h"
@@ -42,6 +42,7 @@
 #include "arch/at91_pio.h"
 #include "arch/at91_ddrsdrc.h"
 #include "arch/at91_sfr.h"
+#include "sama5d2_xplained.h"
 #include "l2cc.h"
 #include "act8865.h"
 #include "twi.h"
@@ -900,13 +901,21 @@ unsigned int at91_twi0_hw_init(void)
 {
 	unsigned int base_addr = AT91C_BASE_TWI0;
 
+#if 0
+	/* new xplaind board. Jack 03.16, 2019 */
 	const struct pio_desc twi_pins[] = {
 		{"TWD0", AT91C_PIN_PD(21), 0, PIO_DEFAULT, PIO_PERIPH_B},
 		{"TWCK0", AT91C_PIN_PD(22), 0, PIO_DEFAULT, PIO_PERIPH_B},
 		{(char *)0, 0, 0, PIO_DEFAULT, PIO_PERIPH_A},
 	};
-
-	dbg_info("*** Init TWI0...\n");
+#else
+	/* muxlab boards. Jack 03.16, 2019 */
+	const struct pio_desc twi_pins[] = {
+		{"TWD0", AT91C_PIN_PD(29), 0, PIO_DEFAULT, PIO_PERIPH_E},
+		{"TWCK0", AT91C_PIN_PD(30), 0, PIO_DEFAULT, PIO_PERIPH_E},
+		{(char *)0, 0, 0, PIO_DEFAULT, PIO_PERIPH_A},
+	};
+#endif	
 	pio_configure(twi_pins);
 
 	pmc_sam9x5_enable_periph_clk(AT91C_ID_TWI0);

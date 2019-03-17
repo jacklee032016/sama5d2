@@ -46,7 +46,7 @@ static void display_banner (void)
 }
 #endif
 
-int muxBoardConfig(void);
+int muxHwInit(void);
 
 int main(void)
 {
@@ -136,8 +136,9 @@ int main(void)
 	/* point never reached with TZ support */
 #endif
 
-#ifdef	MUX_BOARD
-	if(muxBoardConfig() )
+#if 1//def	MUX_BOARD
+//	if(muxBoardConfig() )
+	if(muxHwInit() )
 	{
 		dbg_printf("Mux Board initialization failed" );
 		while(1)

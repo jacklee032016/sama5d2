@@ -465,6 +465,14 @@ tarball:
 	$(Q)cp ${TARBALL_DIR}/${TARBALL_NAME} .
 	$(Q)rm -rf ${TARBALL_DIR}
 
+	
+PROJECT_NAME:=mux7xxStrap
+BUILDTIME := $(shell TZ=CN date -u "+%Y_%m_%d")
+	
+package:clean
+	cd ..; tar cvjf $(PROJECT_NAME).$(BUILDTIME).tar.bz2 strap
+	
+
 PHONY+=tarball
 
 .PHONY: $(PHONY)

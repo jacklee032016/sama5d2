@@ -1,11 +1,33 @@
+/*
+ * Si5351B Rev B Configuration Register Export Header File
+ *
+ * This file represents a series of Silicon Labs Si5351B Rev B 
+ * register writes that can be performed to load a single configuration 
+ * on a device. It was created by a Silicon Labs ClockBuilder Pro
+ * export tool.
+ *
+ * Part:		                                       Si5351B Rev B
+ * Design ID:                                          
+ * Includes Pre/Post Download Control Register Writes: Yes
+ * Created By:                                         ClockBuilder Pro v2.26.0.1 [2018-06-28]
+ * Timestamp:                                          2018-08-25 16:22:25 GMT-04:00
+ *
+ * A complete design report corresponding to this export is included at the end 
+ * of this header file.
+ *
+ */
 
-#include "muxStrapCmn.h"
+#ifndef __SI5351B_REVB_REGS_H__
+#define __SI5351B_REVB_REGS_H__
 
-#define NUM_REGS_MAX 100
+#if	(MUX_BOARD == MUX_BOARD_768)
 
-typedef struct Reg_Data{
-   unsigned char Reg_Addr;
-   unsigned char Reg_Val;
+#define NUM_REGS_MAX	100
+
+typedef struct Reg_Data
+{
+	unsigned char Reg_Addr;
+	unsigned char Reg_Val;
 } Reg_Data;
 
 Reg_Data const Reg_Store[NUM_REGS_MAX] = {
@@ -111,75 +133,7 @@ Reg_Data const Reg_Store[NUM_REGS_MAX] = {
 {170,0x00},
 };
 
-#define  ADV7619_BUS	2
-
-#define	MDIO_BUS		0xFF
-
-#if	0//(MUX_BOARD == MUX_BOARD_768)
-
-int  muxSi5351bInit(void)
-{
-	int i;
-	unsigned char	buffer[2];
-	unsigned int bus;
-
-	dbg_info("si5351b init....\n");
-
-	if (!twi_init_done)
-		twi_init();
-
-	bus = muxHwGetTwiBus();
-	buffer[0] = 0x04 | SI5351B_BUS;	// set mux for si5351b 
-	if(twi_write(bus, PCA9544_ADDR, 0, 0, buffer, 1))
-	{
-		dbg_info("PCA init failed\n");
-//		return -1;
-	}
-
-
-	buffer[0] = 0xff;
-	twi_write(bus, SI5351B_ADDR, 3, 1, buffer, 1);
-
-	buffer[0] = 0x80;
-	twi_write(bus, SI5351B_ADDR, 16, 1, buffer, 1);
-	twi_write(bus, SI5351B_ADDR, 17, 1, buffer, 1);
-	twi_write(bus, SI5351B_ADDR, 18, 1, buffer, 1);
-	twi_write(bus, SI5351B_ADDR, 19, 1, buffer, 1);
-	twi_write(bus, SI5351B_ADDR, 20, 1, buffer, 1);
-	twi_write(bus, SI5351B_ADDR, 21, 1, buffer, 1);
-	twi_write(bus, SI5351B_ADDR, 22, 1, buffer, 1);
-	twi_write(bus, SI5351B_ADDR, 23, 1, buffer, 1);
-
-
-	for (i=0; i<NUM_REGS_MAX; i++)
-	{
-		buffer[0] = Reg_Store[i].Reg_Val;
-		twi_write(bus, SI5351B_ADDR, Reg_Store[i].Reg_Addr, 1, buffer, 1);
-	}
-
-	// adjust crystal capacitante register
-	buffer[0] = 0x12;
-	twi_write(bus, SI5351B_ADDR, 183, 1, buffer, 1);
-	// reset PLL
-	buffer[0] = 0xAC;
-	twi_write(bus, SI5351B_ADDR, 177, 1, buffer, 1);
-	buffer[0] = 0x00;
-	twi_write(bus, SI5351B_ADDR, 3, 1, buffer, 1);
-	
-#if 0
-	if(twi_read(bus, SI5351B_ADDR, 0, 1, buffer, 1))
-	{
-		dbg_info("SI5351B read failed\n");
-		return -1;
-	}
-	dbg_info("SI5351B status: %x, %s\n", buffer[0], (buffer[0]==0x11)?"OK":"Failed");
-#endif
-
-	dbg_info("si5351b end!");
-	return 0;
-}
-//#elif (MUX_BOARD == MUX_BOARD_774)
-#else
+#elif (MUX_BOARD == MUX_BOARD_774)
 
 #define SI5351B_REVB_REG_CONFIG_NUM_REGS				(73-1)
 
@@ -268,6 +222,7 @@ si5351b_revb_register_t const si5351b_revb_registers[SI5351B_REVB_REG_CONFIG_NUM
 
 };
 
+#endif
 /*
  * Design Report
  *
@@ -478,57 +433,4 @@ si5351b_revb_register_t const si5351b_revb_registers[SI5351B_REVB_REG_CONFIG_NUM
  *
  */
 
-
-int  muxSi5351bInit(void)
-{
-int i;
-unsigned char	buffer[2];
-unsigned char reg_addr;
-unsigned int bus;
-
-
-	bus = muxHwGetTwiBus();
-//	bus = si5351b_get_twi_bus();
-	buffer[0] = 0x04 | SI5351B_BUS;	// set mux for si5351b 
-	if(twi_write(bus, PCA9544_ADDR, 0, 0, buffer, 1) )
-	{
-		dbg_info("PCA9544_ADDR, %x, buffer %x failed\n", PCA9544_ADDR, buffer[0] );
-	}
-	else
-	{
-		dbg_info("PCA9544_ADDR, %x, buffer %x OK\n", PCA9544_ADDR, buffer[0] );
-	}
-
-  // Turn off the clocks
-	buffer[0] = 0xff;
-	if(twi_write(bus, SI5351B_ADDR, 3, 1, buffer, 1) )
-	{
-		dbg_info("SI5351B_ADDR, 3.1 failed\n");
-	}
-
-	for (i=0; i<SI5351B_REVB_REG_CONFIG_NUM_REGS; i++) {
-		buffer[0] = si5351b_revb_registers[i].value;
-		reg_addr = si5351b_revb_registers[i].address;
-		if(twi_write(bus, SI5351B_ADDR, reg_addr, 1, buffer, 1) )
-		{
-			dbg_info("SI5351B_ADDR, %x. failed\n", reg_addr);
-		}
-		
-	}
-
-//	buffer[0] = 0xAC;
-//	twi_write(bus, SI5351B_ADDR, 177, 1, buffer, 1);
-
-  // Turn on the clocks 
-	buffer[0] = 0x00;
-	if(twi_write(bus, SI5351B_ADDR, 3, 1, buffer, 1) )
-	{
-		dbg_info("SI5351B_ADDR, 3.1 again failed\n");
-	}
-	
-	return 0;
-}
-
 #endif
-
-

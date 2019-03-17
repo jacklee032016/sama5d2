@@ -34,7 +34,6 @@ int load_dataflash(struct image_info *image)
 {
 	int ret = 0;
 
-TRACE();
 #ifdef CONFIG_SPI
 	ret = spi_flash_loadimage(image);
 #endif
