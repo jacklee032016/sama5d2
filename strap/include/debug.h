@@ -56,7 +56,7 @@ static inline void dbg_hexdump(const unsigned char *buf,
 #define console_printf(fmt_str, args...) \
 	dbg_printf(fmt_str , ## args)
 
-#if 1
+#ifndef __EXT_RELEASE__
 #include <string.h>
 
 //#define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
@@ -98,6 +98,6 @@ static inline void dbg_hexdump(const unsigned char *buf,
 #else
 #endif	
 
-#define	TRACE()				dbg_log(DEBUG_INFO, "\n")
+//#define	TRACE()				dbg_log(DEBUG_INFO, "\n")
 
 #endif /* #ifndef __DEBUG_H__ */

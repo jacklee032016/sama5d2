@@ -14,6 +14,7 @@
 
 #include "mux7xx.h"
 
+#if 0
 static void pwm_init(void)
 {
 	const struct pio_desc pwm_pins[] =
@@ -26,7 +27,6 @@ static void pwm_init(void)
 //	pmc_sam9x5_enable_periph_clk(CONFIG_SYS_DBGU_ID);
 }
 
-#if 0
 static void RTL8307H_hw_reset(void)
 {
 	/* reset realtek ethernet switch */

@@ -77,7 +77,6 @@ int extI2CRead(unsigned char chanNo, unsigned char deviceAddress, unsigned int r
 char extI2CWrite(unsigned char chanNo, unsigned char deviceAddress, unsigned int regAddress, unsigned char regAddressSize,  unsigned char *regVal, unsigned char regSize)
 {
 	unsigned int bus;
-	int ret = 0;
 
 	if(chanNo != MUX_BUS_INVALIDATE)
 	{
@@ -109,10 +108,9 @@ short extSensorGetTemperatureCelsius(void)
 {/* 11 bits: sign bit + 10 bit value */
 	unsigned char regVal =0;
 	short temperature = 0;
-	unsigned int bus;
-//	unsigned char	buffer[2];
 
 #if 0
+	unsigned int bus;
 	bus = muxHwTwiSetMuxChannel(MUX_BUS_LM9524);
 
 	if(twi_read(bus, EXT_I2C_DEV_SENSOR, EXT_I2C_SENSOR_LOCAL_TEMP_MSB, 1, &regVal, 1) )

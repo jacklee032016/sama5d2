@@ -4,6 +4,7 @@
 #include "hardware.h"
 #include "board.h"
 #include "twi.h"
+#include "timer.h"	/* delay */
 #include "debug.h"
 
 #include "mux7xx.h"
@@ -110,11 +111,6 @@ int  si5351bTxCfg(void)
 
 #define	WITH_PCA		0
 
-static unsigned char  _mdioInit(void)
-{
-	return 1;
-}
-
 
 static unsigned char  _mdioWriteAddr(unsigned char  prtad, unsigned char  devad, unsigned int  data)
 {
@@ -187,6 +183,7 @@ static unsigned char  _mdioReadData(unsigned char  prtad, unsigned char  devad, 
 	return 1;
 }
 
+#if 0
 static unsigned char  _mdioReadDataIncr(unsigned char  prtad, unsigned char  devad, unsigned int  *data)
 {
 	unsigned char	buf[6];
@@ -230,6 +227,11 @@ static unsigned char  _mdioReadDataBuf(unsigned int  *data)
 }
 
 
+static unsigned char  _mdioInit(void)
+{
+	return 1;
+}
+#endif
 
 int mdioInit(void)
 {

@@ -933,7 +933,6 @@ unsigned int at91_twi1_hw_init(void)
 		{(char *)0, 0, 0, PIO_DEFAULT, PIO_PERIPH_A},
 	};
 
-	dbg_info("*** Init TWI1...\n");
 	pio_configure(twi_pins);
 
 	pmc_sam9x5_enable_periph_clk(AT91C_ID_TWI1);
