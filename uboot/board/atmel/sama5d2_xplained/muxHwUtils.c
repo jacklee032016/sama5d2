@@ -298,7 +298,7 @@ static int _extDdrMemoryTestOneArea(unsigned long start, unsigned long end )
 
 	printf("Test memory zone from %lx -- %lx....." EXT_NEW_LINE, start, end);
 
-	printf("\tWriting....." EXT_NEW_LINE"\t", start, end);
+	printf("\tWriting....." EXT_NEW_LINE"\t");
 	for(dram_point = dram_start; dram_point < dram_end; dram_point = dram_point + sizeof(unsigned long))
 	{
 //		*(volatile unsigned long*)dram_point = dram_point^TEST_SYS_SDRAM_PTRN;
@@ -311,7 +311,7 @@ static int _extDdrMemoryTestOneArea(unsigned long start, unsigned long end )
 	printf(EXT_NEW_LINE);
 	
 
-	printf("\tChecking....." EXT_NEW_LINE"\t", start, end);
+	printf("\tChecking....." EXT_NEW_LINE"\t");
 	for(dram_point = dram_start; dram_point < dram_end; dram_point = dram_point + sizeof(unsigned long))
 	{
 //		if(((*(volatile unsigned long*)dram_point)^TEST_SYS_SDRAM_PTRN) != dram_point)

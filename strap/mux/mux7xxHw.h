@@ -125,6 +125,8 @@ typedef	enum  _EXT_VIDEO_DEPTH
 #define	FPAG_VIDEO_CONFIG_REG(mod, pixSize)	(((mod)<<2) | ((pixSize)<<0))
 
 
+#define	EXT_BOOTSTRAP_DEBUG		EXT_DBG_OFF// EXT_DBG_ON
+
 #include "mux7xxCompact.h"
 #include "mux7xxSysParams.h"
 

@@ -97,12 +97,13 @@ Use muxds_test_key to set security chip key.
 
  
 
-setenv bootargs ¡°initrd=0x25000000,40M root=/dev/ram0 rw init=/linuxrc console=ttyS0,115200
+setenv bootargs "initrd=0x25000000,40M root=/dev/ram0 rw init=/linuxrc console=ttyS0,115200"
 
  
 
-setenv bootcmd ¡°sf probe 0; sf read 0x22000000 0xB0000 0x400000; sf read 0x25000000 0x4D0000 0x1000000; sf read 0x21000000 0xA0000 0x10000;bootz 0x22000000 - 0x21000000¡±
+setenv bootcmd "sf probe 0; sf read 0x22000000 0xB0000 0x400000; sf read 0x25000000 0x4D0000 0x1000000; sf read 0x21000000 0xA0000 0x10000;bootz 0x22000000 - 0x21000000"
 
+setenv bootcmd "sf probe 1:0; sf read 0x22000000 0xB0000 0x400000; sf read 0x25000000 0x4D0000 0x1000000; sf read 0x21000000 0xA0000 0x10000"
 
 
 2. Bootstrap

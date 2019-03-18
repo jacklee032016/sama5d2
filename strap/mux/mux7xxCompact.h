@@ -106,9 +106,9 @@
 
 	#define	EXT_DEBUGF(debug, message)		{}
 
-	#define	EXT_INFOF(message)				{SYS_PRINT message ;SYS_PRINT(EXT_NEW_LINE);}
+	#define	EXT_INFOF(message)				{SYS_PRINT(ANSI_COLOR_CYAN );SYS_PRINT message ;SYS_PRINT((ANSI_COLOR_RESET EXT_NEW_LINE));}
 
-	#define	EXT_ERRORF(message)				{SYS_PRINT message ; SYS_PRINT(EXT_NEW_LINE);}
+	#define	EXT_ERRORF(message)				{SYS_PRINT(ERROR_TEXT_BEGIN);SYS_PRINT message ; SYS_PRINT((ERROR_TEXT_END EXT_NEW_LINE));}
 	
 //	#define	EXT_ASSERT(x)				{while (1);}
 	#define	EXT_ASSERT(msg, x)				{}

@@ -61,7 +61,7 @@ static void _hdmiHwReset(void)
 
 static void _fpgaHwReset(void)
 {
-	dbg_printf("rest FPGA on pin %d\n", FPGA_RST_N);
+	EXT_DEBUGF(EXT_BOOTSTRAP_DEBUG, ("rest FPGA on pin %d", FPGA_RST_N) );
 	/* reset FPGA chip */
 	pio_set_gpio_output(FPGA_RST_N, 1);
 	pio_set_value(FPGA_RST_N, 0);
@@ -77,7 +77,7 @@ static int  _extBspFpgaWaitDone(unsigned int  seconds)
 	
 	timeout = seconds;
 
-	dbg_printf("read FPGA Done %d\n", FPGA_DONE);
+	EXT_DEBUGF(EXT_BOOTSTRAP_DEBUG, ("read FPGA Done %d", FPGA_DONE));
 	while (1)
 	{
 		done = pio_get_value(FPGA_DONE);
@@ -93,7 +93,7 @@ static int  _extBspFpgaWaitDone(unsigned int  seconds)
 		
 		if (timeout == 0)
 		{
-			dbg_printf("Timeout in waiting FPGA Done\n");
+			EXT_ERRORF(("Timeout in waiting FPGA Done"));
 			return done;
 		}
 
@@ -109,7 +109,8 @@ static int  _extBspFpgaWaitDone(unsigned int  seconds)
 
 static int _muxFpgaReload(void)
 {
-	dbg_printf("Reload FPGA firmware on pin %d...\n", FPGA_PROGRAM);
+	EXT_DEBUGF(EXT_BOOTSTRAP_DEBUG, ("Reload FPGA firmware on pin %d...", FPGA_PROGRAM));
+	EXT_INFOF(("Reload FPGA firmware on pin %d...", FPGA_PROGRAM));
 	/* start load FPGA firmware */
 	pio_set_gpio_output(FPGA_PROGRAM, 1);
 	pio_set_value(FPGA_PROGRAM, 0);
@@ -147,7 +148,7 @@ static unsigned _cfgReadPins(void)
 //	pio_set_gpio_input(RX_SELECT2, PIO_PULLUP);
 
 	count = pio_configure(pio_pins);
-	EXT_INFOF(("%d input pins are configured", count));
+	EXT_DEBUGF(EXT_BOOTSTRAP_DEBUG, ("%d input pins are configured", count));
 
 	pmc_sam9x5_enable_periph_clk(AT91C_ID_PIOA);
 	pmc_sam9x5_enable_periph_clk(AT91C_ID_PIOB);
@@ -182,7 +183,7 @@ int muxHwInit(void)
 	fpgaCtrl->devAddrRll = EXT_I2C_DEV_FPGA_DRP_PLL;
 
 	// init M500768 hw specific
-	dbg_printf(EXT_OS_NAME);
+	EXT_INFOF((EXT_OS_NAME));
 
 	muxSi5351bHwInit();
 
@@ -194,7 +195,7 @@ int muxHwInit(void)
 
 	// read DIP switch value
 	btnCfg = _cfgReadPins();
-	dbg_info("DIP SW: %x; RX_SELECT: %x \n", btnCfg&0x0F, (btnCfg>>4)&0x03);
+	EXT_INFOF(("DIP SW: %x; RX_SELECT: %x", btnCfg&0x0F, (btnCfg>>4)&0x03));
 	
 	_ledReset();
 	_muxFpgaReload();

@@ -598,6 +598,10 @@ static int macb_phy_init(struct macb_device *macb, const char *name)
 	speed = (media & (ADVERTISE_100FULL | ADVERTISE_100HALF)
 		 ? 1 : 0);
 	duplex = (media & ADVERTISE_FULL) ? 1 : 0;
+
+speed=1;
+duplex=1;
+
 	printf("%s: link up, %sMbps %s-duplex (lpa: 0x%04x)\n",
 	       name,
 	       speed ? "100" : "10",
@@ -614,7 +618,10 @@ static int macb_phy_init(struct macb_device *macb, const char *name)
 	}
 
 	if (ret)
-		return ret;
+	{
+		printf("set link speed failed\n");
+//		return ret;
+	}
 
 	if (duplex)
 		ncfgr |= MACB_BIT(FD);

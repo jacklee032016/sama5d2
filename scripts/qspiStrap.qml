@@ -1,10 +1,10 @@
 import SAMBA 3.2
-import SAMBA.Connection.Serial 3.2
-//import SAMBA.Connection.JLink 3.2
+//import SAMBA.Connection.Serial 3.2
+import SAMBA.Connection.JLink 3.2
 import SAMBA.Device.SAMA5D2 3.2
 
-SerialConnection {
-//JLinkConnection {
+//SerialConnection {
+JLinkConnection {
 
 	//device: SAMA5D2Xplained {
 		// to use a custom config, replace SAMA5D2Xplained by SAMA5D2 and

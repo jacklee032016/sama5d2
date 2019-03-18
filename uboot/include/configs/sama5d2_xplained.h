@@ -18,7 +18,7 @@
 #define CONFIG_SYS_SDRAM_BASE           	0x20000000
 
 /*#define CONFIG_SYS_SDRAM_SIZE			0x20000000 */
-#define CONFIG_SYS_SDRAM_SIZE			0x8000000
+#define CONFIG_SYS_SDRAM_SIZE		0x10000000
 
 #ifdef CONFIG_SPL_BUILD
 #define CONFIG_SYS_INIT_SP_ADDR		0x218000
@@ -83,6 +83,13 @@
 #undef CONFIG_BOOTCOMMAND
 #define CONFIG_ENV_SPI_BUS		1
 #define CONFIG_ENV_SPI_CS		0
+
+#if 1
+
+#define CONFIG_BOOTCOMMAND              "sf probe 1:0; "				\
+                                        ""
+                                        
+#else
 #define CONFIG_BOOTCOMMAND              "sf probe 1:0; "				\
                                         "sf read 0x25000000 "_RAMDISK_START" "_RAMDISK_SIZE"; "		\
                                         "sf read 0x21000000 "_DTB_START" "_DTB_SIZE"; "		\
@@ -110,3 +117,6 @@
 #endif
 
 #endif
+
+#endif
+

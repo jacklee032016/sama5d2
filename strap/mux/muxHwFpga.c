@@ -226,7 +226,11 @@ int muxFpgaReset(FPGA_CTRL *fpgaCtrl)
 	}
 #endif
 
-	FPGA_READ_SYSTM_REG(fpgaCtrl, MUX_FPGA_REG_STREAM_ENBALE, 1, &_chData, 1);
+	if(FPGA_READ_SYSTM_REG(fpgaCtrl, MUX_FPGA_REG_STREAM_ENBALE, 1, &_chData, 1) )
+	{
+		EXT_ERRORF(("Read streams register %x failed", MUX_FPGA_REG_STREAM_ENBALE));
+	}
+	
 	if(_chData != 0x0)
 	{
 		EXT_ERRORF(("After reset all streams, streams register is %x. Reset all streams again %x"));
