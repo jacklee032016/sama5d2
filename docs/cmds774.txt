@@ -5,9 +5,26 @@ Modify file system
 
   sudo mount -o loop m500774_ramdisk /mnt/ -t ext4
 
+  sudo mkfs.jffs2 -r /mnt -e 0x10000 -p 0x1000000 -n -l -o jffs2_root
+  sudo umount /mnt
+  
+  sudo mount -o loop rootfs.jffs2 /mnt/ -t jffs2
+ 
+  
+  tftpboot 0x21000000 jffs2_root
+  sf probe 1:0
+  sf erase 0x4d0000 0x1400000
+  sf write 0x21000000 0x4d0000 0x1400000  
 
   
+  setenv bootargs "root=/dev/mtdblock7 rootfstype=jffs2 rw console=ttyS0,115200 earlyprintk"
 
+  bootargs=initrd=0x25000000,40M root=/dev/ram0 rw console=ttyS0,115200 earlyprintk
+  bootargs=root=/dev/mtd7 rw console=ttyS0,115200 earlyprintk
+  
+  setenv bootcmd "sf probe 0; sf read 0x22000000 0xB0000 0x400000;sf read 0x21000000 0xA0000 0x10000;bootz 0x22000000 - 0x21000000"
+  
+	
 download and write kernel
 ----------------------------------
 
