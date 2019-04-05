@@ -1,0 +1,93 @@
+[
+# all managed objects are in array; Simplify to send in JSON format directly. 04.02, 2019
+      	{
+      		"network": 
+   			{
+      				"ip": "192.168.168.181",
+      				"mask": "255.255.255.0",
+      				"gateway": "192.168.168.1",
+      				"isDhcp" : 1,
+					"MAC":"02:01:03:04:05:06"
+					
+   			}
+      	},
+		
+      	{
+      		"media":
+			{
+				"video": 
+				[
+					{
+						"ip": "239.0.0.100",
+						"port": 36000,
+						"height": 1080,
+						"width": 1920,
+						"fps": "59.94",
+						"colorSpace": "YCbCr-4:2:2",
+						"depth": 16,
+						"Intlce": 1,
+						"array": ["first"]
+					}
+				],
+
+				"audio": 
+				[
+					{
+						"ip": "239.0.0.101",
+						"port": 36010,
+						"sample": 48000,
+						"channel": 16,
+						"depth": 24,
+						"pktSize": "1ms",
+						"array": ["first"]
+					}
+				],
+				
+				"aucData": 
+				[
+					{
+						"ip": "239.0.0.101",
+						"port": 36020,
+						"arrayItem": "first"
+					}
+				]	
+			}
+      	},
+
+     	{
+      		"rs232": 
+      		{
+				"baudrate": 115200,
+				"databit": 8,
+				"parity": "none",
+				"stopbit": 1,
+				"data": "1234567980abcdef"
+      		}
+      	},
+		
+    	{
+      		"security": 
+      		{
+				"get_id": "ab12",
+				"get_status": 1,
+				"set_key": "0987654321fedcba"
+      		}
+      	},
+		
+      	{
+      		"system": 
+      		{
+				"model": "744-TX/RX",
+				"name": "SdiOverIP-774",
+				"version": "01.01-001",
+				"sdpVideoUri": "video.sdp",
+				"sdpAudioUri": "audio.sdp",
+				"sdpAncUri": "anc.sdp",
+				"reset": 0,
+				"reboot": 0,
+       			"buttonCtrl": 1,
+      			"blink_led": 0
+      		}
+      	}
+	
+]
