@@ -12,6 +12,7 @@ Support new content-type
 
 Installation
 =============================
+
 ::
 
    sudo apt-get install python-pip
@@ -30,6 +31,7 @@ simplest web service:
    python hello.py 
 
 flash rest module
+
 ::
 
    pip install flask-restful
@@ -44,6 +46,7 @@ Debugging
 
 * Restarting with stat : No such file or directory
 --------------------------------------------------------
+
 ::
 
     app.run(debug=True)
@@ -56,7 +59,9 @@ Debugging
 
 * OSError: [Errno 8] Exec format error
 --------------------------------------------------------
+
 add following line in the first line of python file:
+
 ::
 
    #!/usr/bin/env python
