@@ -43,6 +43,8 @@
 
 #include "macb.h"
 
+#include "mux7xxCompact.h"
+
 DECLARE_GLOBAL_DATA_PTR;
 
 #define MACB_RX_BUFFER_SIZE		4096
@@ -498,6 +500,7 @@ int __weak macb_linkspd_cb(void *regs, unsigned int speed)
 	return 0;
 }
 
+
 #ifdef CONFIG_DM_ETH
 static int macb_phy_init(struct udevice *dev, const char *name)
 #else
@@ -769,8 +772,11 @@ static int _macb_init(struct macb_device *macb, const char *name)
 	if (ret)
 		return ret;
 
+	extSwitchSetup();
+	
 	/* Enable TX and RX */
 	macb_writel(macb, NCR, MACB_BIT(TE) | MACB_BIT(RE));
+
 
 	return 0;
 }
@@ -900,10 +906,14 @@ static void _macb_eth_initialize(struct macb_device *macb)
 	macb_writel(macb, NCFGR, ncfgr);
 }
 
+
 #ifndef CONFIG_DM_ETH
 static int macb_send(struct eth_device *netdev, void *packet, int length)
 {
 	struct macb_device *macb = to_macb(netdev);
+
+	extEtherDebug();
+
 
 	return _macb_send(macb, netdev->name, packet, length);
 }

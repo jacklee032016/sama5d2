@@ -102,7 +102,7 @@
 			bus-width = <4>;
 			pinctrl-names = "default";
 			pinctrl-0 = <&pinctrl_sdmmc1_default>;
-			status = "okay"; /* conflict with qspi0 */
+			status = "disabled"; /* conflict with qspi0, Jack Lee */
 			vqmmc-supply = <&vdd_3v3_reg>;
 			vmmc-supply = <&vdd_3v3_reg>;
 		};
@@ -130,14 +130,16 @@
 			qspi0: spi@f0020000 {
 				pinctrl-names = "default";
 				pinctrl-0 = <&pinctrl_qspi0_default>;
-				/*status = "okay";*/ /* conflict with sdmmc1 */
+				status = "okay"; /* conflict with sdmmc1. Jack Lee */
 
 				flash@0 {
 					#address-cells = <1>;
 					#size-cells = <1>;
-					compatible = "jedec,spi-nor";
+					#compatible = "jedec,spi-nor";
+					compatible = "micron,n25q256";
 					reg = <0>;
-					spi-max-frequency = <83000000>;
+					#spi-max-frequency = <83000000>;
+					spi-max-frequency = <50000000>;
 					m25p,fast-read;
 
 					at91bootstrap@00000000 {
@@ -165,9 +167,28 @@
 						reg = <0x00080000 0x00380000>;
 					};
 
-					rootfs@00400000 {
+					config@004b0000{
+						label = "configuration";
+						reg = <0x004b0000 0x00010000>;
+
+					};
+					
+					edid@004c0000{
+						label = "edid";
+						reg = <0x004c0000 0x00010000>;
+
+					};
+
+					rootfs@004d0000 {
 						label = "rootfs";
-						reg = <0x00400000 0x00000000>;
+						reg = <0x004d0000 0x03000000>;
+
+					};
+
+					reserved@018d0000 {
+						label = "reserved";
+						reg = <0x034d0000 0x00B30000>;
+
 					};
 				};
 			};
@@ -177,8 +198,10 @@
 				pinctrl-0 = <&pinctrl_spi0_default>;
 				status = "okay";
 
-				m25p80@0 {
-					compatible = "atmel,at25df321a";
+				m25p80@0 { 
+/*				spidev@0 {*/
+					#compatible = "atmel,at25df321a";
+					compatible = "spidev";
 					reg = <0>;
 					spi-max-frequency = <50000000>;
 				};

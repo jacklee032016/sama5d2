@@ -3,7 +3,8 @@
 ## common parameters for file system
 
 
-SRC_DIR=mnt
+SRC_DIR=minimal
+#SRC_DIR=mnt
 
 SRC_FILE=root.jffs2
 
@@ -17,3 +18,9 @@ SIZE_4M=0x400000
 
 # root file system
 SIZE_16M=0x1000000
+
+SIZE_32M=0x2000000
+
+SIZE_48M=0x3000000
+
+SIZE_64M=0x4000000

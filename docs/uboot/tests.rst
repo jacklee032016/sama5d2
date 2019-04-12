@@ -3,6 +3,55 @@ Tests on u-boot
 03.07, 2019
 
 
+Add debug supports into u-boot
+================================
+
+Add new include directory of u-boot:
+
+* add config.mk into `$(srctree)/board/$(BOARDDIR)/`, which defines board specific rule
+* add `PLATFORM_CPPFLAGS += -I$(srctree)/board/$(BOARDDIR)/` into this `config.mk` file;
+
+
+Ethernet switch control
+=============================
+
+* configure as 100Mbps, network does not work:
+   * New u-boot make ethernet work after old u-boot make ethernet switch work and then re-program it;
+   
+   * read the port status
+      * When everything is OK:
+
+::
+
+   After configured:
+     p4 : 4 2 1 1 1 1
+     p5 : 4 2 1 0 1 1
+     p6 : 2 2 1 1 1 1
+   Read stattus:
+     p4 : 4 2 0 1 1 1
+     p5 : 4 2 1 0 1 1
+     p6 : 2 2 1 0 1 1      
+
+
+      * when it does not work:
+      
+::
+
+   Before configured:
+     p4 : 4 2 0 1 1 1
+     p5 : 4 2 1 0 1 1
+     p6 : 2 2 0 1 1 1   
+   After configured:
+     p4 : 4 2 1 1 1 1
+     p5 : 4 2 1 0 1 1
+     p6 : 2 2 1 1 1 1
+   Read stattus:
+     p4 : 4 2 0 1 1 1
+     p5 : 4 2 1 0 1 1
+     p6 : 2 2 0 1 1 1     
+     
+     
+
 I2C bus operation
 =============================
 

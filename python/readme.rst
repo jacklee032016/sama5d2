@@ -67,3 +67,17 @@ add following line in the first line of python file:
    #!/usr/bin/env python
 
 
+Run with gnuicorn
+=================================
+
+::
+
+   pip install gunicorn
+
+   In the directory of `rest`, and run:
+   
+   gunicorn -w 4 -b 127.0.0.1:8000 app:app # object `app` in file `app`; 4 workers
+   gunicorn -w 4 -b 0.0.0.0:8000 app:app
+   
+
+

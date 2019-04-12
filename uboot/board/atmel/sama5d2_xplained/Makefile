@@ -6,3 +6,4 @@
 obj-y += sama5d2_xplained.o
 
 obj-y += muxHwUtils.o
+obj-y += mux7xxHwInit.o

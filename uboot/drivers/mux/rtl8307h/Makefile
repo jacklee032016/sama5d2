@@ -18,4 +18,5 @@ obj-$(CONFIG_MUX7XX)	+= rtl8307h_reg_list.o
 obj-$(CONFIG_MUX7XX)	+= rtl8307h_regField_list.o
 obj-$(CONFIG_MUX7XX)	+= rtl8307h_table_list.o
 obj-$(CONFIG_MUX7XX)	+= rtl8307h_tableField_list.o
+obj-$(CONFIG_MUX7XX)	+= rtl8307h_asicdrv_mib.o
 

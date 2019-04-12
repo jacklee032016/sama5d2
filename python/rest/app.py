@@ -3,7 +3,7 @@
 from flask import Flask
 from flask_restful import Api
 
-from resources.root import Root
+from resources.root import Root, RestError
 from resources.system import System
 from resources.medias import Video
 from resources.medias import Audio
@@ -32,6 +32,8 @@ api.add_resource(AudioSdp, '/audio/sdp')# , '/audio/<str:id>')
 
 api.add_resource(Anc, '/anc')# , '/audio/<str:id>')
 api.add_resource(AncSdp, '/anc/sdp')# , '/audio/<str:id>')
+
+api.add_resource(RestError, '/error')
 
 
 if __name__ == '__main__':

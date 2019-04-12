@@ -33,43 +33,6 @@ static void board_usb_hw_init(void)
 	atmel_pio4_set_pio_output(AT91_PIO_PORTB, 10, 1);
 }
 
-#define I2C_MUX_PCA_ADDR	(0xE0>>1)
-int select_i2c_ch_pca(u8 ch)
-{
-struct udevice *bus, *dev;
-u8 addr, data[8];
-int err;
-int ret;
-
-	uclass_get_device_by_seq(UCLASS_I2C, 0, &bus);
-	dm_i2c_probe(bus, I2C_MUX_PCA_ADDR, 0, &dev);		// AT24MAC_ADDR
-
-	/* Selecting proper channel via PCA*/
-	data[0] = 0x04 | ch;
-	addr = 0x04 | ch; // I2C_MUX_PCA_ADDR;
-	
-	ret = dm_i2c_write(dev, addr, data, 0);
-	//ret = i2c_write(I2C_MUX_PCA_ADDR, 0x0, 1, &ch, 1);
-	if (ret) {
-		printf("PCA: failed to select proper channel.\n");
-		return ret;
-	}
-#if 0
-u8 i2c_addr[3], i2c_data[4];
-struct i2c_msg msg[2];
-	msg[0].addr  = 0x54;
-	msg[0].flags = 0;
-	msg[0].len   = 3;
-	msg[0].buf   = i2c_addr;
-	msg[1].addr  = 0x54;
-	msg[1].flags = I2C_M_STOP | I2C_M_RD;
-	msg[1].len   = 4;
-	msg[1].buf   = i2c_data;
-	dm_i2c_xfer(dev, msg, 2);
-#endif
-	return 0;
-}
-
 
 #ifdef CONFIG_BOARD_LATE_INIT
 int board_late_init(void)
@@ -77,47 +40,9 @@ int board_late_init(void)
 #ifdef CONFIG_DM_VIDEO
 	at91_video_show_board_info();
 #endif
-	at91_pda_detect();
+//	at91_pda_detect();
 
-//rtk_port_link_ability_t		P4_ability;
-rtk_port_link_ability_t		P5_ability;
-rtk_port_link_ability_t		P6_ability;
-
-rtk_port_link_ability_t		heac0;
-rtk_port_link_ability_t		heac1; 
-
-//	extDdrMemoryTest();
-#if 1
-	/* 768 */
-//	select_i2c_ch_pca(3);
-	/* 774 */
-	select_i2c_ch_pca(2);
-
-	RTL8307H_I2C_init(); 
-
-	rtk_port_linkAbility_get(PN_PORT5, &P5_ability );
-	rtk_port_linkAbility_get(PN_PORT6, &P6_ability );
-
-	P5_ability.link   = PORT_LINKUP;
-	rtk_port_linkAbility_set(PN_PORT5, &P5_ability );
-	
-	P6_ability.link   = PORT_LINKUP;
-	//P6_ability.speed  = PORT_SPEED_10M;
-	rtk_port_linkAbility_set(PN_PORT6, &P6_ability );
-	
-	rtk_hec_mode_set(PN_PORT0, HEC_MODE_ENABLE);
-	rtk_hec_mode_set(PN_PORT1, HEC_MODE_ENABLE); 
-
-	printf("p5 : %d %d %d %d %d %d\n", 
-		P5_ability.speed, P5_ability.duplex, P5_ability.link, P5_ability.nway, P5_ability.txpause, P5_ability.rxpause);
-	printf("p6 : %d %d %d %d %d %d\n", 
-		P6_ability.speed, P6_ability.duplex, P6_ability.link, P6_ability.nway, P6_ability.txpause, P6_ability.rxpause);
-#else
-
-	extRtl830xInit();
-#endif
-//	extSensorGetTemperatureCelsius();
-
+	extSwitchSetup();
 	return 0;
 }
 #endif

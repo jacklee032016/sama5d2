@@ -408,6 +408,8 @@ int cmnMuxCtrlDataHandle( struct DATA_CONN *dataConn )
 	int res = EXIT_SUCCESS;
 	struct json_handler *_handle = jsonActionHandlers;
 
+	TRACE();
+
 	cJSON *cmdObj = cJSON_GetObjectItem(dataConn->cmdObjs, IPCMD_NAME_KEYWORD_CMD);
 	if(cmdObj == NULL)
 	{

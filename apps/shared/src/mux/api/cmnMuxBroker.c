@@ -122,9 +122,19 @@ static struct DATA_CONN *_readCommand(struct CTRL_CONN *ctrlConn)
 			MUX_ERROR("accept Error:%s", strerror(errno));
 			return NULL;
 		}
+#if MUX_OPTIONS_DEBUG_IP_COMMAND			
+		MUX_DEBUG("%s connection accepted", ((ctrlConn->type == CTRL_LINK_TCP))?"TCP":"UNIX");
+#endif
 		len = read(dataSocket, (uint8_t *)ctrlConn->buffer, sizeof(ctrlConn->buffer));
 #if MUX_OPTIONS_DEBUG_IP_COMMAND			
-		MUX_DEBUG("TCP/UNIX Received %d bytes packet from %s:%d", len, inet_ntoa(peerAddr.sin_addr), ntohs(peerAddr.sin_port));
+		if(ctrlConn->type == CTRL_LINK_TCP)
+		{
+			MUX_DEBUG("TCP Received %d bytes packet from %s:%d", len, inet_ntoa(peerAddr.sin_addr), ntohs(peerAddr.sin_port));
+		}
+		else
+		{
+			MUX_DEBUG("UNIX Received %d bytes packet", len);
+		}
 #endif
 	}
 	else
@@ -515,25 +525,42 @@ static int _cmnMuxBrokerReceive(CMN_MUX_BROKER *broker)
 			}
 			else
 			{
-#if 0			
-				cmnMuxCtrlDataHandle(dataConn);
-				if(dataConn->errCode == IPCMD_ERR_NOT_SUPPORT_COMMND)
-#else
-				cJSON *cmdObj = cJSON_GetObjectItem(dataConn->cmdObjs, IPCMD_NAME_KEYWORD_CMD);
-				if(cmdObj == NULL)
-				{
-					return CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "No field of '%s' is found in packet", IPCMD_NAME_KEYWORD_CMD );
-				}
+				cJSON *cmdObj = NULL;
 
-				if(cmnMuxControllerAddEvent(cmdObj->valuestring, 1, dataConn) == EXIT_SUCCESS)
+				if(DATA_CONN_IS_IPCMD(dataConn) )
 				{
-					isClose = FALSE;
+					cJSON *cmdObj = cJSON_GetObjectItem(dataConn->cmdObjs, IPCMD_NAME_KEYWORD_CMD);
+					if(cmdObj == NULL)
+					{
+						CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "No field of '%s' is found in packet", IPCMD_NAME_KEYWORD_CMD );
+					}
 				}
 				else
-#endif				
 				{
-					dataConn->errCode = IPCMD_ERR_NOT_SUPPORT_COMMND;
-					_cmnMuxJsonReplyErrorBeforeCmdObject(dataConn);
+					cJSON *cmdObj = cJSON_Parse(dataConn->ctrlConn->buffer);
+					if(cmdObj == NULL)
+					{
+						CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Backend command is not validate JSON format");
+					}
+				}
+
+				if(cmdObj == NULL)
+				{
+					cmnMuxCtrlResponse(dataConn, dataConn->detailedMsg, strlen(dataConn->detailedMsg));
+					//cmn_free(errorData);
+					dataConn->isFinished = TRUE;
+				}
+				else
+				{
+					if(cmdObj && cmnMuxControllerAddEvent(cmdObj->valuestring, 1, dataConn) == EXIT_SUCCESS)
+					{
+						isClose = FALSE;
+					}
+					else
+					{
+						dataConn->errCode = IPCMD_ERR_NOT_SUPPORT_COMMND;
+						_cmnMuxJsonReplyErrorBeforeCmdObject(dataConn);
+					}
 				}
 
 			}

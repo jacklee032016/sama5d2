@@ -11,7 +11,7 @@
 		stdout-path = &uart1;
 	};
 
-	onewire_tm: onewire {
+	/*onewire_tm: onewire {
 		gpios = <&pioA PIN_PB0 0>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_onewire_tm_default>;
@@ -21,7 +21,7 @@
 			compatible = "maxim,ds24b33";
 			status = "okay";
 		};
-	};
+	};*/
 
 	ahb {
 		usb1: ohci@00400000 {
@@ -40,20 +40,20 @@
 			bus-width = <8>;
 			pinctrl-names = "default";
 			pinctrl-0 = <&pinctrl_sdmmc0_cmd_dat_default &pinctrl_sdmmc0_ck_cd_default>;
-			status = "okay";
+			/*status = "okay"; J.L. */
 			u-boot,dm-pre-reloc;
 		};
 
-		sdmmc1: sdio-host@b0000000 {
+		/*sdmmc1: sdio-host@b0000000 {
 			bus-width = <4>;
 			pinctrl-names = "default";
 			pinctrl-0 = <&pinctrl_sdmmc1_cmd_dat_default &pinctrl_sdmmc1_ck_cd_default>;
-			status = "okay"; /* conflict with qspi0 */
+			status = "okay"; J.L.  conflict with qspi0 
 			u-boot,dm-pre-reloc;
-		};
+		};*/
 
 		apb {
-			hlcdc: hlcdc@f0000000 {
+			/*hlcdc: hlcdc@f0000000 {
 				atmel,vl-bpix = <4>;
 				atmel,guard-time = <1>;
 				pinctrl-names = "default";
@@ -76,7 +76,7 @@
 						u-boot,dm-pre-reloc;
 					};
 				};
-			};
+			};*/
 
 			qspi0: spi@f0020000 {
 				cs-gpios = <&pioA PIN_PA23 0>;
@@ -95,7 +95,7 @@
 				};
 			};
 
-			spi0: spi@f8000000 {
+			/*spi0: spi@f8000000 {
 				cs-gpios = <&pioA 17 0>, <0>, <0>, <0>;
 				pinctrl-names = "default";
 				pinctrl-0 = <&pinctrl_spi0_default>;
@@ -108,7 +108,7 @@
 					spi-max-frequency = <50000000>;
 					u-boot,dm-pre-reloc;
 				};
-			};
+			}; J.L.*/
 
 			macb0: ethernet@f8008000 {
 				pinctrl-names = "default";
@@ -298,10 +298,10 @@
 						bias-disable;
 					};
 
-					pinctrl_onewire_tm_default: onewire_tm_default {
+					/*pinctrl_onewire_tm_default: onewire_tm_default {
 						pinmux = <PIN_PB0__GPIO>;
 						bias-pull-up;
-					};
+					}; */
 				};
 			};
 		};
