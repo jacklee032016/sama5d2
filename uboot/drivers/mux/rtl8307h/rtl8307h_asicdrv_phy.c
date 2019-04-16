@@ -154,6 +154,8 @@ rtk_api_ret_t giga_phy_ext_read(uint8 page, uint8 regaddr, uint16* reg_data)
 
     /* restore page sel */
     phy_reg_write(PN_PORT4, 0, 31, pagesel);
+	
+	return RT_ERR_OK; /* J.L. 04.19, 2019*/
 }
 
 rtk_api_ret_t giga_phy_ext_write(uint8 page, uint8 regaddr, uint16 reg_data)
@@ -170,6 +172,8 @@ rtk_api_ret_t giga_phy_ext_write(uint8 page, uint8 regaddr, uint16 reg_data)
 
     /* restore page sel */
     phy_reg_write(PN_PORT4, 0, 31, pagesel);
+
+	return RT_ERR_OK; /* J.L. 04.19, 2019*/
 }
 
 

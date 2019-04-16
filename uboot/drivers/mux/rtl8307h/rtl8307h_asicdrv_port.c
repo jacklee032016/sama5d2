@@ -1,5 +1,4 @@
 /*
-/*
 * Copyright (C) 2009 Realtek Semiconductor Corp.
 * All Rights Reserved.
 *
@@ -146,10 +145,10 @@ rtk_api_ret_t rtl8307h_mac6_miiMode_get(rtk_mode_ext_t* mode)
 
 rtk_api_ret_t rtl8307h_mac5_miiMode_set(rtk_mode_ext_t mode)
 {
+#if 0        
     uint32 regVal;
     uint32 chipType;
     uint32 ifType;
-#if 0        
     if(mode >= MODE_EXT_END)
         return RT_ERR_INPUT;
 

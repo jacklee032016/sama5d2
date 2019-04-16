@@ -553,7 +553,7 @@ rtk_api_ret_t rtk_port_linkAbility_get(rtk_port_t port, rtk_port_link_ability_t 
 rtk_api_ret_t rtk_port_linkStatus_get(rtk_port_t port, rtk_port_link_status_t *pStatus)
 {
     uint32 regval;
-    rtk_port_phy_ability_t ability;
+//    rtk_port_phy_ability_t ability; /* J.L. */
     
     if(!IS_VALID_PORT_ID(port))
         return RT_ERR_PORT_ID; 
@@ -1065,7 +1065,7 @@ void rtk_mac6_interface_get(rtk_port_interface_t *mode)
 rtk_api_ret_t rtk_wol_event_set(uint8 event_mask)
 {
     uint32 reg_val;
-    uint32 mask;
+//    uint32 mask;	/* J.L. */
 
     /* clear bit WFEn,MPEn,LUEn and keep WI_flag (clear Interrupt pending flag to avoid write 1 to clear interrupt pending)*/
     reg_read(RTL8307H_UNIT, WOL_GLOBAL_CONTROL, &reg_val);
@@ -1285,7 +1285,7 @@ void rtk_wol_wakup_sample_set(uint8 group, uint8* frame, uint16 len, uint8* mask
 {
     uint16 crc;
     uint8 message[128];
-    uint8 i;
+	//    uint8 i;	/*J.L. */
     uint32 regVal;
 
     if (len >= 128)
@@ -4048,7 +4048,7 @@ rtk_api_ret_t rtk_qos_cvlanRemarkTable_set(rtk_port_t portId, rtk_index_t index)
  */
 rtk_api_ret_t rtk_qos_cvlanRemarkTable_get(rtk_port_t portId, rtk_index_t* pIndex)
 {
-    uint32 fieldVal;
+//    uint32 fieldVal;	/* J.L. */
     int32 retVal;
 
     if(portId >= PN_PORT_END)
@@ -4434,7 +4434,7 @@ rtk_api_ret_t rtk_qos_queueScheduler_get(rtk_port_t portId, rtk_queue_num_t queu
         *pQueueSchedule = QOS_STRICT_PRIORITY;
     else
     {
-        if((retVal=reg_field_read(RTL8307H_UNIT, PORT0_QUEUE_SCHEDULE_CONTROL+portId, SCHEDULER_TYPE_SEL, &tempVal)) != SUCCESS)
+        if((retVal=reg_field_read(RTL8307H_UNIT, PORT0_QUEUE_SCHEDULE_CONTROL+portId, SCHEDULER_TYPE_SEL, (uint32 *)&tempVal)) != SUCCESS)
             return retVal;
 
         if(tempVal > QOS_CREDIT_BASED)
@@ -4731,7 +4731,7 @@ rtk_api_ret_t rtk_rate_egressQueueBWCtlrl_set(rtk_port_t portId, rtk_queue_num_t
     if(queueId > RTL8307H_QIDMAX)
         return RT_ERR_QUEUE_ID;
 
-    if(enable>= QOS_SCHEDULE_END)
+    if((int)enable >= (int)QOS_SCHEDULE_END)
         return RT_ERR_INPUT;
     
     if(queueRate > RTL8307H_PORTRATEMAX)
@@ -5138,6 +5138,8 @@ rtk_api_ret_t rtk_vlan_get(rtk_vlan_t vid, rtk_portmask_t *pMbrmsk, rtk_portmask
             break;
         }
     }
+
+	hit_index = hit_index; /* J.L. Add to remove warns. 04.19, 2019 */
     
     if (!hit_flag)
     {
@@ -5605,9 +5607,16 @@ rtk_api_ret_t rtk_vlan_tagAware_get(rtk_port_t port, rtk_enable_t *pEnabled)
     if(NULL == pEnabled)
         return RT_ERR_NULL_POINTER;
 
-    if((rtl8307h_vlan_portTagAware_get(port, &enabled) != RT_ERR_OK))
-        return retVal;
-    
+#if 0
+	if((rtl8307h_vlan_portTagAware_get(port, &enabled) != RT_ERR_OK))
+		return retVal;
+#else	
+	/* J.L. 04.19, 219*/
+	retVal = rtl8307h_vlan_portTagAware_get(port, &enabled);
+	if(retVal != RT_ERR_OK)
+		return retVal;
+#endif
+
     *pEnabled = enabled ? ENABLED : DISABLED;
     
     return RT_ERR_OK;    
@@ -5684,7 +5693,7 @@ rtk_api_ret_t rtk_leaky_vlan_set(rtk_leaky_type_t type, rtk_enable_t enable)
  */
  rtk_api_ret_t rtk_leaky_vlan_get(rtk_leaky_type_t type, rtk_enable_t *pEnable)
 {
-    rtk_api_ret_t retVal;
+	rtk_api_ret_t retVal = RT_ERR_OK;	/* add default value. J.L. 04.29, 2019 */
     uint32        feildVal;
     
     if (pEnable == NULL)
@@ -6244,7 +6253,7 @@ rtk_api_ret_t rtk_svlan_portAcceptFrameType_get(rtk_port_t port, rtk_vlan_accept
 rtk_api_ret_t rtk_svlan_tagMode_set(rtk_port_t port, rtk_vlan_tagMode_t tag_mode)
 {
     rtk_api_ret_t retVal;
-    rtk_vlan_tagMode_t mode;
+ //   rtk_vlan_tagMode_t mode;
     
     if(!IS_VALID_PORT_ID(port))
         return RT_ERR_PORT_ID;
@@ -6610,13 +6619,13 @@ rtk_api_ret_t rtk_mirror_portBased_get(rtk_port_t* pMirroring_port, rtk_portmask
     memset(pMirrored_rx_portmask, 0, sizeof(rtk_portmask_t));
     memset(pMirrored_tx_portmask, 0, sizeof(rtk_portmask_t));
 
-    CHK_FUN_RETVAL(reg_field_read(RTL8307H_UNIT, TRAFFIC_MIRROR_CONTROL1, DP, &regVal));
+    CHK_FUN_RETVAL(reg_field_read(RTL8307H_UNIT, TRAFFIC_MIRROR_CONTROL1, DP, (uint32 *)&regVal));
     *pMirroring_port = regVal;
           
-    CHK_FUN_RETVAL(reg_field_read(RTL8307H_UNIT, TRAFFIC_MIRROR_CONTROL0, SPM, &regVal));
+    CHK_FUN_RETVAL(reg_field_read(RTL8307H_UNIT, TRAFFIC_MIRROR_CONTROL0, SPM, (uint32 *)&regVal));
     pMirrored_rx_portmask->bits[0] = regVal;
 
-    CHK_FUN_RETVAL(reg_field_read(RTL8307H_UNIT, TRAFFIC_MIRROR_CONTROL1, DPM, &regVal));
+    CHK_FUN_RETVAL(reg_field_read(RTL8307H_UNIT, TRAFFIC_MIRROR_CONTROL1, DPM, (uint32 *)&regVal));
     pMirrored_tx_portmask->bits[0] = regVal;
     
     return RT_ERR_OK;
@@ -6877,7 +6886,9 @@ rtk_api_ret_t rtk_stat_port_stop(rtk_port_t port)
         return RT_ERR_PORT_ID;
     
     if ((retVal = reg_read(RTL8307H_UNIT, MIB_COUNTER_CONTROL2, &regVal)) != SUCCESS)
+    	{
         return retVal;
+    	}
 
         regVal &= ~(1 << port);
     

@@ -477,7 +477,7 @@ ret_t rtl8307h_igmp_asicPri_get( uint32* igmpPri)
  * Note:
  *      This API can reset 8051 code when igmp parameters changed.
  */
-ret_t rtl8307h_igmp_paraChanged_reset()
+ret_t rtl8307h_igmp_paraChanged_reset(void)
 {
     if( SUCCESS != reg_write(RTL8307H_UNIT, CPU_8051_RESET, 0x2))
         return RT_ERR_FAILED;
