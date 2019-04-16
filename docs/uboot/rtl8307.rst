@@ -1,0 +1,98 @@
+Debug RTL8307 switch chip
+################################
+04.16, 2019
+
+
+Debug
+================================
+
+Problem
+----------------------
+
+After configured everything, the port 7 is always in state of DOWN;
+
+Same source code can only used in 2017 version of u-boot;
+
+2018 version can only works after 2017 verson make it works and update to 2018 version without power off;
+
+Debugging
+---------------------
+
+Checking the pins definition for different boards, old 767, 768 and 774;
+
+For old 767 board
++++++++++++++++++++++++++++++
+For old 767, all pins of port 6 are connected in schematics; 
+
+If some pins are not defined and pull down by software, MCU can't send or receive any packets;
+
+But all configuration read out are correct.
+
+For 768 and 774 boards
++++++++++++++++++++++++++++++
+Read configuration is correct, but port 6 is down after configured;
+
+So the problem is 
+
+* **`rtk_i2c_read` is correct;**
+* **`rtk_i2c_write` is not so correct: at least for port 6, it is not correct;**
+* **configuration operation for rtl8307 has no effect, so the switch chip is not reset after software reset**
+
+Reimplement `rtk_i2c_read/rtk_i2c_write` with i2c_msg and dm_i2c_xfer(), then everything is OK;
+
+
+Check configuration from RTL8307
+====================================
+
+* Port 0~3: MODE_EXT_HEAC
+* Port 4: MODE_EXT_GIGA
+* Port 5: MODE_EXT_RGMII_RXTXDELAY, noway=1
+* Port 6: MODE_EXT_RMII_OUTPUT, noway=0
+
+After read it, these configuration is same as the labels in schematics; the labels are same for all these boards;
+
+Notes:
+
+* noway field is meaning of auto-negotiation for every port;
+* RTL driver add about 100 KB into the image of u-boot;
+
+
+Ethernet switch control
+=============================
+
+* configure as 100Mbps, network does not work:
+   * New u-boot make ethernet work after old u-boot make ethernet switch work and then re-program it;
+   
+   * read the port status
+      * When everything is OK:
+
+::
+
+   After configured:
+     p4 : 4 2 1 1 1 1
+     p5 : 4 2 1 0 1 1
+     p6 : 2 2 1 1 1 1
+   Read stattus:
+     p4 : 4 2 0 1 1 1
+     p5 : 4 2 1 0 1 1
+     p6 : 2 2 1 0 1 1      
+
+
+      * when it does not work:
+      
+::
+
+   Before configured:
+     p4 : 4 2 0 1 1 1
+     p5 : 4 2 1 0 1 1
+     p6 : 2 2 0 1 1 1   
+   After configured:
+     p4 : 4 2 1 1 1 1
+     p5 : 4 2 1 0 1 1
+     p6 : 2 2 1 1 1 1
+   Read stattus:
+     p4 : 4 2 0 1 1 1
+     p5 : 4 2 1 0 1 1
+     p6 : 2 2 0 1 1 1     
+
+     

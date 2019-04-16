@@ -11,11 +11,9 @@
 
 #include <../drivers/mux/muxlabHw.h> 
 
-#define	EXT_NEW_LINE		"\r\n"
-
 //#define I2C_MUX_PCA_ADDR	(0xE0)
 
-struct udevice *_extSelectI2cDevice(uint busNo, uint devAddr)
+static struct udevice *_extSelectI2cDevice(uint busNo, uint devAddr)
 {
 	struct udevice *bus, *dev;
 	int err;
@@ -264,7 +262,6 @@ int extI2CWrite( uint switch_addr, uint reg_val)
 }
 
 
-
 short extSensorGetTemperatureCelsius(void)
 {/* 11 bits: sign bit + 10 bit value */
 	uint regVal =0;
@@ -283,86 +280,5 @@ short extSensorGetTemperatureCelsius(void)
       
 	printf("LM95245 Temp(LSB): %d*0.125;\n", (regVal>>5) );
 	return temperature;
-}
-
-static int _extDdrMemoryTestOneArea(unsigned long start, unsigned long end )
-{
-	unsigned long dram_start;
-	unsigned long dram_end;
-	unsigned long dram_point;
-	int test_res;
-
-	dram_point = 0;
-	dram_start = start;
-	dram_end = end;
-
-	printf("Test memory zone from %lx -- %lx....." EXT_NEW_LINE, start, end);
-
-	printf("\tWriting....." EXT_NEW_LINE"\t");
-	for(dram_point = dram_start; dram_point < dram_end; dram_point = dram_point + sizeof(unsigned long))
-	{
-//		*(volatile unsigned long*)dram_point = dram_point^TEST_SYS_SDRAM_PTRN;
-		*(volatile unsigned long*)dram_point = dram_point;
-		if(dram_point%0x100000 == 0)
-		{
-			printf(".");
-		}
-	}
-	printf(EXT_NEW_LINE);
-	
-
-	printf("\tChecking....." EXT_NEW_LINE"\t");
-	for(dram_point = dram_start; dram_point < dram_end; dram_point = dram_point + sizeof(unsigned long))
-	{
-//		if(((*(volatile unsigned long*)dram_point)^TEST_SYS_SDRAM_PTRN) != dram_point)
-		if(((*(volatile unsigned long*)dram_point)) != dram_point)
-		{
-//			printf("DDR Memory Test Failed at addr %x data: %x vs %x\n", dram_point, *(volatile unsigned long*)dram_point, dram_start^TEST_SYS_SDRAM_PTRN);
-			printf("DDR Memory Test Failed at addr %lx data: %lx vs %lx\n", dram_point, *(volatile unsigned long*)dram_point, dram_start);
-			printf("next: %lx %lx %lx %lx %lx %lx %lx %lx\n", 
-				*(volatile unsigned long*)(dram_point+sizeof(unsigned long)), *(volatile unsigned long*)(dram_point+2*sizeof(unsigned long)), 
-				*(volatile unsigned long*)(dram_point+3*sizeof(unsigned long)), *(volatile unsigned long*)(dram_point+4*sizeof(unsigned long)),
-				*(volatile unsigned long*)(dram_point+5*sizeof(unsigned long)), *(volatile unsigned long*)(dram_point+6*sizeof(unsigned long)),
-				*(volatile unsigned long*)(dram_point+7*sizeof(unsigned long)), *(volatile unsigned long*)(dram_point+8*sizeof(unsigned long)));
-			test_res = 1;
-			break;
-		}
-		if(dram_point%0x100000 == 0)
-		{
-			printf("*");
-		}
-	}
-	printf(EXT_NEW_LINE);
-
-	if(test_res == 0)
-	{
-		printf("DDR Memory Test from %lx to %lx Passed.\n", dram_start, dram_end);
-	}
-
-	return 0;	
-}
-
-
-int extDdrMemoryTest(void)
-{
-	int _res;
-
-#define TEST_SYS_SDRAM_SIZE		0x10000000	/* 256M */
-
-
-#define	MEM_SIZE_96M		0x6000000
-#define	MEM_SIZE_112M		0x7000000
-
-#define	MEM_SIZE_512M		(0x20000000 - 0x20) //0x1000000)
-#define	MEM_SIZE_256M		(0x10000000) //0x1000000)
-#define	MEM_SIZE_128M		(0x8000000) //0x1000000)
-#if 1
-	_res = _extDdrMemoryTestOneArea(CONFIG_SYS_SDRAM_BASE, CONFIG_SYS_SDRAM_BASE + MEM_SIZE_96M);
-	
-	_res += _extDdrMemoryTestOneArea(CONFIG_SYS_SDRAM_BASE + 0x8000000, CONFIG_SYS_SDRAM_BASE + 0x8000000 + MEM_SIZE_112M);//0xF000000);
-#else
-	_res += _extDdrMemoryTestOneArea(CONFIG_SYS_SDRAM_BASE, CONFIG_SYS_SDRAM_BASE + MEM_SIZE_128M);
-#endif
-	return _res;
 }
 

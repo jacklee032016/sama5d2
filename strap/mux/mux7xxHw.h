@@ -5,11 +5,12 @@
 #ifndef	__MUX_7XX_HW_H__
 #define	__MUX_7XX_HW_H__
 
+#include "mux7xxCompact.h"
+
 #define	EXT_I2C_DEV_PCA9544			(0xE0>>1)
 #define	EXT_I2C_DEV_SI5351B			(0xC0>>1)
 #define	EXT_I2C_DEV_MDIO				(0x64 >> 1)		// 8 bits addr format
 
-#define	EXT_I2C_DEV_SENSOR			(0x30 >> 1)
 
 #define	EXT_I2C_DEV_FPGA_SYSTEM		(0x60>>1)	/* 0x30 */
 #define	EXT_I2C_DEV_FPGA_RTP			(0x66>>1)	/* 0x33 */
@@ -18,6 +19,16 @@
 #define	EXT_I2C_DEV_FPGA_DRP_XADC	(0x6c>>1)	/* 0x36, Dynamic Reconfiguration Port */
 #define	EXT_I2C_DEV_FPGA_PCSPMA		(0x6E>>1)	/* 0x37 */
 
+
+#if	(MUX_BOARD == MUX_BOARD_768)
+	#define	EXT_I2C_DEV_SENSOR			(0x30 >> 1)
+#elif (MUX_BOARD == MUX_BOARD_774)
+	#define	EXT_I2C_DEV_SENSOR			(0x90 >> 1)
+#elif (MUX_BOARD == MUX_BOARD_767)
+	#define	EXT_I2C_DEV_SENSOR			(0x30 >> 1)
+#else
+#error 	Not support board definition
+#endif
 
 
 #define	EXT_I2C_SENSOR_LOCAL_TEMP_MSB		0x00
@@ -127,7 +138,6 @@ typedef	enum  _EXT_VIDEO_DEPTH
 
 #define	EXT_BOOTSTRAP_DEBUG		EXT_DBG_OFF// EXT_DBG_ON
 
-#include "mux7xxCompact.h"
 #include "mux7xxSysParams.h"
 
 

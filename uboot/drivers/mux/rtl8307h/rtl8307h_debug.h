@@ -109,17 +109,23 @@
 #ifndef RTL8307H_DEBUG
 #define ASSERT(expr) //do {if (expr); } while (0)
 #else
-#define ASSERT(expr) //\
+#define ASSERT(expr) 
+/*
+//
 //        if((expr) == 0) {                   \
 //            rtlglue_printf( "\033[33;41m%s:%d: assert(%s)\033[m\n", \
 //                                __FILE__,__LINE__,#expr);       \
 //        }
+*/
 #endif
 #ifndef RTL8307H_DEBUG
 #define PRINT_ERROR(fmt, args...) //do {} while (0)
 #else
-#define PRINT_ERROR(fmt, args...) //\
+#define PRINT_ERROR(fmt, args...) 
+/*
+//
 //    do {rtlglue_printf("[%s-%d]-ERROR-: " fmt "\n", __FUNCTION__, __LINE__, ## args);} while (0)
+*/
 #endif    
 
 

@@ -22,7 +22,11 @@
 
 #include "rtk_i2c.h"
 
-//#include <string.h>
+#if 0
+#include <string.h>
+#else
+#include <linux/string.h>
+#endif
 
 /*
  * Data Type Declaration

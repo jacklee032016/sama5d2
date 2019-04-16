@@ -115,7 +115,7 @@ short extSensorGetTemperatureCelsius(void)
 
 	if(twi_read(bus, EXT_I2C_DEV_SENSOR, EXT_I2C_SENSOR_LOCAL_TEMP_MSB, 1, &regVal, 1) )
 	{
-		EXT_ERRORF(("LM95245 Temp(MSB) read failed"));
+		EXT_ERRORF(("LM95245 Temp(MSB) read failed on #0x%x:%d", EXT_I2C_DEV_SENSOR, EXT_I2C_SENSOR_LOCAL_TEMP_MSB));
 		return temperature;
 	}
 	else

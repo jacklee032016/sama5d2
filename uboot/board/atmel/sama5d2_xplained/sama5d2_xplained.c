@@ -15,23 +15,18 @@
 #include <asm/arch/gpio.h>
 #include <asm/arch/sama5d2.h>
 
-#include <../drivers/mux/rtl8307h/rtk_api.h>
-#include <../drivers/mux/rtl8307h/rtk_api_ext.h>
-#include <../drivers/mux/rtl8307h/rtl8307h_types.h> 
-
-void extRtl830xInit(void);
-short extSensorGetTemperatureCelsius(void);
-int extDdrMemoryTest(void);
-
-
 extern void at91_pda_detect(void);
 
 DECLARE_GLOBAL_DATA_PTR;
 
+#ifdef CONFIG_CMD_USB
 static void board_usb_hw_init(void)
 {
 	atmel_pio4_set_pio_output(AT91_PIO_PORTB, 10, 1);
 }
+#endif
+
+int extSwitchSetup(void);
 
 
 #ifdef CONFIG_BOARD_LATE_INIT
@@ -40,7 +35,7 @@ int board_late_init(void)
 #ifdef CONFIG_DM_VIDEO
 	at91_video_show_board_info();
 #endif
-//	at91_pda_detect();
+	at91_pda_detect();
 
 	extSwitchSetup();
 	return 0;

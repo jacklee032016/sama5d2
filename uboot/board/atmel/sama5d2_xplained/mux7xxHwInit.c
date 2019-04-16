@@ -18,68 +18,120 @@
 #include <asm/arch/gpio.h>
 #include <asm/arch/sama5d2.h>
 
-//#include <../drivers/mux7xx/rtl8307h/rtk_api.h>
-//#include <../drivers/mux7xx/rtl8307h/rtk_api_ext.h>
-//#include <../drivers/mux7xx/rtl8307h/rtl8307h_types.h> 
-
-#include <../drivers/mux/muxlabHw.h> 
+#include <../drivers/mux/rtl8307h/rtk_api.h>
+#include <../drivers/mux/rtl8307h/rtk_api_ext.h>
+#include <../drivers/mux/rtl8307h/rtl8307h_types.h> 
 
 #include "mux7xxCompact.h"
-
-
-#define	CONFIG_SYS_I2C_SPEED	100000
 
 
 #define I2C_MUX_PCA_ADDR	(0xE0>>1)
 
 #define	EXT_TOSTRING(s)						#s
 
-#define	DEBUG_LINK_PORT( portAbility ) \
-	printf("\tPort-%s: %s %s : %s-duplex; AutoNego:%s; TxPause:%s; RxPause:%s\n", EXT_TOSTRING(portAbility),	\
+#define	DEBUG_LINK_PORT(port, portAbility ) \
+	EXT_INFOF(("\tPort-%d: %s %s;\t%s-duplex; AutoNego:%s; TxPause:%s; RxPause:%s", (port),	\
 		((portAbility).link==PORT_LINKUP)?"Up":"Down", ((portAbility).speed==PORT_SPEED_1000M)?"1000M":((portAbility).speed==PORT_SPEED_100M)?"100M":"None", \
-		((portAbility).duplex==PORT_FULL_DUPLEX)?"full":"half", ((portAbility).nway)?"YES":"No", ((portAbility).txpause)?"YES":"No", ((portAbility).rxpause)?"YES":"No" )
+		((portAbility).duplex==PORT_FULL_DUPLEX)?"full":"half", ((portAbility).nway)?"YES":"No", ((portAbility).txpause)?"YES":"No", ((portAbility).rxpause)?"YES":"No" ))
 
+static struct udevice *_i2cBus0 = NULL;
 
-#define	__RTK_CHECK_PORT_START(port, retVal, action)		\
-		{if( (retVal) != RT_ERR_OK ){ EXT_ERRORF(("Port %d %s failed: %d", (port),(action), (retVal))); \
-			return -1;	}else{/*printf("Port#%d %s OK!\r\n", (port), (action));*/}}
+static struct udevice	*_pcaMultiplexer = NULL;
+static struct udevice	*_i2cSwitch = NULL;
 
-int select_i2c_ch_pca(u8 ch)
+static struct udevice *_extSelectI2cDevice(uint busNo, uint devAddr)
 {
-	struct udevice *bus, *dev;
-	u8 addr, data[8];
-	int ret;
+	struct udevice *dev;
+	int err;
 
-	uclass_get_device_by_seq(UCLASS_I2C, 0, &bus);
-	if(bus == NULL)
+	if(_i2cBus0 == NULL )	
 	{
-		EXT_ERRORF(("I2C-0 is not found"));
-		return -ENOSYS;
+		err = uclass_get_device_by_seq(UCLASS_I2C, busNo, &_i2cBus0);
+		if(_i2cBus0 == NULL || err )
+		{
+			EXT_ERRORF(("I2C Error: Check I2C bus %d configuration: %d.\n", busNo, err /* errno_str(err)*/ ));
+			return NULL;
+		}
+		
+		EXT_DEBUGF(RTL8307_DEBUG, ("I2C bus-%d: %s found", busNo, _i2cBus0->name));
 	}
 	
-	dm_i2c_probe(bus, I2C_MUX_PCA_ADDR, 0, &dev); // AT24MAC_ADDR
+	dm_i2c_probe(_i2cBus0, devAddr, 0, &dev);
+	if(dev == NULL || err )
+	{
+		EXT_ERRORF(("I2C Error: Can't found device on 0x%x of bus %s: %d.\n", devAddr, _i2cBus0->name, err/* errno_str(err)*/));
+	}
+
+	return dev;
+}
+
+
+static struct udevice *_selectMultiplexerChan(uint busNo, u8 ch, uint devAddr)
+{
+	struct udevice	*dev = NULL;
+#if 1
+	u8 addr, data[8];
+	int err;
+
+	if(_pcaMultiplexer == NULL )	
+	{
+		_pcaMultiplexer = _extSelectI2cDevice(busNo, I2C_MUX_PCA_ADDR);
+		if(_pcaMultiplexer == NULL)
+		{
+			EXT_ERRORF(("I2C Error: Can't found PCA954 device on bus %d.\n", busNo));
+			return NULL;
+		}
+		EXT_DEBUGF(RTL8307_DEBUG, ("I2C dev-%x: %s found", I2C_MUX_PCA_ADDR, _pcaMultiplexer->name));
+	}
+	
+	
+	/* Selecting proper channel via PCA*/
+	if(ch == 0xFF )
+	{
+		data[0] = 0x0;
+		addr = 0x0;
+	}
+	else
+	{
+		data[0] = ch+4;
+		addr = ch+4;
+	}
+	
+	EXT_DEBUGF(RTL8307_DEBUG, ("I2C bus-%d: write device %s channel#%x"EXT_NEW_LINE, busNo, _pcaMultiplexer->name, addr ));
+	err = dm_i2c_write(_pcaMultiplexer, addr, data, 0);
+	if (err)
+	{
+		EXT_ERRORF(("I2C Error: PCA failed to select proper channel"));
+		return NULL;
+	}
+
+	dev = _extSelectI2cDevice(busNo, devAddr);
 	if(dev == NULL)
 	{
-		EXT_ERRORF(("I2C-0 device #0x%x is not found", I2C_MUX_PCA_ADDR));
-		return -ENOSYS;
+		EXT_ERRORF(("I2C Error: Device#0x%x is not foundl", devAddr) );
+		return NULL;
 	}
+	EXT_DEBUGF(RTL8307_DEBUG, ("I2C bus-%d: write device %s address#%x"EXT_NEW_LINE, busNo, dev->name, devAddr ));
 
-	/* Selecting proper channel via PCA*/
-	data[0] = 0x04 | ch;
-	addr = 0x04 | ch; // I2C_MUX_PCA_ADDR;
-	
-	ret = dm_i2c_write(dev, addr, data, 0);
-	//ret = i2c_write(I2C_MUX_PCA_ADDR, 0x0, 1, &ch, 1);
-	if (ret)
-	{
-		printf("PCA: failed to select proper channel.\n");
-		return ret;
-	}
-
-#if 0
+#else
 	struct i2c_msg msg[2];
 	u8 i2c_addr[3], i2c_data[4];
 
+	uclass_get_device_by_seq(UCLASS_I2C_MUX, 0, &bus);
+	if(bus == NULL)
+	{
+		printf("Error: Check I2C muxplexer.\n");
+		return -1;
+	}
+	printf("I2C Muxplexoer bus: %s.\n", bus->name);
+	
+	dm_i2c_probe(bus, I2C_MUX_PCA_ADDR, 0, &dev);
+	if(dev == NULL)
+	{
+		printf("PCA Error: Can't found PCA954 device.\n");
+		return -1;
+	}
+	
 	msg[0].addr  = 0x54;
 	msg[0].flags = 0;
 	msg[0].len   = 3;
@@ -91,9 +143,52 @@ int select_i2c_ch_pca(u8 ch)
 	dm_i2c_xfer(dev, msg, 2);
 #endif
 
-	return 0;
+	return dev;
 }
 
+/* only one byte register address can be supported for i2c_read and i2c_write */
+int extI2CRead(unsigned char chanNo, unsigned char deviceAddress, unsigned int regAddress, unsigned char *regVal, int regSize)
+{
+	struct udevice	*dev = NULL;
+	int err;
+
+	dev = _selectMultiplexerChan(0, chanNo, deviceAddress);
+	if(dev == NULL)
+	{
+		return -ENOSYS;
+	}
+	
+	err = dm_i2c_read(dev, regAddress, regVal, regSize);
+	if(err != 0)
+	{
+		EXT_ERRORF(( "I2C read channel %d, device %x, regAdd:%x failed: %d", chanNo, deviceAddress, regAddress, err));
+	}
+
+	return err;
+}
+
+char extI2CWrite(unsigned char chanNo, unsigned char deviceAddress, unsigned int regAddress, unsigned char *regVal, int regSize)
+{
+	struct udevice	*dev = NULL;
+	int err;
+
+	dev = _selectMultiplexerChan(0, chanNo, deviceAddress);
+	if(dev == NULL)
+	{
+		return -ENOSYS;
+	}
+
+	err = dm_i2c_write(dev, regAddress, regVal, regSize);
+	if(err != 0)
+	{
+		EXT_ERRORF(( "I2C write channel %d, device %x, regAdd:%x failed: %d", chanNo, deviceAddress, regAddress, err));
+	}
+
+	return err;
+
+}
+
+#if RTL8307_DEBUG
 static void _printPortAbility(rtk_port_link_ability_t *ability)
 {
 	switch(ability->speed)
@@ -239,7 +334,7 @@ static void _printPortState(rtk_port_t port)
 
 	printf("\r\n");
 }
-
+#endif
 
 int _switchCfgOnePort(int port)
 {
@@ -253,8 +348,10 @@ int _switchCfgOnePort(int port)
 		return -EINVAL;
 	}
 
+#if RTL8307_DEBUG
 	_printPortState(port);
 	_printPortAbility(&_portAbility);
+#endif
 
 	_portAbility.link   = PORT_LINKUP;
 	ret = rtk_port_linkAbility_set(port, &_portAbility );
@@ -272,89 +369,404 @@ int _switchCfgOnePort(int port)
 		return -EINVAL;
 	}
 	
+#if RTL8307_DEBUG
 	_printPortState(port);
 	_printPortAbility(&_portAbility);
+#else
+	DEBUG_LINK_PORT(port, _portAbility);
+#endif
 
 	return 0;
 }
-
-static int _extRtl8305DebugOneport(rtk_port_t port)
-{
-	rtk_stat_counter_t cnt;
-	int count;
-	int ret;
-	
-	ret = rtk_stat_port_get(port, STAT_IfInOctets, &cnt);
-	if(ret != RT_ERR_OK)
-	{
-		EXT_ERRORF(("Port#%d read InOctets failed: %s\n", port, rtk_errMsg_get(ret)  ));
-		return -EINVAL;
-	}
-	count = (int)cnt;
-	printf("Port:%d: InfCount:%d ", port, count);
-
-	ret = rtk_stat_port_get(port, STAT_IfOutOctets, &cnt);
-	if(ret != RT_ERR_OK)
-	{
-		EXT_ERRORF(("Port#%d read OutOctets failed: %s\n", port, rtk_errMsg_get(ret)  ));
-		return -EINVAL;
-	}
-	count = (int)cnt;
-	printf("OutfCount:%d "EXT_NEW_LINE, count);
-
-	return 0;
-}
-
-void extEtherDebug(void)
-{
-	_extRtl8305DebugOneport(PN_PORT4);
-	_extRtl8305DebugOneport(PN_PORT5);
-	_extRtl8305DebugOneport(PN_PORT6);
-}
-
-
 
 int extSwitchSetup(void)
 {
-//	rtk_port_link_ability_t		heac0;
-//	rtk_port_link_ability_t		heac1; 
+	int err;
+	u8 temperature;
+#if RTL8307_DEBUG
+	rtk_hec_mode_t	hecMode;
+#endif
 
-	int ret;
+	EXT_INFOF((""EXT_SYSTEM " is initializing ...") );
+	EXT_INFOF(("\tChannel switch:#%d; sensor:#%d;", I2C_CHAN_4_SWITCH, I2C_CHAN_4_SENSOR) );
 
-//	extDdrMemoryTest();
-#if 1
-	/* 768 */
-//	select_i2c_ch_pca(3);
-	/* 774 */
-	select_i2c_ch_pca(2);
+	err = extI2CRead(I2C_CHAN_4_SENSOR, EXT_I2C_DEV_SENSOR, 0, &temperature, 1);
+	if(err)
+	{
+		return err;
+	}
+	EXT_INFOF(("\tTemp sensor: %d", temperature) );
+
+//	if( extI2CRead(I2C_CHAN_4_SWITCH, EXT_I2C_ADDRESS_RTL8035, 12, (unsigned char *)&ret, 4) != 0)
+	{
+//		return;
+	}
+
 
 	RTL8307H_I2C_init(); 
 
-	_switchCfgOnePort(PN_PORT5);
-	_switchCfgOnePort(PN_PORT6);
+#if RTL8307_DEBUG
+	err= _switchCfgOnePort(PN_PORT0);
+	if(err < 0)
+	{
+		return err;
+	}
+	
+	err = _switchCfgOnePort(PN_PORT1);
+	if(err < 0)
+	{
+		return err;
+	}
 
-	rtk_hec_mode_set(PN_PORT0, HEC_MODE_ENABLE);
-	rtk_hec_mode_set(PN_PORT1, HEC_MODE_ENABLE); 
+	err = _switchCfgOnePort(PN_PORT2);
+	if(err < 0)
+	{
+		return err;
+	}
+	
+	err = _switchCfgOnePort(PN_PORT3);
+	if(err < 0)
+	{
+		return err;
+	}
 
-	ret = rtk_stat_port_reset(PN_PORT5);
-	__RTK_CHECK_PORT_START(PN_PORT5, ret, "reset");
-	ret = rtk_stat_port_reset(PN_PORT6);
-	__RTK_CHECK_PORT_START(PN_PORT6, ret, "reset");
-
-	ret = rtk_stat_port_start(PN_PORT5);
-	__RTK_CHECK_PORT_START(PN_PORT5, ret, "start");
-	ret = rtk_stat_port_start(PN_PORT6);
-
-
-	extEtherDebug();
-#else
-
-	extRtl830xInit();
+	err = _switchCfgOnePort(PN_PORT4);
+	if(err < 0)
+	{
+		return err;
+	}
 #endif
-//	extSensorGetTemperatureCelsius();
+
+	err = _switchCfgOnePort(PN_PORT5);
+	if(err < 0)
+	{
+		return err;
+	}
+	
+	err = _switchCfgOnePort(PN_PORT6);
+	if(err < 0)
+	{
+		return err;
+	}
+
+	err = rtk_hec_mode_set(PN_PORT0, HEC_MODE_ENABLE);
+	if(err != RT_ERR_OK)
+	{
+		EXT_ERRORF(("Port#%d status failed: %s\n", PN_PORT0, rtk_errMsg_get(err) ));
+		return -ENODATA;
+	}
+#if RTL8307_DEBUG
+	err = rtk_hec_mode_get(PN_PORT0, &hecMode);
+	if(err != RT_ERR_OK)
+	{
+		EXT_ERRORF(("Port#%d status failed: %s\n", PN_PORT0, rtk_errMsg_get(err)));
+		return -ENODATA;
+	}
+	EXT_INFOF(("PN_PORT0 mode: %s", (hecMode)?"Enable":"Disable"));
+#endif
+
+	err = rtk_hec_mode_set(PN_PORT1, HEC_MODE_ENABLE); 
+	if(err != RT_ERR_OK)
+	{
+		EXT_ERRORF(("Port#%d status failed: %s\n", PN_PORT1, rtk_errMsg_get(err) ));
+		return -ENODATA;
+	}
+	
+#if RTL8307_DEBUG
+	err = rtk_hec_mode_get(PN_PORT1, &hecMode);
+	if(err != RT_ERR_OK)
+	{
+		EXT_ERRORF(("Port#%d status failed: %s\n", PN_PORT1, rtk_errMsg_get(err) ));
+		return -ENODATA;
+	}
+	EXT_INFOF(("PN_PORT1 mode: %s", (hecMode)?"Enable":"Disable"));
+#endif
+
+#if 0	
+	P6_ability.link   = PORT_LINKUP;
+	P6_ability.speed  = PORT_SPEED_100M;// | PORT_SPEED_10M;
+	P6_ability.duplex    = PORT_FULL_DUPLEX;// | PORT_HALF_DUPLEX;
+	P6_ability.nway = 1; /* disable auto-negotiation */
+	ret = rtk_port_linkAbility_set(PN_PORT6, &P6_ability );
+	if(ret != RT_ERR_OK)
+	{
+		printf("setup port 6 ERROR, return : %d\n", ret);
+//		printf("setup port 6 ERROR, return : %s\n", rtk_errMsg_get(ret));
+	}
+	printf("setup port 6, return : %d\n", ret);
+#endif
+
+//	EXT_INFOF(("switch configuration ended!\n"));
 
 	return 0;
 }
 
+void RTL8307H_I2C_init(void)
+{ 
+	if(_i2cSwitch == NULL)
+	{
+		_i2cSwitch = _selectMultiplexerChan(0, I2C_CHAN_4_SWITCH, EXT_I2C_ADDRESS_RTL8035);
+	}
+}
+
+/*3 bytes address of RTL driver into I2C address in 4 bytes */
+#if 1
+#define	RTL_ADDR(i2cAddr, rtlAddr)	\
+	{	(i2cAddr) = 0; \
+		(i2cAddr) = ( ((rtlAddr)&&0x000000ffUL) | \
+			 ((rtlAddr)&& 0x0000ff00UL)|	\
+			 ((rtlAddr)&& 0x00ff0000UL)); }
+
+#else
+#define	RTL_ADDR(i2cAddr, rtlAddr)	\
+	{	(i2cAddr) = 0; \
+		(i2cAddr) = ( ( ((rtlAddr)&&0x000000ffUL)<<16) | \
+			 (((rtlAddr)&& 0x0000ff00UL)<<8)|	\
+			 (((rtlAddr)&& 0x00ff0000UL)>>8) ); (rtlAddr) = ((rtlAddr) >>8);}
+#endif
+
+/* Function Name:
+ *      RTL8307H_I2C_READ
+ * Description:
+ *      Read the data with address switch_addr. 
+ *      The MSB of *reg_val (i.e. (*reg_val >> 31) & 0x1) corresponds to bits 31:31
+ *      in the register datasheet
+ * Input:
+ *      switch_addr               -  switch address
+ * Output:     
+ *      reg_val                   -  Register value
+ * Return: 
+ *      RT_ERR_OK  
+ *      RT_ERR_NO_ACK
+ * Note:
+ *      None
+ */
+int32 RTL8307H_I2C_READ(uint32 switch_addr, uint32 *reg_val)
+{    
+	int err;
+
+#if 0
+	uint8_t data[4];
+	/* dm_i2c_chip only support 1 byte offset_len (refer to dm_i2c_probe in i2c_uclass.c), so only 1 byte address can be used in dm_i2c_read and dm_i2c_write 
+      * Jack Lee, 04.16, 2019
+      */
+	int addr = 0;
+	RTL_ADDR(addr, switch_addr);
+/*
+	if( extI2CRead(I2C_CHAN_4_SWITCH, EXT_I2C_ADDRESS_RTL8035, (addr), (unsigned char *)&val, 4) != 0)
+	{
+		return RT_ERR_BUSYWAIT_TIMEOUT;
+	}
+*/	
+	err = dm_i2c_read(_i2cSwitch, addr, (unsigned char *)data, 4);
+	if(err != 0)
+	{
+		EXT_ERRORF(( "RTL read failed: %d", err));
+	}
+
+	for (int i = 0; i < 4; i++)
+	{
+		*reg_val = (data[i]<<(i*8)) | *reg_val;
+	} 
+	
+	//*reg_val = EXT_HTONL(val);
+
+	return RT_ERR_OK;
+#else	
+	struct i2c_msg msg[2];
+	u8 _addr[3], _data[4];
+
+	_addr[0] = switch_addr>>0;
+	_addr[1] = switch_addr>>8;
+	_addr[2] = switch_addr>>16;
+
+	msg[0].addr  = EXT_I2C_ADDRESS_RTL8035;
+	msg[0].flags = 0;
+	msg[0].len   = 3; /* 3 bytes for rtl830x */
+	msg[0].buf   = _addr;
+	
+	msg[1].addr  = EXT_I2C_ADDRESS_RTL8035;
+	msg[1].flags = I2C_M_STOP | I2C_M_RD;
+	msg[1].len   = 4;
+	msg[1].buf   = _data;
+
+	err = dm_i2c_xfer(_i2cSwitch, msg, 2);
+	if(err)
+	{
+		EXT_ERRORF(( "RTL read failed: %d", err));
+		return RT_ERR_NO_ACK;
+	}
+
+	if (reg_val != NULL)
+	{
+		*reg_val = 0;
+		for (int i = 0; i < 4; i++)
+		{
+			*reg_val = (_data[i]<<(i*8)) | *reg_val;
+		} 
+	}
+#endif
+	return RT_ERR_OK;
+}
+
+int32 RTL8307H_I2C_WRITE(uint32 switch_addr, uint32 reg_val)
+{
+	int err;
+
+#if 1
+#if 0
+	int val = EXT_HTONL(reg_val);
+	int addr = 0;
+	RTL_ADDR(addr, switch_addr);
+	
+	data[0] = reg_val>>0;
+	data[1] = reg_val>>8;
+	data[2] = reg_val>>16;
+	data[3] = reg_val>>24;
+
+/*	
+	if( extI2CWrite(I2C_CHAN_4_SWITCH, EXT_I2C_ADDRESS_RTL8035, (addr),(unsigned char *) &val, 4) != 0)
+	{
+		return RT_ERR_BUSYWAIT_TIMEOUT;
+	}
+*/
+	err = dm_i2c_write(_i2cSwitch, addr, (unsigned char *)data, 4);
+	if(err != 0)
+	{
+		EXT_ERRORF(( "RTL write failed: %d", err));
+	}
+#else
+	uint8_t _data[7];
+	struct i2c_msg msg;
+	
+	_data[0] = switch_addr>>0;
+	_data[1] = switch_addr>>8;
+	_data[2] = switch_addr>>16;
+	_data[3] = reg_val>>0;
+	_data[4] = reg_val>>8;
+	_data[5] = reg_val>>16;
+	_data[6] = reg_val>>24;
+
+
+	msg.addr = EXT_I2C_ADDRESS_RTL8035;
+	msg.flags = 0;//I2C_M_STOP;
+	msg.len = 7;
+	msg.buf = _data;
+	err = dm_i2c_xfer(_i2cSwitch, &msg, 1);
+	if(err)
+	{
+		EXT_ERRORF(( "RTL read failed: %d", err));
+		return RT_ERR_NO_ACK;
+	}
+
+#endif
+
+#else	
+	struct udevice *dev;
+	u8 	i2c_addr, i2c_data[8];
+//	uclass_get_device_by_seq(UCLASS_I2C, 0, &bus);
+	dm_i2c_probe(_i2cBus0, (EXT_I2C_ADDRESS_RTL8035), 0, &dev);		// AT24MAC_ADDR
+	if(dev == NULL)
+	{
+		EXT_ERRORF(("Can found switch " ));
+		return -ENOSYS;
+	}
+
+	i2c_addr = switch_addr>>0;
+	
+	i2c_data[0] = switch_addr>>0;
+	i2c_data[1] = switch_addr>>8;
+	i2c_data[2] = switch_addr>>16;
+	i2c_data[3] = reg_val>>0;
+	i2c_data[4] = reg_val>>8;
+	i2c_data[5] = reg_val>>16;
+	i2c_data[6] = reg_val>>24;
+
+	err = dm_i2c_write(dev, i2c_addr, i2c_data, 7);
+#endif
+
+	return RT_ERR_OK;
+}
+
+static int _extDdrMemoryTestOneArea(unsigned long start, unsigned long end )
+{
+	unsigned long dram_start;
+	unsigned long dram_end;
+	unsigned long dram_point;
+	int test_res;
+
+	dram_point = 0;
+	dram_start = start;
+	dram_end = end;
+
+	printf("Test memory zone from %lx -- %lx....." EXT_NEW_LINE, start, end);
+
+	printf("\tWriting....." EXT_NEW_LINE"\t");
+	for(dram_point = dram_start; dram_point < dram_end; dram_point = dram_point + sizeof(unsigned long))
+	{
+//		*(volatile unsigned long*)dram_point = dram_point^TEST_SYS_SDRAM_PTRN;
+		*(volatile unsigned long*)dram_point = dram_point;
+		if(dram_point%0x100000 == 0)
+		{
+			printf(".");
+		}
+	}
+	printf(EXT_NEW_LINE);
+	
+
+	printf("\tChecking....." EXT_NEW_LINE"\t");
+	for(dram_point = dram_start; dram_point < dram_end; dram_point = dram_point + sizeof(unsigned long))
+	{
+//		if(((*(volatile unsigned long*)dram_point)^TEST_SYS_SDRAM_PTRN) != dram_point)
+		if(((*(volatile unsigned long*)dram_point)) != dram_point)
+		{
+//			printf("DDR Memory Test Failed at addr %x data: %x vs %x\n", dram_point, *(volatile unsigned long*)dram_point, dram_start^TEST_SYS_SDRAM_PTRN);
+			printf("DDR Memory Test Failed at addr %lx data: %lx vs %lx\n", dram_point, *(volatile unsigned long*)dram_point, dram_start);
+			printf("next: %lx %lx %lx %lx %lx %lx %lx %lx\n", 
+				*(volatile unsigned long*)(dram_point+sizeof(unsigned long)), *(volatile unsigned long*)(dram_point+2*sizeof(unsigned long)), 
+				*(volatile unsigned long*)(dram_point+3*sizeof(unsigned long)), *(volatile unsigned long*)(dram_point+4*sizeof(unsigned long)),
+				*(volatile unsigned long*)(dram_point+5*sizeof(unsigned long)), *(volatile unsigned long*)(dram_point+6*sizeof(unsigned long)),
+				*(volatile unsigned long*)(dram_point+7*sizeof(unsigned long)), *(volatile unsigned long*)(dram_point+8*sizeof(unsigned long)));
+			test_res = 1;
+			break;
+		}
+		if(dram_point%0x100000 == 0)
+		{
+			printf("*");
+		}
+	}
+	printf(EXT_NEW_LINE);
+
+	if(test_res == 0)
+	{
+		printf("DDR Memory Test from %lx to %lx Passed.\n", dram_start, dram_end);
+	}
+
+	return 0;	
+}
+
+
+int extDdrMemoryTest(void)
+{
+	int _res;
+
+#define TEST_SYS_SDRAM_SIZE		0x10000000	/* 256M */
+
+
+#define	MEM_SIZE_96M		0x6000000
+#define	MEM_SIZE_112M		0x7000000
+
+#define	MEM_SIZE_512M		(0x20000000 - 0x20) //0x1000000)
+#define	MEM_SIZE_256M		(0x10000000) //0x1000000)
+#define	MEM_SIZE_128M		(0x8000000) //0x1000000)
+#if 1
+	_res = _extDdrMemoryTestOneArea(CONFIG_SYS_SDRAM_BASE, CONFIG_SYS_SDRAM_BASE + MEM_SIZE_96M);
+	
+	_res += _extDdrMemoryTestOneArea(CONFIG_SYS_SDRAM_BASE + 0x8000000, CONFIG_SYS_SDRAM_BASE + 0x8000000 + MEM_SIZE_112M);//0xF000000);
+#else
+	_res += _extDdrMemoryTestOneArea(CONFIG_SYS_SDRAM_BASE, CONFIG_SYS_SDRAM_BASE + MEM_SIZE_128M);
+#endif
+	return _res;
+}
 
 

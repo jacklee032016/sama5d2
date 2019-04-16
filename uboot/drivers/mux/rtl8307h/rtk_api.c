@@ -84,13 +84,16 @@
  */
 rtk_api_ret_t rtk_port_mode_get(rtk_port_t port, rtk_mode_ext_t* mode)
 {            
+//	printf("rtk_port_mode_get: port %d\n", port);
     if (port < PN_PORT4)
     {
         *mode = MODE_EXT_HEAC;
+		return 	RT_ERR_OK; /* J.L. 04.15, 2019 */	
     }
     else if (port == 4)
     {
-        *mode = MODE_EXT_GIGA;     
+        *mode = MODE_EXT_GIGA;
+		return 	RT_ERR_OK; /* J.L. 04.15, 2019 */	
     }
     else if (port == 5)
         return rtl8307h_mac5_miiMode_get(mode);  
@@ -348,7 +351,7 @@ rtk_api_ret_t rtk_port_linkAbility_set(rtk_port_t port, rtk_port_link_ability_t 
     {            
         /* judge whether the chip type is RTL8307H or RTL8305H */
         CHK_FUN_RETVAL(reg_field_read(RTL8307H_UNIT, GLOBAL_MAC_INTERFACE_CONTROL0, MAC6_MII_2_0, &ifType));
-		printf("port 6 ifType: %d\n", ifType);
+//		printf("port 6 ifType: %d\n", ifType); //J.L. 04.16, 2019
 
         switch (ifType)
         {

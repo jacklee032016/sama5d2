@@ -7,18 +7,32 @@
 #define	MUX_BOARD_767			4
 
 #define	MUX_BOARD				MUX_BOARD_774
+//#define	MUX_BOARD				MUX_BOARD_768
 
 #define	MUX_NAME				"Mux"
 
 #if	(MUX_BOARD == MUX_BOARD_768)
-	#define	EXT_SYSTEM		MUX_NAME"768"
+	#define	EXT_SYSTEM					MUX_NAME"768"
+	#define	I2C_CHAN_4_SENSOR			1
+	#define	I2C_CHAN_4_SWITCH		3
+	
+	#define	EXT_I2C_DEV_SENSOR			(0x30 >> 1)
 #elif (MUX_BOARD == MUX_BOARD_774)
-	#define	EXT_SYSTEM		MUX_NAME"774"
+	#define	EXT_SYSTEM					MUX_NAME"774"
+	#define	I2C_CHAN_4_SENSOR			1
+	#define	I2C_CHAN_4_SWITCH		2
+
+	#define	EXT_I2C_DEV_SENSOR			(0x90 >> 1)	/* RX only; RX 0x30 */
+
 #elif (MUX_BOARD == MUX_BOARD_767)
-	#define	EXT_SYSTEM		MUX_NAME"767"
+	#define	EXT_SYSTEM					MUX_NAME"767"
+	#define	I2C_CHAN_4_SENSOR			1
+	#define	I2C_CHAN_4_SWITCH		3
 #else
 #error 	Not support board definition
 #endif
+
+#define	EXT_I2C_ADDRESS_RTL8035				0x54
 
 
 /** Debug level: ALL messages*/
@@ -46,6 +60,12 @@
 /* level used */
 #define	EXT_DBG_TYPES_ON				EXT_DBG_ON
 #define	EXT_DBG_MIN_LEVEL			EXT_DBG_LEVEL_ALL
+
+#define	RTL8307_DEBUG					EXT_DBG_OFF
+#if RTL8307_DEBUG
+#else
+#define	__EXT_RELEASE__
+#endif
 
 /*
 * ESC (27, 0x1b) charactor is '\e' or '\x1b'
@@ -168,7 +188,17 @@
 
 #define	EXT_OS_NAME		EXT_SYSTEM_STRING(EXT_SYSTEM, EXT_VERSION_STRING)
 
-void extEtherDebug(void);
+
+#define EXT_HTONL(x) ((((x) & 0x000000ffUL) << 24) | \
+                     (((x) & 0x0000ff00UL) <<  8) | \
+                     (((x) & 0x00ff0000UL) >>  8) | \
+                     (((x) & 0xff000000UL) >> 24))
+
+
+void extRtl830xInit(void);
+short extSensorGetTemperatureCelsius(void);
+int extDdrMemoryTest(void);
+
 int extSwitchSetup(void);
 
 

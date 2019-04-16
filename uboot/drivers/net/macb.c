@@ -605,11 +605,10 @@ static int macb_phy_init(struct macb_device *macb, const char *name)
 speed=1;
 duplex=1;
 
-	printf("%s: link up, %sMbps %s-duplex (lpa: 0x%04x)\n",
+	printf("%s: link up, %sMbps %s-duplex \n",
 	       name,
 	       speed ? "100" : "10",
-	       duplex ? "full" : "half",
-	       lpa);
+	       duplex ? "full" : "half");
 
 	ncfgr = macb_readl(macb, NCFGR);
 	ncfgr &= ~(MACB_BIT(SPD) | MACB_BIT(FD) | GEM_BIT(GBE));
@@ -772,8 +771,6 @@ static int _macb_init(struct macb_device *macb, const char *name)
 	if (ret)
 		return ret;
 
-	extSwitchSetup();
-	
 	/* Enable TX and RX */
 	macb_writel(macb, NCR, MACB_BIT(TE) | MACB_BIT(RE));
 
