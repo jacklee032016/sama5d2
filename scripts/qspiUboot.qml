@@ -23,9 +23,12 @@ JLinkConnection {
 		initializeApplet("qspiflash")
 
 		// old version: 0x20000, size 0x80000
-		applet.erase(0x20000, 0x80000)
-		// write old
-		applet.write(0x20000, "u-boot.bin", true)//
+		// applet.erase(0x20000, 0x80000)
+		// applet.write(0x20000, "u-boot.bin", true)//
+
+		// change as following, J.L. 04.17, 2019
+		applet.erase(0x30000, 0xa0000)
+		applet.write(0x30000, "u-boot.bin", true)//
 		//applet.write(0x20000, "m500774-u-boot.bin", true)//
 		
 		

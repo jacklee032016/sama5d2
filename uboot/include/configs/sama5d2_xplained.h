@@ -65,17 +65,17 @@
 #define	_KERNEL_START 		"0xB0000"	/* offset: 704KB=640+64 */
 #define	_KERNEL_SIZE 		"0x400000"	/* size : 4MB */
 
-#define	_RAMDISK_START		"0x4D0000"	/* offset: */
-#define	_RAMDISK_SIZE		"0x1000000"	/* size: 16MB */
+#define	_ROOTFS_START		"0x4D0000"	/* offset: */
+#define	_ROOTFS_SIZE		"0x1000000"	/* size: 16MB */
 #else
-#define	_DTB_START 			"0x40000"
+#define	_DTB_START 			"0x20000"
 #define	_DTB_SIZE 			"0x10000"
 
 #define	_KERNEL_START 		"0x100000"
-#define	_KERNEL_SIZE 		"0x500000"
+#define	_KERNEL_SIZE 		"0x400000"	/* 4MB */
 
-#define	_RAMDISK_START		"0x600000"
-#define	_RAMDISK_SIZE		"0x700000"
+#define	_ROOTFS_START		"0x500000"	/* 5MB */
+#define	_ROOTFS_SIZE		"0x3000000"	/* 48M */
 #endif
 
 #undef CONFIG_ENV_SPI_BUS
@@ -86,15 +86,18 @@
 
 #if 1
 
+/* use JFFS2, read fs is not needed now 
+//                                        "sf read 0x25000000 "_ROOTFS_START" "_ROOTFS_SIZE"; "		\	
+*/
+
 #define CONFIG_BOOTCOMMAND              "sf probe 1:0; "				\
-                                        ""
-                                        
-#else
-#define CONFIG_BOOTCOMMAND              "sf probe 1:0; "				\
-                                        "sf read 0x25000000 "_RAMDISK_START" "_RAMDISK_SIZE"; "		\
                                         "sf read 0x21000000 "_DTB_START" "_DTB_SIZE"; "		\
                                         "sf read 0x22000000 "_KERNEL_START" "_KERNEL_SIZE"; "	\
                                         "bootz 0x22000000 - 0x21000000"
+#else
+
+#define CONFIG_BOOTCOMMAND	"sf probe 1:0; sf read 0x21000000 0xA0000 0x10000; sf read 0x22000000 0xB0000 0x400000; bootz 0x22000000 - 0x21000000"
+                                        
 #endif
 
 /* SPL */
