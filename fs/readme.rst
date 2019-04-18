@@ -1,0 +1,24 @@
+Read me for File System package
+################################
+April 17th, 2019
+
+
+Update logs
+============================
+04.17, 2019
+---------------
+32.4MB tar.gz; uncompressed directory: 105MB; packaged JFFS2 image: 38MB;
+
+
+New version
+============================
+Based on tar.gz file system: uncompress it, then modify and package again:
+
+Old Version
+============================
+Based on one JFFS2 image to modify and package again:
+
+* load.sh: mount JFFS2 file system in Linux file system on PC;
+* mkjffs.sh: package a new JFFS2 file system from a local directory;
+
+

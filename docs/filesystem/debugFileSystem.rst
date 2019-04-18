@@ -31,6 +31,12 @@ Add following in `start)` section of /etc/init.d/networking
    ifup -a
    echo -n "After up, make ethernet as 100MB/Duplex"
    ethtool -s eth0 speed 100 duplex full autoneg off
+   
+   route -n add -net 224.0.0.0 netmask 240.0.0.0 dev eth0
+   route add -net 224.0.0.0 netmask 240.0.0.0 dev eth0
+   
+   route add -net 224.0.0.0 netmask 224.0.0.0 eth0
+   
 
 When ethernet is working in u-boot, then this command make it work again;
 

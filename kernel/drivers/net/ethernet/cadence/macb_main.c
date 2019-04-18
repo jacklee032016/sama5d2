@@ -416,7 +416,8 @@ static void macb_handle_link_change(struct net_device *dev)
 		if ((bp->speed != phydev->speed) ||
 		    (bp->duplex != phydev->duplex)) {
 			u32 reg;
-
+/* J.L. support RTL8307 switch chip. 04.17, 2019 */
+#if 0
 			reg = macb_readl(bp, NCFGR);
 			reg &= ~(MACB_BIT(SPD) | MACB_BIT(FD));
 			if (macb_is_gem(bp))
@@ -434,6 +435,29 @@ static void macb_handle_link_change(struct net_device *dev)
 
 			bp->speed = phydev->speed;
 			bp->duplex = phydev->duplex;
+#else
+			reg = macb_readl(bp, NCFGR);
+			reg &= ~(MACB_BIT(SPD) | MACB_BIT(FD));
+			if (macb_is_gem(bp))
+				reg &= ~GEM_BIT(GBE);
+
+//			if (phydev->duplex)
+//				reg |= MACB_BIT(FD);
+//			if (phydev->speed == SPEED_100)
+//				reg |= MACB_BIT(SPD);
+//			if (phydev->speed == SPEED_1000 &&
+//			    bp->caps & MACB_CAPS_GIGABIT_MODE_AVAILABLE)
+//				reg |= GEM_BIT(GBE);
+
+			reg |= MACB_BIT(SPD);/* 100M*/
+			reg |= MACB_BIT(FD);	/* full deplex */
+
+			macb_or_gem_writel(bp, NCFGR, reg);
+
+			bp->speed = SPEED_100;
+			bp->duplex = DUPLEX_FULL;
+
+#endif
 			status_change = 1;
 		}
 	}
@@ -2214,12 +2238,20 @@ static void macb_init_hw(struct macb *bp)
 		config |= GEM_BIT(RXCOEN);
 	if (!(bp->dev->flags & IFF_BROADCAST))
 		config |= MACB_BIT(NBC);	/* No BroadCast */
-	config |= macb_dbw(bp);
-	macb_writel(bp, NCFGR, config);
+	config |= macb_dbw(bp);	macb_writel(bp, NCFGR, config);
+
 	if ((bp->caps & MACB_CAPS_JUMBO) && bp->config->jumbo_max_len)
 		gem_writel(bp, JML, bp->config->jumbo_max_len);
+
+/* J.L. support RTL8307 switch chip. 04.17, 2019 */
+#if 0
 	bp->speed = SPEED_10;
 	bp->duplex = DUPLEX_HALF;
+#else
+	bp->speed = SPEED_100;
+	bp->duplex = DUPLEX_FULL;
+#endif
+
 	bp->rx_frm_len_mask = MACB_RX_FRMLEN_MASK;
 	if (bp->caps & MACB_CAPS_JUMBO)
 		bp->rx_frm_len_mask = MACB_RX_JFRMLEN_MASK;

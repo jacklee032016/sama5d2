@@ -3,6 +3,18 @@ Read me for Yocto File System
 April 9th, 2019
 
 
+How to build
+============================
+
+::
+
+    bitbake core-image-minimal
+	
+	bitbake core-image-minimal -c populate_sdk 
+
+	
+	bitbake -b php_7.2.7 -c fetch|unpack/patch/configure/compile/stage/install/package/listtasks/devshell -D
+
 Yocto Packages
 ============================
 

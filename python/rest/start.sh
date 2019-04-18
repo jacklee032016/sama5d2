@@ -1,5 +1,4 @@
-# /bin/bash
-
-echo "Start REST service..."
-gunicorn -w 4 -b 0.0.0.0:8000 app:app
+# /bin/sh
+echo "start REST API service..."
+python3 app.py > /var/log/restapi.log 2>&1 &
 

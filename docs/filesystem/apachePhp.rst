@@ -5,6 +5,29 @@ April 9th, 2019
 version: Apache/2.4.29
 php7:
 
+
+Configure fcgi in apache2
+================================
+Configure mod_proxy_fcgi module:
+
+:: 
+
+    ProxyPass "/api/" "fcgi://localhost:5000/"
+
+Start standard fast CGI program:
+::
+
+    fcgistarter -c /var/www/fastcgi_test -p 5000: 
+
+After started successfully, /var/www/fastcgi_test is running daemon to service http request in port 5000; and this port is used;
+
+
+Notes:
+* **fcgistarter** can't start flup python cgi program because it is in wsgi standard;
+* **fcgi://** is supported by proxy_fcgi module; **http://** is supported by proxy_http module;
+
+
+
 Configuration of Yocto Project
 ================================
 In `local.conf`:
