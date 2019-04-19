@@ -1,7 +1,11 @@
 # rule for every directory
 
 # support PC environments
+ifndef  ARCH
 ARCH=X86
+endif
+
+# now it is defined by poky SDK script
 # ARCH=arm
 
 ifeq ($(ARCH),X86)
@@ -33,14 +37,24 @@ else
 	EXTENSION=
 endif
 
-
+ifndef  CC
 CC	= $(CROSS_COMPILER)gcc
+endif
+ifndef  CXX
 CXX 	= $(CROSS_COMPILER)g++ 
+endif
+ifndef  STRIP
 STRIP	= $(CROSS_COMPILER)strip
+endif
+ifndef  LD
 LD	= $(CROSS_COMPILER)ld
+endif
+ifndef  RANLIB
 RANLIB 	= $(CROSS_COMPILER)ranlib
-STRIP 	= $(CROSS_COMPILER)strip
+endif
+ifndef  AR
 AR 	= $(CROSS_COMPILER)ar
+endif
 
 ASM = yasm
 

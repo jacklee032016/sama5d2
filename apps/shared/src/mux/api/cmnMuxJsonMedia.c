@@ -58,7 +58,7 @@ int _addOneLocalMediaFile(struct DATA_CONN *dataConn, cJSON *data, char *filenam
 
 	if(found == 0)
 	{
-		return CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Media file '%s' is not found", filename);
+		CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Media file '%s' is not found", filename);
 	}
 	else
 	{
@@ -217,7 +217,8 @@ int	cmnMuxJsonHandle4GetMedia(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataConn, 
 	char *action = _checkDataValidate(data);
 	if(!action)
 	{
-		return CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Data invalidate: action '%s' is not supportted in GET_MEDIA now", action);
+		CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Data invalidate: action '%s' is not supportted in GET_MEDIA now", action);
+		return res;
 	}
 
 //	cJSON *mediaArray = cJSON_CreateArray();
@@ -236,7 +237,8 @@ int	cmnMuxJsonHandle4GetMedia(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataConn, 
 
 		if(!cJSON_IsString(item))
 		{
-			return CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Data invalidate: 'objects' is not an string");
+			CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Data invalidate: 'objects' is not an string");
+			return res;
 		}
 		else
 		{
@@ -246,7 +248,8 @@ int	cmnMuxJsonHandle4GetMedia(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataConn, 
 			res = _replyWithOnePlayList(dataConn, data, playlistName);
 			if(res == EXIT_FAILURE)
 			{
-				return CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Data invalidate: playlist '%s' is not found", playlistName);
+				CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Data invalidate: playlist '%s' is not found", playlistName);
+				return res;
 			}
 		}
 	}
@@ -256,7 +259,8 @@ int	cmnMuxJsonHandle4GetMedia(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataConn, 
 
 		if(!cJSON_IsString(item))
 		{
-			return CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Data invalidate: 'objects' is not an string");
+			CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Data invalidate: 'objects' is not an string");
+			return res;
 		}
 		else
 		{
@@ -266,13 +270,14 @@ int	cmnMuxJsonHandle4GetMedia(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataConn, 
 			res = _addOneLocalMediaFile(dataConn, data, file);
 			if(res == EXIT_FAILURE)
 			{
-				return CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Data invalidate: file '%s' is not found", file);
+				CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Data invalidate: file '%s' is not found", file);
+				return res;
 			}
 		}
 	}
 	else
 	{
-		return CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Data invalidate: action '%s' is not validate", action);
+		CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Data invalidate: action '%s' is not validate", action);
 	}
 
 	return res;
@@ -296,12 +301,14 @@ int	cmnMuxJsonHandle4DownloadMedia(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataC
 
 	if(!cJSON_IsArray(files))
 	{
-		return CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Data invalidate: mediafiles is not an array");
+		CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Data invalidate: mediafiles is not an array");
+		return res;
 	}
 
 	if(!server || !username || !password ||!path)
 	{
-		return CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Data invalidate: info is uncomplete");
+		CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Data invalidate: info is uncomplete");
+		return res;
 	}
 
 	filelist = (cmn_list_t *)cmn_malloc(sizeof(cmn_list_t));
@@ -312,7 +319,8 @@ int	cmnMuxJsonHandle4DownloadMedia(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataC
 		if(!cJSON_IsString(item))
 		{
 			cmn_list_ofchar_free(filelist, TRUE);
-			return CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Data invalidate: info is uncomplete");
+			CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Data invalidate: info is uncomplete");
+			return res;
 		}
 		
 		int length =  strlen(path)+strlen(item->valuestring) + 2;
@@ -353,13 +361,15 @@ int _cmnMuxJsonAddPlaylist(struct DATA_CONN *dataConn, cJSON *data)
 
 	if(IS_STRING_NULL(playlistName))
 	{
-		return CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "No name is defined for the new playlist");
+		CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "No name is defined for the new playlist");
+		return ret;
 	}
 
 	cJSON *playItems = cJSON_GetObjectItem(data, MEDIA_CTRL_OBJECTS);
 	if(!cJSON_IsArray(playItems))
 	{
-		return CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Data invalidate: mediafiles is not an array");
+		CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Data invalidate: mediafiles is not an array");
+		return ret;
 	}
 
 	SYS_PLAYLIST_LOCK(muxMain);
@@ -374,7 +384,8 @@ int _cmnMuxJsonAddPlaylist(struct DATA_CONN *dataConn, cJSON *data)
 		if(ret == EXIT_FAILURE)
 		{
 			SYS_PLAYLIST_UNLOCK(muxMain);
-			return CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Removing existing playlist '%s' failed", playlistName);
+			CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Removing existing playlist '%s' failed", playlistName);
+			return ret;
 		}
 #endif
 	}
@@ -410,7 +421,8 @@ int _cmnMuxJsonAddPlaylist(struct DATA_CONN *dataConn, cJSON *data)
 		{
 			cmn_list_ofchar_free( &_plist->fileList, TRUE);
 			SYS_PLAYLIST_UNLOCK(muxMain);
-			return CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Invalidate value: %s: '%s', %s: %d", PLAYLIST_NAME_URL, file, PLAYLIST_NAME_DURATION, duration );
+			CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Invalidate value: %s: '%s', %s: %d", PLAYLIST_NAME_URL, file, PLAYLIST_NAME_DURATION, duration );
+			return ret;
 		}
 
 		_playItem = cmn_malloc(sizeof(PLAY_ITEM));
@@ -445,7 +457,8 @@ int	cmnMuxJsonHandle4SetMedia(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataConn, 
 	char *action = _checkDataValidate(data);
 	if(!action)
 	{
-		return CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Data invalidate: no 'action' is defined in this SET_MEDIA command", action);
+		CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Data invalidate: no 'action' is defined in this SET_MEDIA command");
+		return res;
 	}
 
 	if( strcasecmp(action, "fileDelete") && 
@@ -453,7 +466,8 @@ int	cmnMuxJsonHandle4SetMedia(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataConn, 
 		strcasecmp(action, "playlistDelete")  &&
 		strcasecmp(action, "playlistAdd") )
 	{
-		return CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Data invalidate: action '%s' is not supportted in SET_MEDIA now", action);
+		CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Data invalidate: action '%s' is not supportted in SET_MEDIA now", action);
+		return res;
 	}
 
 	if(!strcasecmp(action, "download"))
@@ -471,7 +485,8 @@ int	cmnMuxJsonHandle4SetMedia(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataConn, 
 		cJSON *subitem = cJSON_GetArrayItem(objects, i);
 		if(!subitem || !cJSON_IsString(subitem))
 		{
-			return CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "No '%d' item in 'objects' is not validate", i+1);
+			CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "No '%d' item in 'objects' is not validate", i+1);
+			return EXIT_FAILURE;
 		}
 
 		if(!strcasecmp(action, "fileDelete"))
@@ -494,7 +509,8 @@ int	cmnMuxJsonHandle4SetMedia(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataConn, 
 
 		if(res == EXIT_FAILURE)
 		{
-			return CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Removing No '%d' of item '%s' failed", i+1,subitem->valuestring);
+			CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Removing No '%d' of item '%s' failed", i+1,subitem->valuestring);
+			return res;
 		}
 		else
 		{
@@ -548,7 +564,8 @@ int	cmnMuxJsonHandle4Plugin(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataConn, cJ
 	char *action = _checkDataValidate(data);
 	if(!action)
 	{
-		return CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Data invalidate: action '%s' is not supportted in PLAY_MEDIA now", action);
+		CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Data invalidate: action '%s' is not supportted in PLAY_MEDIA now", action);
+		return res;
 	}
 	
 	cJSON *objects = cJSON_GetObjectItem(data, MEDIA_CTRL_OBJECTS);
@@ -573,13 +590,15 @@ int	cmnMuxJsonHandle4SysAdmin(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataConn, 
 	char *action = _checkDataValidate(data);
 	if(!action)
 	{
-		return CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Data invalidate: no 'action' is defined in this sys_admin command", action);
+		CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Data invalidate: no 'action' is defined in this sys_admin command");
+		return res;
 	}
 
 	if( strcasecmp(action, IPCMD_SYS_ADMIN_THREADS) && 
 		strcasecmp(action, IPCMD_SYS_ADMIN_VER_INFO) )
 	{
-		return CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Data invalidate: action '%s' is not supportted in sys_admin now", action);
+		CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Data invalidate: action '%s' is not supportted in sys_admin now", action);
+		return res;
 	}
 
 	if(!strcasecmp(action, IPCMD_SYS_ADMIN_THREADS))

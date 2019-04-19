@@ -42,9 +42,7 @@ int	cmnMuxJsonHandle4GetParams(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataConn,
 	cJSON *objects = cmnMuxSystemJSon2Flat(muxMain->systemJson);
 
 
-TRACE();
 	SYS_PLAYLIST_UNLOCK(muxMain);
-TRACE();
 //	cJSON_AddItemToArray(dataConn->resultObject, objects);
 	dataConn->resultObject = objects;
 
@@ -413,7 +411,8 @@ int cmnMuxCtrlDataHandle( struct DATA_CONN *dataConn )
 	cJSON *cmdObj = cJSON_GetObjectItem(dataConn->cmdObjs, IPCMD_NAME_KEYWORD_CMD);
 	if(cmdObj == NULL)
 	{
-		return CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "No field of '%s' is found in packet", IPCMD_NAME_KEYWORD_CMD );
+		CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "No field of '%s' is found in packet", IPCMD_NAME_KEYWORD_CMD );
+		goto _ret;
 	}
 
 	while(_handle->handler )
@@ -445,7 +444,7 @@ int cmnMuxCtrlDataHandle( struct DATA_CONN *dataConn )
 			}
 
 			cJSON *data = cJSON_GetArrayItem( dataArray, 0);
-			if(!data )
+			if(!data &&  !IS_STRING_EQUAL(cmdObj->valuestring, IPCMD_NAME_GET_PARAM) )
 			{
 //				MUX_ERROR("Data invalidate: No data Item is not an data array object");
 				CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Data invalidate: No data Item is not an data array object");
@@ -477,6 +476,8 @@ int cmnMuxCtrlDataHandle( struct DATA_CONN *dataConn )
 
 _ret:
 
+	cmnMuxJsonReplyErrorMsg(dataConn);
+
 	return res;
 }
 
@@ -506,11 +507,9 @@ cJSON *cmnMuxSystemJSon2Flat(cJSON *systemJson)
 
 				cJSON_AddItemToArray(flatObj, cJSON_Duplicate(child, 1));
 				
-			TRACE();
 				child = child->next;
 			}
 
-			TRACE();
 		}
 	}
 

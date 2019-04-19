@@ -35,6 +35,8 @@ int	cmnMuxJsonHandle4SysAdmin(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataConn, 
 int cmnMuxCtrlResponse(struct DATA_CONN *dataConn, void *buf, int size);
 
 
+int cmnMuxJsonReplyErrorMsg(struct DATA_CONN *dataConn);
+
 
 #endif
 

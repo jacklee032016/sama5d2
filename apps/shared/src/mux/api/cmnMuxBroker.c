@@ -75,7 +75,7 @@ int cmnMuxCtrlResponse(struct DATA_CONN *dataConn, void *buf, int size)
 	}
 
 
-#if MUX_OPTIONS_DEBUG_IP_COMMAND			
+#if 1//MUX_OPTIONS_DEBUG_IP_COMMAND			
 	MUX_DEBUG("Reply %d bytes packet to %s:%d", sendSize, inet_ntoa(dataConn->peerAddr.sin_addr), ntohs(dataConn->peerAddr.sin_port));
 	cmnHexDump((const uint8_t *)sendBuffer, sendSize );
 #endif
@@ -90,9 +90,15 @@ int cmnMuxCtrlResponse(struct DATA_CONN *dataConn, void *buf, int size)
 	}
 	else if(dataConn->ctrlConn->type == CTRL_LINK_UDP)
 	{
-		MUX_DEBUG("Reply %d bytes packet to %s:%d", sendSize, inet_ntoa(dataConn->peerAddr.sin_addr), ntohs(dataConn->peerAddr.sin_port));
+		MUX_DEBUG("Reply %d bytes packet to %s:%d, addrLen:%d", sendSize, inet_ntoa(dataConn->peerAddr.sin_addr), ntohs(dataConn->peerAddr.sin_port), dataConn->addrlen);
 		len = sendto(dataConn->ctrlConn->sockCtrl, sendBuffer, sendSize, 0, (struct sockaddr *)&dataConn->peerAddr, dataConn->addrlen); //  if suceeded the updated data is send back
 	}
+
+	if(len != sendSize || len < 0 )
+	{
+		MUX_ERROR("ERROR writing to socket only %d bytes: '%s'", len, strerror(errno));
+	}
+	MUX_DEBUG("Replied %d bytes packet", len);
 
 	return len;
 }
@@ -141,7 +147,7 @@ static struct DATA_CONN *_readCommand(struct CTRL_CONN *ctrlConn)
 	{
 		len = recvfrom(ctrlConn->sockCtrl, (uint8_t *)ctrlConn->buffer, sizeof(ctrlConn->buffer), 0, (struct sockaddr *) &peerAddr, &addrlen);
 #if MUX_OPTIONS_DEBUG_IP_COMMAND			
-		MUX_DEBUG("UDP Received %d bytes packet from %s:%d", len, inet_ntoa(peerAddr.sin_addr), ntohs(peerAddr.sin_port));
+		MUX_DEBUG("UDP Received %d bytes packet from %s:%d, addrLen:%d", len, inet_ntoa(peerAddr.sin_addr), ntohs(peerAddr.sin_port), addrlen );
 #endif
 	}
 
@@ -371,7 +377,7 @@ static struct CTRL_CONN *_createCtrlConnection(CTRL_LINK_TYPE type, MuxMain *mux
 }
 
 /* reply error message for errors which happened before CMD cJSON objects has been parsed */
-static int _cmnMuxJsonReplyErrorBeforeCmdObject(struct DATA_CONN *dataConn)
+int cmnMuxJsonReplyErrorMsg(struct DATA_CONN *dataConn)
 {
 	char *errorData = cmnMuxCreateErrReply(dataConn->errCode, NULL);
 	
@@ -521,7 +527,7 @@ static int _cmnMuxBrokerReceive(CMN_MUX_BROKER *broker)
 			cmn_mutex_lock(dataConn->mutexLock);
 			if(dataConn->errCode != IPCMD_ERR_NOERROR )
 			{
-				_cmnMuxJsonReplyErrorBeforeCmdObject(dataConn);
+				cmnMuxJsonReplyErrorMsg(dataConn);
 			}
 			else
 			{
@@ -529,25 +535,30 @@ static int _cmnMuxBrokerReceive(CMN_MUX_BROKER *broker)
 
 				if(DATA_CONN_IS_IPCMD(dataConn) )
 				{
-					cJSON *cmdObj = cJSON_GetObjectItem(dataConn->cmdObjs, IPCMD_NAME_KEYWORD_CMD);
+					cmdObj = cJSON_GetObjectItem(dataConn->cmdObjs, IPCMD_NAME_KEYWORD_CMD);
 					if(cmdObj == NULL)
 					{
+						TRACE();
 						CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "No field of '%s' is found in packet", IPCMD_NAME_KEYWORD_CMD );
 					}
+						TRACE();
 				}
 				else
 				{
-					cJSON *cmdObj = cJSON_Parse(dataConn->ctrlConn->buffer);
+					cmdObj = cJSON_Parse(dataConn->ctrlConn->buffer);
 					if(cmdObj == NULL)
 					{
+						TRACE();
 						CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Backend command is not validate JSON format");
 					}
 				}
 
 				if(cmdObj == NULL)
 				{
+					TRACE();
 					cmnMuxCtrlResponse(dataConn, dataConn->detailedMsg, strlen(dataConn->detailedMsg));
 					//cmn_free(errorData);
+						TRACE();
 					dataConn->isFinished = TRUE;
 				}
 				else
@@ -559,7 +570,8 @@ static int _cmnMuxBrokerReceive(CMN_MUX_BROKER *broker)
 					else
 					{
 						dataConn->errCode = IPCMD_ERR_NOT_SUPPORT_COMMND;
-						_cmnMuxJsonReplyErrorBeforeCmdObject(dataConn);
+						TRACE();
+						cmnMuxJsonReplyErrorMsg(dataConn);
 					}
 				}
 

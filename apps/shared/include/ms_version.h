@@ -9,7 +9,7 @@
 #define CMN_VERSION_MINOR			"0"	/* minor, from 0 to 9 */
 #define CMN_VERSION_RELEASE		"01"	/* from 00 to 99 */
 #define CMN_VERSION_MODIFY		"01"	/* from 00 to 99 */
-#define CMN_MODULE_MAIN_NAME			"mediaMain" //module name
+#define CMN_MODULE_MAIN_NAME			"muxCtrl" //module name
 #define CMN_MODULE_PLAYER_NAME		"mediaPlayer" //module name
 #define CMN_MODULE_SERVER_NAME		"mediaServer" //module name
 #define CMN_MODULE_RECORDER_NAME	"mediaRecorder" //module name

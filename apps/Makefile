@@ -45,7 +45,8 @@ include $(RULE_DIR)/Rules.mak
 # SHARED_DIRS += shared/src/media
 	SHARED_DIRS += shared/src/mux
 	SHARED_DIRS += shared/src/sys
-	SHARED_DIRS += shared/libcgi
+
+#	SHARED_DIRS += shared/libcgi
 
 
 
@@ -53,12 +54,12 @@ include $(RULE_DIR)/Rules.mak
 ifeq ($(PLUGINS),YES)
 endif
 
-	APP_DIRS += src/web
+#	APP_DIRS += src/web
 
 	# Command Line client
 	APP_DIRS += src/client
 	# CGI/REST API
-	APP_DIRS += src/rest
+	# APP_DIRS += src/rest
 	APP_DIRS += src/main
 
 

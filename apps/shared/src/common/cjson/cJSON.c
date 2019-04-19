@@ -1118,7 +1118,6 @@ static unsigned char *print(const cJSON * const item, cJSON_bool format, const i
     printbuffer buffer[1];
     unsigned char *printed = NULL;
 
-TRACE();
     memset(buffer, 0, sizeof(buffer));
 
     /* create buffer */
@@ -1131,7 +1130,6 @@ TRACE();
         goto fail;
     }
 
-TRACE();
     /* print the value */
     if (!print_value(item, buffer))
     {
@@ -1139,7 +1137,6 @@ TRACE();
     }
     update_offset(buffer);
 
-TRACE();
     /* check if reallocate is available */
     if (hooks->reallocate != NULL)
     {
@@ -1156,7 +1153,6 @@ TRACE();
         {
             goto fail;
         }
-TRACE();
         memcpy(printed, buffer->buffer, cjson_min(buffer->length, buffer->offset + 1));
         printed[buffer->offset] = '\0'; /* just to be sure */
 
@@ -1164,11 +1160,9 @@ TRACE();
         hooks->deallocate(buffer->buffer);
     }
 
-TRACE();
     return printed;
 
 fail:
-TRACE();
     if (buffer->buffer != NULL)
     {
         hooks->deallocate(buffer->buffer);

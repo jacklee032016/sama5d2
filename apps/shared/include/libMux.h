@@ -89,8 +89,8 @@
 
 #define	IPCMD_NAME_KEYWORD_TARG			"targ"
 #define	IPCMD_NAME_KEYWORD_CMD				"cmd"
-#define	IPCMD_NAME_KEYWORD_LOGIN_ACK		"login_ack"
-#define	IPCMD_NAME_KEYWORD_PWD_MSG		"pwd_msg"
+#define	IPCMD_NAME_KEYWORD_LOGIN_ACK		"login-ack"
+#define	IPCMD_NAME_KEYWORD_PWD_MSG		"pwd-msg"
 
 #define	IPCMD_NAME_KEYWORD_DATA			"data"
 
@@ -140,10 +140,10 @@
 #define	PLAYLIST_NAME_URL						"URL"
 #define	PLAYLIST_NAME_DURATION				"Duration"
 
+#define	UDP_BOARD_ADDRESS				"255.255.255.255"
+#define	UDP_SERVER_PORT					(3600)
 
-#define	UDP_SERVER_PORT		(3600)
-
-#define	DEFAULT_MC_ADDRESS	"239.0.0.1"
+#define	DEFAULT_MC_ADDRESS				"239.0.0.1"
 
 #define	CMD_TAG_A				(0xa0fa)
 #define	CMD_TAG_B				(0xa0fb)
@@ -1079,7 +1079,8 @@ int cmnMuxJEventReply(CMN_PLAY_JSON_EVENT *jsonEvent, int errCode, const char *f
 
 
 #define	CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, ...)		\
-		cmnMuxJsonControllerReply( (dataConn),  IPCMD_ERR_DATA_ERROR,  __VA_ARGS__ )
+		do{ MUX_ERROR( __VA_ARGS__);	\
+		cmnMuxJsonControllerReply( (dataConn),  IPCMD_ERR_DATA_ERROR,  __VA_ARGS__ );}while(0)
 
 int cmnMuxDsValidate(void);
 

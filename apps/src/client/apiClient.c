@@ -71,8 +71,7 @@ static int _findCmdValidate(struct API_CLIENT_CMD_HANDLER *handle, struct API_PA
 	}
 #endif
 
-//	snprintf(params->address,  sizeof(params->address), "%s",  "255.255.255.255");//
-	snprintf(params->address,  sizeof(params->address), "%s",  "192.168.168.101");
+	snprintf(params->address,  sizeof(params->address), "%s",  UDP_BOARD_ADDRESS);
 	params->protocol = PROTOCOL_UDP;
 	params->port = UDP_SERVER_PORT;
 

@@ -100,15 +100,16 @@ struct CLIENT_CONN *cmnMuxClientConnCreate(CTRL_LINK_TYPE type, int port, char *
 			memcpy(&addr.sin_addr, he->h_addr_list[0], sizeof(struct in_addr));
 		}
 
-		MUX_DEBUG("parse address %s", address);
-		MUX_DEBUG("into %s", address, cmnSysNetAddress((uint32_t)addr.sin_addr.s_addr));
-		MUX_DEBUG("parse address %s", address);
+		MUX_DEBUG("parse address %s into %s", address, cmnSysNetAddress((uint32_t)addr.sin_addr.s_addr));
 
 		addr.sin_family = AF_INET;
 		addr.sin_port = htons(port);
 //		addr.sin_addr.s_addr = INADDR_BROADCAST;
-		
-		res = connect(sock, (struct sockaddr *) &addr, sizeof(struct sockaddr_in));
+
+		if((type) == CTRL_LINK_TCP )
+		{
+			res = connect(sock, (struct sockaddr *) &addr, sizeof(struct sockaddr_in));
+		}
 
 		TRACE();
 	}
