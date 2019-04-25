@@ -223,7 +223,7 @@ int cmnSysNetGetMacAddress(char *hwName, EXT_MAC_ADDRESS *mac)
     	}
 	
 #if __IP_DEBUG
-	MUX_DEBUG("Mac : %.2X:%.2X:%.2X:%.2X:%.2X:%.2X\n" , mac->address[0], mac->address[1], mac->address[2], mac->address[3], mac->address[4], mac->address[5]);
+	MUX_DEBUG("Mac : %.2X:%.2X:%.2X:%.2X:%.2X:%.2X" , mac->address[0], mac->address[1], mac->address[2], mac->address[3], mac->address[4], mac->address[5]);
 #endif
 	close(sockfd);
 

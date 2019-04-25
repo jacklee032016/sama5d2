@@ -1,41 +1,55 @@
 
-from flask_restful import Resource
-
-videoCfg = {
-    'ip': '239.0.0.100',
-    'port': 3600,
-    'fps': 59,
-}
-
-audioCfg = {
-    'ip': '239.0.0.100',
-    'port': 3620,
-    'sample': 48000,
-}
-
-ancCfg = {
-    'ip': '239.0.0.100',
-    'port': 3640,
-}
+from comm.cmdIf import CmdSocket
+from . import MuxResource
+from utils import settings
 
 
-class Video(Resource):
-    def get(self):
-        return videoCfg
+class Video(MuxResource):
+    def __init__(self, **kwargs):
+        super(Video, self).__init__()
+        self.req[settings.SERVICE_DATA_FIELD_URI] = settings.SERVICE_URI_VIDEO
     
-    def post(self):
-        return videoCfg, 201
-
-class Audio(Resource):
-    def get(self):
-        return audioCfg
+    def get(self, *args, **kwargs):        
+        return super(Video, self).get(*args, **kwargs)
     
-    def post(self):
-        return audioCfg, 201
+    def post(self, *args, **kwargs):
+        return super(Video, self).post(*args, **kwargs)
 
-class Anc(Resource):
-    def get(self):
-        return ancCfg
+
+class Audio(MuxResource):
+    def __init__(self, **kwargs):
+        super(Audio, self).__init__()
+        self.req[settings.SERVICE_DATA_FIELD_URI] = settings.SERVICE_URI_AUDIO
     
-    def post(self):
-        return ancCfg, 201
+    def get(self, *args, **kwargs):        
+        return super(Audio, self).get(*args, **kwargs)
+    
+    def post(self, *args, **kwargs):
+        return super(Audio, self).post(*args, **kwargs)
+
+
+
+class Anc(MuxResource):
+    def __init__(self, **kwargs):
+        super(Anc, self).__init__()
+        self.req[settings.SERVICE_DATA_FIELD_URI] = settings.SERVICE_URI_ANC
+    
+    def get(self, *args, **kwargs):        
+        return super(Anc, self).get(*args, **kwargs)
+    
+    def post(self, *args, **kwargs):
+        return super(Anc, self).post(*args, **kwargs)
+
+
+
+class SdpConfig(MuxResource):
+    def __init__(self, **kwargs):
+        super(SdpConfig, self).__init__()
+        self.req[settings.SERVICE_DATA_FIELD_URI] = settings.SERVICE_URI_SDP_CONFIG
+    
+    def get(self, *args, **kwargs):        
+        return super(SdpConfig, self).get(*args, **kwargs)
+    
+    def post(self, *args, **kwargs):
+        return super(SdpConfig, self).post(*args, **kwargs)
+

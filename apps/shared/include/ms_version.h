@@ -15,7 +15,7 @@
 #define CMN_MODULE_RECORDER_NAME	"mediaRecorder" //module name
 #define CMN_MODULE_WEB_NAME			"mediaWeb" //module name
 
-#define CMN_MODULE_APICLIENT_NAME	"mediaApiClient" //module name
+#define CMN_MODULE_APICLIENT_NAME	"apiClient" //module name
 
 #include "cmn_common_version.h"
 

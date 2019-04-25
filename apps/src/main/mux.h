@@ -37,6 +37,7 @@
 /* declarations for program */
 int32_t	extSystemInit(MuxMain		*muxMain);
 
+cJSON *extSystemFindObject(MuxMain *muxMain, const char*objName );
 
 #endif
 

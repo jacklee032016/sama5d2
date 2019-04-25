@@ -111,7 +111,6 @@ struct CLIENT_CONN *cmnMuxClientConnCreate(CTRL_LINK_TYPE type, int port, char *
 			res = connect(sock, (struct sockaddr *) &addr, sizeof(struct sockaddr_in));
 		}
 
-		TRACE();
 	}
 	else
 	{/* unix socket */
@@ -204,7 +203,7 @@ int cmnMuxClientConnSendRequest(struct CLIENT_CONN *clientConn, void *buf, int s
 		
 #if MUX_OPTIONS_DEBUG_IP_COMMAND			
 		MUX_DEBUG( "CtrlClient send %d bytes packet to %s:%d, CRC=0x%x", sendSize, inet_ntoa(clientConn->peerAddr.sin_addr), ntohs(clientConn->peerAddr.sin_port), crc32);
-		cmnHexDump((const uint8_t *)sendBuf, sendSize );
+		CMN_HEX_DUMP((const uint8_t *)sendBuf, sendSize, "Client send out data" );
 #endif
 	}
 
@@ -280,7 +279,7 @@ cJSON *cmnMuxClientConnReadReponse(struct CLIENT_CONN *clientConn)
 	
 #if MUX_OPTIONS_DEBUG_IP_COMMAND			
 		MUX_DEBUG("Received %d bytes packet from %s:%d", len, inet_ntoa(clientConn->peerAddr.sin_addr), ntohs(clientConn->peerAddr.sin_port));
-		cmnHexDump( (uint8_t *)&responseBuf, len);
+		CMN_HEX_DUMP( (uint8_t *)&responseBuf, len, "client received data");
 #endif
 
 		responseBuf.length = ntohs(responseBuf.length);
@@ -343,7 +342,7 @@ static cJSON *findJSonObject(cJSON *array, char *key, char *valuestring)
 		cJSON *subitem = cJSON_GetArrayItem(array, i);
 		if(!subitem)
 		{
-			MUX_ERROR("IP Command configuration file '%s' initialization error", IP_COMMAND_CONFIG_FILE);
+			MUX_ERROR("IP Command configuration initialization error" );
 			return NULL;
 		}
 		
@@ -384,50 +383,6 @@ int cmnMuxClientInit(int port, CTRL_LINK_TYPE type, char *serverAddress)
 		MUX_ERROR("Connect to '%s:%d' failed", serverAddress, port);
 		return EXIT_FAILURE;
 	}
-	
-	if(_getJSonHandlerFromFile(IP_COMMAND_CONFIG_FILE, &clientCtrl->ipCmds) )
-	{
-		goto failed;
-	}
-
-	if(_getJSonHandlerFromFile(MEDIA_ACTION_CONFIG_FILE, &clientCtrl->mediaActions))
-	{
-		goto failed;
-	}
-
-	if(_getJSonHandlerFromFile(PLAY_ACTION_CONFIG_FILE, &clientCtrl->playActions))
-	{
-		goto failed;
-	}
-
-	if(_getJSonHandlerFromFile(RECORD_ACTION_CONFIG_FILE, &clientCtrl->recordActions))
-	{
-		goto failed;
-	}
-
-
-	if(_getJSonHandlerFromFile(SEVER_ACTION_CONFIG_FILE, &clientCtrl->serviceActions))
-	{
-		goto failed;
-	}
-
-	if(_getJSonHandlerFromFile(WEB_ACTION_CONFIG_FILE, &clientCtrl->webActions) )
-	{
-		goto failed;
-	}
-
-	if(_getJSonHandlerFromFile(SYS_ADMIN_CONFIG_FILE, &clientCtrl->sysAdminActions))
-	{
-		goto failed;
-	}
-	
-#if MUX_OPTIONS_DEBUG_IP_COMMAND			
-	{
-		char *printed_json = cJSON_Print(clientCtrl->playActions);
-		fprintf(stderr,"FormatPrint PlayActions:\n'%s'\n", printed_json);
-		cmn_free(printed_json);
-	}
-#endif
 
 	clientCtrl->conn = clientConn;
 	clientCtrl->inited = TRUE;
@@ -435,19 +390,6 @@ int cmnMuxClientInit(int port, CTRL_LINK_TYPE type, char *serverAddress)
 	return EXIT_SUCCESS;
 
 failed:
-
-	if(clientCtrl->ipCmds)
-		cJSON_Delete(clientCtrl->ipCmds);
-	if(clientCtrl->mediaActions)
-		cJSON_Delete(clientCtrl->mediaActions);
-	if(clientCtrl->playActions)
-		cJSON_Delete(clientCtrl->playActions);
-	if(clientCtrl->recordActions)
-		cJSON_Delete(clientCtrl->recordActions);
-	if(clientCtrl->serviceActions)
-		cJSON_Delete(clientCtrl->serviceActions);
-	if(clientCtrl->webActions)
-		cJSON_Delete(clientCtrl->webActions);
 
 	cmnMuxClientConnDestroy(clientConn);
 	return EXIT_FAILURE;
@@ -457,51 +399,29 @@ failed:
 void cmnMuxClientDestroy(void)
 {
 	CLIENT_CTRL	*clientCtrl = &_clientCtrl;
-	cJSON_Delete(clientCtrl->ipCmds);
-	cJSON_Delete(clientCtrl->mediaActions);
-	cJSON_Delete(clientCtrl->playActions);
-	cJSON_Delete(clientCtrl->recordActions);
-	cJSON_Delete(clientCtrl->serviceActions);
-	cJSON_Delete(clientCtrl->webActions);
 
 	cmnMuxClientConnDestroy(clientCtrl->conn);
 }
 
-
-/* replace 'data' object in IP command object and send it to API controller */
-cJSON *cmnMuxClientSendout(char *ipcmdName, cJSON *dataArray)
+/*
+* replace the 'action' object in xxxxAction.json, and send to next step
+*/
+cJSON *cmnMuxClientRequest(cJSON *ipCmd)
 {
 	CLIENT_CTRL *clientCtrl = &_clientCtrl;
 	int res = EXIT_SUCCESS;
-	cJSON *response = NULL;
-
-	cJSON *ipCmd = findJSonObject(clientCtrl->ipCmds, "cmd", ipcmdName);
-#if MUX_OPTIONS_DEBUG_IP_COMMAND			
-	{
-		char *printed_json = cJSON_Print(ipCmd);
-		fprintf(stderr,"FormatPrint ipCmd:\n'%s'\n", printed_json);
-		cmn_free(printed_json);
-	}
-#endif
-
-	if(ipCmd == NULL)
-	{
-		MUX_ERROR("'%s' is not validate IP Command", ipcmdName);
-		return NULL;
-	}
-	
-	cJSON_ReplaceItemInObject(ipCmd, IPCMD_NAME_KEYWORD_DATA, dataArray);
-
+	cJSON *response = NULL, *dataArray;
 
 	char *msg = cJSON_PrintUnformatted(ipCmd);
 
 #if 1//MUX_OPTIONS_DEBUG_IP_COMMAND			
 	{
 		char *printed_json = cJSON_Print(ipCmd);
-		fprintf(stderr,"Sendout ipCmd:\n'%s'\n", printed_json);
+		MUX_DEBUG("Client sendout ipCmd:\n'%s'\n", printed_json);
 		cmn_free(printed_json);
 	}
 #endif
+
 	res = cmnMuxClientConnSendRequest(clientCtrl->conn, msg, strlen(msg));
 	cmn_free(msg);
 
@@ -512,122 +432,24 @@ cJSON *cmnMuxClientSendout(char *ipcmdName, cJSON *dataArray)
 	}
 	if(res <= 0)
 	{
-		MUX_ERROR("IP command '%s' send failed, maybe the API server is not running!", ipcmdName);
+		MUX_ERROR("IP command send failed, maybe the API server is not running!");
 		return NULL;
 	}
 
 	response = cmnMuxClientConnReadReponse(clientCtrl->conn);
 
+#if 0
 	{
 		if(response )
 		{
 			char *printed_json = cJSON_Print(response);
-			fprintf(stderr, "reply:\n'%s'\n", printed_json);
+			MUX_DEBUG("Client received reply:\n'%s'\n", printed_json);
 			cmn_free(printed_json);
 		}
 	}
-
+#endif
 
 	return response;
-}
-
-/*
-* replace the 'action' object in xxxxAction.json, and send to next step
-*/
-cJSON *cmnMuxClientRequest( char *ipcmdName, char *actionName, cJSON *obj)
-{
-//	int res = EXIT_SUCCESS;
-	CLIENT_CTRL *clientCtrl = &_clientCtrl;
-	cJSON *actionObj = NULL;
-	cJSON *objsArray=NULL, *dataArray = NULL;
-
-	if(actionName == NULL)
-	{
-		MUX_ERROR("IP command '%s' has no action", ipcmdName);
-		return NULL;
-	}
-		
-	if(clientCtrl->inited == 0)
-	{
-		MUX_ERROR("Ctrl Client is not inited now, please call cmnMuxClientInit() first!" );
-		return NULL;
-	}
-
-	if(!strcasecmp( ipcmdName, IPCMD_NAME_SYS_ADMIN) )
-	{
-		actionObj = findJSonObject(clientCtrl->sysAdminActions, MEDIA_CTRL_ACTION, actionName);
-	}	
-	else if(!strcasecmp( ipcmdName, IPCMD_NAME_MEDIA_RECORDER) )
-	{
-		actionObj = findJSonObject(clientCtrl->recordActions, MEDIA_CTRL_ACTION, actionName);
-	}	
-	else if(!strcasecmp( ipcmdName, IPCMD_NAME_MEDIA_SERVER) )
-	{
-		actionObj = findJSonObject(clientCtrl->serviceActions, MEDIA_CTRL_ACTION, actionName);
-	}
-	else if(!strcasecmp( ipcmdName, IPCMD_NAME_MEDIA_WEB) )
-	{
-		actionObj = findJSonObject(clientCtrl->webActions, MEDIA_CTRL_ACTION, actionName);
-	}
-	else if(!strcasecmp( ipcmdName, IPCMD_NAME_MEDIA_PLAY) )
-	{
-		actionObj = findJSonObject(clientCtrl->playActions, MEDIA_CTRL_ACTION, actionName);
-	}	
-
-	else if(!strcasecmp( ipcmdName, IPCMD_NAME_GET_PARAM) )
-	{
-		actionObj = cJSON_CreateString(actionName ); //clientCtrl->playActions, MEDIA_CTRL_ACTION, actionName);
-	}	
-
-	else //if(!strcasecmp( ipcmdName, IPCMD_NAME_MEDIA_PLAY) )
-	{
-		actionObj = findJSonObject(clientCtrl->mediaActions, MEDIA_CTRL_ACTION, actionName);
-	}	
-
-	if(actionObj == NULL)
-	{
-		MUX_ERROR("IP command '%s' action '%s' is not validate", ipcmdName, actionName);
-		return NULL;
-	}
-
-#if MUX_OPTIONS_DEBUG_IP_COMMAND			
-	{
-		char *printed_json = cJSON_Print(actionObj);
-		fprintf(stderr,"FormatPrint actionObj before replaced:\n'%s'\n", printed_json);
-		cmn_free(printed_json);
-	}
-#endif
-
-	/* add object in one array */
-	objsArray = cJSON_CreateArray();
-	cJSON_AddItemToArray(objsArray, obj);
-
-	/* 'objects' must be a array */
-	cJSON_ReplaceItemInObject(actionObj, MEDIA_CTRL_OBJECTS, objsArray);
-	
-#if MUX_OPTIONS_DEBUG_IP_COMMAND			
-	{
-		char *printed_json = cJSON_Print(actionObj);
-		fprintf(stderr,"FormatPrint actionObj:\n'%s'\n", printed_json);
-		cmn_free(printed_json);
-	}
-#endif
-
-	/* must copy it from serial CJSON objects without recurse */
-	cJSON *newAct = cJSON_Duplicate(actionObj, 1);
-
-	dataArray = cJSON_CreateArray();
-	cJSON_AddItemToArray(dataArray, newAct);
-#if MUX_OPTIONS_DEBUG_IP_COMMAND			
-	{
-		char *printed_json = cJSON_Print(dataArray);
-		fprintf(stderr,"FormatPrint dataArray:\n'%s'\n", printed_json);
-		cmn_free(printed_json);
-	}
-#endif
-
-
-	return cmnMuxClientSendout( ipcmdName, dataArray);
 }
 
 

@@ -6,106 +6,6 @@
 #include "libMedia.h"
 #include "libMux.h"
 
-TYPE_NAME_T outVideoCaplevels[] =
-{
-	{
-		.type = OUT_VIDEO_SIZE_CIF,
-		.name = "CIF(352x288)"	,
-		.value = NULL,
-	},
-	{
-		.type = OUT_VIDEO_SIZE_D1,
-		.name = "D1(720x576)"	,
-		.value = NULL,
-	},
-	{
-		.type = OUT_VIDEO_SIZE_720P,
-		.name = "720P(1280x720)"	,
-		.value = NULL,
-	},
-	{
-		.type = OUT_VIDEO_SIZE_FULLHD,
-		.name = "FULLHD(1920x1080)"	,
-		.value = NULL,
-	},
-	{
-		.type = OUT_VIDEO_SIZE_4K,
-		.name = "4K(3840x2160)"	,
-		.value = NULL,
-	},
-	{
-		.type = -1,
-		.name = NULL,
-		.value = NULL,
-	},
-};
-
-
-TYPE_NAME_T outVideoFormats[] =
-{
-	{
-		.type = OUT_VIDEO_FORMAT_H264_BASELINE,
-		.name = "H264_BASE",
-		.value = NULL,
-	},
-	{
-		.type = OUT_VIDEO_FORMAT_H264_MAIN,
-		.name = "H264_MAIN",
-		.value = NULL,
-	},
-	{
-		.type = OUT_VIDEO_FORMAT_H264_EXTENDED,
-		.name = "H264_EXTENDED",
-		.value = NULL,
-	},
-	{
-		.type = OUT_VIDEO_FORMAT_H264_HIGH,
-		.name = "H264_HIGH",
-		.value = NULL,
-	},
-	{
-		.type = OUT_VIDEO_FORMAT_HEVC,
-		.name = "HEVC",
-		.value = NULL,
-	},
-	{
-		.type = -1,
-		.name = NULL,
-		.value = NULL,
-	},
-};
-
-
-
-TYPE_NAME_T rotateTypes[] =
-{
-	{
-		.type = ROTATE_TYPE_0,
-		.name = "0'",
-		.value = NULL,
-	},
-	{
-		.type = ROTATE_TYPE_90,
-		.name = "90'",
-		.value = NULL,
-	},
-	{
-		.type = ROTATE_TYPE_180,
-		.name = "180",
-		.value = NULL,
-	},
-	{
-		.type = ROTATE_TYPE_270,
-		.name = "270",
-		.value = NULL,
-	},
-	{
-		.type = -1,
-		.name = NULL,
-		.value = NULL,
-	},
-};
-
 
 
 TYPE_NAME_T jsonErrors[] =
@@ -120,7 +20,37 @@ TYPE_NAME_T jsonErrors[] =
 		.name = "NoError",
 		.value = NULL,
 	},
-	
+
+
+	/* 4xx */
+	{
+		.type = IPCMD_ERR_BAD_REQUEST,
+		.name = "Bad Request",
+		.value = NULL,
+	},
+	{
+		.type = IPCMD_ERR_UNAUTHORIZED,
+		.name = "Unauthorized",
+		.value = NULL,
+	},
+	{
+		.type = IPCMD_ERR_FORBIDDEN,
+		.name = "Forbidden",
+		.value = NULL,
+	},
+	{
+		.type = IPCMD_ERR_NOT_FOUND,
+		.name = "Not Found",
+		.value = NULL,
+	},
+	{
+		.type = IPCMD_ERR_METHOD_NOT_ALLOWED,
+		.name = "Method Not Allowed",
+		.value = NULL,
+	},
+
+
+	/* 5xx, service error */
 	{
 		.type = IPCMD_ERR_COMMUNICATION,
 		.name = "Error communication",
@@ -333,6 +263,464 @@ TYPE_NAME_T cmnMuxPluginTypes[] =
 	}
 };
 
+TYPE_NAME_T cmnMuxRequestMethods[] =
+{
+	{
+		.type = CMN_JSON_METHOD_GET,
+		.name = CMN_MEHOD_STR_GET,	
+		.value = NULL,
+	},
+	{
+		.type = CMN_JSON_METHOD_POST,
+		.name = CMN_MEHOD_STR_POST,	
+		.value = NULL,
+	},
+	{
+		.type = CMN_JSON_METHOD_PUT,
+		.name = CMN_MEHOD_STR_PUT,	
+		.value = NULL,
+	},
+	{
+		.type = CMN_JSON_METHOD_DELETE,
+		.name = CMN_MEHOD_STR_DELETE,	
+		.value = NULL,
+	},
+	{
+		.type = CMN_JSON_METHOD_PATCH,
+		.name = CMN_MEHOD_STR_PATCH,	
+		.value = NULL,
+	},
+	{
+		.type = CMN_JSON_METHOD_INVALIDATE,
+		.name = NULL,	
+		.value = NULL,
+	}
+};
+
+
+const	TYPE_NAME_T	_ipcmdStringRsParities[] =
+{
+	{
+		type	: EXT_RS232_PARITY_NONE,
+		name : EXT_RS232_PAR_STR_NONE,
+		value  :  NULL,
+	},
+	{
+		type	: EXT_RS232_PARITY_ODD,
+		name : EXT_RS232_PAR_STR_ODD,
+		value : NULL,
+	},
+	{
+		type	: EXT_RS232_PARITY_EVEN,
+		name : EXT_RS232_PAR_STR_EVEN,
+		value : NULL,
+	},
+	{
+		type	: EXT_INVALIDATE_STRING_TYPE,
+		name : NULL,
+		value : NULL,
+	}
+};
+
+const	TYPE_NAME_T	_ipcmdStringRsStopbits[] =
+{
+	{
+		type	: EXT_RS232_STOP_BITS_1,
+		name	: "1",
+		value : NULL,
+	},
+	{
+		type	: EXT_RS232_STOP_BITS_2,
+		name	: "2",
+		value : NULL,
+	},
+#if 0	
+	{
+		type	: EXT_RS232_STOP_BITS_15,
+		name	: "1.5",
+		value : NULL
+	},
+#endif	
+	{
+		type	: EXT_INVALIDATE_STRING_TYPE,
+		name : NULL,
+		value : NULL,
+	}
+};
+
+
+const	TYPE_NAME_T	_videoFormats[] =
+{
+	{
+		type	: EXT_VIDEO_INTLC_INTERLACED,
+		name	: "Interlaced",
+		value : NULL,
+	},
+	{
+		type	: EXT_VIDEO_INTLC_A_PROGRESSIVE,
+		name	: "Progressive(Level A)",
+		value : NULL,
+	},
+	{
+		type	: EXT_VIDEO_INTLC_B_PROGRESSIVE,
+		name	: "Progressive(Level B)",
+		value : NULL,
+	},
+	{
+		type	: EXT_INVALIDATE_STRING_TYPE,
+		name	: NULL,
+		value : NULL,
+	}
+};
+
+
+const	TYPE_NAME_T	_videoColorSpaces[] =
+{/* from page 17 of specs SAMPTE ST 2110-20:2017 */
+	{
+		type	: EXT_V_COLORSPACE_YCBCR_422,
+		name	: "YCbCr-4:2:2",
+		value : NULL,
+	},
+	{
+		type	: EXT_V_COLORSPACE_YCBCR_444,
+		name	: "YCbCr-4:4:4",
+		value : NULL,
+	},
+	
+	{
+		type	: EXT_V_COLORSPACE_RGB,
+		name	: "RGB",
+		value : NULL,
+	},
+#if 0
+	
+	{
+		type	: EXT_V_COLORSPACE_YCBCR_420,
+		name	: "YCbCr-4:2:0",
+		value : NULL,
+	},
+	{
+		type	: EXT_V_COLORSPACE_XYZ,
+		name	: "XYZ",
+		value : NULL,
+	},
+	{
+		type	: EXT_V_COLORSPACE_KEY,
+		name	: "KEY",
+		value : NULL,
+	},
+	{
+		type	: EXT_V_COLORSPACE_CL_YCBCR_422,
+		name	: "CLYCbCr-4:2:2",
+		value : NULL,
+	},
+	{
+		type	: EXT_V_COLORSPACE_CL_YCBCR_444,
+		name	: "CLYCbCr-4:4:4",
+		value : NULL,
+	},
+
+	{
+		type	: EXT_V_COLORSPACE_CL_YCBCR_420,
+		name	: "CLYCbCr-4:2:0",
+		value : NULL,
+	},
+#endif		
+	{
+		type	: EXT_INVALIDATE_STRING_TYPE,
+		name	: NULL,
+		value : NULL,
+	}
+};
+
+
+const	TYPE_NAME_T	_videoFramerates[] =
+{
+	{
+		type	: EXT_V_FRAMERATE_T_23,
+		name	: "24000/1001",
+		value : NULL,
+	},
+	{
+		type	: EXT_V_FRAMERATE_T_24,
+		name	: "24",
+		value : NULL,
+	},
+
+	{
+		type	: EXT_V_FRAMERATE_T_25,
+		name	: "25",
+		value : NULL,
+	},
+	{
+		type	: EXT_V_FRAMERATE_T_29,
+		name	: "30000/1001",
+		value : NULL,
+	},
+
+	{
+		type	: EXT_V_FRAMERATE_T_30,
+		name	: "30",
+		value : NULL,
+	},
+	
+	{
+		type	: EXT_V_FRAMERATE_T_50,
+		name	: "50",
+		value : NULL,
+	},
+	
+	{
+		type	: EXT_V_FRAMERATE_T_59,
+		name	: "60000/1001",
+		value : NULL,
+	},
+	
+	{
+		type	: EXT_V_FRAMERATE_T_60,
+		name	: "60",
+		value : NULL,
+	},
+	
+	{
+		type	: EXT_INVALIDATE_STRING_TYPE,
+		name	: NULL,
+		value : NULL,
+	}
+};
+
+
+
+const	TYPE_NAME_T	_videoFps4Rest[] =
+{
+	{
+		type	: EXT_V_FRAMERATE_T_23,
+		name	: "23.98",
+		value : NULL,
+	},
+	{
+		type	: EXT_V_FRAMERATE_T_24,
+		name	: "24",
+		value : NULL,
+	},
+
+	{
+		type	: EXT_V_FRAMERATE_T_25,
+		name	: "25",
+		value : NULL,
+	},
+	{
+		type	: EXT_V_FRAMERATE_T_29,
+		name	: "29.97",
+		value : NULL,
+	},
+
+	{
+		type	: EXT_V_FRAMERATE_T_30,
+		name	: "30",
+		value : NULL,
+	},
+	
+	{
+		type	: EXT_V_FRAMERATE_T_50,
+		name	: "50",
+		value : NULL,
+	},
+	
+	{
+		type	: EXT_V_FRAMERATE_T_59,
+		name	: "59.94",
+		value : NULL,
+	},
+	
+	{
+		type	: EXT_V_FRAMERATE_T_60,
+		name	: "60",
+		value : NULL,
+	},
+	
+	{
+		type	: EXT_INVALIDATE_STRING_TYPE,
+		name	: NULL,
+		value : NULL,
+	}
+};
+
+
+const	TYPE_NAME_T	_audioPktSizes[] =
+{
+	{
+		type	: EXT_A_PKT_SIZE_1MS,
+		name	: "1ms",
+		value : NULL,
+	},
+	{
+		type	: EXT_A_PKT_SIZE_125US,
+		name	: "125us",
+		value : NULL,
+	},
+	{
+		type	: EXT_INVALIDATE_STRING_TYPE,
+		name	: NULL,
+		value : NULL,
+	}
+};
+
+
+const	TYPE_NAME_T	_audioRates[] =
+{
+	{
+		type	: EXT_A_RATE_48K,
+		name	: "48000",
+		value : NULL,
+	},
+	{
+		type	: EXT_A_RATE_44K,
+		name	: "44100",
+		value : NULL,
+	},
+	{
+		type	: EXT_A_RATE_96K,
+		name	: "96000",
+		value : NULL,
+	},
+	{
+		type	: EXT_INVALIDATE_STRING_TYPE,
+		name	: NULL,
+		value : NULL,
+	}
+};
+
+const TYPE_NAME_T _strTypes[] =
+{
+	{
+		type	: CMN_STR_T_RS_PARITY,
+		name	: "RS232Parity",
+		value : NULL,
+	},
+	{
+		type	: CMN_STR_T_V_COLORSPACE,
+		name	: "ColorSpace",
+		value : NULL,
+	},
+	{
+		type	: CMN_STR_T_V_FRAME_RATE,
+		name	: "VideoFps",
+		value : NULL,
+	},
+
+	{
+		type	: CMN_STR_T_HTTP_STATES,
+		name	: "sState",
+		value : NULL,
+	},
+	{
+		type	: CMN_STR_T_HTTP_EVENTS,
+		name	: "sEvent",
+		value : NULL,
+	},
+	{
+		type	: CMN_STR_T_HC_STATES,
+		name	: "ClientState",
+		value : NULL,
+	},
+	{
+		type	: CMN_STR_T_HC_EVENTS,
+		name	: "ClientEvent",
+		value : NULL,
+	},
+	{
+		type	: CMN_STR_T_A_PKTSIZE,
+		name	: "AudioPktSize",
+		value : NULL,
+	},
+	{
+		type	: CMN_STR_T_A_RATE,
+		name	: "AudoRate",
+		value : NULL,
+	},
+
+	{
+		type	: EXT_INVALIDATE_STRING_TYPE,
+		name	: NULL,
+		value : NULL,
+	}
+};
+
+
+
+
+const short	videoWidthList[]=
+{
+//	480,
+//	576,	
+//	640,
+	720,
+//	800,
+	960,
+//	1024,
+	1280,
+//	1360,
+//	1440,
+//	1600,
+//	1680,
+	1920,
+//	2048,
+//	2560,
+//	3840,
+//	4096,
+	0
+};
+
+const short videoHeightList[]=
+{
+	480,
+//	600,
+	576,
+	720,
+//	768,
+//	800,
+//	1024,
+//	1050,
+	1080,
+//	1200,
+//	1440,
+//	1600,
+//	2160,
+	0
+};
+
+const int32_t constRs232Baudrates[]=
+{
+	EXT_BAUDRATE_9600,
+	EXT_BAUDRATE_19200,
+	EXT_BAUDRATE_38400,
+	EXT_BAUDRATE_57600,
+	EXT_BAUDRATE_115200,
+	0
+};
+
+
+const short constRs232Databits[]=
+{
+#if 0
+	EXT_RS232_CHAR_LENGTH_5,
+	EXT_RS232_CHAR_LENGTH_6,
+#endif	
+	EXT_RS232_CHAR_LENGTH_7,
+	EXT_RS232_CHAR_LENGTH_8,
+	0
+};
+
+
+const char audioChannelsList[] =
+{
+	4,	
+	8,
+	12,
+	16,	
+	0
+};
 
 
 int	cmnMuxTypeFindType(TYPE_NAME_T *types, char *name)
@@ -419,4 +807,84 @@ MuxPlugIn *cmnMuxPluginFind(MuxMain *muxMain, MUX_PLUGIN_TYPE type)
 	return NULL;
 }
 
+void extBcd2Ascii(unsigned char src, char *dest)
+{ 
+	static const char outputs[] = "0123456789ABCDEF";
+	
+	*dest++ = outputs[src>>4];
+	*dest++ = outputs[src&0xf];
+	*dest = '\0';
+}
+
+char extSysAtoInt8(const char *str, unsigned char *value)
+{
+	char key;
+	unsigned int dw = 0;
+
+	*value = 0;
+	for (dw = 0; dw < 2; dw++)
+	{
+		key = *str;
+
+		if (key >= '0' && key <= '9')
+		{
+			*value = (*value * 16) + (key - '0');
+		}
+		else
+		{
+			if (key >= 'A' && key <= 'F')
+			{
+				*value = (*value * 16) + (key - 'A' + 10);
+			}
+			else
+			{
+				if (key >= 'a' && key <= 'f')
+				{
+					*value = (*value * 16) + (key - 'a' + 10);
+				}
+				else
+				{
+					printf("'%c' is not a hexa character!\n\r", key);
+					return EXIT_FAILURE;
+				}
+			}
+		}
+
+		str++;
+	}
+	
+//	printf("'%2x' \n\r", value);
+	return EXIT_SUCCESS;
+}
+
+
+/*mac address in string format of "xx:xx:xx:xx:xx:xx" into structure */
+char	extMacAddressParse(EXT_MAC_ADDRESS *macAddress, const char *macStr)
+{
+	const char *tmp = macStr;
+	int i;
+
+	for(i=0; i< EXT_MAC_ADDRESS_LENGTH; i++)
+	{
+		if(i != 0)
+		{
+			tmp = strchr(tmp, ':');
+			if(tmp==NULL)
+			{
+				return EXIT_FAILURE;
+			}
+			tmp++;
+		}
+		
+		if( tmp )
+		{
+			if( extSysAtoInt8(tmp, &macAddress->address[i]) )
+			{
+				return EXIT_FAILURE;
+			}
+		}
+	}
+
+	return EXIT_SUCCESS;
+}
 

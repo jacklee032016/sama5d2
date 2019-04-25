@@ -23,8 +23,8 @@ class CmdSocket(object):
     def __init__(self, *args, **kwargs):
         self.server = kwargs.get("ip", "/tmp/unixsocketServer")
         """ self.cmd is json format, or any python object """
-        self.cmd = kwargs.get("cmd", "get")
-        self.debug = kwargs.get("debug", False)
+        #self.debug = kwargs.get("debug", False)
+        self.debug = settings.DEBUG
         self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         ColorMsg.debug_msg('connect to %s\n' % (self.server), self.debug)
         try:
@@ -34,8 +34,12 @@ class CmdSocket(object):
             ColorMsg.error_msg(msg)
             sys.exit(1)
 
-    def run(self, *args, **kwargs):
+
+    def connect(self, *args, **kwargs):
         #self.status = self.load_data()
+        self.cmd = kwargs.get("cmd", "get")
+        ColorMsg.debug_msg('send "%s" to %s\n' % (self.cmd, self.server), self.debug)
+        
         self.send()
         data = self.receive()
         return data
@@ -80,8 +84,8 @@ class CmdSocket(object):
         lenPacket = MSGLEN
 
         while 1:#bytes_recd < MSGLEN:
-            datas = self.receiveRaw()  # min(MSGLEN - bytes_recd, 2048))
-            if datas is None:
+            jsonBytes = self.receiveRaw()  # json data in byte format
+            if jsonBytes is None:
                 break;
                 # return datas
 
@@ -109,7 +113,15 @@ class CmdSocket(object):
             #        nodes.append(replyJson)
 
             #self.sock.close()
-            return Datas
+            try:
+                replyJson = json.loads(jsonBytes[0].decode("ascii"))
+                ColorMsg.debug_msg('Received JSON object: "%s":' % (replyJson))
+                return replyJson
+            except (TypeError, ValueError):
+                #raise Exception('Data received was not in JSON format %s'%(jsonBytes))
+                ColorMsg.error_msg('Data received was not in JSON format %s'%(jsonBytes))
+                return None
+            
 
     def receiveRaw(self):
         """

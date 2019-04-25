@@ -2,13 +2,17 @@
 
 from comm.cmdIf import CmdSocket
 
+# request form from REST API
+
 cmdRoot ={
     "method" : "GET",
     "uri": "/video",
-    "data": {
+    "username":"admin",
+    "passwd":"admin",
+    "data": [{
         "ip":"192.168.168.171",
         "port:": 4700,
-        }
+        }]
     }
 
 

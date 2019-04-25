@@ -30,10 +30,13 @@ static void doExit(MuxMain *muxMain)
 static void termExit(void)
 {
 	MUX_INFO("termExit" );
-	if(_muxMain.muxLog.isDaemonized)
+	
+//	if(_muxMain.muxLog.isDaemonized)
 	{
 		tcsetattr (0, TCSANOW, &_oldtty);
 	}
+
+	exit(1);
 }
 
 static void sigTermHandler(int sig)
@@ -43,10 +46,14 @@ static void sigTermHandler(int sig)
 	MuxPlugIn *plugin = _muxMain.plugins;
 
 	recvSigalTerminal = TRUE;
-	
 	while(plugin)
 	{
-		plugin->signalExit(plugin, 1);
+		if(plugin->enable)
+		{
+			MUX_INFO("plugin '%s' exiting", plugin->name );
+			plugin->signalExit(plugin, 1);
+		}
+		
 		plugin = plugin->next;
 	}
 
@@ -326,7 +333,7 @@ int main(int argc, char **argv)
 		
 		if(plugin->enable && !IS_STRING_NULL(plugin->path))
 		{
-//			MUX_DEBUG("Loading plugin '%s' .....", plugin->name );
+			MUX_DEBUG("Loading plugin '%s' .....", plugin->name );
 			res = _muxMainAddPlugIn(plugin, muxMain);
 			if( res != EXIT_SUCCESS)
 			{

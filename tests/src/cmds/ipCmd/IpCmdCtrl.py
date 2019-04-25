@@ -54,7 +54,7 @@ class IpCommand(DeviceCtrl):
         index = 0
         while index < len(result):
             res = result[index]
-            ColorMsg.debug_msg('Index#%d, result: "%s"\n' %(index, res), self.debug )
+            ColorMsg.debug_msg('Index #%d, result: "%s"\n' %(index, json.dumps(res, sort_keys=True, indent=4)), self.debug )
             if res['login-ack'] != "OK":
                 ColorMsg.error_msg("\tIP Command '%s' failed %s" %(self.sendCmds["cmd"], res['pwd-msg']))
             else:

@@ -20,14 +20,24 @@ static int _parseGlobalConfig(const char **p, MuxMain *muxMain, int linenum)
 	{
 		cmnParseGetArg(arg, sizeof(arg), p);
 
-		if (!strcasecmp(arg, "RX769"))
+		if (!strcasecmp(arg, "RX744"))
 		{
-			muxMain->boardType = MUX_BOARD_TYPE_RX769;
+			muxMain->boardType = MUX_BOARD_TYPE_774;
 		}
 		else
 		{
 			muxMain->boardType = MUX_BOARD_TYPE_UNKNOWN;
 		}	
+#if DEBUG_CONFIG_FILE
+		MUX_INFO("MuxBoard: %d", arg);
+#endif
+	}
+	else if (!strcasecmp(cmd, "AUTHEN"))
+	{
+		muxMain->isAuthen = cmnParseGetBoolValue(p);
+#if DEBUG_CONFIG_FILE
+		MUX_INFO("AUTHEN: %s", STR_BOOL_VALUE(muxMain->isAuthen));
+#endif
 	}
 	else if (!strcasecmp(cmd, "AvSyncType"))
 	{
@@ -62,9 +72,13 @@ static int _parseGlobalConfig(const char **p, MuxMain *muxMain, int linenum)
 		muxMain->muxLog.isDaemonized = cmnParseGetBoolValue(p);
 #if DEBUG_CONFIG_FILE
 		if(muxMain->muxLog.isDaemonized )
-			fprintf(stderr, "running as daemon\n");
+		{
+			MUX_INFO("running as daemon");
+		}	
 		else
-			fprintf(stderr, "running as front-end\n");
+		{
+			MUX_INFO("running as front-end");
+		}
 #endif
 	}
 	else if (!strcasecmp(cmd, "CustomLog"))
@@ -93,71 +107,36 @@ static int _parseGlobalConfig(const char **p, MuxMain *muxMain, int linenum)
 	{
 		muxMain->udpCtrlPort = cmnParseGetIntValue(p);
 #if DEBUG_CONFIG_FILE
-		fprintf(stderr, "Controller UDP Port: %d\n", muxMain->udpCtrlPort );
+		MUX_INFO("Controller UDP Port: %d", muxMain->udpCtrlPort );
 #endif
 	}
 	else if (!strcasecmp(cmd, "TCPCtrlPort"))
 	{
 		muxMain->tcpCtrlPort = cmnParseGetIntValue(p);
 #if DEBUG_CONFIG_FILE
-		fprintf(stderr, "Controller TCP Port: %d\n", muxMain->tcpCtrlPort );
+		MUX_INFO("Controller TCP Port: %d", muxMain->tcpCtrlPort );
 #endif
 	}
 	else if (!strcasecmp(cmd, "UNIXPort"))
 	{
 		cmnParseGetArg(muxMain->unixPort, CMN_NAME_LENGTH, p);
 #if DEBUG_CONFIG_FILE
-		fprintf(stderr, "Controller UNIX Port: %s\n", muxMain->unixPort);
+		MUX_INFO("Controller UNIX Port: %s", muxMain->unixPort);
 #endif
 	}
-#if 0	
-	else if (!strcasecmp(cmd, "CtrlProtocol"))
-	{
-		muxMain->ctrlProtocol = CTRL_LINK_UDP;
-
-		cmnParseGetArg(arg, sizeof(arg), p);
-		if (strcasecmp(arg, "UDP") == 0)
-		{
-			muxMain->ctrlProtocol = CTRL_LINK_UDP;
-		}
-		else if (strcasecmp(arg, "TCP") == 0)
-		{
-			muxMain->ctrlProtocol = CTRL_LINK_TCP;
-		}
-		else if (strcasecmp(arg, "UNIX") == 0)
-		{
-			muxMain->ctrlProtocol = CTRL_LINK_UNIX;
-		}
-		else if (strcasecmp(arg, "MULTI") == 0)
-		{
-			muxMain->ctrlProtocol = CTRL_LINK_MULTICAST;
-		}
-#if DEBUG_CONFIG_FILE
-		fprintf(stderr, "Controller Protocol: %s(%d)\n", arg, muxMain->ctrlProtocol );
-#endif
-	}
-#endif
-
 	/***** configuration for Player *****/
 	else if (!strcasecmp(cmd, "SDHomeDir"))
 	{
 		cmnParseGetArg(muxMain->mediaCaptureConfig.sdHome, CMN_NAME_LENGTH, p);
 #if DEBUG_CONFIG_FILE
-		fprintf(stderr, "SDHomeDir: %s\n", muxMain->mediaCaptureConfig.sdHome );
+		MUX_INFO("SDHomeDir: %s", muxMain->mediaCaptureConfig.sdHome );
 #endif
 	}
 	else if (!strcasecmp(cmd, "USBHomeDir"))
 	{
 		cmnParseGetArg(muxMain->mediaCaptureConfig.usbHome, CMN_NAME_LENGTH, p);
 #if DEBUG_CONFIG_FILE
-		fprintf(stderr, "USBHomeDir: %s\n", muxMain->mediaCaptureConfig.usbHome );
-#endif
-	}
-	else if (!strcasecmp(cmd, "AspectRatioWindow"))
-	{
-		muxMain->mediaCaptureConfig.aspectRatioWindow = cmnParseGetBoolValue(p);
-#if DEBUG_CONFIG_FILE
-		fprintf(stderr, "AspectRatioWindow: %d\n", muxMain->mediaCaptureConfig.aspectRatioWindow);
+		MUX_INFO("USBHomeDir: %s", muxMain->mediaCaptureConfig.usbHome );
 #endif
 	}
 
@@ -175,87 +154,7 @@ static int _parseGlobalConfig(const char **p, MuxMain *muxMain, int linenum)
 			muxMain->mediaCaptureConfig.storeType = MEDIA_DEVICE_USBDISK;
 		}	
 #if DEBUG_CONFIG_FILE
-		fprintf(stderr, "RecordDevice: %d('%s')\n", muxMain->mediaCaptureConfig.storeType, arg );
-#endif
-	}
-
-	/***** configuration for record video *****/
-	else if (!strcasecmp(cmd, "CaptureVideoFormat"))
-	{
-		cmnParseGetArg(arg, sizeof(arg), p);
-		muxMain->mediaCaptureConfig.videoType = CMN_MUX_FIND_VIDEO_OUT_FORMAT(arg);
-		if(muxMain->mediaCaptureConfig.videoType == -1)
-		{
-			muxMain->mediaCaptureConfig.videoType = OUT_VIDEO_FORMAT_H264_HIGH;
-			fprintf(stderr, "Capture video format error: '%s' on line %d\n", arg, linenum);
-		}
-#if DEBUG_CONFIG_FILE
-		fprintf(stderr, "Capture video format: %d\n", muxMain->mediaCaptureConfig.videoType);
-#endif
-	}
-	else if (!strcasecmp(cmd, "CaptureVideoCapLevel"))
-	{
-		cmnParseGetArg(arg, sizeof(arg), p);
-		muxMain->mediaCaptureConfig.videoCapLevel= CMN_MUX_FIND_VIDEO_OUT_CAPLEVEL(arg);
-		if(muxMain->mediaCaptureConfig.videoCapLevel == -1)
-		{
-			muxMain->mediaCaptureConfig.videoCapLevel = OUT_VIDEO_SIZE_720P;
-			fprintf(stderr, "Capture video caplevel param error: '%s' on line %d\n", arg, linenum);
-		}
-
-#if DEBUG_CONFIG_FILE
-		fprintf(stderr, "Capture Caplevel: %d\n", muxMain->mediaCaptureConfig.videoCapLevel);
-#endif
-	}
-	else if (!strcasecmp(cmd, "CaptureVideoBitRate"))
-	{
-		muxMain->mediaCaptureConfig.videoBitrate = cmnParseGetIntValue(p);
-#if DEBUG_CONFIG_FILE
-		fprintf(stderr, "CaptureVideoBitRate: %d\n", muxMain->mediaCaptureConfig.videoBitrate);
-#endif
-	}
-	else if (!strcasecmp(cmd, "CaptureVideoGOP"))
-	{
-		muxMain->mediaCaptureConfig.gop= cmnParseGetIntValue(p);
-#if DEBUG_CONFIG_FILE
-		fprintf(stderr, "CaptureVideoGOP: %d\n", muxMain->mediaCaptureConfig.gop);
-#endif
-	}
-	else if (!strcasecmp(cmd, "CaptureVideoFrameRate"))
-	{
-		muxMain->mediaCaptureConfig.outputFrameRate= cmnParseGetIntValue(p);
-#if DEBUG_CONFIG_FILE
-		fprintf(stderr, "CaptureFrameRate: %d\n", muxMain->mediaCaptureConfig.outputFrameRate);
-#endif
-	}
-
-	/***** configuration for capture audio *****/
-	else if (!strcasecmp(cmd, "CaptureAudioType"))
-	{
-		muxMain->mediaCaptureConfig.audioType= 0;// cmnParseGetIntValue(p);
-#if DEBUG_CONFIG_FILE
-		fprintf(stderr, "CaptureAudioType: %d\n", muxMain->mediaCaptureConfig.audioType);
-#endif
-	}
-	else if (!strcasecmp(cmd, "CaptureAudioSampleRate"))
-	{
-		muxMain->mediaCaptureConfig.audioSampleRate = cmnParseGetIntValue(p);
-#if DEBUG_CONFIG_FILE
-		fprintf(stderr, "CaptureAudioSampleRate: %d\n", muxMain->mediaCaptureConfig.audioSampleRate);
-#endif
-	}
-	else if (!strcasecmp(cmd, "CaptureAudioFormat"))
-	{
-		muxMain->mediaCaptureConfig.audioFormat= cmnParseGetIntValue(p); /* 32 or 16 */
-#if DEBUG_CONFIG_FILE
-		fprintf(stderr, "CaptureAudioFormat: %d\n", muxMain->mediaCaptureConfig.audioFormat);
-#endif
-	}
-	else if (!strcasecmp(cmd, "CaptureAudioChannels"))
-	{
-		muxMain->mediaCaptureConfig.audioChannels= cmnParseGetIntValue(p);
-#if DEBUG_CONFIG_FILE
-		fprintf(stderr, "CaptureAudioChannels: %d\n", muxMain->mediaCaptureConfig.audioChannels);
+		MUX_INFO("RecordDevice: %d('%s')", muxMain->mediaCaptureConfig.storeType, arg );
 #endif
 	}
 
@@ -278,7 +177,7 @@ static int _parseGlobalConfig(const char **p, MuxMain *muxMain, int linenum)
 	}
 	else
 	{
-		fprintf(stderr, "Invalidate configuration item: %s on line %d\n", cmd, linenum);
+		MUX_ERROR("Invalidate configuration item: %s on line %d", cmd, linenum);
 		ret = EXIT_FAILURE;
 	}
 
@@ -286,106 +185,6 @@ static int _parseGlobalConfig(const char **p, MuxMain *muxMain, int linenum)
 	return ret;
 }
 
-
-static PLAY_ITEM *playItem = NULL;
-
-static int _parsePlaylist(PLAY_LIST *playlist, const char **p, int linenum)
-{
-	char cmd[64];
-	char arg[1024];
-	int	ret = EXIT_SUCCESS;
-
-	if(playlist==NULL)
-		return EXIT_FAILURE;
-
-	cmnParseGetArg(cmd, sizeof(cmd), p);
-
-	if (!strcasecmp(cmd, "Repeat"))
-	{
-		playlist->repeat = cmnParseGetIntValue(p);
-#if DEBUG_CONFIG_FILE
-		fprintf(stderr, "Repeat: %d\n", playlist->repeat);
-#endif
-	}
-	else if (!strcasecmp(cmd, "PlayTime"))
-	{
-		unsigned h, m, d;
-
-		cmnParseGetArg(arg, sizeof(arg), p);
-		int cnt = sscanf(arg, "%2d:%2d/%2d", &h, &m, &d);
-		if (cnt != 3 )
-		{
-			fprintf(stderr, "Playlist invalidate format: %s(cnt=%d,h:%d, m:%d, d:%d) on line %d\n", arg, cnt, h, m, d, linenum);
-			playlist->hour = -1;
-			playlist->minute = -1;
-			playlist->dayOfWeek = -1;
-		}
-		else if ((h >= 24 || m >= 60 || d > 7) )
-		{
-			fprintf(stderr, "Playlist invalidate data: %2d:%2d %d on line %d\n", h, m, d, linenum);
-			playlist->hour = -1;
-			playlist->minute = -1;
-			playlist->dayOfWeek = -1;
-		}
-		else
-		{
-			playlist->hour = h;
-			playlist->minute = m;
-			playlist->dayOfWeek = d;
-		}
-#if DEBUG_CONFIG_FILE
-		fprintf(stderr, "PlayTime: %2d:%2d %d\n", playlist->hour, playlist->minute, playlist->dayOfWeek);
-#endif
-	}
-	else if (!strcasecmp(cmd, "Enable"))
-	{
-		playlist->enable = cmnParseGetBoolValue(p);
-	}
-	else if (!strcasecmp(cmd, PLAYLIST_NAME_URL))
-	{/*  */
-		if(playItem != NULL)
-		{
-			fprintf(stderr, "Missing value of '%s' for '%s' on line %d\n", PLAYLIST_NAME_DURATION, playItem->filename, linenum );
-			return EXIT_FAILURE;
-		}
-		cmnParseGetArg(arg, sizeof(arg), p);
-		
-		playItem = cmn_malloc(sizeof(PLAY_ITEM));
-		snprintf(playItem->filename, CMN_NAME_LENGTH, "%s", arg);
-#if DEBUG_CONFIG_FILE
-		fprintf(stderr, "%s: %s\n", PLAYLIST_NAME_URL, playItem->filename);
-#endif
-	}
-	else if (!strcasecmp(cmd, PLAYLIST_NAME_DURATION ))
-	{/*  */
-		if(playItem == NULL)
-		{
-			fprintf(stderr, "Missing value of '%s' before '%s' on line %d\n", PLAYLIST_NAME_URL, PLAYLIST_NAME_DURATION, linenum);
-			return EXIT_FAILURE;
-		}
-		
-		playItem->duration = cmnParseGetIntValue(p);
-		if(playItem->duration < 0 )
-		{
-			fprintf(stderr, "'%s' is invalidate value %d on line %d\n", PLAYLIST_NAME_DURATION, playItem->duration, linenum );
-			return EXIT_FAILURE;
-		}
-		
-		cmn_list_append(&playlist->fileList, playItem);
-#if DEBUG_CONFIG_FILE
-		fprintf(stderr, "%s: %s; %s: %d seconds\n", PLAYLIST_NAME_URL, playItem->filename, PLAYLIST_NAME_DURATION, playItem->duration);
-#endif
-		playItem = NULL;
-		
-	}
-	else
-	{
-		fprintf(stderr, "Invalidate configuration item: %s on line %d\n", cmd, linenum);
-		ret = EXIT_FAILURE;
-	}
-	
-	return ret;
-}
 
 static int _parsePlugin(MuxPlugIn *plugin, const char **p, int linenum)
 {
@@ -401,19 +200,19 @@ static int _parsePlugin(MuxPlugIn *plugin, const char **p, int linenum)
 	{
 		plugin->enable = cmnParseGetBoolValue(p);
 #if DEBUG_CONFIG_FILE
-		fprintf(stderr, "\tPlugin Enable: %s\n", (plugin->enable==FALSE)?"NO":"YES");
+		MUX_INFO("\tPlugin Enable: %s", (plugin->enable==FALSE)?"NO":"YES");
 #endif
 	}
 	else if (!strcasecmp(cmd, "Lib"))
 	{
 		cmnParseGetArg(plugin->path, sizeof(plugin->path),  p);
 #if DEBUG_CONFIG_FILE
-		fprintf(stderr, "\tPlugin Library: %s\n", plugin->path);
+		MUX_INFO("\tPlugin Library: %s", plugin->path);
 #endif
 	}
 	else
 	{
-		fprintf(stderr, "Invalidate configuration item: %s on line %d\n", cmd, linenum);
+		MUX_ERROR("Invalidate configuration item: %s on line %d", cmd, linenum);
 		ret = EXIT_FAILURE;
 	}
 	
@@ -488,7 +287,7 @@ int cmnMuxMainParse(const char *filename, MuxMain *muxMain)
 			cmnParseGetArg(cmd, sizeof(cmd), &p);
 			if (plugin )
 			{
-				fprintf(stderr, "%s:%d: Already in a tag for <plugin>\n",filename, line_num);
+				MUX_ERROR("%s:%d: Already in a tag for <plugin>", filename, line_num);
 				ret = EXIT_FAILURE;
 				break;
 			}
@@ -522,10 +321,10 @@ int cmnMuxMainParse(const char *filename, MuxMain *muxMain)
 				else
 				{
 					plugin->type = MUX_PLUGIN_TYPE_UNKNOWN;
-					fprintf(stderr, "Unknow plugin type '%s'\n", plugin->name);
+					MUX_ERROR("Unknow plugin type '%s'", plugin->name);
 				}
 #if DEBUG_CONFIG_FILE
-				fprintf(stderr, "PlugIn: %s\n", plugin->name );
+				MUX_INFO("PlugIn: %s", plugin->name );
 #endif
 			}
 
@@ -537,7 +336,7 @@ int cmnMuxMainParse(const char *filename, MuxMain *muxMain)
 		{
 			if (!plugin)
 			{
-				fprintf(stderr, "%s:%d: No corresponding <PlugIn> for </PlugIn>\n", filename, line_num);
+				MUX_ERROR("%s:%d: No corresponding <PlugIn> for </PlugIn>", filename, line_num);
 				ret = EXIT_FAILURE;
 				break;
 			}
@@ -548,58 +347,10 @@ int cmnMuxMainParse(const char *filename, MuxMain *muxMain)
 			parseState = PARSE_GLOBAL;
 			continue;
 		}
-
-		if ( strstr(line, "<PlayList") )
-		{
-			char *q;
-
-			cmnParseGetArg(cmd, sizeof(cmd), &p);
-			if (playlist )
-			{
-				fprintf(stderr, "%s:%d: Already in a tag for <Window>\n", filename, line_num);
-				ret = -EXIT_FAILURE;
-				break;
-			}
-			else
-			{
-				playlist = cmn_malloc(sizeof(PLAY_LIST));
-				playlist->muxMain = muxMain;
-				cmn_list_init( &playlist->fileList);
-
-				cmnParseGetArg(playlist->name, sizeof(playlist->name), &p);
-				q = strrchr(playlist->name, '>');
-				if (*q)
-					*q = '\0';
-				
-				cmn_list_append( SYS_PLAYLISTS(muxMain), playlist);
-			}
-
-			parseState = PARSE_PLAYLIST;
-
-			continue;
-		}
-		else if ( strstr(line, "</PlayList>"))
-		{
-			if (!playlist)
-			{
-				fprintf(stderr, "%s:%d: No corresponding <PlayList> for </PlayList>\n", filename, line_num);
-				ret = EXIT_FAILURE;
-				break;
-			}
-
-			playlist = NULL;
-			parseState = PARSE_GLOBAL;
-			continue;
-		}
-
 		
 		if(parseState == PARSE_GLOBAL)
 		{
 			ret = _parseGlobalConfig( &p, muxMain, line_num);
-		}
-		else if(parseState == PARSE_PLAYLIST)
-		{
-			ret = _parsePlaylist(playlist, &p, line_num);
 		}
 		else
 		{
@@ -608,7 +359,7 @@ int cmnMuxMainParse(const char *filename, MuxMain *muxMain)
 		
 		if(ret == -EXIT_FAILURE )
 		{
-			fprintf(stderr, "%s:%d: Incorrect keyword: '%s'\n", filename, line_num, cmd);
+			MUX_ERROR("%s:%d: Incorrect keyword: '%s'", filename, line_num, cmd);
 			break;
 		}
 		

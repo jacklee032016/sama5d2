@@ -93,7 +93,7 @@ CJSON_PUBLIC(char *) cJSON_GetStringValue(cJSON *item) {
     #error cJSON.h and cJSON.c have different versions. Make sure that both have the same.
 #endif
 
-CJSON_PUBLIC(const char*) cJSON_Version(void)
+const char *cJSON_Version(void)
 {
     static char version[15];
     sprintf(version, "%i.%i.%i", CJSON_VERSION_MAJOR, CJSON_VERSION_MINOR, CJSON_VERSION_PATCH);
@@ -348,7 +348,7 @@ loop_end:
 }
 
 /* don't ask me, but the original cJSON_SetNumberValue returns an integer or double */
-CJSON_PUBLIC(double) cJSON_SetNumberHelper(cJSON *object, double number)
+double cJSON_SetNumberHelper(cJSON *object, double number)
 {
     if (number >= INT_MAX)
     {
@@ -1745,7 +1745,7 @@ static cJSON_bool print_object(const cJSON * const item, printbuffer * const out
 }
 
 /* Get Array size/item / object item. */
-CJSON_PUBLIC(int) cJSON_GetArraySize(const cJSON *array)
+int cJSON_GetArraySize(const cJSON *array)
 {
     cJSON *child = NULL;
     size_t size = 0;

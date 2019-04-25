@@ -446,6 +446,10 @@ char *cmnGetCtime1(char *buf2, size_t buf_size);
 
 void cmnHexDump(const uint8_t *buf, int size);
 
+#define	CMN_HEX_DUMP(buf, size, msg)		\
+	do{MUX_INFO((msg)); cmnHexDump((buf), (size)); }while(0)
+		
+
 int	cmnParseGetHexIntValue(char *hexString);
 
 unsigned int cmnMuxCRC32b(void *message, int len);

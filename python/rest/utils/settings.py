@@ -2,7 +2,7 @@
 Tests settings module
 """
 
-DEBUG = False
+DEBUG = True
 TEST_DEBUG = False
 TESTING = True
 
@@ -36,6 +36,34 @@ STATIC_PAGES=[
     "/loading.gif",
     "/404.html"
 ]
+
+"""
+ following definition is for communication with C service
+"""
+
+REQUEST_METHOD_GET="GET"
+REQUEST_METHOD_POST="POST"
+
+SERVICE_URI_ROOT="/"
+SERVICE_URI_SYSTEM="/system"
+SERVICE_URI_RS232="/rs232"
+SERVICE_URI_OETHERS="/others"
+SERVICE_URI_SECURITYS="/security"
+
+SERVICE_URI_VIDEO="/video"
+SERVICE_URI_AUDIO="/audio"
+SERVICE_URI_ANC="/anc"
+SERVICE_URI_SDP_CONFIG="/sdp"
+
+SERVICE_URI_SDP_VIDEO="/video/sdp"
+SERVICE_URI_SDP_AUDIO="/audio/sdp"
+SERVICE_URI_SDP_ANC="/anc/sdp"
+
+SERVICE_DATA_FIELD_USERNAME="username"
+SERVICE_DATA_FIELD_PASSWORD="passwd"
+SERVICE_DATA_FIELD_DATA="data"
+SERVICE_DATA_FIELD_METHOD="method"
+SERVICE_DATA_FIELD_URI="uri"
 
 DYNAMIC_PAGES=[
     "/",

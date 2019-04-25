@@ -8,7 +8,7 @@ int extSystemJsonInit(const cJSON *array)
 
 	while(child)
 	{
-		MUX_DEBUG("JSON %s, %s", child->string, (child->type == cJSON_String)? child->valuestring:"Othertype");
+//		MUX_DEBUG("JSON %s, %s", child->string, (child->type == cJSON_String)? child->valuestring:"Othertype");
 		
 		i++;
 		child = child->next;
@@ -21,14 +21,13 @@ int extSystemJsonInit(const cJSON *array)
 
 int32_t	extSystemInit(MuxMain		*muxMain)
 {
-	uint32_t ip, mask;
+//	uint32_t ip, mask;
 	char *ifName ="eth0";
 	EXT_RUNTIME_CFG		*runCfg = &muxMain->runCfg;
 
 	extCfgFromFactory(runCfg);
 	
 	{
-TRACE();
 		runCfg->local.ip = cmnSysNetGetIp(ifName);
 		runCfg->ipMask = cmnSysNetGetMask(ifName);
 		runCfg->ipGateway = cmnSysNetGetDefaultGw(ifName);
@@ -41,8 +40,7 @@ TRACE();
 		MUX_DEBUG("IP is %s, 0x%x", cmnSysNetAddress(runCfg->local.ip), runCfg->local.ip);
 		MUX_DEBUG("MASK is %s, 0x%x", cmnSysNetAddress(runCfg->ipMask), runCfg->ipMask);
 		MUX_DEBUG("Gateway is %s, 0x%x", cmnSysNetAddress(runCfg->ipGateway), runCfg->ipGateway);
-
-		MUX_DEBUG("Mac : %.2X:%.2X:%.2X:%.2X:%.2X:%.2X\n" , runCfg->local.mac.address[0], runCfg->local.mac.address[1], runCfg->local.mac.address[2], 
+		MUX_DEBUG("Mac : %.2X:%.2X:%.2X:%.2X:%.2X:%.2X" , runCfg->local.mac.address[0], runCfg->local.mac.address[1], runCfg->local.mac.address[2], 
 			runCfg->local.mac.address[3], runCfg->local.mac.address[4], runCfg->local.mac.address[5]);
 
 	}
@@ -65,13 +63,13 @@ TRACE();
 		{
 			cJSON *item = cJSON_GetArrayItem(muxSystemJson, i);
 			cJSON *obj = cJSON_GetArrayItem(item, 0);
-			MUX_DEBUG("#%d: %s", i, obj->string );
+			MUX_DEBUG("Item#%d:%s, No#1:%s", i, item->string, obj->string );
 			
 			if(obj)
 			{
 //				MUX_DEBUG("\t#%d: %s:%s", i, type->string, type->valuestring);
-				int _count = extSystemJsonInit(obj);
-				MUX_DEBUG("\tTotal %d sub functions", _count);
+				int _count = extSystemJsonInit(item);
+				MUX_DEBUG("\tTotal %d==%d sub functions", _count, cJSON_GetArraySize(item) );
 			}
 		}
 	}
@@ -80,4 +78,13 @@ TRACE();
 	return EXIT_SUCCESS;
 }
 
+cJSON *extSystemFindObject(MuxMain *muxMain, const char*objName )
+{
+	cJSON *obj =	cJSON_GetObjectItem(muxMain->systemJson, objName);
+	if (obj== NULL)
+	{
+		MUX_ERROR("No data for '%s' is found", objName);
+	}
+	return obj;
+}
 

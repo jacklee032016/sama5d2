@@ -26,16 +26,20 @@ int cmnMuxCtrlDataHandle( struct DATA_CONN *dataConn );
 cJSON *cmnMuxJsonLoadConfiguration(char *cfgFileName);
 
 int	cmnMuxJsonHandle4Plugin(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataConn, cJSON *data);
-int	cmnMuxJsonHandle4SetMedia(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataConn, cJSON *data);
-int	cmnMuxJsonHandle4GetMedia(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataConn, cJSON *data);
 int	cmnMuxJsonHandle4DownloadMedia(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataConn, cJSON *data);
 
 int	cmnMuxJsonHandle4SysAdmin(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataConn, cJSON *data);
 
-int cmnMuxCtrlResponse(struct DATA_CONN *dataConn, void *buf, int size);
 
+/* handlers for data connection */
+void cmnMuxDataConnClose(struct DATA_CONN *dataConn);
+int cmnMuxDataConnAuthen(struct DATA_CONN *dataConn, char *user, char *pwd);
 
-int cmnMuxJsonReplyErrorMsg(struct DATA_CONN *dataConn);
+int cmnMuxDataConnIpCmdOutput(struct DATA_CONN *dataConn);
+int cmnMuxDataConnRestOutput(struct DATA_CONN *dataConn);
+
+int cmnMuxDataConnIpCmdInput(struct DATA_CONN *dataConn);
+int cmnMuxDataConnRestInput(struct DATA_CONN *dataConn);
 
 
 #endif

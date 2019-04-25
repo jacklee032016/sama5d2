@@ -20,101 +20,15 @@
 
 #include "_cmnMux.h"
 
-void cmnMuxDataConnClose(struct DATA_CONN *dataConn)
-{
-	if( (dataConn)->cmdObjs)
-	{
-#if MUX_OPTIONS_DEBUG_IP_COMMAND			
-		MUX_DEBUG("cJSON_Delete cmdObjs:%p", dataConn->cmdObjs);	
-#endif
-		cJSON_Delete( (dataConn)->cmdObjs);
-	}
-	
-	if( (dataConn)->resultObject)
-	{/* when is it been freed?? */
-#if MUX_OPTIONS_DEBUG_IP_COMMAND			
-		MUX_DEBUG("cJSON_Delete cmdObjs:%p", dataConn->resultObject);	
-#endif
-//		cJSON_Delete( (dataConn)->resultObject);
-	}
-
-	close((dataConn)->sock);
-	cmn_mutex_destroy(dataConn->mutexLock);
-	
-#if MUX_OPTIONS_DEBUG_IP_COMMAND			
-	MUX_DEBUG("free dataConn:%p", dataConn);	
-#endif
-	cmn_free((dataConn));
-}
-
-/* controller interface of sending back all JSON reply which is in format of buf. Only interface from controller called by other modules  */
-int cmnMuxCtrlResponse(struct DATA_CONN *dataConn, void *buf, int size)
-{
-	int len = 0;
-	CMN_IP_COMMAND cmd;
-	unsigned int crc32 =0;
-	char *sendBuffer;
-	int sendSize;
-
-	if(DATA_CONN_IS_IPCMD(dataConn) )
-	{
-		cmd.tag = CMD_TAG_B;
-		cmd.length =  htons(size + 4);
-
-		memcpy( cmd.data, buf, size);
-		crc32 =  htonl(cmnMuxCRC32b(buf, size));
-		*(unsigned int *)(cmd.data+size) = crc32;
-
-		sendBuffer = (char *)&cmd;
-		sendSize = size + 8;
-	}
-	else
-	{
-		sendBuffer = buf;
-		sendSize = size;
-	}
-
-
-#if 1//MUX_OPTIONS_DEBUG_IP_COMMAND			
-	MUX_DEBUG("Reply %d bytes packet to %s:%d", sendSize, inet_ntoa(dataConn->peerAddr.sin_addr), ntohs(dataConn->peerAddr.sin_port));
-	cmnHexDump((const uint8_t *)sendBuffer, sendSize );
-#endif
-	if(dataConn->ctrlConn->type == CTRL_LINK_TCP || dataConn->ctrlConn->type == CTRL_LINK_UNIX)
-	{
-		len = write(dataConn->sock, sendBuffer, sendSize );
-		if (len < 0)
-		{
-			MUX_ERROR("ERROR writing to socket: '%s'", strerror(errno));
-		}
-		close(dataConn->sock);
-	}
-	else if(dataConn->ctrlConn->type == CTRL_LINK_UDP)
-	{
-		MUX_DEBUG("Reply %d bytes packet to %s:%d, addrLen:%d", sendSize, inet_ntoa(dataConn->peerAddr.sin_addr), ntohs(dataConn->peerAddr.sin_port), dataConn->addrlen);
-		len = sendto(dataConn->ctrlConn->sockCtrl, sendBuffer, sendSize, 0, (struct sockaddr *)&dataConn->peerAddr, dataConn->addrlen); //  if suceeded the updated data is send back
-	}
-
-	if(len != sendSize || len < 0 )
-	{
-		MUX_ERROR("ERROR writing to socket only %d bytes: '%s'", len, strerror(errno));
-	}
-	MUX_DEBUG("Replied %d bytes packet", len);
-
-	return len;
-}
-
 /* read command and parse cmdObj for every DATA_CONN */
-static struct DATA_CONN *_readCommand(struct CTRL_CONN *ctrlConn)
+static struct DATA_CONN *_createDataConnection(struct CTRL_CONN *ctrlConn)
 {
 	int dataSocket = 0;
-	unsigned int crcDecoded, crcReceived;
 	struct DATA_CONN *dataConn = NULL;
-	cJSON				*cmdObjs;
 	struct sockaddr_in		peerAddr;
 //	struct sockaddr 		peerAddr;
 	socklen_t				addrlen;
 	int len = 0;
-//	int errCode = IPCMD_ERR_NOERROR;
 	unsigned char *objBuffer;
 	
 	memset(&ctrlConn->buffer, 0, sizeof(ctrlConn->buffer) );
@@ -166,25 +80,9 @@ static struct DATA_CONN *_readCommand(struct CTRL_CONN *ctrlConn)
 	ctrlConn->length = len;
 	ctrlConn->cmdBuffer = (CMN_IP_COMMAND *)ctrlConn->buffer;
 
-	if(CONN_IS_IPCMD(ctrlConn) )
-	{
-#if MUX_OPTIONS_DEBUG_IP_COMMAND
-		MUX_DEBUG("Received %d bytes(%d length) packet from %s:%d", len, ntohs(ctrlConn->cmdBuffer->length), inet_ntoa(peerAddr.sin_addr), ntohs(peerAddr.sin_port));
-		cmnHexDump( (uint8_t *)ctrlConn->cmdBuffer, len);
+#if 1//MUX_OPTIONS_DEBUG_IP_COMMAND
+	CMN_HEX_DUMP( (uint8_t *)ctrlConn->cmdBuffer, ctrlConn->length, "Received data from socket" );
 #endif
-		ctrlConn->cmdBuffer->length = ntohs(ctrlConn->cmdBuffer->length);
-#if MUX_OPTIONS_DEBUG_IP_COMMAND			
-		MUX_DEBUG("received length: %d, length field: %d", len, ctrlConn->cmdBuffer->length);
-#endif
-
-		if(ctrlConn->cmdBuffer->length+4 != len )
-		{
-			MUX_ERROR("length field:%d, received length:%d", ctrlConn->cmdBuffer->length, len);
-			dataConn->errCode = IPCMD_ERR_WRONG_PROTOCOL;
-			return NULL;
-		}
-	}
-
 
 	dataConn = cmn_malloc(sizeof(struct DATA_CONN));
 
@@ -196,48 +94,20 @@ static struct DATA_CONN *_readCommand(struct CTRL_CONN *ctrlConn)
 	dataConn->ctrlConn = ctrlConn;
 	dataConn->mutexLock = cmn_mutex_init();
 
-	dataConn->response = cmnMuxCtrlResponse;
-	dataConn->destroy = cmnMuxDataConnClose;
-
-	if(CONN_IS_IPCMD(ctrlConn))
+	if(CONN_IS_IPCMD(dataConn->ctrlConn))
 	{
-		if (CMD_TAG_A != ctrlConn->cmdBuffer->tag)
-		{
-			MUX_ERROR("Tag of command is wrong:0x%x", ctrlConn->cmdBuffer->tag);
-			dataConn->errCode = IPCMD_ERR_WRONG_PROTOCOL;
-			goto Failed;
-		}
-
-		crcReceived = *(unsigned int *)(ctrlConn->buffer + ctrlConn->cmdBuffer->length /*-4*/);	/* the first 4 bytes are header of command, so here is the position of CRC */
-		crcDecoded = htonl(cmnMuxCRC32b(ctrlConn->buffer+4, ctrlConn->cmdBuffer->length-4 /*-4*/));
-		if (crcReceived != crcDecoded)
-		{//Wrong CRC
-			//sendto(sockCtrl, msg_reply, n /*+ 8*/, 0, (struct sockaddr *) &addr, addrlen); //  if suceeded the updated data is send back
-			MUX_ERROR("CRC of command is wrong:received CRC: 0x%x, Decoded CRC:0x%x", crcReceived, crcDecoded);
-			dataConn->errCode = IPCMD_ERR_CRC_FAIL;
-			goto Failed;
-		}
-#if MUX_OPTIONS_DEBUG_IP_COMMAND			
-		MUX_DEBUG( "received CRC: 0x%x, Decoded CRC:0x%x", crcReceived, crcDecoded);
-#endif
-
-		objBuffer = ctrlConn->buffer+4;
+		dataConn->handleInput = cmnMuxDataConnIpCmdInput;
+		dataConn->handleOutput = cmnMuxDataConnIpCmdOutput;
 	}
 	else
 	{
-		objBuffer = ctrlConn->buffer;
+		dataConn->handleInput = cmnMuxDataConnRestInput;
+		dataConn->handleOutput = cmnMuxDataConnRestOutput;
 	}
+	
+	dataConn->handleAuthen = cmnMuxDataConnAuthen;
+	dataConn->handleDestroy = cmnMuxDataConnClose;
 
-	cmdObjs = cJSON_Parse((char *)objBuffer );
-	if( cmdObjs == NULL)
-	{/*Wrong JSON format */
-		MUX_ERROR("JSON of command is wrong:received JSON: '%s'", (char *)objBuffer);
-		dataConn->errCode = IPCMD_ERR_JSON_CORRUPTED;
-		goto Failed;
-	}
-
-	dataConn->cmdObjs = cmdObjs;
-Failed:
 	return dataConn;
 }
 
@@ -362,31 +232,18 @@ static struct CTRL_CONN *_createCtrlConnection(CTRL_LINK_TYPE type, MuxMain *mux
 	ctrlConn->sockCtrl = sockCtrl;
 	ctrlConn->type = type;
 	ctrlConn->port = port;
-	ctrlConn->createData = _readCommand;
+	ctrlConn->handleCreateData = _createDataConnection;
 
 	if(type == CTRL_LINK_UNIX)
 	{
-		MUX_DEBUG("Unix Controller in port %s", socket_path);
+		MUX_DEBUG("Controller's Unix port %s", socket_path);
 	}
 	else
 	{
-		MUX_DEBUG("%s Controller in port %d", (type == CTRL_LINK_TCP)?"TCP":"UDP", port);
+		MUX_DEBUG("Controller's %s port %d", (type == CTRL_LINK_TCP)?"TCP":"UDP", port);
 	}
 	
 	return ctrlConn;
-}
-
-/* reply error message for errors which happened before CMD cJSON objects has been parsed */
-int cmnMuxJsonReplyErrorMsg(struct DATA_CONN *dataConn)
-{
-	char *errorData = cmnMuxCreateErrReply(dataConn->errCode, NULL);
-	
-	cmnMuxCtrlResponse(dataConn, errorData, strlen(errorData));
-
-	cmn_free(errorData);
-	dataConn->isFinished = TRUE;
-
-	return EXIT_SUCCESS;
 }
 
 
@@ -400,14 +257,7 @@ static CMN_MUX_BROKER *_cmnMuxBrokerInit(MuxMain *muxMain)
 {
 	struct CTRL_CONN *ctrlConn = NULL;
 	CMN_MUX_BROKER *broker = NULL;
-	cJSON				*cfgHandlers = NULL;
 
-	cfgHandlers = cmnMuxJsonLoadConfiguration(IP_COMMAND_CONFIG_FILE);
-	if (cfgHandlers== NULL)
-	{
-		MUX_ERROR("IP Command configuration file '%s' Parsing failed", IP_COMMAND_CONFIG_FILE);
-		return NULL;
-	}
 
 	broker = cmn_malloc(sizeof(CMN_MUX_BROKER));
 
@@ -428,16 +278,6 @@ static CMN_MUX_BROKER *_cmnMuxBrokerInit(MuxMain *muxMain)
 
 	broker->muxMain = muxMain;
 //	broker->cfg = muxMain-> cfg;
-	broker->cfgHandlers = cfgHandlers;
-
-#if MUX_OPTIONS_DEBUG_IP_COMMAND			
-	{
-		char *printed_json = cJSON_Print(broker->cfgHandlers);
-		MUX_DEBUG("FormatPrint:\n'%s'\n", printed_json);
-		fprintf(stderr,"FormatPrint:\n'%s'\n", printed_json);
-		cmn_free(printed_json);
-	}
-#endif
 
 	return broker;
 }
@@ -455,9 +295,6 @@ static void _cmnMuxBrokerDestroy(CMN_MUX_BROKER *broker)
 		close(tmp->sockCtrl);
 		cmn_free(tmp);
 	}
-
-	cJSON_Delete(broker->cfgHandlers);
-	broker->cfgHandlers = NULL;
 
 	cmn_free(broker);
 }
@@ -514,7 +351,7 @@ static int _cmnMuxBrokerReceive(CMN_MUX_BROKER *broker)
 		if ( FD_ISSET(ctrlConn->sockCtrl, &readFdSet) )
 		{
 			int isClose = TRUE;
-			dataConn = _readCommand(ctrlConn);
+			dataConn = ctrlConn->handleCreateData(ctrlConn);
 			if(dataConn == NULL)
 			{
 				return EXIT_SUCCESS;
@@ -523,75 +360,44 @@ static int _cmnMuxBrokerReceive(CMN_MUX_BROKER *broker)
 #if MUX_OPTIONS_DEBUG_IP_COMMAND			
 			MUX_DEBUG( "Read data from peer port %d", dataConn->port );
 #endif
+			dataConn->handleInput(dataConn);
 
 			cmn_mutex_lock(dataConn->mutexLock);
-			if(dataConn->errCode != IPCMD_ERR_NOERROR )
+			if(dataConn->errCode == IPCMD_ERR_NOERROR )
 			{
-				cmnMuxJsonReplyErrorMsg(dataConn);
-			}
-			else
-			{
-				cJSON *cmdObj = NULL;
-
-				if(DATA_CONN_IS_IPCMD(dataConn) )
+				if( cmnMuxControllerAddEvent(dataConn->cmd, dataConn->method, dataConn) == EXIT_SUCCESS)
 				{
-					cmdObj = cJSON_GetObjectItem(dataConn->cmdObjs, IPCMD_NAME_KEYWORD_CMD);
-					if(cmdObj == NULL)
-					{
-						TRACE();
-						CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "No field of '%s' is found in packet", IPCMD_NAME_KEYWORD_CMD );
-					}
-						TRACE();
+					isClose = FALSE;
 				}
 				else
 				{
-					cmdObj = cJSON_Parse(dataConn->ctrlConn->buffer);
-					if(cmdObj == NULL)
-					{
-						TRACE();
-						CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, "Backend command is not validate JSON format");
-					}
-				}
-
-				if(cmdObj == NULL)
-				{
-					TRACE();
-					cmnMuxCtrlResponse(dataConn, dataConn->detailedMsg, strlen(dataConn->detailedMsg));
-					//cmn_free(errorData);
-						TRACE();
+					DATA_CONN_ERR(dataConn, IPCMD_ERR_NOT_SUPPORT_COMMND,  "Command '%s' is not supportted", dataConn->cmd);
 					dataConn->isFinished = TRUE;
 				}
-				else
-				{
-					if(cmdObj && cmnMuxControllerAddEvent(cmdObj->valuestring, 1, dataConn) == EXIT_SUCCESS)
-					{
-						isClose = FALSE;
-					}
-					else
-					{
-						dataConn->errCode = IPCMD_ERR_NOT_SUPPORT_COMMND;
-						TRACE();
-						cmnMuxJsonReplyErrorMsg(dataConn);
-					}
-				}
-
 			}
 
 #if 1
 			cmn_mutex_unlock(dataConn->mutexLock);
+
 			if(isClose)
 			{
-				cmnMuxDataConnClose(dataConn);
+				MUX_DEBUG( "Broker reply DATA_CONN %p directly", dataConn);
+				dataConn->handleOutput(dataConn);
+				
 #if MUX_OPTIONS_DEBUG_IP_COMMAND			
 				MUX_DEBUG( "Broker finish this DATA_CONN %p", dataConn);
 #endif
+				dataConn->handleDestroy(dataConn);
+				dataConn = NULL;
 			}
 #else			
 			//if(dataConn->isFinished)
 			if(dataConn->errCode != IPCMD_ERR_IN_PROCESSING)
 			{/* not finished, ie. this dataConn is end to other process */
 				cmn_mutex_unlock(dataConn->mutexLock);
-				cmnMuxDataConnClose(dataConn);
+				
+				dataConn->handleDestroy(dataConn);
+				dataConn = NULL;
 			}
 			else 
 			{/* otherwise, send data to other thread to process it */

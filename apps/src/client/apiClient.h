@@ -125,6 +125,7 @@ struct API_PARAMETERS
 
 	char		user[CMN_NAME_LENGTH];
 	char		passwd[CMN_NAME_LENGTH];
+	char		macAddress[CMN_NAME_LENGTH];
 
 	
 	char		media[CMN_NAME_LENGTH];
@@ -132,7 +133,6 @@ struct API_PARAMETERS
 
 	cmn_list_t	files;	/* used in fileDelete and playlistAdd */
 
-	int		index;
 	
 	int		left;
 	int		top;
@@ -142,23 +142,11 @@ struct API_PARAMETERS
 	int		duration;
 	
 	int		color;
-#if BACKGROUND_AS_STRING	
-	char		backgroundColor[CMN_NAME_LENGTH];
-#endif
 
-	char		ftpSvr[CMN_NAME_LENGTH];
-	char		ftpUser[CMN_NAME_LENGTH];
-	char		ftpPasswd[CMN_NAME_LENGTH];
-	char		ftpPath[CMN_NAME_LENGTH];
-	
+	cJSON     *dataObj;
 	cJSON	*result;
 
 };
-
-
-int	apiClientParseSubOptions(char *optarg, struct API_PARAMETERS *clientParams);
-
-char	*apiClientOptionsPrompt(struct API_PARAMETERS *clientParams);
 
 
 #endif

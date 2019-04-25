@@ -71,6 +71,16 @@ The most commonly used commands are:
         # use dispatch pattern to invoke method with same name
         getattr(self, args.command)()
 
+    def show(self, node):
+        data = node["data"][0]
+        system = data["system"]
+        ColorMsg.test_msg("%s(%s): %s(%s), %s" % (
+            system[settings.FIELD_SYSTEM_NAME], 
+            system[settings.FIELD_SYSTEM_PRODUCT], 
+            system[settings.FIELD_SYSTEM_IP], 
+            system[settings.FIELD_SYSTEM_MAC], 
+            system[settings.FIELD_SYSTEM_MODEL]))
+
 
     def _addDefaultOptions(self, parser, name="http"):
         parser.add_argument("-d", "--debug", action="store_true", help="debug option")
@@ -96,8 +106,7 @@ The most commonly used commands are:
         agent = DeviceIpCmd(simGateway=args.gateway, debug=args.debug)
         nodes = agent.find()
         for node in nodes:
-            data = node["data"][0]
-            ColorMsg.test_msg("%s: %s %s, %s" % (data["pName"], data["ip"], data["mac"], data["model"]))
+            self.show(node)
 
     def find(self):
         parser = argparse.ArgumentParser( description='Find one node with IP')
@@ -110,12 +119,14 @@ The most commonly used commands are:
         cmdCtrl = DeviceIpCmd(ip=args.ip, simGateway=args.gateway, debug=args.debug )
         node = cmdCtrl.findOneNode(ip=args.ip, simGateway=args.gateway, debug=args.debug)
         if node is not None:
-            data = node["data"][0]
-            ColorMsg.test_msg("%s: %s %s, %s" % (data["pName"], data["ip"], data["mac"], data["model"]))
-            node = createNode(data)
-            node2 = Node(data)
-            print(node)
-            print(node2)
+            self.show(node)
+            #data = node["data"][0]
+            #system = data["system"]
+            #ColorMsg.test_msg("%s: %s(%s), %s" % (system["pName"], system["ip"], system["mac"], system["model"]))
+            #nodeD = createNode(data)
+            #node2D = Node(data)
+            #print(nodeD)
+            #print(node2D)
 
 
     def setParams(self):

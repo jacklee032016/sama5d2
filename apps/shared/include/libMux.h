@@ -36,32 +36,23 @@
 #define	MUX_SYSTEM_CONFIG_FILE			CONFIG_FILE_HOME_PROJECT"muxSystem.json"
 
 
-#define	IP_COMMAND_CONFIG_FILE			CONFIG_FILE_HOME_PROJECT"ipCmds.json"
-
-#define	MEDIA_ACTION_CONFIG_FILE			CONFIG_FILE_HOME_PROJECT"mediaActions.json"	/* actions for set_media and get_media */
-#define	PLAY_ACTION_CONFIG_FILE			CONFIG_FILE_HOME_PROJECT"playActions.json"
-#define	RECORD_ACTION_CONFIG_FILE		CONFIG_FILE_HOME_PROJECT"recordActions.json"
-#define	SEVER_ACTION_CONFIG_FILE			CONFIG_FILE_HOME_PROJECT"serverActions.json"
-#define	WEB_ACTION_CONFIG_FILE			CONFIG_FILE_HOME_PROJECT"webActions.json"
-
-#define	SYS_ADMIN_CONFIG_FILE			CONFIG_FILE_HOME_PROJECT"sysAdminActions.json"
-
 #define	CRON_TASK_FILE						"/var/spool/cron/crontabs/root"
 
 
+#define	MUX_AUTH_USER						"admin"
+#define	MUX_AUTH_PASSWORD				"admin"
 
 #define	UNIX_SOCKET_SVR_PATH					"/tmp/unixsocketServer"
 #define	UNIX_SOCKET_CLIENT_PATH				"/tmp/unixsocketClient"
 
 
 #define	IPCMD_NAME_GET_PARAM				"get_param"
-#define	IPCMD_NAME_SET_PARAM				"set_param"
+#define	IPCMD_NAME_SET_PARAM					"set_param"
 #define	IPCMD_NAME_SEND_RS232				"send_data_rs232"
 #define	IPCMD_NAME_SEND_IR					"send_data_ir"
-#define	IPCMD_NAME_MEDIA_GET				"get_media"
-#define	IPCMD_NAME_MEDIA_DOWNLOAD			"download_media"
-#define	IPCMD_NAME_MEDIA_SET					"set_media"
-#define	IPCMD_NAME_MEDIA_PLAY				"play_media"
+#define	IPCMD_NAME_SECURITY_CHECK			"security_check"
+#define	IPCMD_NAME_BLINK_LED					"link_led"
+
 
 #define	IPCMD_NAME_SYS_ADMIN					"sys_admin"	/* system admin for muxMedia program */
 
@@ -91,6 +82,7 @@
 #define	IPCMD_NAME_KEYWORD_CMD				"cmd"
 #define	IPCMD_NAME_KEYWORD_LOGIN_ACK		"login-ack"
 #define	IPCMD_NAME_KEYWORD_PWD_MSG		"pwd-msg"
+#define	IPCMD_NAME_KEYWORD_MSG_DETAIL		"detail"
 
 #define	IPCMD_NAME_KEYWORD_DATA			"data"
 
@@ -152,6 +144,13 @@ typedef	enum
 {
 	IPCMD_ERR_IN_PROCESSING		= 102, 	/* request is processing, a long time is needed to process this request */
 	IPCMD_ERR_NOERROR			= 200, 	/* OK */
+
+	/* 4xx: client error */
+	IPCMD_ERR_BAD_REQUEST 		= 400,
+	IPCMD_ERR_UNAUTHORIZED 		= 401,
+	IPCMD_ERR_FORBIDDEN 			= 403,
+	IPCMD_ERR_NOT_FOUND 			= 404,
+	IPCMD_ERR_METHOD_NOT_ALLOWED 		= 405,
 
 	/* 5xx: server error */		
 	IPCMD_ERR_COMMUNICATION 		= 500,
@@ -301,6 +300,100 @@ typedef	enum _CMD_TYPE
 
 
 
+#define	MUX_REST_STATUS_CODE				"code"
+#define	MUX_REST_STATUS_ERROR			"error"
+#define	MUX_REST_STATUS_DEBUG			"debug"
+
+
+#define	MUX_REST_USER_NAME				"username"
+#define	MUX_REST_USER_PWD				"passwd"
+
+#define	MUX_REST_URL						"uri"
+#define	MUX_REST_METHOD					"method"
+
+
+#define	MUX_REST_URI_ROOT					"/"
+#define	MUX_REST_URI_SYSTEM				"system"
+#define	MUX_REST_URI_VIDEO				"video"
+#define	MUX_REST_URI_AUDIO				"audio"
+#define	MUX_REST_URI_ANC					"anc"
+#define	MUX_REST_URI_SDP					"sdp"
+#define	MUX_REST_URI_RS232				"rs232"
+#define	MUX_REST_URI_SECURITY				"security"
+#define	MUX_REST_URI_OTHERS				"others"
+
+#define	MUX_REST_URI_PARAMS				"/params"	/* only for get_params/set_params in IP Command */
+
+
+
+#define	SYS_CFG_FIELD_MODEL						"model"
+#define	SYS_CFG_FIELD_PRODUCT					"product"
+#define	SYS_CFG_FIELD_NAME						"name"
+#define	SYS_CFG_FIELD_VERSION						"version"
+
+#define	SYS_CFG_FIELD_ADDRESS					"address"
+#define	SYS_CFG_FIELD_NETMASK					"netmask"
+#define	SYS_CFG_FIELD_GATEWAY					"gateway"
+#define	SYS_CFG_FIELD_IS_DHCP						"isDHCP"
+
+#define	SYS_CFG_FIELD_MAC							"MAC"
+
+#define	SYS_CFG_FIELD_SDP_VEDIO_IP				"sdpVideoIp"
+#define	SYS_CFG_FIELD_SDP_AUDIO_IP				"sdpAudioIp"
+#define	SYS_CFG_FIELD_SDP_ANC_IP					"sdpAncIp"
+
+#define	SYS_CFG_FIELD_SDP_VEDIO_PORT				"sdpVideoPort"
+#define	SYS_CFG_FIELD_SDP_AUDIO_PORT			"sdpAudioPort"
+#define	SYS_CFG_FIELD_SDP_ANC_PORT				"sdpAncPort"
+
+#define	SYS_CFG_FIELD_SDP_VEDIO_URI				"sdpVideoUri"
+#define	SYS_CFG_FIELD_SDP_AUDIO_URI				"sdpAudioUri"
+#define	SYS_CFG_FIELD_SDP_ANC_URI				"sdpAncUri"
+
+#define	SYS_CFG_FIELD_IP_VEDIO					"ipVideo"
+#define	SYS_CFG_FIELD_IP_AUDIO					"ipAudio"
+#define	SYS_CFG_FIELD_IP_ANC						"ipAnc"
+#define	SYS_CFG_FIELD_IP_AUX						"ipAux"
+
+#define	SYS_CFG_FIELD_PORT_VEDIO					"portVideo"
+#define	SYS_CFG_FIELD_PORT_AUDIO					"portAudio"
+#define	SYS_CFG_FIELD_PORT_DATA					"portData"
+#define	SYS_CFG_FIELD_PORT_STREM					"portStrem"
+
+#define	SYS_CFG_FIELD_FPGA_AUTO					"mediaSet"
+
+#define	SYS_CFG_FIELD_FPGA_AUTO_V_AUTO			"Auto"
+#define	SYS_CFG_FIELD_FPGA_AUTO_V_MANUAL		"Manual"
+#define	SYS_CFG_FIELD_FPGA_AUTO_V_SDP			"SDP"
+
+
+#define	SYS_CFG_FIELD_VIDEO_PARAMS				"videoParams"		/* replace width/height/framerate/interlaced(segmented). 01.15, 2019 */
+
+#define	SYS_CFG_FIELD_VIDEO_WIDTH				"videoWidth"
+#define	SYS_CFG_FIELD_VIDEO_HEIGHT				"videoHeight"
+
+#define	SYS_CFG_FIELD_COLOR_SPACE				"colorSpace"
+#define	SYS_CFG_FIELD_COLOR_DEPTH				"colorDepth"
+#define	SYS_CFG_FIELD_FRAME_RATE					"videoFps"
+#define	SYS_CFG_FIELD_VIDEO_INTERLACE			"videoIsIntlce"
+#define	SYS_CFG_FIELD_VIDEO_SEGMENTED			"videoIsSgmt"
+
+#define	SYS_CFG_FIELD_AUDIO_CHANNEL				"audioChannels"
+#define	SYS_CFG_FIELD_AUDIO_SAMP_RATE			"audioSampRate"
+#define	SYS_CFG_FIELD_AUDIO_DEPTH				"audioDepth"
+#define	SYS_CFG_FIELD_AUDIO_PKT_SIZE				"audioPktSize"
+#define	SYS_CFG_FIELD_IS_CONNECT					"isConnect"	/* 811 send to TX(stop/start) or RX(connect/disconnect) */
+
+#define	SYS_CFG_FIELD_RS232_BAUDRATE			"rs232Baudrate"
+#define	SYS_CFG_FIELD_RS232_DATABITS				"rs232DataBit"
+#define	SYS_CFG_FIELD_RS232_PARITY				"rs232Parity"
+#define	SYS_CFG_FIELD_RS232_STOPBITS				"rs232StopBit"
+
+
+#define	SYS_CFG_FIELD_RS232_DATA					"rsData"
+
+
+
 typedef	struct	_CMD_EVENT
 {
 #if 0
@@ -444,17 +537,6 @@ typedef	struct CLIENT_CTRL
 	
 	int						inited;
 
-	/* JSON definitions of command */
-	cJSON					*ipCmds;
-	
-	cJSON					*mediaActions;
-	cJSON					*playActions;
-	cJSON					*recordActions;
-	cJSON					*serviceActions;
-	cJSON					*webActions;
-
-	cJSON					*sysAdminActions;
-	
 	struct CLIENT_CONN		*conn;
 
 }CLIENT_CTRL;
@@ -546,7 +628,7 @@ struct	_cmn_mux_ip_cmd
 	unsigned short		tag;
 	unsigned short		length;
 	
-	unsigned char			data[MUX_IP_CMD_MAX_LENGTH];	/* it should be 65531 to optimize memory allocation */
+	char			data[MUX_IP_CMD_MAX_LENGTH];	/* it should be 65531 to optimize memory allocation */
 }__attribute__ ((packed));
 
 typedef struct _cmn_mux_ip_cmd CMN_IP_COMMAND;
@@ -574,8 +656,6 @@ typedef	struct _ipcmd_agent
 	
 	struct CTRL_CONN		*ctrlConns;
 
-	cJSON				*cfgHandlers;
-
 #if 0
 	cmn_list_t			filelist;	/* downloaded file list */
 
@@ -596,7 +676,10 @@ struct	DATA_CONN;
 
 typedef	struct DATA_CONN* (*CreateDataConn)(struct CTRL_CONN *ctrlConn);//, void *priv);
 
-typedef	int (*DataConnReponse)(struct DATA_CONN *dataConn, void *buf, int size);
+typedef	int (*DataConnAuthen)(struct DATA_CONN *dataConn, char *user, char *pwd);
+
+typedef	int (*DataConnInput)(struct DATA_CONN *dataConn);
+typedef	int (*DataConnOutput)(struct DATA_CONN *dataConn);
 
 typedef	void (*DataConnDestroy)(struct DATA_CONN *dataConn);
 
@@ -613,7 +696,7 @@ struct	CTRL_CONN
 	unsigned char				buffer[2048];
 	int						length;
 
-	CreateDataConn			createData;
+	CreateDataConn			handleCreateData;
 
 	struct	CTRL_CONN		*next;
 
@@ -643,12 +726,30 @@ struct	DATA_CONN
 
 	int					isFinished;
 
-	DataConnReponse		response;
-	DataConnDestroy		destroy;
+	DataConnAuthen		handleAuthen;
+	DataConnInput		handleInput;
+	DataConnOutput		handleOutput;
+	DataConnDestroy		handleDestroy;
 
 	struct CTRL_CONN		*ctrlConn;
 };
 
+typedef	enum
+{
+	CMN_JSON_METHOD_GET 	= 0,
+	CMN_JSON_METHOD_POST,
+	CMN_JSON_METHOD_PUT,
+	CMN_JSON_METHOD_DELETE,
+	CMN_JSON_METHOD_PATCH,
+	CMN_JSON_METHOD_INVALIDATE
+}CMN_JSON_METHOD_T;
+
+#define	CMN_MEHOD_STR_GET				"GET"
+#define	CMN_MEHOD_STR_POST				"POST"
+#define	CMN_MEHOD_STR_PUT				"PUT"
+#define	CMN_MEHOD_STR_DELETE				"DELETE"
+#define	CMN_MEHOD_STR_PATCH				"PATCH"
+#define	CMN_MEHOD_STR_INVALIDATE		"INVALIDATE"
 
 typedef	struct _CMN_JSON_EVENT
 {
@@ -857,6 +958,8 @@ typedef	struct _MuxMain
 	int						udpCtrlPort;
 	int						tcpCtrlPort;
 	char						unixPort[CMN_NAME_LENGTH];
+
+	int						isAuthen;
 	
 //	CTRL_LINK_TYPE			ctrlProtocol;
 	
@@ -905,6 +1008,117 @@ typedef	struct _MuxMain
 
 /************ Macros like functions **********************/
 
+extern	TYPE_NAME_T jsonErrors[];
+
+extern	TYPE_NAME_T cmnMuxSyncTypes[];
+extern	TYPE_NAME_T cmnMuxPluginTypes[];
+extern	TYPE_NAME_T cmnMuxRequestMethods[];
+
+extern	const	TYPE_NAME_T	_videoColorSpaces[];
+extern	const short	videoWidthList[];
+extern	const short 	videoHeightList[];
+
+extern	const int32_t constRs232Baudrates[];
+extern	const short constRs232Databits[];
+
+extern	const	TYPE_NAME_T	_videoFormats[];
+
+
+extern	const	TYPE_NAME_T	intVideoColorDepthList[];
+extern	const	TYPE_NAME_T	intVideoFpsList[];
+
+
+extern	const char 	audioChannelsList[];
+extern	const	TYPE_NAME_T	_audioPktSizes[];
+extern	const	TYPE_NAME_T	_audioRates[];
+
+
+extern	const	TYPE_NAME_T	_ipcmdStringRsParities[];
+extern	const	TYPE_NAME_T	_ipcmdStringRsStopbits[];
+
+
+#define	CMN_FIND_HC_STATE(type)		\
+	cmnMuxTypeFindName(CMN_STR_T_HC_STATES, (type) )
+
+#define	CMN_FIND_HC_EVENT(type)		\
+	cmnMuxTypeFindName(CMN_STR_T_HC_EVENTS, (type) )
+
+#define	CMN_FIND_STR_HC_STATE(str)		\
+	cmnMuxTypeFindType(CMN_STR_T_HC_STATES, (str) )
+
+#define	CMN_FIND_STR_HC_EVENT(str)		\
+	cmnMuxTypeFindType(CMN_STR_T_HC_EVENTS, (str) )
+
+
+
+
+#define	CMN_FIND_STR_RS_PARITY(str)		\
+	cmnMuxTypeFindType(constRs232Databits, (str) )
+
+#define	CMN_FIND_RS_PARITY(type)		\
+	cmnMuxTypeFindName(constRs232Databits, (type) )
+
+
+#define	CMN_FIND_STR_V_COLORSPACE(str)		\
+	cmnMuxTypeFindType(_videoColorSpaces, (str) )
+
+#define	CMN_FIND_V_COLORSPACE(type)		\
+	cmnMuxTypeFindName(_videoColorSpaces, (type) )
+
+
+#define	CMN_FIND_V_FRAME_RATE(type)		\
+	cmnMuxTypeFindName(CMN_STR_T_V_FRAME_RATE, (type) )
+
+#define	CMN_FIND_STR_V_FRAME_RATE(str)		\
+	cmnMuxTypeFindType(CMN_STR_T_V_FRAME_RATE, (str) )
+
+#define	CMN_FIND_V_FPS_4_REST(type)		\
+	cmnMuxTypeFindName(CMN_STR_T_V_FPS_4_REST, (type) )
+
+#define	CMN_FIND_STR_V_FPS_4_REST(str)		\
+	cmnMuxTypeFindType(CMN_STR_T_V_FPS_4_REST, (str) )
+
+
+#define	CMN_FIND_V_FORMAT(type)		\
+	cmnMuxTypeFindName(_videoFormats, (type) )
+
+#define	CMN_FIND_STR_V_FORMAT(str)		\
+	cmnMuxTypeFindType(_videoFormats, (str) )
+
+
+
+#define	CMN_FIND_A_PKTSIZE(type)		\
+	cmnMuxTypeFindName(_audioPktSizes, (type) )
+
+#define	CMN_FIND_STR_A_PKTSIZE(str)		\
+	cmnMuxTypeFindType(_audioPktSizes, (str) )
+
+
+#define	CMN_FIND_STR_A_RATE(str)		\
+	cmnMuxTypeFindType(_audioRates, (str) )
+
+#define	CMN_FIND_A_RATE(type)		\
+	cmnMuxTypeFindName(_audioRates, (type) )
+
+	
+
+#define	CMN_INT_FIND_NAME_V_DEPTH(type)		\
+	cmnMuxTypeFindName(intVideoColorDepthList, (type) )
+	
+#define	CMN_INT_FIND_TYPE_V_DEPTH(name)		\
+	cmnMuxTypeFindType(intVideoColorDepthList, (name) )
+
+
+#define	CMN_INT_FIND_NAME_V_FPS(type)		\
+	cmnMuxTypeFindName(intVideoFpsList, (type) )
+
+#define	CMN_INT_FIND_TYPE_V_FPS(name)		\
+	cmnMuxTypeFindType(intVideoFpsList, (name) )
+
+
+
+
+
 /* plugin type */
 #define	CMN_MUX_FIND_PLUGIN_TYPE( name) \
 		cmnMuxTypeFindType(cmnMuxPluginTypes, (name))
@@ -921,28 +1135,13 @@ typedef	struct _MuxMain
 #define	CMN_MUX_FIND_SYNC_NAME( type) \
 		cmnMuxTypeFindName(cmnMuxSyncTypes, (type))
 
-/* video out format */
-#define	CMN_MUX_FIND_VIDEO_OUT_FORMAT( name) \
-		cmnMuxTypeFindType(outVideoFormats, (name))
 
-#define	CMN_MUX_FIND_VIDEO_OUT_FORMAT_TYPE( type) \
-		cmnMuxTypeFindName(outVideoFormats, (type))
+/* request method name */
+#define	CMN_MUX_FIND_METHOD_NAME( type) \
+		cmnMuxTypeFindName(cmnMuxRequestMethods, (type))
 
-
-/* video out caplevel */
-#define	CMN_MUX_FIND_VIDEO_OUT_CAPLEVEL( name) \
-		cmnMuxTypeFindType(outVideoCaplevels, (name))
-
-#define	CMN_MUX_FIND_VIDEO_OUT_CAPLEVEL_TYPE( type) \
-		cmnMuxTypeFindName(outVideoCaplevels, (type))
-
-
-/* window rotate type */
-#define	CMN_MUX_FIND_RORATE_NAME( type) \
-		cmnMuxTypeFindName(rotateTypes, (type))
-
-#define	CMN_MUX_FIND_RORATE_TYPE( name) \
-		cmnMuxTypeFindType(rotateTypes, (name))
+#define	CMN_MUX_FIND_METHOD_TYPE( name) \
+		cmnMuxTypeFindType(cmnMuxRequestMethods, (name))
 
 
 
@@ -1021,8 +1220,7 @@ int cmnMuxJsonReplyError( struct DATA_CONN *dataConn, const char *fmt, ... );
 
 
 
-cJSON *cmnMuxClientRequest( char *ipcmdName, char *actionName, cJSON *obj);
-cJSON *cmnMuxClientSendout(char *ipcmdName, cJSON *dataArray);
+cJSON *cmnMuxClientRequest(cJSON *ipCmd);
 
 extern	CmnThread  threadBroker;
 extern	CmnThread  threadController;
@@ -1062,25 +1260,15 @@ int	cmnMuxPlaylistSave(FILE *f, cmn_list_t *playlists);
 int cmnMuxSavePlayerConfig( MuxPlayerConfig *cfg);
 int cmnMuxSaveAllConfig(MuxMain *muxMain);
 
-extern	TYPE_NAME_T outVideoCaplevels[];
-extern	TYPE_NAME_T outVideoFormats[];
-extern	TYPE_NAME_T rotateTypes[];
-extern	TYPE_NAME_T jsonErrors[];
-
-extern	TYPE_NAME_T cmnMuxSyncTypes[];
-extern	TYPE_NAME_T cmnMuxPluginTypes[];
-
-void cmnMuxDataConnClose(struct DATA_CONN *dataConn);
-
 
 int cmnMuxJsonControllerReply(struct DATA_CONN *dataConn, int status, const char *fmt, ... );
 
 int cmnMuxJEventReply(CMN_PLAY_JSON_EVENT *jsonEvent, int errCode, const char *fmt, ...);
 
 
-#define	CMN_CONTROLLER_REPLY_DATA_ERR(dataConn, ...)		\
+#define	DATA_CONN_ERR(dataConn, errCode, ...)		\
 		do{ MUX_ERROR( __VA_ARGS__);	\
-		cmnMuxJsonControllerReply( (dataConn),  IPCMD_ERR_DATA_ERROR,  __VA_ARGS__ );}while(0)
+		cmnMuxJsonControllerReply( (dataConn),  (errCode),  __VA_ARGS__ );}while(0)
 
 int cmnMuxDsValidate(void);
 

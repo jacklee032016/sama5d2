@@ -18,7 +18,7 @@
 #endif
 
 #define CMN_VERSION_INFO(moduleName)	  "" \
-			CMN_VERSION_MAJOR"." CMN_VERSION_MINOR"."	CMN_VERSION_RELEASE \
+			moduleName " " CMN_VERSION_MAJOR"." CMN_VERSION_MINOR"."	CMN_VERSION_RELEASE \
 			"-" CMN_VERSION_MODIFY", " __DATE__ " " __TIME__ ""  
 
 

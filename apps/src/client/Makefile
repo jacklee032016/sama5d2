@@ -8,7 +8,6 @@ include $(RULE_DIR)/Makefile.pre
 C_FLAGS += $(SHARED_CFLAGS)
 
 SRC:= \
-		apiCmdOpts.c \
 		apiClient.c \
 		
 

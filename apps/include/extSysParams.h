@@ -848,86 +848,6 @@ typedef	enum
 
 
 
-const char *extCmnStringFind(CMN_STR_TYPE strType, unsigned short type);
-const short extCmnTypeFind(CMN_STR_TYPE  strType, char *str);
-
-
-#define	CMN_FIND_RS_PARITY(type)		\
-	extCmnStringFind(CMN_STR_T_RS_PARITY, (type) )
-
-#define	CMN_FIND_V_COLORSPACE(type)		\
-	extCmnStringFind(CMN_STR_T_V_COLORSPACE, (type) )
-
-
-#define	CMN_FIND_V_FRAME_RATE(type)		\
-	extCmnStringFind(CMN_STR_T_V_FRAME_RATE, (type) )
-
-#define	CMN_FIND_V_FPS_4_REST(type)		\
-	extCmnStringFind(CMN_STR_T_V_FPS_4_REST, (type) )
-
-
-#define	CMN_FIND_V_FORMAT(type)		\
-	extCmnStringFind(CMN_STR_T_V_IMAGE_FORMAT, (type) )
-
-
-
-#define	CMN_FIND_HTTP_STATE(type)		\
-	extCmnStringFind(CMN_STR_T_HTTP_STATES, (type) )
-
-#define	CMN_FIND_HTTP_EVENT(type)		\
-	extCmnStringFind(CMN_STR_T_HTTP_EVENTS, (type) )
-
-#define	CMN_FIND_HC_STATE(type)		\
-	extCmnStringFind(CMN_STR_T_HC_STATES, (type) )
-
-#define	CMN_FIND_HC_EVENT(type)		\
-	extCmnStringFind(CMN_STR_T_HC_EVENTS, (type) )
-
-
-#define	CMN_FIND_A_PKTSIZE(type)		\
-	extCmnStringFind(CMN_STR_T_A_PKTSIZE, (type) )
-
-#define	CMN_FIND_A_RATE(type)		\
-	extCmnStringFind(CMN_STR_T_A_RATE, (type) )
-
-
-
-#define	CMN_FIND_STR_RS_PARITY(str)		\
-	extCmnTypeFind(CMN_STR_T_RS_PARITY, (str) )
-
-#define	CMN_FIND_STR_V_COLORSPACE(str)		\
-	extCmnTypeFind(CMN_STR_T_V_COLORSPACE, (str) )
-
-#define	CMN_FIND_STR_V_FRAME_RATE(str)		\
-	extCmnTypeFind(CMN_STR_T_V_FRAME_RATE, (str) )
-
-#define	CMN_FIND_STR_V_FPS_4_REST(str)		\
-	extCmnTypeFind(CMN_STR_T_V_FPS_4_REST, (str) )
-
-
-#define	CMN_FIND_STR_V_FORMAT(str)		\
-	extCmnTypeFind(CMN_STR_T_V_IMAGE_FORMAT, (str) )
-
-
-#define	CMN_FIND_STR_HTTP_STATE(str)		\
-	extCmnTypeFind(CMN_STR_T_HTTP_STATES, (str) )
-
-#define	CMN_FIND_STR_HTTP_EVENT(str)		\
-	extCmnTypeFind(CMN_STR_T_HTTP_EVENTS, (str) )
-
-#define	CMN_FIND_STR_HC_STATE(str)		\
-	extCmnTypeFind(CMN_STR_T_HC_STATES, (str) )
-
-#define	CMN_FIND_STR_HC_EVENT(str)		\
-	extCmnTypeFind(CMN_STR_T_HC_EVENTS, (str) )
-
-
-#define	CMN_FIND_STR_A_PKTSIZE(str)		\
-	extCmnTypeFind(CMN_STR_T_A_PKTSIZE, (str) )
-
-#define	CMN_FIND_STR_A_RATE(str)		\
-	extCmnTypeFind(CMN_STR_T_A_RATE, (str) )
-
 
 typedef struct
 {
@@ -956,23 +876,6 @@ typedef	struct
 	uint8_t				interlaced;	/* refer to EXT_VIDEO_INTLC */
 }MediaParam;
 
-
-const uint8_t extCmnIntFindName(CMN_INT_TYPE  intType, uint8_t type);
-const uint8_t extCmnIntFindType(CMN_INT_TYPE  intType, uint8_t name);
-
-#define	CMN_INT_FIND_NAME_V_DEPTH(type)		\
-	extCmnIntFindName(CMN_INT_T_V_DEPTH, (type) )
-
-#define	CMN_INT_FIND_NAME_V_FPS(type)		\
-	extCmnIntFindName(CMN_INT_T_V_FPS, (type) )
-
-
-
-#define	CMN_INT_FIND_TYPE_V_DEPTH(name)		\
-	extCmnIntFindType(CMN_INT_T_V_DEPTH, (name) )
-
-#define	CMN_INT_FIND_TYPE_V_FPS(name)		\
-	extCmnIntFindType(CMN_INT_T_V_FPS, (name) )
 
 
 
@@ -1348,9 +1251,6 @@ extern	EXT_RUNTIME_CFG			extRun;
 				(extRun.debugHttpClient= 1 )
 
 
-
-
-
 #define	EXT_IS_TX(runCfg)	\
 			((runCfg)->isTx != 0 )
 
@@ -1406,29 +1306,6 @@ char bspCfgSave( EXT_RUNTIME_CFG *cfg, EXT_CFG_TYPE cfgType );
 #else
 #define	FOR_U32	"u"
 #endif
-
-
-extern	const	EXT_CONST_STR	_videoColorSpaces[];
-extern	const short	videoWidthList[];
-extern	const short 	videoHeightList[];
-
-extern	const int32_t constRs232Baudrates[];
-extern	const short constRs232Databits[];
-
-extern	const	EXT_CONST_STR	_videoFormats[];
-
-
-extern	const	EXT_CONST_INT	intVideoColorDepthList[];
-extern	const	EXT_CONST_INT	intVideoFpsList[];
-
-
-extern	const char 	audioChannelsList[];
-extern	const	EXT_CONST_STR	_audioPktSizes[];
-extern	const	EXT_CONST_STR	_audioRates[];
-
-
-extern	const	EXT_CONST_STR	_ipcmdStringRsParities[];
-extern	const	EXT_CONST_STR	_ipcmdStringRsStopbits[];
 
 
 extern	const MediaParam constMediaParams[];

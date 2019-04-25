@@ -29,10 +29,11 @@ MUX_SRC += \
 		cmnMuxDs.c \
 		api/cmnMuxBroker.c \
 		api/cmnMuxController.c \
-		api/cmnMuxJson.c \
+		api/cmnMuxDataConn.c \
+		api/cmnMuxJsonUtils.c \
+		api/cmnMuxJsonHandlers.c \
 		api/cmnMuxJsonMedia.c \
 		api/cmnMuxClient.c \
-		api/cmnMuxClientAPI.c \
 		cmnMuxConfigWeb.c	\
 
 

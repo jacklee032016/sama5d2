@@ -1,16 +1,14 @@
 #!/usr/bin/env python
 
 from flask import Flask
-from flask_restful import Api
+from flask_restful import reqparse, abort, Api
 
 from resources.root import Root, RestError
-from resources.system import System
-from resources.medias import Video
-from resources.medias import Audio
-from resources.medias import Anc
-from resources.sdp import VideoSdp
-from resources.sdp import AudioSdp
-from resources.sdp import AncSdp
+from resources.system import System, Rs232, Security, Others
+from resources.medias import Video, Audio, Anc, SdpConfig
+from resources.sdp import VideoSdp, AudioSdp, AncSdp
+
+from utils import settings
 
 # import sys
 # sys.setdefaultencoding('utf-8')
@@ -23,6 +21,8 @@ os.putenv('LC_ALL', 'en_US.UTF-8')
 app = Flask(__name__)
 api = Api(app)
 
+
+
 @api.representation('application/octet-stream')
 def binary(data, code, headers=None):
     resp = api.make_response(data, code)
@@ -30,16 +30,23 @@ def binary(data, code, headers=None):
     return resp
 
 
-api.add_resource(Root, '/')
-api.add_resource(System, '/system') #, '/system/<str:id>')
-api.add_resource(Video, '/video') #, '/video/<str:id>')
-api.add_resource(VideoSdp, '/video/sdp')# , '/audio/<str:id>')
+api.add_resource(Root, settings.SERVICE_URI_ROOT)
+api.add_resource(System, settings.SERVICE_URI_SYSTEM)
+api.add_resource(Rs232, settings.SERVICE_URI_RS232)
+api.add_resource(Security, settings.SERVICE_URI_SECURITYS)
+api.add_resource(Others, settings.SERVICE_URI_OETHERS)
 
-api.add_resource(Audio, '/audio')# , '/audio/<str:id>')
-api.add_resource(AudioSdp, '/audio/sdp')# , '/audio/<str:id>')
+api.add_resource(SdpConfig, settings.SERVICE_URI_SDP_CONFIG)
 
-api.add_resource(Anc, '/anc')# , '/audio/<str:id>')
-api.add_resource(AncSdp, '/anc/sdp')# , '/audio/<str:id>')
+api.add_resource(Video, settings.SERVICE_URI_VIDEO)
+api.add_resource(VideoSdp, settings.SERVICE_URI_SDP_VIDEO)# , '/audio/<str:id>')
+
+api.add_resource(Audio, settings.SERVICE_URI_AUDIO)
+api.add_resource(AudioSdp, settings.SERVICE_URI_SDP_AUDIO)# , '/audio/<str:id>')
+
+api.add_resource(Anc, settings.SERVICE_URI_ANC)
+api.add_resource(AncSdp, settings.SERVICE_URI_SDP_ANC)# , '/audio/<str:id>')
+
 
 # api.add_resource(RestError, '/error')
 
