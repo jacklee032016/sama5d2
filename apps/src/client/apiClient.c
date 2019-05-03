@@ -19,10 +19,10 @@ send JSON request from json file and parse JSON response, used in CGI and other 
 static void usage(char* base, struct API_PARAMETERS *params)
 {
 	printf("%s: \n\tCommand line interface for JSON API.\n"\
-		"\t%s -c command -a ipaddress/fqdn -m MAC(FF:FF:FF:FF:FFFF) -p 0(UDP)|1(TCP, default) -b port(3600)  -d jsonData -u user(admin) -w passwd(admin)\n"\
+		"\t%s -c command -a ipaddress/fqdn -m MAC(FF:FF:FF:FF:FFFF) -p 0(UDP, default)|1(TCP) -b port(3600)  -d jsonData -u user(admin) -w passwd(admin)\n"\
 		"\t\t Current command:  " \
 		"\n\t\t\t"CLIENT_CMD_STR_FIND", "CLIENT_CMD_STR_GET", "CLIENT_CMD_STR_SET", "CLIENT_CMD_STR_RS_DATA", " \
-		"\n\t\t\t"CLIENT_CMD_STR_SECURE", " CLIENT_CMD_STR_BLINK", "
+		"\n\t\t\t"CLIENT_CMD_STR_SECURE", " CLIENT_CMD_STR_IR", "
 		"\n\t\t\t"IPCMD_SYS_ADMIN_THREADS ", " IPCMD_SYS_ADMIN_VER_INFO", quit \n" \
 		"\t\t ipaddress/fqdn: default localhost; \n", 
 		  base, base);
@@ -70,6 +70,20 @@ static cJSON *_ipCmdRequest(struct API_CLIENT_CMD_HANDLER *handle, struct API_PA
 	return params->result;
 }
 
+static int _validateIpAddress(struct API_CLIENT_CMD_HANDLER *handle, struct API_PARAMETERS *params, char *Program)
+{
+	EXT_MAC_ADDRESS macAddress;
+	
+	if(cmnSystemNetIp(params->address)==INVALIDATE_VALUE_U32)
+	{
+		printf("WARNS: '%s' is not validate IP address\n", params->address);
+		return EXIT_FAILURE;
+	}
+	
+	return EXIT_SUCCESS;
+}
+
+
 static int _validateMac(struct API_CLIENT_CMD_HANDLER *handle, struct API_PARAMETERS *params, char *Program)
 {
 	EXT_MAC_ADDRESS macAddress;
@@ -101,6 +115,8 @@ static int _findCmdValidate(struct API_CLIENT_CMD_HANDLER *handle, struct API_PA
 	params->protocol = PROTOCOL_UDP;
 	params->port = UDP_SERVER_PORT;
 
+	snprintf(params->macAddress, sizeof(params->macAddress), "%s", "FF:FF:FF:FF:FF:FF");
+
 	return EXIT_SUCCESS;
 }
 
@@ -119,6 +135,9 @@ static int _getCmdValidate(struct API_CLIENT_CMD_HANDLER *handle, struct API_PAR
 	if(_validateMac(handle, params, program) == EXIT_FAILURE )
 		return EXIT_FAILURE;
 
+	if(_validateIpAddress(handle, params, program) == EXIT_FAILURE )
+		return EXIT_FAILURE;
+
 	return EXIT_SUCCESS;
 }
 
@@ -132,12 +151,15 @@ static int _getCmdExec(struct API_CLIENT_CMD_HANDLER *handle, struct API_PARAMET
 	return EXIT_FAILURE;
 }
 
-
-static int _setCmdValidate(struct API_CLIENT_CMD_HANDLER *handle, struct API_PARAMETERS *params, char *program)
+/* for all commands which will write data*/
+static int _writeCmdValidate(struct API_CLIENT_CMD_HANDLER *handle, struct API_PARAMETERS *params, char *program)
 {
 	if(_validateMac(handle, params, program) == EXIT_FAILURE )
 		return EXIT_FAILURE;
 
+	if(_validateIpAddress(handle, params, program) == EXIT_FAILURE )
+		return EXIT_FAILURE;
+	
 	if(_validateData(handle, params, program) == EXIT_FAILURE )
 		return EXIT_FAILURE;
 
@@ -145,28 +167,7 @@ static int _setCmdValidate(struct API_CLIENT_CMD_HANDLER *handle, struct API_PAR
 }
 
 
-static int _setCmdExec(struct API_CLIENT_CMD_HANDLER *handle, struct API_PARAMETERS *params)
-{
-	if( _ipCmdRequest(handle, params) )
-	{
-		return EXIT_SUCCESS;
-	}
-	return EXIT_FAILURE;
-}
-
-static int _rs232CmdValidate(struct API_CLIENT_CMD_HANDLER *handle, struct API_PARAMETERS *params, char *program)
-{
-	if(_validateMac(handle, params, program) == EXIT_FAILURE )
-		return EXIT_FAILURE;
-
-	if(_validateData(handle, params, program) == EXIT_FAILURE )
-		return EXIT_FAILURE;
-
-	return EXIT_SUCCESS;
-}
-
-
-static int _rs232CmdExec(struct API_CLIENT_CMD_HANDLER *handle, struct API_PARAMETERS *params)
+static int _writeCmdExec(struct API_CLIENT_CMD_HANDLER *handle, struct API_PARAMETERS *params)
 {
 	if( _ipCmdRequest(handle, params) )
 	{
@@ -220,28 +221,28 @@ API_CLIENT_CMD_HANDLER apiClientCmdHandlers[]=
 	{
 		.name = CLIENT_CMD_STR_SET,
 		.ipCmd = 	IPCMD_NAME_SET_PARAM,
-		.validate = _setCmdValidate,
-		.execute = _setCmdExec
+		.validate = _writeCmdValidate,
+		.execute = _writeCmdExec
 	},
 	
 	{
 		.name = CLIENT_CMD_STR_RS_DATA,
 		.ipCmd = 	IPCMD_NAME_SEND_RS232,
-		.validate = _rs232CmdValidate,
-		.execute = _rs232CmdExec
+		.validate = _writeCmdValidate,
+		.execute = _writeCmdExec
 	},
 	
 	{
 		.name = CLIENT_CMD_STR_SECURE,
 		.ipCmd = 	IPCMD_NAME_SECURITY_CHECK,
-		.validate = _setCmdValidate,
-		.execute = _findCmdExec
+		.validate = _writeCmdValidate,
+		.execute = _writeCmdExec
 	},
 	{
-		.name = CLIENT_CMD_STR_BLINK,
-		.ipCmd = 	IPCMD_NAME_BLINK_LED,
-		.validate = _setCmdValidate,
-		.execute = _findCmdExec
+		.name = CLIENT_CMD_STR_IR,
+		.ipCmd = 	IPCMD_NAME_SEND_IR,
+		.validate = _writeCmdValidate,
+		.execute = _writeCmdExec
 	},
 	
 	/* commands for Sys Admin */
@@ -359,7 +360,7 @@ int main(int argc, char *argv[])
 	snprintf(params.passwd, sizeof(params.passwd), "%s", MUX_AUTH_PASSWORD);
 
 	params.port = UDP_SERVER_PORT;
-	params.protocol = PROTOCOL_TCP;
+	params.protocol = PROTOCOL_UDP;
 	
 	params.left = -1;
 	params.width = -1;
@@ -406,6 +407,7 @@ int main(int argc, char *argv[])
 					fprintf(stderr, "data '%s' is not validate JSON format\n", optarg );
 					exit(1);
 				}
+				fprintf(stderr, "JSON data: '%s'\n", optarg );
 				break;
 
 			case 'u': /* user name */
@@ -425,7 +427,7 @@ int main(int argc, char *argv[])
 
 	printf(CMN_VERSION_INFO(CMN_MODULE_APICLIENT_NAME) EXT_NEW_LINE );
 
-	if( IS_STRING_NULL(params.cmd) )
+	if( IS_STRING_NULL_OR_ZERO(params.cmd) )
 	{
 		printf("Command is not defined\n");
 		usage(argv[0], &params);

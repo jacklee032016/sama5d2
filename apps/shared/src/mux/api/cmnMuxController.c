@@ -22,7 +22,7 @@
 
 static int	_ctrlEventHandler(struct _CmnThread *th, void *_event)
 {
-	MuxMain *muxMain = (MuxMain *)th->data;
+//	MuxMain *muxMain = (MuxMain *)th->data;
 
 	CMN_JSON_EVENT *jsonEvent = (CMN_JSON_EVENT *)_event;
 	int res = EXIT_SUCCESS;

@@ -75,12 +75,12 @@ typedef struct {
 } error;
 static error global_error = { NULL, 0 };
 
-CJSON_PUBLIC(const char *) cJSON_GetErrorPtr(void)
+const char * cJSON_GetErrorPtr(void)
 {
     return (const char*) (global_error.json + global_error.position);
 }
 
-CJSON_PUBLIC(char *) cJSON_GetStringValue(cJSON *item) {
+char * cJSON_GetStringValue(cJSON *item) {
     if (!cJSON_IsString(item)) {
         return NULL;
     }
@@ -956,6 +956,7 @@ static cJSON_bool print_string_ptr(const unsigned char * const input, printbuffe
 /* Invoke print_string_ptr (which is useful) on an item. */
 static cJSON_bool print_string(const cJSON * const item, printbuffer * const p)
 {
+//	MUX_DEBUG("%s is string object, value is '%s'", item->string, item->valuestring);
     return print_string_ptr((unsigned char*)item->valuestring, p);
 }
 
@@ -1272,6 +1273,8 @@ static cJSON_bool parse_value(cJSON * const item, parse_buffer * const input_buf
     {
         return parse_string(item, input_buffer);
     }
+	
+
     /* number */
     if (can_access_at_index(input_buffer, 0) && ((buffer_at_offset(input_buffer)[0] == '-') || ((buffer_at_offset(input_buffer)[0] >= '0') && (buffer_at_offset(input_buffer)[0] <= '9'))))
     {

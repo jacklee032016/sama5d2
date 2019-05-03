@@ -5,10 +5,69 @@
 
 #include "_cmnMux.h"
 
+/* get ipaddress */
+int cmnJsonGetIpAddress(cJSON* json, const char * key, uint32_t *ipAddress)
+{
+	char *value;
+	uint32_t ip = INVALIDATE_VALUE_U32;
+
+	value = cmnGetStrFromJsonObject(json, key);
+	if(! IS_STRING_NULL_OR_ZERO(value) )
+	{
+		ip = cmnSystemNetIp(value);
+		if(ip == INVALIDATE_VALUE_U32)
+		{
+			return EXIT_FAILURE;
+		}
+	}
+
+	*ipAddress = ip;
+	
+	return EXIT_SUCCESS;
+}
+
+int cmnJsonGetInteger(cJSON* json, const char * key, uint32_t *ipAddress)
+{
+	char *value;
+	uint32_t ip = INVALIDATE_VALUE_U32;
+
+	value = cmnGetStrFromJsonObject(json, key);
+	if(! IS_STRING_NULL_OR_ZERO(value) )
+	{
+		ip = cmnSystemNetIp(value);
+		if(ip == INVALIDATE_VALUE_U32)
+		{
+			return EXIT_FAILURE;
+		}
+	}
+
+	*ipAddress = ip;
+	
+	return EXIT_SUCCESS;
+}
+
+
+/* string with length of 0 is validate string for rest API/IP command */
+int cmnJsonGetStrIntoString(cJSON* json, const char * key, char *value, int size)
+{
+	char *_value = cmnGetStrFromJsonObject(json, key);
+
+//	MUX_DEBUG("_value of %s is %s", key, (_value==NULL)?"NULL":_value);
+	if(IS_STRING_NULL(_value) )
+	{
+		return EXIT_FAILURE;
+	}
+
+	snprintf(value, size, "%s", _value);
+	return EXIT_SUCCESS;
+}
+
+
 char* cmnGetStrFromJsonObject(cJSON* json, const char * key)
 {
 	cJSON * obj = cJSON_GetObjectItem(json, key);
 
+//	MUX_DEBUG("obj of %s is %s", key, (obj==NULL)?"NULL":obj->string );
 	if(cJSON_IsString(obj) )
 	{
 		return obj->valuestring;
@@ -20,6 +79,7 @@ char* cmnGetStrFromJsonObject(cJSON* json, const char * key)
 	}
 }
 
+
 int cmnGetIntegerFromJsonObject(cJSON* json, const char * key)
 {
 	cJSON * obj = cJSON_GetObjectItem(json, key);
@@ -27,7 +87,7 @@ int cmnGetIntegerFromJsonObject(cJSON* json, const char * key)
 	if(cJSON_IsNumber(obj) )
 		return obj->valueint;
 	else
-		return -1;
+		return INVALIDATE_VALUE_U32;
 }
 
 

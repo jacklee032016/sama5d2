@@ -101,9 +101,9 @@ typedef	enum
 #define	CLIENT_CMD_STR_FIND				"find"
 #define	CLIENT_CMD_STR_GET				"get"
 #define	CLIENT_CMD_STR_SET				"set"
-#define	CLIENT_CMD_STR_RS_DATA			"rsData"
+#define	CLIENT_CMD_STR_RS_DATA			"rs"
 #define	CLIENT_CMD_STR_SECURE			"secure"
-#define	CLIENT_CMD_STR_BLINK				"blink"
+#define	CLIENT_CMD_STR_IR					"ir"
 
 
 

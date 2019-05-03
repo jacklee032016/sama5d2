@@ -359,6 +359,7 @@ static cJSON *findJSonObject(cJSON *array, char *key, char *valuestring)
 
 CLIENT_CTRL _clientCtrl;
 
+#if 0
 static int _getJSonHandlerFromFile(char *jsonFilename, cJSON **handler)
 {
 	*handler = cmnMuxJsonLoadConfiguration(jsonFilename);
@@ -369,6 +370,7 @@ static int _getJSonHandlerFromFile(char *jsonFilename, cJSON **handler)
 	}
 	return EXIT_SUCCESS;
 }
+#endif
 
 int cmnMuxClientInit(int port, CTRL_LINK_TYPE type, char *serverAddress)
 {
@@ -381,6 +383,7 @@ int cmnMuxClientInit(int port, CTRL_LINK_TYPE type, char *serverAddress)
 	if(clientConn == NULL)
 	{
 		MUX_ERROR("Connect to '%s:%d' failed", serverAddress, port);
+		cmnMuxClientConnDestroy(clientConn);
 		return EXIT_FAILURE;
 	}
 
@@ -388,11 +391,6 @@ int cmnMuxClientInit(int port, CTRL_LINK_TYPE type, char *serverAddress)
 	clientCtrl->inited = TRUE;
 	
 	return EXIT_SUCCESS;
-
-failed:
-
-	cmnMuxClientConnDestroy(clientConn);
-	return EXIT_FAILURE;
 }
 
 
@@ -410,7 +408,7 @@ cJSON *cmnMuxClientRequest(cJSON *ipCmd)
 {
 	CLIENT_CTRL *clientCtrl = &_clientCtrl;
 	int res = EXIT_SUCCESS;
-	cJSON *response = NULL, *dataArray;
+	cJSON *response = NULL;//, *dataArray;
 
 	char *msg = cJSON_PrintUnformatted(ipCmd);
 

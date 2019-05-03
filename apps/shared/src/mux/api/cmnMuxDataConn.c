@@ -16,7 +16,7 @@
 static int _getRequestMethod(cJSON *reqObj)
 {
 	char *method = cmnGetStrFromJsonObject(reqObj, MUX_REST_METHOD);
-	if( IS_STRING_NULL(method) )
+	if( IS_STRING_NULL_OR_ZERO(method) )
 	{
 		return CMN_JSON_METHOD_INVALIDATE;
 	}
@@ -141,7 +141,7 @@ static int _dataConnIpCmdOutput(struct DATA_CONN *dataConn, void *buf, int size)
 int	cmnMuxDataConnIpCmdOutput(struct DATA_CONN *dataConn)
 {
 	int len = 0;
-	cJSON *dataArray, *dataItem;
+	cJSON *dataArray = NULL, *dataItem = NULL;
 	cJSON *responseObj;
 	char *msg = NULL;
 
@@ -157,7 +157,7 @@ int	cmnMuxDataConnIpCmdOutput(struct DATA_CONN *dataConn)
 		cJSON_AddStringToObject(responseObj, IPCMD_NAME_KEYWORD_CMD, "Unknown");
 		cJSON_AddStringToObject(responseObj, IPCMD_NAME_KEYWORD_LOGIN_ACK, "NOK");
 		cJSON_AddStringToObject(responseObj, IPCMD_NAME_KEYWORD_PWD_MSG, MUX_JSON_ERROR_STR(dataConn->errCode) );
-		cJSON_AddStringToObject(responseObj, IPCMD_NAME_KEYWORD_MSG_DETAIL, IS_STRING_NULL(dataConn->detailedMsg)?"Command is not validate format": dataConn->detailedMsg );
+		cJSON_AddStringToObject(responseObj, IPCMD_NAME_KEYWORD_MSG_DETAIL, IS_STRING_NULL_OR_ZERO(dataConn->detailedMsg)?"Command is not validate format": dataConn->detailedMsg );
 
 		goto sendout;
 	}
@@ -182,34 +182,41 @@ int	cmnMuxDataConnIpCmdOutput(struct DATA_CONN *dataConn)
 TRACE();
 	if(dataConn->errCode == IPCMD_ERR_NOERROR)
 	{
-		cJSON_ReplaceItemInObject(dataConn->cmdObjs, IPCMD_NAME_KEYWORD_LOGIN_ACK, cJSON_CreateString("OK"));
-		cJSON_ReplaceItemInObject(dataConn->cmdObjs, IPCMD_NAME_KEYWORD_PWD_MSG, cJSON_CreateString("OK"));
+		cJSON_ReplaceItemInObject(dataConn->cmdObjs, IPCMD_NAME_KEYWORD_LOGIN_ACK, cJSON_CreateString(EXT_IPCMD_STATUS_OK));
+		cJSON_ReplaceItemInObject(dataConn->cmdObjs, IPCMD_NAME_KEYWORD_PWD_MSG, cJSON_CreateString(EXT_IPCMD_STATUS_OK));
+		
+		if( (dataConn->errCode == IPCMD_ERR_NOERROR ||dataConn->errCode == IPCMD_ERR_FTP_PARTLY_FAILED) && dataConn->resultObject != NULL )
+		{
+			if(cJSON_GetArraySize(dataArray) > 0)
+			{
+				cJSON_ReplaceItemInArray(dataArray, 0, dataConn->resultObject);
+			}
+			else
+			{	
+				cJSON_AddItemToArray(dataArray, dataConn->resultObject);
+			}
+	//		cJSON_ReplaceItemInObjectCaseSensitive(dataItem, MEDIA_CTRL_OBJECTS, dataConn->resultObject);
+		}
 	}
 	else
 	{
 		char *errMsg = MUX_JSON_ERROR_STR(dataConn->errCode);
-		cJSON_ReplaceItemInObject(dataConn->cmdObjs, IPCMD_NAME_KEYWORD_LOGIN_ACK, cJSON_CreateString("NOK"));
+		cJSON_ReplaceItemInObject(dataConn->cmdObjs, IPCMD_NAME_KEYWORD_LOGIN_ACK, cJSON_CreateString(EXT_IPCMD_STATUS_FAIL));
 		cJSON_ReplaceItemInObject(dataConn->cmdObjs, IPCMD_NAME_KEYWORD_PWD_MSG, cJSON_CreateString(errMsg));
-		cJSON_AddStringToObject(dataConn->cmdObjs, IPCMD_NAME_KEYWORD_MSG_DETAIL, IS_STRING_NULL(dataConn->detailedMsg)?"Command is not validate format": dataConn->detailedMsg );
+		cJSON_AddStringToObject(dataConn->cmdObjs, IPCMD_NAME_KEYWORD_MSG_DETAIL, IS_STRING_NULL_OR_ZERO(dataConn->detailedMsg)?"Command is not validate format": dataConn->detailedMsg );
+
+		/* remove raw data from response when something is wrong */
+		if(dataArray)
+		{
+			cJSON_DeleteItemFromObject(dataConn->cmdObjs, IPCMD_NAME_KEYWORD_DATA);
+		}
 	}
 	
 TRACE();
-	if( (dataConn->errCode == IPCMD_ERR_NOERROR ||dataConn->errCode == IPCMD_ERR_FTP_PARTLY_FAILED) && dataConn->resultObject != NULL )
-	{
-		if(cJSON_GetArraySize(dataArray) > 0)
-		{
-			cJSON_ReplaceItemInArray(dataArray, 0, dataConn->resultObject);
-		}
-		else
-		{	
-			cJSON_AddItemToArray(dataArray, dataConn->resultObject);
-		}
-//		cJSON_ReplaceItemInObjectCaseSensitive(dataItem, MEDIA_CTRL_OBJECTS, dataConn->resultObject);
-	}
 
 #if 0	
 	cJSON_AddItemToObject(dataItem, MEDIA_CTRL_STATUS, cJSON_CreateNumber((double) dataConn->errCode));
-	if(!IS_STRING_NULL(dataConn->detailedMsg) )
+	if(!IS_STRING_NULL_OR_ZERO(dataConn->detailedMsg) )
 	{
 		cJSON_AddItemToObject(dataItem, MEDIA_CTRL_STATUS_MSG, cJSON_CreateString( dataConn->detailedMsg) );
 	}
@@ -287,17 +294,42 @@ static cJSON *_dataConnInput(struct DATA_CONN *dataConn, void *buf, int size)
 	return cmdObjs;
 }
 
+
+static int _ipCmdIsLocal(struct DATA_CONN *dataConn)
+{
+	char *target;	
+	EXT_MAC_ADDRESS macAddress;
+	MuxMain *muxMain = SYS_MAIN(dataConn);
+
+	target = cmnGetStrFromJsonObject(dataConn->cmdObjs, IPCMD_NAME_KEYWORD_TARG);
+
+	if(extMacAddressParse(&macAddress, target) == EXIT_FAILURE)
+	{
+		DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s' : '%s' is not a validate MAC address", IPCMD_NAME_KEYWORD_TARG, target);
+		return EXIT_FAILURE;
+	}
+
+	if(!MAC_ADDR_IS_EQUAL(&macAddress, &muxMain->runCfg.local.mac) )
+	{
+		DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s' : '%s' is not my MAC address", IPCMD_NAME_KEYWORD_TARG, target);
+		return EXIT_FAILURE;
+	}
+
+	return EXIT_SUCCESS;
+}
+
 static int _dataConnIpCmdAdapt(struct DATA_CONN *dataConn, cJSON *cmdObj)
 {
 //	cJSON *newCmdObj = NULL;
-//	cJSON *_dataObj= NULL;
+	cJSON *_dataArrayObj= NULL;
 	char *uri = NULL;
 	char *cmdName = NULL;
+	int isGetParams = FALSE;
 
 	dataConn->method = CMN_JSON_METHOD_INVALIDATE;
 	
 	cmdName = cmnGetStrFromJsonObject(cmdObj, IPCMD_NAME_KEYWORD_CMD);
-	if( IS_STRING_NULL(cmdName) )
+	if( IS_STRING_NULL_OR_ZERO(cmdName) )
 	{
 		DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Invalidate IP Command, without '%s'", IPCMD_NAME_KEYWORD_CMD );
 		return EXIT_FAILURE;
@@ -307,10 +339,26 @@ static int _dataConnIpCmdAdapt(struct DATA_CONN *dataConn, cJSON *cmdObj)
 	{
 		uri = MUX_REST_URI_PARAMS;
 		dataConn->method = CMN_JSON_METHOD_GET;
+		isGetParams = TRUE;
 	}
 	else if(IS_STRING_EQUAL(cmdName, IPCMD_NAME_SET_PARAM) )
 	{
 		uri = MUX_REST_URI_PARAMS;
+		dataConn->method = CMN_JSON_METHOD_POST;
+	}
+	else if(IS_STRING_EQUAL(cmdName, IPCMD_NAME_SEND_RS232) )
+	{
+		uri = MUX_REST_URI_ROOT MUX_REST_URI_RS232;
+		dataConn->method = CMN_JSON_METHOD_POST;
+	}
+	else if(IS_STRING_EQUAL(cmdName, IPCMD_NAME_SECURITY_CHECK) )
+	{
+		uri = MUX_REST_URI_ROOT MUX_REST_URI_SECURITY;
+		dataConn->method = CMN_JSON_METHOD_POST;
+	}
+	else if(IS_STRING_EQUAL(cmdName, IPCMD_NAME_SEND_IR) )
+	{
+		uri = MUX_REST_URI_ROOT MUX_REST_URI_IR;
 		dataConn->method = CMN_JSON_METHOD_POST;
 	}
 	else
@@ -321,10 +369,35 @@ static int _dataConnIpCmdAdapt(struct DATA_CONN *dataConn, cJSON *cmdObj)
 
 	snprintf(dataConn->cmd, sizeof(dataConn->cmd), "%s", uri);
 
-	if( IS_STRING_NULL(dataConn->cmd) || dataConn->method == CMN_JSON_METHOD_INVALIDATE )
+	if( IS_STRING_NULL_OR_ZERO(dataConn->cmd) || dataConn->method == CMN_JSON_METHOD_INVALIDATE )
 	{
 		DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "No validate cmd in IP Command, without '%s'", cmdName );
 		return EXIT_FAILURE;
+	}
+
+	/* handler process data object directly without any array */
+	_dataArrayObj = cJSON_GetObjectItem(cmdObj, IPCMD_NAME_KEYWORD_DATA);
+	if(cJSON_IsArray(_dataArrayObj))
+	{
+		dataConn->dataObj = cJSON_GetArrayItem(_dataArrayObj, 0);
+	}
+	else
+	{
+		dataConn->dataObj = _dataArrayObj;
+	}
+	
+	if(isGetParams == FALSE )
+	{
+		if( _ipCmdIsLocal(dataConn)== EXIT_FAILURE)
+		{
+			return EXIT_FAILURE;
+		}
+
+		if(dataConn->dataObj == NULL)
+		{
+			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "No validate data for IP Command '%s'", cmdName );
+			return EXIT_FAILURE;
+		}
 	}
 	
 //	cJSON_AddStringToObject(cJSON * const object, const char * const name, const char * const string);
@@ -385,11 +458,12 @@ int cmnMuxDataConnIpCmdInput(struct DATA_CONN *dataConn)
 	}
 
 	dataConn->cmdObjs = reqObj;
+	
 	if(muxMain->isAuthen)
 	{
 		username = cmnGetStrFromJsonObject(reqObj, IPCMD_NAME_KEYWORD_LOGIN_ACK);
 		pwd = cmnGetStrFromJsonObject(reqObj, IPCMD_NAME_KEYWORD_PWD_MSG);
-		if( IS_STRING_NULL(username)  || IS_STRING_NULL(pwd) )
+		if( IS_STRING_NULL_OR_ZERO(username)  || IS_STRING_NULL_OR_ZERO(pwd) )
 		{
 			DATA_CONN_ERR(dataConn, IPCMD_ERR_UNAUTHORIZED, "No '%s' or '%s' in request", IPCMD_NAME_KEYWORD_LOGIN_ACK, IPCMD_NAME_KEYWORD_PWD_MSG);
 			return EXIT_FAILURE;
@@ -406,15 +480,13 @@ int cmnMuxDataConnIpCmdInput(struct DATA_CONN *dataConn)
 		return EXIT_FAILURE;
 	}
 
-	dataConn->dataObj = cJSON_GetObjectItem(reqObj, IPCMD_NAME_KEYWORD_DATA);
-	
 	return EXIT_SUCCESS;
 }
 
 
 int cmnMuxDataConnRestInput(struct DATA_CONN *dataConn)
 {
-	cJSON *reqObj = NULL;
+	cJSON *reqObj = NULL, *_dataArrayObj = NULL;
 	char *username = NULL, *pwd = NULL;
 	char *uri = NULL;
 	MuxMain *muxMain = SYS_MAIN(dataConn);
@@ -435,7 +507,7 @@ int cmnMuxDataConnRestInput(struct DATA_CONN *dataConn)
 	{
 		username = cmnGetStrFromJsonObject(reqObj, MUX_REST_USER_NAME);
 		pwd = cmnGetStrFromJsonObject(reqObj, MUX_REST_USER_PWD);
-		if( IS_STRING_NULL(username) || IS_STRING_NULL(pwd) )
+		if( IS_STRING_NULL_OR_ZERO(username) || IS_STRING_NULL_OR_ZERO(pwd) )
 		{
 			DATA_CONN_ERR(dataConn, IPCMD_ERR_UNAUTHORIZED, "No '%s' or '%s' is found in request", MUX_REST_USER_NAME, MUX_REST_USER_PWD);
 			return EXIT_FAILURE;
@@ -455,7 +527,7 @@ int cmnMuxDataConnRestInput(struct DATA_CONN *dataConn)
 	}
 
 	uri = cmnGetStrFromJsonObject(reqObj, MUX_REST_URL);
-	if(IS_STRING_NULL(uri) )
+	if(IS_STRING_NULL_OR_ZERO(uri) )
 	{
 		DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "No field of '%s' is found in packet", MUX_REST_URL );
 		return EXIT_FAILURE;
@@ -463,7 +535,15 @@ int cmnMuxDataConnRestInput(struct DATA_CONN *dataConn)
 	
 	snprintf(dataConn->cmd, sizeof(dataConn->cmd), "%s", uri);
 
-	dataConn->dataObj = cJSON_GetObjectItem(reqObj, IPCMD_NAME_KEYWORD_DATA);
+	_dataArrayObj = cJSON_GetObjectItem(reqObj, IPCMD_NAME_KEYWORD_DATA);
+	if(cJSON_IsArray(_dataArrayObj) )
+	{
+		dataConn->dataObj = cJSON_GetArrayItem(_dataArrayObj, 0);
+	}
+	else
+	{
+		dataConn->dataObj = _dataArrayObj;
+	}
 	dataConn->cmdObjs = reqObj;
 	return EXIT_SUCCESS;
 }

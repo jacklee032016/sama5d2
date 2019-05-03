@@ -4,6 +4,7 @@ from functools import wraps
 
 from comm.cmdIf import CmdSocket
 from utils import settings
+# import json
 
 def authenticate(func):
     @wraps(func)
@@ -21,6 +22,7 @@ def authenticate(func):
 
         parser.add_argument(settings.SERVICE_DATA_FIELD_DATA, 
                             # required=True, 
+                            type=dict, action='append', # must parsed as dict, otherwise it is parsed as a string, eg, one value. JL. 05.01,2019
                             help="data is optional array!")
 
         args = parser.parse_args()
@@ -75,8 +77,10 @@ class MuxResource(Resource):
         self.req[settings.SERVICE_DATA_FIELD_PASSWORD] = kwargs.get(settings.SERVICE_DATA_FIELD_PASSWORD, None)
         self.req[settings.SERVICE_DATA_FIELD_METHOD] = settings.REQUEST_METHOD_POST
         
+        # self.req[settings.SERVICE_DATA_FIELD_DATA] = kwargs.get(settings.SERVICE_DATA_FIELD_DATA, None)
         data =kwargs.get(settings.SERVICE_DATA_FIELD_DATA, None)  
         if data is not None:
+            print(data)
             self.req[settings.SERVICE_DATA_FIELD_DATA] = []
             self.req[settings.SERVICE_DATA_FIELD_DATA].insert(0, data) 
 

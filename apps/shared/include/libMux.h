@@ -57,25 +57,18 @@
 #define	IPCMD_NAME_SYS_ADMIN					"sys_admin"	/* system admin for muxMedia program */
 
 
-/* new IP Command for RECORDER and SERVER */
-#define	IPCMD_NAME_MEDIA_RECORDER			"record_media"
-#define	IPCMD_NAME_MEDIA_SERVER				"server_media"
-#define	IPCMD_NAME_MEDIA_WEB				"web_media"
+
+
+#define	EXT_IPCMD_STATUS_OK						"OK"
+#define	EXT_IPCMD_STATUS_FAIL						"NOK"
+
+#define	EXT_IPCMD_DATA_ARRAY					"data" /* login password or status msg */
+
 
 
 #define	IPCMD_SYS_ADMIN_THREADS				"threads"
 #define	IPCMD_SYS_ADMIN_VER_INFO				"verInfo"
 
-#define	IPCMD_CEC_STAND_BY					"cecStandby"
-#define	IPCMD_CEC_IMAGE_VIEW_ON				"cecImageOn"
-#define	IPCMD_CEC_VOLUME_UP					"cecVolumeUp"
-#define	IPCMD_CEC_VOLUME_DOWN				"cecVolumeDown"
-#define	IPCMD_CEC_MUTE						"cecMute"
-#define	IPCMD_CEC_INFO						"cecInfo"
-
-
-#define	IPCMD_EDID_RESOLUTION					"resolution"
-#define	IPCMD_EDID_DEEP_COLOR				"color"
 
 
 #define	IPCMD_NAME_KEYWORD_TARG			"targ"
@@ -117,16 +110,13 @@
 #define	IPCMD_NAME_SERVER_URLS				"urls"
 
 
-#define	_MUX_JSON_NAME_WINDOW			"window"
-#define	_MUX_JSON_NAME_OSD				"osd"
-#define	_MUX_JSON_NAME_MEDIA			"media"
-#define	_MUX_JSON_NAME_SPEED			"speed"
-#define	_MUX_JSON_NAME_REPEAT			"repeat"	/* repeat number for media (media file or playlist) playing */
 
-#define	_MUX_JSON_NAME_LOCATION_X		"left"
-#define	_MUX_JSON_NAME_LOCATION_Y		"top"
-#define	_MUX_JSON_NAME_LOCATION_W		"width"
-#define	_MUX_JSON_NAME_LOCATION_H		"height"
+#define	EXT_IPCMD_RS232_DATA_HEX					"hexdata"
+#define	EXT_IPCMD_RS232_FEEDBACK					"isFeedback"
+#define	EXT_IPCMD_RS232_WAIT_TIME				"waitTime"
+
+#define	EXT_IPCMD_RS232_DATA_FEEDBACK			"feedbackdata"
+
 
 
 #define	PLAYLIST_NAME_URL						"URL"
@@ -320,23 +310,46 @@ typedef	enum _CMD_TYPE
 #define	MUX_REST_URI_SDP					"sdp"
 #define	MUX_REST_URI_RS232				"rs232"
 #define	MUX_REST_URI_SECURITY				"security"
+#define	MUX_REST_URI_IR					"IR"
 #define	MUX_REST_URI_OTHERS				"others"
 
 #define	MUX_REST_URI_PARAMS				"/params"	/* only for get_params/set_params in IP Command */
 
 
+/* fields for system sub-items */
+#define	FIELD_SYS_CFG_MODEL						"model"
+#define	FIELD_SYS_CFG_PRODUCT					"product"
+#define	FIELD_SYS_CFG_NAME						"name"
+#define	FIELD_SYS_CFG_VERSION						"ver"
 
-#define	SYS_CFG_FIELD_MODEL						"model"
-#define	SYS_CFG_FIELD_PRODUCT					"product"
-#define	SYS_CFG_FIELD_NAME						"name"
-#define	SYS_CFG_FIELD_VERSION						"version"
+#define	FIELD_SYS_CFG_ADDRESS					"ip"
+#define	FIELD_SYS_CFG_NETMASK					"mask"
+#define	FIELD_SYS_CFG_GATEWAY					"gateway"
+#define	FIELD_SYS_CFG_IS_DHCP						"isDhcp"
 
-#define	SYS_CFG_FIELD_ADDRESS					"address"
-#define	SYS_CFG_FIELD_NETMASK					"netmask"
-#define	SYS_CFG_FIELD_GATEWAY					"gateway"
-#define	SYS_CFG_FIELD_IS_DHCP						"isDHCP"
+#define	FIELD_SYS_CFG_MAC							"mac"
 
-#define	SYS_CFG_FIELD_MAC							"MAC"
+#define	FIELD_SYS_CFG_DIP							"isDipOn"
+#define	FIELD_SYS_CFG_RESET						"reset"
+#define	FIELD_SYS_CFG_REBOOT						"reboot"
+#define	FIELD_SYS_CFG_BLINK						"blinkLed"
+
+
+/* fields in Data array */
+#define	EXT_IPCMD_DATA_P_NAME					"pName"
+#define	EXT_IPCMD_DATA_C_NAME					"cName"		/* customer name */
+#define	EXT_IPCMD_DATA_MODEL						"model"
+#define	EXT_IPCMD_DATA_FW_VER					"fwVer"
+
+#define	EXT_IPCMD_DATA_MAC						"mac"
+#define	EXT_IPCMD_DATA_IP							"ip"
+#define	EXT_IPCMD_DATA_MASK						"mask"
+#define	EXT_IPCMD_DATA_GATEWAY					"gateway"
+#define	EXT_IPCMD_DATA_DHCP						"isDhcp"
+
+#define	EXT_IPCMD_DATA_IS_DIP						"isDipOn"
+
+
 
 #define	SYS_CFG_FIELD_SDP_VEDIO_IP				"sdpVideoIp"
 #define	SYS_CFG_FIELD_SDP_AUDIO_IP				"sdpAudioIp"
@@ -350,12 +363,69 @@ typedef	enum _CMD_TYPE
 #define	SYS_CFG_FIELD_SDP_AUDIO_URI				"sdpAudioUri"
 #define	SYS_CFG_FIELD_SDP_ANC_URI				"sdpAncUri"
 
-#define	SYS_CFG_FIELD_IP_VEDIO					"ipVideo"
+/* video fields */
+#define	FIELD_VIDEO_IP								"ip"
+#define	FIELD_VIDEO_PORT							"port"
+#define	FIELD_VIDEO_SDP							"sdp"
+
+#define	FIELD_VIDEO_WIDTH							"width"
+#define	FIELD_VIDEO_HEIGHT						"height"
+
+#define	FIELD_VIDEO_FRAME_RATE					"fps"
+#define	FIELD_VIDEO_COLOR_SPACE					"colorSpace"
+#define	FIELD_VIDEO_DEPTH							"depth"
+#define	FIELD_VIDEO_INTERLACE						"intlce"
+
+#define	FIELD_VIDEO_SEGMENTED					"videoIsSgmt"
+
+
+/* audio fields */
+#define	FIELD_AUDIO_IP								"ip"
+#define	FIELD_AUDIO_PORT							"port"
+#define	FIELD_AUDIO_SDP							"sdp"
+
+#define	FIELD_AUDIO_SAMPLE						"sample"
+#define	FIELD_AUDIO_CHANNELS						"channels"
+#define	FIELD_AUDIO_DEPTH							"depth"
+#define	FIELD_AUDIO_PKT_SIZE						"pktSize"
+
+/* audio fields */
+#define	FIELD_ANC_IP								"ip"
+#define	FIELD_ANC_PORT								"port"
+#define	FIELD_ANC_SDP								"sdp"
+
+/* SDP fields */
+#define	FIELD_SDP_MEDIA							"media"
+#define	FIELD_SDP_IP								"ip"
+#define	FIELD_SDP_PORT								"port"
+#define	FIELD_SDP_URI								"uri"
+
+
+/* RS232 fields */
+#define	FIELD_RS232_BAUDRATE						"baudrate"
+#define	FIELD_RS232_DATABITS						"databit"
+#define	FIELD_RS232_PARITY							"parity"
+#define	FIELD_RS232_STOPBITS						"stopbit"
+
+#define	FIELD_RS232_DATA							"data"
+#define	FIELD_RS232_IS_FEEDBACK					"isFeedback"
+#define	FIELD_RS232_WAIT_TIME						"waitTime"
+
+#define	FIELD_RS232_DATA_FEEDBACK				"feedbackdata"
+
+
+
+/* Security Check */
+#define	FIELD_SECURITY_GET_ID						"get_id"
+#define	FIELD_SECURITY_SET_KEY					"set_key"
+#define	FIELD_SECURITY_GET_STATUS					"get_status"
+
+
+
 #define	SYS_CFG_FIELD_IP_AUDIO					"ipAudio"
 #define	SYS_CFG_FIELD_IP_ANC						"ipAnc"
 #define	SYS_CFG_FIELD_IP_AUX						"ipAux"
 
-#define	SYS_CFG_FIELD_PORT_VEDIO					"portVideo"
 #define	SYS_CFG_FIELD_PORT_AUDIO					"portAudio"
 #define	SYS_CFG_FIELD_PORT_DATA					"portData"
 #define	SYS_CFG_FIELD_PORT_STREM					"portStrem"
@@ -369,28 +439,12 @@ typedef	enum _CMD_TYPE
 
 #define	SYS_CFG_FIELD_VIDEO_PARAMS				"videoParams"		/* replace width/height/framerate/interlaced(segmented). 01.15, 2019 */
 
-#define	SYS_CFG_FIELD_VIDEO_WIDTH				"videoWidth"
-#define	SYS_CFG_FIELD_VIDEO_HEIGHT				"videoHeight"
-
-#define	SYS_CFG_FIELD_COLOR_SPACE				"colorSpace"
-#define	SYS_CFG_FIELD_COLOR_DEPTH				"colorDepth"
-#define	SYS_CFG_FIELD_FRAME_RATE					"videoFps"
-#define	SYS_CFG_FIELD_VIDEO_INTERLACE			"videoIsIntlce"
-#define	SYS_CFG_FIELD_VIDEO_SEGMENTED			"videoIsSgmt"
 
 #define	SYS_CFG_FIELD_AUDIO_CHANNEL				"audioChannels"
 #define	SYS_CFG_FIELD_AUDIO_SAMP_RATE			"audioSampRate"
 #define	SYS_CFG_FIELD_AUDIO_DEPTH				"audioDepth"
 #define	SYS_CFG_FIELD_AUDIO_PKT_SIZE				"audioPktSize"
 #define	SYS_CFG_FIELD_IS_CONNECT					"isConnect"	/* 811 send to TX(stop/start) or RX(connect/disconnect) */
-
-#define	SYS_CFG_FIELD_RS232_BAUDRATE			"rs232Baudrate"
-#define	SYS_CFG_FIELD_RS232_DATABITS				"rs232DataBit"
-#define	SYS_CFG_FIELD_RS232_PARITY				"rs232Parity"
-#define	SYS_CFG_FIELD_RS232_STOPBITS				"rs232StopBit"
-
-
-#define	SYS_CFG_FIELD_RS232_DATA					"rsData"
 
 
 
@@ -945,7 +999,6 @@ typedef	struct	_CmnMuxWebConfig
 }CmnMuxWebConfig;
 
 
-
 #include "mux7xx.h"
 
 
@@ -977,9 +1030,11 @@ typedef	struct _MuxMain
 	HwWatchdogCtrl			watchdogCtrl;
 	HwRs232Ctrl				rs232Ctrl;
 
-	EXT_RUNTIME_CFG			runCfg;
+
 	cJSON					*systemJson;
 
+	EXT_RUNTIME_CFG			runCfg;
+	EXT_RUNTIME_CFG			rxCfg;
 
 	/*** data structure of run-time      *******/
 	MEDIA_FILE_LIST_T		*mediaFiles;		/* data sructure for scan directory */
@@ -1022,10 +1077,7 @@ extern	const int32_t constRs232Baudrates[];
 extern	const short constRs232Databits[];
 
 extern	const	TYPE_NAME_T	_videoFormats[];
-
-
-extern	const	TYPE_NAME_T	intVideoColorDepthList[];
-extern	const	TYPE_NAME_T	intVideoFpsList[];
+extern	const	TYPE_NAME_T	_videoFps4Rest[];
 
 
 extern	const char 	audioChannelsList[];
@@ -1035,6 +1087,10 @@ extern	const	TYPE_NAME_T	_audioRates[];
 
 extern	const	TYPE_NAME_T	_ipcmdStringRsParities[];
 extern	const	TYPE_NAME_T	_ipcmdStringRsStopbits[];
+
+
+extern	const	EXT_CONST_INT	intVideoColorDepthList[];
+extern	const	EXT_CONST_INT	intVideoFpsList[];
 
 
 #define	CMN_FIND_HC_STATE(type)		\
@@ -1053,10 +1109,10 @@ extern	const	TYPE_NAME_T	_ipcmdStringRsStopbits[];
 
 
 #define	CMN_FIND_STR_RS_PARITY(str)		\
-	cmnMuxTypeFindType(constRs232Databits, (str) )
+	cmnMuxTypeFindType(_ipcmdStringRsParities, (str) )
 
 #define	CMN_FIND_RS_PARITY(type)		\
-	cmnMuxTypeFindName(constRs232Databits, (type) )
+	cmnMuxTypeFindName(_ipcmdStringRsParities, (type) )
 
 
 #define	CMN_FIND_STR_V_COLORSPACE(str)		\
@@ -1066,17 +1122,18 @@ extern	const	TYPE_NAME_T	_ipcmdStringRsStopbits[];
 	cmnMuxTypeFindName(_videoColorSpaces, (type) )
 
 
+/* fps for SDP */
 #define	CMN_FIND_V_FRAME_RATE(type)		\
-	cmnMuxTypeFindName(CMN_STR_T_V_FRAME_RATE, (type) )
+	cmnMuxTypeFindName(_videoFramerates, (type) )
 
 #define	CMN_FIND_STR_V_FRAME_RATE(str)		\
-	cmnMuxTypeFindType(CMN_STR_T_V_FRAME_RATE, (str) )
+	cmnMuxTypeFindType(_videoFramerates, (str) )
 
 #define	CMN_FIND_V_FPS_4_REST(type)		\
-	cmnMuxTypeFindName(CMN_STR_T_V_FPS_4_REST, (type) )
+	cmnMuxTypeFindName(_videoFps4Rest, (type) )
 
 #define	CMN_FIND_STR_V_FPS_4_REST(str)		\
-	cmnMuxTypeFindType(CMN_STR_T_V_FPS_4_REST, (str) )
+	cmnMuxTypeFindType(_videoFps4Rest, (str) )
 
 
 #define	CMN_FIND_V_FORMAT(type)		\
@@ -1103,10 +1160,10 @@ extern	const	TYPE_NAME_T	_ipcmdStringRsStopbits[];
 	
 
 #define	CMN_INT_FIND_NAME_V_DEPTH(type)		\
-	cmnMuxTypeFindName(intVideoColorDepthList, (type) )
+	extCmnIntFindName(CMN_INT_T_V_DEPTH, (type) )
 	
 #define	CMN_INT_FIND_TYPE_V_DEPTH(name)		\
-	cmnMuxTypeFindType(intVideoColorDepthList, (name) )
+	extCmnIntFindType(CMN_INT_T_V_DEPTH, (name) )
 
 
 #define	CMN_INT_FIND_NAME_V_FPS(type)		\
@@ -1242,8 +1299,11 @@ int	cmnMuxJsonPluginReplay(struct DATA_CONN *dataConn, CMN_PLAY_JSON_EVENT *json
 
 PLAY_LIST *cmnMuxCreateOnePlaylist(char *playlistName, cmn_list_t *files);
 
-char *cmnMuxTypeFindName(TYPE_NAME_T *types, int type);
-int	cmnMuxTypeFindType(TYPE_NAME_T *types, char *name);
+char *cmnMuxTypeFindName(const TYPE_NAME_T *types, int type);
+int	cmnMuxTypeFindType(const TYPE_NAME_T *types, char *name);
+
+const uint8_t extCmnIntFindName(CMN_INT_TYPE  intType, uint8_t type);
+const uint8_t extCmnIntFindType(CMN_INT_TYPE  intType, uint8_t name);
 
 
 int cmnMuxMainParse(const char *filename, MuxMain *muxMain);

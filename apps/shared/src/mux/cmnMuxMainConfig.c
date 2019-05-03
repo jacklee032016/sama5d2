@@ -235,7 +235,6 @@ int cmnMuxMainParse(const char *filename, MuxMain *muxMain)
 	int ret = EXIT_SUCCESS;
 
 	MuxPlugIn	*plugin = NULL;
-	PLAY_LIST	*playlist = NULL;
 	
 	f = fopen(filename, "r");
 	if (!f)

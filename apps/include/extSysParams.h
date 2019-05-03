@@ -61,7 +61,7 @@
 #define		LWIP_EXT_HTTP_CLIENT			1	/* HTTP Client */
 
 
-#define		EXT_DIP_SWITCH_ON				0
+#define		EXT_DIP_SWITCH_ON				1
 
 #define		EXT_FPGA_AUX_ON				0
 
@@ -103,15 +103,11 @@
 
 #define	EXT_COMMAND_BUFFER_SIZE			(1024+1024)	/* for output buffer */
 
-#define	EXT_SC_KEY_MAX_LENGTH			32*2
-#define	EXT_SC_ID_MAX_LENGTH				8*2
-
 #define	EXT_MAGIC_SIZE						2
 
 #define	EXT_USER_SIZE						16
 #define	EXT_PASSWORD_SIZE					16
 
-#define	HEX_DATA_MAX_LENGTH				128
 
 
 #define	EXT_MAGIC_VALUE_A				0xA5
@@ -406,6 +402,7 @@
 #define	EXT_HTTPC_DEBUG						EXT_DBG_OFF
 #endif
 
+#define		EXT_IPCMD_DEBUG						EXT_DBG_OFF
 
 
 /*
@@ -489,6 +486,18 @@
                                ((int)((c) & 0xff) << 8)  | \
                                 (int)((d) & 0xff))
 
+#if IP_ADDRESS_IN_NET_ORDER	
+#define CFG_MAKE_IP_ADDRESS(a,b,c,d) (((int)((d) & 0xff) << 24) | \
+                               ((int)((c) & 0xff) << 16) | \
+                               ((int)((b) & 0xff) << 8)  | \
+                                (int)((a) & 0xff))
+#else
+#define CFG_MAKE_IP_ADDRESS(a,b,c,d) (((int)((a) & 0xff) << 24) | \
+                               ((int)((b) & 0xff) << 16) | \
+                               ((int)((c) & 0xff) << 8)  | \
+                                (int)((d) & 0xff))
+#endif
+
 
 #define	CFG_SET_FLAGS(flags, value)	\
 		flags |= (value) 
@@ -548,7 +557,7 @@
 
 
 
-#define	IS_STRING_NULL( str)	\
+#define	IS_STRING_NULL_OR_ZERO( str)	\
 	(((str)==NULL)||(!strlen((str))) )
 
 
@@ -879,6 +888,13 @@ typedef	struct
 
 
 
+#define	HEX_DATA_MAX_LENGTH				128
+
+#define	EXT_SC_KEY_MAX_LENGTH			32*2
+#define	EXT_SC_ID_MAX_LENGTH				8*2
+
+
+
 /** Input parameters when initializing RS232 and similar modes. */
 typedef struct _MuxRS232
 {
@@ -889,6 +905,18 @@ typedef struct _MuxRS232
 	/** 1, 1.5 or 2 stop bits. */
 	unsigned char		stopbits;
 }MuxRs232Cfg;
+
+
+typedef	struct
+{
+	/* RS232 data */
+	char				hexData[HEX_DATA_MAX_LENGTH]; /* string */
+	unsigned char		isFeedBack;
+	unsigned short	waitMs;
+
+	char				scKey[EXT_SC_KEY_MAX_LENGTH +1];
+	char				scID[EXT_SC_ID_MAX_LENGTH+1];
+}MuxSetupData;
 
 
 /* runtime parameters which can't be saved in flash */
@@ -941,6 +969,7 @@ typedef	struct
 	uint32_t				connHttpCount;
 	uint32_t				currentHttpConns;
 
+	MuxSetupData		setupData;
 
 }MuxRunTimeParam;
 
@@ -1056,6 +1085,7 @@ struct	_EXT_RUNTIME_CFG
 	
 
 	/* following fields are not modified by SetParams command */
+	char					product[32];
 	char					name[32];	/* can be modified */
 	char					model[32];
 	EXT_FM_VERSION		version;
@@ -1083,11 +1113,13 @@ struct	_EXT_RUNTIME_CFG
 	unsigned char			fpgaAuto;			/* RX auto configured itself */
 	
 	MuxRunTimeParam		runtime;				/* must be saved */
+	MuxSetupData		setupData;
+
 
 	unsigned char			endMagic[EXT_MAGIC_SIZE];
 
 
-	char					hexData[HEX_DATA_MAX_LENGTH]; /* string, for RS232 data */
+	char					hexData[128];//HEX_DATA_MAX_LENGTH]; /* string, for RS232 data */
 
 
 	/* following fields are only for runtime and not save in NVRAM */
@@ -1110,7 +1142,7 @@ struct	_EXT_RUNTIME_CFG
 
 	void					*netif;
 
-	SC_CTRL				*sc;
+	SC_CTRL				sc;
 };//__attribute__((packed));
 
 //EXT_PACK_RESET();
@@ -1162,8 +1194,9 @@ void extCfgFactoryKeepMac( EXT_RUNTIME_CFG *cfg );
 
 void extCfgInitAfterReadFromFlash(EXT_RUNTIME_CFG *runCfg);
 
-char	*sysTaskName(void);
+//char	*sysTaskName(void);
 
+#define	sysTaskName()		cmnThreadGetName()
 
 void	extNmosIdGenerate(MuxNmosID *nmosId, EXT_RUNTIME_CFG *runCfg);
 

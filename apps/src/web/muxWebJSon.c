@@ -25,7 +25,7 @@ static int _muxWebJSonInfos(void *priv, struct DATA_CONN *dataConn, CMN_PLAY_JSO
 	cJSON_AddItemToArray(array, newObject);
 
 
-//	JEVENT_ADD_STRING(newObject, "name", IS_STRING_NULL(webSvr->cfg.server_name)?"None":webSvr->cfg.server_name);
+//	JEVENT_ADD_STRING(newObject, "name", IS_STRING_NULL_OR_ZERO(webSvr->cfg.server_name)?"None":webSvr->cfg.server_name);
 	JEVENT_ADD_INTEGER(newObject, "port", webSvr->cfg.server_port);
 	
 	JEVENT_ADD_STRING(newObject, "CGI", webSvr->cfg.cgi_path);

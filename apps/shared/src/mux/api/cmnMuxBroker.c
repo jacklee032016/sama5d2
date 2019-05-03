@@ -29,7 +29,7 @@ static struct DATA_CONN *_createDataConnection(struct CTRL_CONN *ctrlConn)
 //	struct sockaddr 		peerAddr;
 	socklen_t				addrlen;
 	int len = 0;
-	unsigned char *objBuffer;
+//	unsigned char *objBuffer;
 	
 	memset(&ctrlConn->buffer, 0, sizeof(ctrlConn->buffer) );
 
@@ -180,7 +180,7 @@ static struct CTRL_CONN *_createCtrlConnection(CTRL_LINK_TYPE type, MuxMain *mux
 		memset(&unaddr, 0, sizeof(unaddr));
 
 #if 0		
-		socket_path = IS_STRING_NULL(muxMain->unixPort)? UNIX_SOCKET_SVR_PATH:muxMain->unixPort;
+		socket_path = IS_STRING_NULL_OR_ZERO(muxMain->unixPort)? UNIX_SOCKET_SVR_PATH:muxMain->unixPort;
 #else
 		socket_path = UNIX_SOCKET_SVR_PATH;
 #endif		

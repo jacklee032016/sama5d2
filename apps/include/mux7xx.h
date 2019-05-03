@@ -2,6 +2,7 @@
 #ifndef	__MUX_7XX_H__
 #define	__MUX_7XX_H__
 
+#define	IP_ADDRESS_IN_NET_ORDER		1
 
 /* LED */
 #define VIDEO_LED_MAGIC 'V'

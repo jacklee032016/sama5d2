@@ -20,7 +20,7 @@ char	*_checkDataValidate(cJSON *data)
 	char *action = cmnGetStrFromJsonObject(data, MEDIA_CTRL_ACTION);
 	cJSON *objects = cJSON_GetObjectItem(data, MEDIA_CTRL_OBJECTS);
 
-	if( IS_STRING_NULL(action) )
+	if( IS_STRING_NULL_OR_ZERO(action) )
 	{
 		MUX_ERROR( "Data invalidate: 'action' can not be found");
 		return NULL;
@@ -57,7 +57,7 @@ int	cmnMuxJsonHandle4DownloadMedia(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataC
 		return res;
 	}
 
-	if( IS_STRING_NULL(server) || IS_STRING_NULL(username) || IS_STRING_NULL(password) ||IS_STRING_NULL(path) )
+	if( IS_STRING_NULL_OR_ZERO(server) || IS_STRING_NULL_OR_ZERO(username) || IS_STRING_NULL_OR_ZERO(password) ||IS_STRING_NULL_OR_ZERO(path) )
 	{
 		DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Data invalidate: info is uncomplete");
 		return res;

@@ -79,6 +79,7 @@ class CmdSocket(object):
         """
         receive from socket
         :return: node dict list
+        
         """
         nodes = []
         lenPacket = MSGLEN

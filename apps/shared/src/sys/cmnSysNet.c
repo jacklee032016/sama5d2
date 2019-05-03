@@ -20,7 +20,7 @@
 #include "libCmn.h"
 #include "mux7xx.h"
 
-#define __IP_DEBUG		1
+#define __IP_DEBUG		0
 
 uint32_t cmnSysNetGetIp(char * hwName)
 {
@@ -69,8 +69,11 @@ uint32_t cmnSysNetGetIp(char * hwName)
 				inet_ntop(AF_INET, tmpAddrPtr, ipAddr, INET_ADDRSTRLEN);
 				MUX_DEBUG("%s, 0x%x", ipAddr, ip);
 #endif
+
+#if IP_ADDRESS_IN_NET_ORDER
+#else
 				ip = ntohl(ip);
-				
+#endif				
 				freeifaddrs(ifaddr);
 				return ip;
 			}
@@ -118,7 +121,12 @@ uint32_t cmnSysNetGetMask(char *hwName)
 
 	
 	mask = (uint32_t) ((struct sockaddr_in *)  &(ifr.ifr_addr))->sin_addr.s_addr;
+	
+#if IP_ADDRESS_IN_NET_ORDER
+#else
 	mask = ntohl(mask);
+#endif
+
 #if __IP_DEBUG
 	pAddr = (struct sockaddr_in *) &(ifr.ifr_addr);
 	snprintf(maskStr, sizeof(maskStr), "%s",  (char *)(inet_ntoa(pAddr->sin_addr)));
@@ -158,7 +166,11 @@ uint32_t cmnSysNetGetDefaultGw(char *hwName)
 				{
 					char *pEnd;
 					gwIp = strtol(gw, &pEnd, 16);
+#if IP_ADDRESS_IN_NET_ORDER
+#else
 					gwIp = ntohl(gwIp);
+#endif
+
 #if 0
 					//ng=ntohl(ng);
 					struct in_addr addr;
@@ -182,8 +194,11 @@ char *cmnSysNetAddress( uint32_t address)
 {
 	static char addressStr[20];
 	struct sockaddr_in sockAddr;
-	
+#if IP_ADDRESS_IN_NET_ORDER	
+	sockAddr.sin_addr.s_addr = address;
+#else
 	sockAddr.sin_addr.s_addr = htonl(address);
+#endif
 	snprintf(addressStr, sizeof(addressStr), "%s",  (char *)(inet_ntoa(sockAddr.sin_addr)));
 	
 #if __IP_DEBUG
@@ -191,6 +206,23 @@ char *cmnSysNetAddress( uint32_t address)
 #endif
 
 	return addressStr;
+}
+
+
+/* only used to parse data from REST or IP command */
+uint32_t cmnSystemNetIp(char *ip)
+{/* INADDR_NONE (usually -1) */
+	uint32_t _ipAddr = inet_addr(ip);
+	if(_ipAddr == INADDR_NONE)
+	{/* it also is validate address */
+		return INVALIDATE_VALUE_U32;
+	}
+
+#if IP_ADDRESS_IN_NET_ORDER	
+	return _ipAddr;
+#else
+	return ntohl(_ipAddr);
+#endif
 }
 
 int cmnSysNetGetMacAddress(char *hwName, EXT_MAC_ADDRESS *mac)

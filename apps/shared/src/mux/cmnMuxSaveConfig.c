@@ -277,14 +277,6 @@ static int _saveGlobalConfig(FILE *f, MuxMain *muxMain)
 	}
 	res = fprintf(f, "RecordDevice\t\t%s\n\n\n", name );
 
-	/* capture configuration : video */
-	res = fprintf(f, "## Video capturing configuration ##\nCaptureVideoFormat\t\t%s\n\n", CMN_MUX_FIND_VIDEO_OUT_FORMAT_TYPE(muxMain->mediaCaptureConfig.videoType));
-	res = fprintf(f, "CaptureVideoCapLevel\t\t%s\n\n", CMN_MUX_FIND_VIDEO_OUT_CAPLEVEL_TYPE(muxMain->mediaCaptureConfig.videoCapLevel) );
-	res = fprintf(f, "CaptureVideoBitRate\t\t%d\n\n", muxMain->mediaCaptureConfig.videoBitrate);
-	res = fprintf(f, "CaptureVideoGOP\t\t%d\n\n", muxMain->mediaCaptureConfig.gop);
-	res = fprintf(f, "CaptureVideoFrameRate\t\t%d\n\n",  muxMain->mediaCaptureConfig.outputFrameRate);
-	res = fprintf(f, "AspectRatioWindow\t\t%s\n\n\n", STR_BOOL_VALUE(muxMain->mediaCaptureConfig.aspectRatioWindow) );
-
 	/* capture configuration: audio */
 	res = fprintf(f, "## Audio capturing configuration ##\nCaptureAudioType\t\t%s\n\n", (muxMain->mediaCaptureConfig.audioType==0)?"AAC":"MP3" );
 	res = fprintf(f, "CaptureAudioSampleRate\t\t%d\n\n", muxMain->mediaCaptureConfig.audioSampleRate);

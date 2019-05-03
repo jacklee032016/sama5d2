@@ -3,21 +3,20 @@
       		"system": 
    			{
  				"model": "744-TX/RX",
-				"pName": "SdiOverIP-774",
-				"cName": "774-TX01",
-				"fwVer": "01.01-001",
+				"product": "SdiOverIP-774",
+				"name": "774-TX01",
+				"ver": "01.01-001",
 
-				"mac":"02:01:03:04:05:06",
       			"ip": "192.168.168.181",
       			"mask": "255.255.255.0",
       			"gateway": "192.168.168.1",
+				"mac":"02:01:03:04:05:06",
       			"isDhcp" : 1,
 					
 				"isDipOn": 0,
 				"reset": 0,
 				"reboot": 0,
-       			"buttonCtrl": 1,
-      			"blink_led": 0
+      			"blinkLed": 0
   			},
 		
 			"video": 
@@ -31,7 +30,7 @@
 					"fps": "59.94",
 					"colorSpace": "YCbCr-4:2:2",
 					"depth": 16,
-					"Intlce": 1
+					"intlce": 1
 				}
 			],
 
@@ -41,8 +40,8 @@
 					"ip": "239.0.0.101",
 					"port": 36010,
 					"sdp":"sdp",
-					"sample": 48000,
-					"channel": 16,
+					"sample": "48000",
+					"channels": 16,
 					"depth": 24,
 					"pktSize": "1ms"
 				}
@@ -85,9 +84,18 @@
 				"databit": 8,
 				"parity": "none",
 				"stopbit": 1,
-				"data": "1234567980abcdef"
+				"data": "1234567980abcdef",
+				"isFeedback": 1,
+				"waitTime": 1000
       		},
-		
+
+      		"IR": 
+      		{
+				"data": "1234567980abcdef",
+				"isFeedback": 1,
+				"waitTime": 1000
+      		},
+			
       		"security": 
       		{
 				"get_id": "ab12",
@@ -97,6 +105,7 @@
 		
       		"others": 
       		{
+				"debug": 1,
 				"threads":[]
       		}
 }

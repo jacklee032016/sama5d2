@@ -338,6 +338,10 @@ int cmn_log_init(log_stru_t *lobj);
 
 
 #define	IS_STRING_NULL( str)	\
+	 ((str)==NULL) 
+
+
+#define	IS_STRING_NULL_OR_ZERO( str)	\
 	(((str)==NULL)||(!strlen((str))) )
 
 
@@ -459,6 +463,8 @@ unsigned int cmnMuxCRC32b(void *message, int len);
 
 #include "cJSON.h"
 
+int cmnJsonGetIpAddress(cJSON* json, const char * key, uint32_t *ipAddress);
+int cmnJsonGetStrIntoString(cJSON* json, const char * key, char *value, int size);
 char* cmnGetStrFromJsonObject(cJSON* json, const char * key);
 int cmnGetIntegerFromJsonObject(cJSON* json, const char * key);
 

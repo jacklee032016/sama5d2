@@ -276,12 +276,11 @@ int main(int argc, char **argv)
 
 	/* signal init */
 	signal(SIGPIPE, SIG_IGN);
-/*
+
 	if(signal(SIGSEGV,(void *)sig_seg)==SIG_ERR)
 	{
 		MUX_WARN("signal SEG error\n");
 	}
-*/
 
 	/* every thread must be created after set terminal attributes */
 	termInit(muxMain);
@@ -331,7 +330,7 @@ int main(int argc, char **argv)
 	{
 		plugin->muxMain = muxMain;
 		
-		if(plugin->enable && !IS_STRING_NULL(plugin->path))
+		if(plugin->enable && !IS_STRING_NULL_OR_ZERO(plugin->path))
 		{
 			MUX_DEBUG("Loading plugin '%s' .....", plugin->name );
 			res = _muxMainAddPlugIn(plugin, muxMain);

@@ -723,9 +723,9 @@ const char audioChannelsList[] =
 };
 
 
-int	cmnMuxTypeFindType(TYPE_NAME_T *types, char *name)
+int	cmnMuxTypeFindType(const TYPE_NAME_T *types, char *name)
 {
-	TYPE_NAME_T *tmp = types;
+	const TYPE_NAME_T *tmp = types;
 
 	while(tmp->type != -1 || tmp->name != NULL ) 
 	{
@@ -740,13 +740,13 @@ int	cmnMuxTypeFindType(TYPE_NAME_T *types, char *name)
 	{
 		CMN_ABORT("Type of name %s is not found, the first item is :%s", name, types->name);
 	}
-	return -1;
+	return INVALIDATE_VALUE_U32;
 }
 
 
-char *cmnMuxTypeFindName(TYPE_NAME_T *types, int type)
+char *cmnMuxTypeFindName(const TYPE_NAME_T *types, int type)
 {
-	TYPE_NAME_T *tmp = types;
+	const TYPE_NAME_T *tmp = types;
 
 	while(tmp->type != -1 || tmp->name != NULL ) 
 	{
@@ -887,4 +887,381 @@ char	extMacAddressParse(EXT_MAC_ADDRESS *macAddress, const char *macStr)
 
 	return EXIT_SUCCESS;
 }
+
+
+const	EXT_CONST_INT	intVideoColorDepthList[] =
+{
+	{
+		type	: EXT_V_DEPTH_8,
+		name	: 8
+	},
+	{
+		type	: EXT_V_DEPTH_10,
+		name	: 10
+	},
+	{
+		type	: EXT_V_DEPTH_12,
+		name	: 12
+	},
+	{
+		type	: EXT_V_DEPTH_16,
+		name	: 16
+	},
+	{
+		type	: 0xFF,
+		name	: 0xFF
+	}
+};
+
+const	EXT_CONST_INT	intVideoFpsList[] =
+{
+	{
+		type	: EXT_V_FRAMERATE_T_23,
+		name	: 23
+	},
+	{
+		type	: EXT_V_FRAMERATE_T_24,
+		name	: 24
+	},
+	{
+		type	: EXT_V_FRAMERATE_T_25,
+		name	: 25
+	},
+	{
+		type	: EXT_V_FRAMERATE_T_29,
+		name	: 29
+	},
+	{
+		type	: EXT_V_FRAMERATE_T_30,
+		name	: 30
+	},
+	{
+		type	: EXT_V_FRAMERATE_T_50,
+		name	: 50
+	},
+	{
+		type	: EXT_V_FRAMERATE_T_59,
+		name	: 59
+	},
+	{
+		type	: EXT_V_FRAMERATE_T_60,
+		name	: 60
+	},
+	{
+		type	: 0xFF,
+		name	: 0xFF
+	}
+};
+
+
+const uint8_t extCmnIntFindName(CMN_INT_TYPE  intType, uint8_t type)
+{
+	const EXT_CONST_INT *_str;
+
+	switch(intType)
+	{
+		case CMN_INT_T_V_DEPTH:
+			_str = intVideoColorDepthList;
+			break;
+		case CMN_INT_T_V_FPS:
+			_str = intVideoFpsList;
+			break;
+
+		default:
+			return 0xFF;
+			break;
+	}
+
+	while(_str->type!= 0xFF)
+	{
+		if(_str->type == type)
+		{
+			return _str->name;
+		}
+
+		_str++;
+	}
+
+	EXT_ERRORF(("unknown type %d in constant type :%d", type, intType) );
+	return 0xFF;
+}
+
+
+const uint8_t extCmnIntFindType(CMN_INT_TYPE  intType, uint8_t name)
+{
+	const EXT_CONST_INT *_str;
+
+	switch(intType)
+	{
+		case CMN_INT_T_V_DEPTH:
+			_str = intVideoColorDepthList;
+			break;
+		case CMN_INT_T_V_FPS:
+			_str = intVideoFpsList;
+			break;
+
+		default:
+			return -1;
+			break;
+	}
+
+	while(_str->type!= 0xFF)
+	{
+		if(_str->name == name) 
+		{
+			return _str->type;
+		}
+
+		_str++;
+	}
+	
+	EXT_ERRORF(("unknown type %d in constant type :%d", name, intType) );
+	return 0xFF;
+}
+
+
+const MediaParam constMediaParams[] = 
+{
+	/* 720 */
+	{/* 1 */
+		index: 0,
+		desc	:	"720p23.98",
+		width:	VIDEO_WIDTH_1280,
+		height:	VIDEO_HEIGHT_720,
+		fps	:	EXT_V_FRAMERATE_T_23,
+		interlaced 	: EXT_VIDEO_INTLC_A_PROGRESSIVE
+	},
+	{/* 2 */
+		index: 1,
+		desc	:	"720p24",
+		width:	VIDEO_WIDTH_1280,
+		height:	VIDEO_HEIGHT_720,
+		fps	:	EXT_V_FRAMERATE_T_24,
+		interlaced 	: EXT_VIDEO_INTLC_A_PROGRESSIVE
+	},
+	{/* 3 */
+		index: 2,
+		desc	:	"720p25",
+		width:	VIDEO_WIDTH_1280,
+		height:	VIDEO_HEIGHT_720,
+		fps	:	EXT_V_FRAMERATE_T_25,
+		interlaced 	: EXT_VIDEO_INTLC_A_PROGRESSIVE
+	},
+	{/* 4 */
+		index: 3,
+		desc	:	"720p29.97",
+		width:	VIDEO_WIDTH_1280,
+		height:	VIDEO_HEIGHT_720,
+		fps	:	EXT_V_FRAMERATE_T_29,
+		interlaced 	: EXT_VIDEO_INTLC_A_PROGRESSIVE
+	},
+	{/*5 */
+		index: 4,
+		desc	:	"720p30",
+		width:	VIDEO_WIDTH_1280,
+		height:	VIDEO_HEIGHT_720,
+		fps	:	EXT_V_FRAMERATE_T_30,
+		interlaced 	: EXT_VIDEO_INTLC_A_PROGRESSIVE
+	},
+	{/* 6 */
+		index: 5,
+		desc	:	"720p50",
+		width:	VIDEO_WIDTH_1280,
+		height:	VIDEO_HEIGHT_720,
+		fps	:	EXT_V_FRAMERATE_T_50,
+		interlaced 	: EXT_VIDEO_INTLC_A_PROGRESSIVE
+	},
+	{/* 7 */
+		index: 6,
+		desc	:	"720p59.94",
+		width:	VIDEO_WIDTH_1280,
+		height:	VIDEO_HEIGHT_720,
+		fps	:	EXT_V_FRAMERATE_T_59,
+		interlaced 	: EXT_VIDEO_INTLC_A_PROGRESSIVE
+	},
+	{/* 8 */
+		index: 7,
+		desc	:	"720p60",
+		width:	VIDEO_WIDTH_1280,
+		height:	VIDEO_HEIGHT_720,
+		fps	:	EXT_V_FRAMERATE_T_60,
+		interlaced 	: EXT_VIDEO_INTLC_A_PROGRESSIVE
+	},
+
+
+	/* 1080 */
+	{/* 1 */
+		index: 8,
+		desc	:	"1080p23.98",
+		width:	VIDEO_WIDTH_1920,
+		height:	VIDEO_HEIGHT_1080,
+		fps	:	EXT_V_FRAMERATE_T_23,
+		interlaced 	: EXT_VIDEO_INTLC_A_PROGRESSIVE
+	},
+	{/* 2 */
+		index: 9,
+		desc	:	"1080p24",
+		width:	VIDEO_WIDTH_1920,
+		height:	VIDEO_HEIGHT_1080,
+		fps	:	EXT_V_FRAMERATE_T_24,
+		interlaced 	: EXT_VIDEO_INTLC_A_PROGRESSIVE
+	},
+	{/* 3 */
+		index: 10,
+		desc	:	"1080p25",
+		width:	VIDEO_WIDTH_1920,
+		height:	VIDEO_HEIGHT_1080,
+		fps	:	EXT_V_FRAMERATE_T_25,
+		interlaced 	: EXT_VIDEO_INTLC_A_PROGRESSIVE
+	},
+	{/* 4 */
+		index: 11,
+		desc	:	"1080p29.97",
+		width:	VIDEO_WIDTH_1920,
+		height:	VIDEO_HEIGHT_1080,
+		fps	:	EXT_V_FRAMERATE_T_29,
+		interlaced 	: EXT_VIDEO_INTLC_A_PROGRESSIVE
+	},
+	{/*5 */
+		index: 12,
+		desc	:	"1080p30",
+		width:	VIDEO_WIDTH_1920,
+		height:	VIDEO_HEIGHT_1080,
+		fps	:	EXT_V_FRAMERATE_T_30,
+		interlaced 	: EXT_VIDEO_INTLC_A_PROGRESSIVE
+	},
+	{/* 6 */
+		index: 13,
+		desc	:	"1080i50",
+		width:	VIDEO_WIDTH_1920,
+		height:	VIDEO_HEIGHT_1080,
+//		fps	:	EXT_V_FRAMERATE_T_50,
+		fps	:	EXT_V_FRAMERATE_T_25,
+		interlaced	: EXT_VIDEO_INTLC_INTERLACED
+	},
+	{/* 7 */
+		index: 14,
+		desc	:	"1080i59.94",
+		width:	VIDEO_WIDTH_1920,
+		height:	VIDEO_HEIGHT_1080,
+//		fps	:	EXT_V_FRAMERATE_T_59,
+		fps	:	EXT_V_FRAMERATE_T_29,
+		interlaced	: EXT_VIDEO_INTLC_INTERLACED
+	},
+	{/* 8 */
+		index: 15,
+		desc	:	"1080i60",
+		width:	VIDEO_WIDTH_1920,
+		height:	VIDEO_HEIGHT_1080,
+//		fps	:	EXT_V_FRAMERATE_T_60,
+		fps	:	EXT_V_FRAMERATE_T_30,
+		interlaced	: EXT_VIDEO_INTLC_INTERLACED
+	},
+
+
+	/* 1080 3GA */
+	{/* 1 */
+		index: 16,
+		desc	:	"3GA 1080p50",
+		width:	VIDEO_WIDTH_1920,
+		height:	VIDEO_HEIGHT_1080,
+		fps	:	EXT_V_FRAMERATE_T_50,
+		interlaced	: EXT_VIDEO_INTLC_A_PROGRESSIVE
+	},
+	{/* 2 */
+		index: 17,
+		desc	:	"3GA 1080p59.94",
+		width:	VIDEO_WIDTH_1920,
+		height:	VIDEO_HEIGHT_1080,
+		fps	:	EXT_V_FRAMERATE_T_59,
+		interlaced	: EXT_VIDEO_INTLC_A_PROGRESSIVE
+	},
+	{/* 3 */
+		index: 18,
+		desc	:	"3GA 1080p60",
+		width:	VIDEO_WIDTH_1920,
+		height:	VIDEO_HEIGHT_1080,
+		fps	:	EXT_V_FRAMERATE_T_60,
+		interlaced	: EXT_VIDEO_INTLC_A_PROGRESSIVE
+	},
+	{/* 4 */
+		index: 19,
+		desc	:	"3GB 1080p50",
+		width:	VIDEO_WIDTH_1920,
+		height:	VIDEO_HEIGHT_1080,
+		fps	:	EXT_V_FRAMERATE_T_50,
+		interlaced	: EXT_VIDEO_INTLC_B_PROGRESSIVE
+	},
+	{/*5 */
+		index: 20,
+		desc	:	"3GB 1080p59.94",
+		width:	VIDEO_WIDTH_1920,
+		height:	VIDEO_HEIGHT_1080,
+		fps	:	EXT_V_FRAMERATE_T_59,
+		interlaced	: EXT_VIDEO_INTLC_B_PROGRESSIVE
+	},
+	{/* 6 */
+		index: 21,
+		desc	:	"3GB 1080p60",
+		width:	VIDEO_WIDTH_1920,
+		height:	VIDEO_HEIGHT_1080,
+		fps	:	EXT_V_FRAMERATE_T_60,
+		interlaced	: EXT_VIDEO_INTLC_B_PROGRESSIVE
+	},
+
+
+	{
+		index: INVALIDATE_VALUE_U32,
+		desc	:	NULL,
+		width:	INVALIDATE_VALUE_U16,
+		height:	INVALIDATE_VALUE_U16,
+
+		fps	:	INVALIDATE_VALUE_U8,
+
+		interlaced	: INVALIDATE_VALUE_U8
+	}
+
+};
+
+
+const MediaParam *extCmnVideoParamFind(EXT_RUNTIME_CFG *runCfg)
+{
+	const MediaParam *videoP = constMediaParams;
+
+	while(videoP->desc != NULL)
+	{
+		if(videoP->width == runCfg->runtime.vWidth && videoP->height == runCfg->runtime.vHeight &&
+			videoP->fps == runCfg->runtime.vFrameRate && videoP->interlaced == runCfg->runtime.vIsInterlaced )
+		{
+			return videoP;
+		}
+		videoP ++;
+	}
+
+	EXT_ERRORF(("Video Param: 'w:%d; h:%d; fps:%d; interlace:%d' not found", runCfg->runtime.vWidth, runCfg->runtime.vHeight, runCfg->runtime.vFrameRate, runCfg->runtime.vIsInterlaced) );
+
+	return NULL;
+}
+
+char extCmnVideoParamPopulate(EXT_RUNTIME_CFG *runCfg, uint8_t index)
+{
+//	const MediaParam *videoP = constMediaParams;
+
+	if(index >= EXT_ARRAYSIZE(constMediaParams) )
+	{
+		EXT_ERRORF(("Index %d is out of the range %ld of params", index, EXT_ARRAYSIZE(constMediaParams) ));
+		return EXIT_FAILURE;
+	}
+
+	runCfg->runtime.vWidth = constMediaParams[index].width;
+	runCfg->runtime.vHeight = constMediaParams[index].height;
+	runCfg->runtime.vFrameRate = constMediaParams[index].fps;
+	runCfg->runtime.vIsInterlaced = constMediaParams[index].interlaced;
+
+	return EXIT_SUCCESS;
+}
+
+
+
+
 

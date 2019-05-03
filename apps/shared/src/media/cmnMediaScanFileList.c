@@ -429,7 +429,7 @@ int	cmnMediaCheckLocalFile(char *localImageFile)
 	MEDIA_FILE_LIST_T *dirHeader =  _allStorage;
 	int isLocal = 0;
 
-	if(IS_STRING_NULL(localImageFile))
+	if(IS_STRING_NULL_OR_ZERO(localImageFile))
 	{
 		return EXIT_SUCCESS;
 	}
@@ -530,7 +530,7 @@ int	cmnMediaCheckSDCardFile(char *fileName)
 	char *resolvePath = NULL;
 	MEDIA_FILE_LIST_T *dirHeader =  _allStorage;
 
-	if(IS_STRING_NULL(fileName))
+	if(IS_STRING_NULL_OR_ZERO(fileName))
 	{
 		return FALSE;
 	}

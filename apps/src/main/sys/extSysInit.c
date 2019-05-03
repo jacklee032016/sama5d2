@@ -19,6 +19,99 @@ int extSystemJsonInit(const cJSON *array)
 }
 
 
+cJSON *extSystemFindObject(MuxMain *muxMain, const char*objName )
+{
+	cJSON *obj =	cJSON_GetObjectItem(muxMain->systemJson, objName);
+	if (obj== NULL)
+	{
+		MUX_ERROR("No data for '%s' is found", objName);
+	}
+	return obj;
+}
+
+
+/* only called by process of IP command */
+cJSON *extSystemGetSubItem(cJSON *sysObj, char *item, int index)
+{
+	cJSON *itemObj;
+
+	itemObj = cJSON_GetObjectItem(sysObj, item);
+	if (itemObj== NULL)
+	{
+		MUX_ERROR("No data for '%s' is found", item);
+		return NULL;
+	}
+	
+	if(index != INVALIDATE_VALUE_U32)
+	{
+		cJSON *obj = cJSON_GetArrayItem(itemObj, index);
+		if(obj == NULL)
+		{
+			MUX_ERROR("No index#%d in data item '%s' is found", index, item);
+		}
+
+		return obj;
+	}
+
+
+	MUX_DEBUG_JSON_OBJ(itemObj);
+	
+	return itemObj;
+}
+
+cJSON *extSystemGetKey(cJSON *sysObj, char *item, int index, char *key)
+{
+	cJSON *itemObj, *destObj;
+
+	itemObj = extSystemGetSubItem(sysObj, item, index);
+	if(item == NULL)
+	{
+		MUX_ERROR("No data for '%s' is found", item);
+		return NULL;
+	}
+
+	destObj = cJSON_GetObjectItem(itemObj, key);
+	if(item == NULL)
+	{
+		MUX_ERROR("No data with key '%s' in SubItem '%s' is found", key, item);
+		return NULL;
+	}
+
+	return destObj;
+}
+
+
+/* refresh params into JSON object */
+int extSystemUpdateJsonObject(MuxMain *muxMain)
+{
+	cJSON *newObj = NULL;
+	cJSON *itemObj = NULL;
+	char macAddress[128];
+	
+
+	itemObj = extSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_SYSTEM, INVALIDATE_VALUE_U32);
+	
+	newObj = cJSON_CreateString(cmnSysNetAddress(muxMain->runCfg.local.ip) );
+	cJSON_ReplaceItemInObject(itemObj, FIELD_SYS_CFG_ADDRESS, newObj);
+
+	newObj = cJSON_CreateString(cmnSysNetAddress(muxMain->runCfg.ipMask) );
+	cJSON_ReplaceItemInObject(itemObj, FIELD_SYS_CFG_NETMASK, newObj);
+
+	newObj = cJSON_CreateString(cmnSysNetAddress(muxMain->runCfg.ipGateway) );
+	cJSON_ReplaceItemInObject(itemObj, FIELD_SYS_CFG_GATEWAY, newObj);
+
+	snprintf(macAddress, sizeof(macAddress), "%.2X:%.2X:%.2X:%.2X:%.2X:%.2X" , 
+		muxMain->runCfg.local.mac.address[0], muxMain->runCfg.local.mac.address[1], muxMain->runCfg.local.mac.address[2], 
+		muxMain->runCfg.local.mac.address[3], muxMain->runCfg.local.mac.address[4], muxMain->runCfg.local.mac.address[5]);
+
+	newObj = cJSON_CreateString(macAddress);
+	cJSON_ReplaceItemInObject(itemObj, FIELD_SYS_CFG_MAC, newObj);
+	
+
+	return EXIT_SUCCESS;
+}
+
+
 int32_t	extSystemInit(MuxMain		*muxMain)
 {
 //	uint32_t ip, mask;
@@ -73,18 +166,9 @@ int32_t	extSystemInit(MuxMain		*muxMain)
 			}
 		}
 	}
-	
 
-	return EXIT_SUCCESS;
+
+	return extSystemUpdateJsonObject(muxMain);
 }
 
-cJSON *extSystemFindObject(MuxMain *muxMain, const char*objName )
-{
-	cJSON *obj =	cJSON_GetObjectItem(muxMain->systemJson, objName);
-	if (obj== NULL)
-	{
-		MUX_ERROR("No data for '%s' is found", objName);
-	}
-	return obj;
-}
 
