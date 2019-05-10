@@ -6,9 +6,22 @@
 #include "libMedia.h"
 #include "libMux.h"
 
-#include "libCmnSys.h"
-
 #include "mux7xx.h"
+
+
+struct _CmnGroup;
+
+typedef struct _CmnGroup
+{
+	char			groupAddress[CMN_NAME_LENGTH];
+	char			devName[CMN_NAME_LENGTH];
+
+	uint32_t		address;
+	int			ifIndex;	/* index of net interface */
+	int			socket;
+
+	int		(*changeGroup)(struct _CmnGroup *group, char *newAddress);
+}CmnMGroup;
 
 
 int cmnSysI2cWrite(int deviceID, unsigned char offset, unsigned char *buffer, int length);
@@ -26,8 +39,15 @@ uint32_t cmnSystemNetIp(char *ip);
 
 int cmnSysNetGetMacAddress(char *hwName, EXT_MAC_ADDRESS *mac);
 
+
+CmnMGroup *cmnSysNetMGroupInit(const char *devName, char *groupIp);
+void cmnSysNetMGroupDestory(CmnMGroup *_group);
+
+
 cJSON *extSystemFindObject(MuxMain *muxMain, const char*objName );
 cJSON *extSystemGetSubItem(cJSON *sysObj, char *item, int index);
+
+
 
 
 #endif

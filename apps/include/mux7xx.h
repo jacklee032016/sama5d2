@@ -140,5 +140,8 @@ typedef	struct _Rs232Ctrl
 
 
 
+#define	DEBUG_SYS_NET		EXT_DBG_ON
+
+
 #endif
 

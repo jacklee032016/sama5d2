@@ -431,7 +431,7 @@
 	#define	EXT_PRINTF(x)						{printf x ;}
 	
 //	#define	EXT_DEBUGF(fmt, args...)	{printf("[%s-%u] DEBUG: " fmt EXT_NEW_LINE, __FILE__, __LINE__, ## args);}
-	#define	EXT_DEBUGF(debug, message)		do { \
+	#define	EXT_DEBUGF(debug, message...)		do { \
                                if ( \
                                    ((debug) & EXT_DBG_ON) && \
                                    ((debug) & EXT_DBG_TYPES_ON) && \
@@ -444,28 +444,28 @@
                              } while(0)
 
                              
-	#define	EXT_INFOF(message)		{printf(ANSI_COLOR_CYAN "%s:[%s-%u]:", sysTaskName(), __FILE__, __LINE__);EXT_PRINTF(message);printf((ANSI_COLOR_RESET EXT_NEW_LINE));}
+	#define	EXT_INFOF(message...)		{printf(ANSI_COLOR_CYAN "%s:[%s-%u]:", sysTaskName(), __FILE__, __LINE__);EXT_PRINTF((message));printf((ANSI_COLOR_RESET EXT_NEW_LINE));}
 	
-	#define	EXT_ERRORF(message)		{printf(ERROR_TEXT_BEGIN "%s: ERROR:[%s-%u]:", sysTaskName(), __FILE__, __LINE__);EXT_PRINTF(message); printf((ERROR_TEXT_END  EXT_NEW_LINE));}
+	#define	EXT_ERRORF(message...)		{printf(ERROR_TEXT_BEGIN "%s: ERROR:[%s-%u]:", sysTaskName(), __FILE__, __LINE__);EXT_PRINTF((message)); printf(ERROR_TEXT_END  EXT_NEW_LINE);}
 
 //	#define	EXT_ASSERT(x)				{printf("Assertion \"%s\" failed at line %d in %s\n", x, __LINE__, __FILE__); while(1);}
-	#define	EXT_ASSERT(msg, x)			{if((x)==0) {printf(ERROR_TEXT_BEGIN"%s: ASSERT: [%s-%u]:",  sysTaskName(), __FILE__, __LINE__ );printf msg ;printf((ERROR_TEXT_END EXT_NEW_LINE)); while(0){};}}
+	#define	EXT_ASSERT(x, msg...)			{if((x)==0) {printf(ERROR_TEXT_BEGIN"%s: ASSERT: [%s-%u]:",  sysTaskName(), __FILE__, __LINE__ );printf(msg);printf((ERROR_TEXT_END EXT_NEW_LINE)); while(0){};}}
 	#define	EXT_ABORT(fmt, args... )		printf("%s: ABORT in [" __FILE__ "-%u]:" fmt EXT_NEW_LINE, sysTaskName(), __LINE__, ##args );while(1){}
 #else
 	#define	EXT_PRINTF(x)						{;}
 
-	#define	EXT_DEBUGF(debug, message)		{}
+	#define	EXT_DEBUGF(debug, message...)		{}
 
-	#define	EXT_INFOF(message)				{printf message ;printf(EXT_NEW_LINE);}
+	#define	EXT_INFOF(message...)				{printf(message); printf(EXT_NEW_LINE);}
 
-	#define	EXT_ERRORF(message)				{printf message ; printf(EXT_NEW_LINE);}
+	#define	EXT_ERRORF(message...)				{printf(message); printf(EXT_NEW_LINE);}
 	
 //	#define	EXT_ASSERT(x)				{while (1);}
-	#define	EXT_ASSERT(msg, x)				{}
+	#define	EXT_ASSERT(x, msg...)				{}
 	#define	EXT_ABORT(fmt, args... )		{}
 #endif
 
-#define	_TRACE_OUT(message)	\
+#define	_TRACE_OUT(message...)	\
 			{EXT_PRINTF(("%s: [%s-%u.%s()]: ",  sysTaskName(), __FILE__, __LINE__, __FUNCTION__) );EXT_PRINTF(message); }
 
 //#define	TRACE()						_TRACE_OUT((EXT_NEW_LINE) )

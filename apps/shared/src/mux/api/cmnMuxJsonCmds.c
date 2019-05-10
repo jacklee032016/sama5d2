@@ -19,7 +19,7 @@ unsigned char rs232SendHexStr(char *str )
 	{
 		if(extSysAtoInt8(str+i*2, &value)== EXIT_FAILURE)
 		{
-			EXT_ERRORF(("'%.*s' is not an integer", 2, str+i*2));
+			EXT_ERRORF("'%.*s' is not an integer", 2, str+i*2);
 			return EXIT_FAILURE;
 		}
 		

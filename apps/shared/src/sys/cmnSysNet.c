@@ -18,9 +18,14 @@
 #include <stdint.h>
 
 #include "libCmn.h"
+#include "libCmnSys.h"
+
 #include "mux7xx.h"
 
 #define __IP_DEBUG		0
+
+#define	DEFAULT_MCAST_PORT		65520
+
 
 uint32_t cmnSysNetGetIp(char * hwName)
 {
@@ -212,7 +217,7 @@ char *cmnSysNetAddress( uint32_t address)
 /* only used to parse data from REST or IP command */
 uint32_t cmnSystemNetIp(char *ip)
 {/* INADDR_NONE (usually -1) */
-	uint32_t _ipAddr = inet_addr(ip);
+	uint32_t _ipAddr = inet_addr(ip);	/* return network byte-order */
 	if(_ipAddr == INADDR_NONE)
 	{/* it also is validate address */
 		return INVALIDATE_VALUE_U32;
@@ -262,4 +267,175 @@ int cmnSysNetGetMacAddress(char *hwName, EXT_MAC_ADDRESS *mac)
 	return ret;
 }
 
+int cmnSysNetInterfaceIndex(int fd, const char *devName)
+{
+	struct ifreq ifreq;
+	int err;
+
+	memset(&ifreq, 0, sizeof(ifreq));
+	strncpy(ifreq.ifr_name, devName, sizeof(ifreq.ifr_name) - 1);
+	
+	err = ioctl(fd, SIOCGIFINDEX, &ifreq);
+	if (err < 0)
+	{
+		EXT_ERRORF("ioctl SIOCGIFINDEX failed: %m");
+		return err;
+	}
+	
+	return ifreq.ifr_ifindex;
+}
+
+
+static int _cmnSysNetMcastJoin(CmnMGroup *_group, char *groupIp)
+{
+#define	__WITH_INDEX		1	/* define source interface with index or IP address */
+	int err;
+//	int off = 0;
+#if __WITH_INDEX
+	struct ip_mreqn req;
+#else	
+	struct ip_mreq req;
+#endif
+
+	uint32_t	_gIp = cmnSystemNetIp(groupIp);/* */
+	if(_gIp == INVALIDATE_VALUE_U32)
+	{
+		EXT_ERRORF("'%s' is not validate IP address", groupIp);
+		return EXIT_FAILURE;
+	}
+
+	memset(&req, 0, sizeof(req));
+
+	/* define source interface */
+#if __WITH_INDEX
+	req.imr_ifindex = _group->ifIndex;
+#else
+	req.imr_interface.s_addr = htonl(INADDR_ANY);
+#endif
+
+	if(_group->address != INVALIDATE_VALUE_U32)
+	{
+		req.imr_multiaddr.s_addr = _group->address;
+		err = setsockopt(_group->socket, IPPROTO_IP, IP_DROP_MEMBERSHIP , &req, sizeof(req));
+		if (err)
+		{
+			EXT_ERRORF("Leave multicast group '%s' failed: %m", _group->groupAddress);
+//			return EXIT_FAILURE;
+		}
+		else
+		{
+			EXT_DEBUGF(DEBUG_SYS_NET, ("Leave multicast group '%s' successfully", _group->groupAddress) );
+		}
+	}
+
+	req.imr_multiaddr.s_addr = _gIp;
+	err = setsockopt(_group->socket, IPPROTO_IP, IP_ADD_MEMBERSHIP, &req, sizeof(req));
+	if (err)
+	{
+		EXT_ERRORF("Join multicast group '%s' failed: %m", groupIp);
+		_group->address = INVALIDATE_VALUE_U32;
+		return EXIT_FAILURE;
+	}
+
+	_group->address = _gIp;
+	snprintf(_group->groupAddress, sizeof(_group->groupAddress), "%s", groupIp);
+	EXT_DEBUGF(DEBUG_SYS_NET, ("Join multicast group '%s' successfully", _group->groupAddress) );
+
+#if 0	
+	err = setsockopt(fd, IPPROTO_IP, IP_MULTICAST_LOOP, &off, sizeof(off));
+	if (err)
+	{
+		pr_err("setsockopt IP_MULTICAST_LOOP failed: %m");
+		return -1;
+	}
+#endif
+
+	return EXIT_SUCCESS;
+}
+
+static CmnMGroup _mGroup;
+
+CmnMGroup *cmnSysNetMGroupInit(const char *devName, char *groupIp)
+{
+	CmnMGroup *_group = &_mGroup;	
+	struct sockaddr_in addr;
+//	int ttl = 10;
+	int on = 1;
+	
+	memset(_group, 0, sizeof(CmnMGroup));
+	_group->address = INVALIDATE_VALUE_U32;
+	
+	memset(&addr, 0, sizeof(addr));
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	addr.sin_port = htons(DEFAULT_MCAST_PORT);
+
+	_group->socket = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	if(_group->socket < 0)
+	{
+		EXT_ERRORF("socket failed: %m");
+		return NULL;
+	}
+	
+	_group->ifIndex = cmnSysNetInterfaceIndex(_group->socket, devName);
+	if (_group->ifIndex < 0)
+	{
+		goto no_option;
+	}
+	snprintf(_group->devName, sizeof(_group->devName), "%s", devName);
+	_group->changeGroup = _cmnSysNetMcastJoin;
+
+	EXT_DEBUGF(DEBUG_SYS_NET, ("Index of %s is %d",_group->devName, _group->ifIndex) );
+#if 1
+	if (setsockopt(_group->socket, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)))
+	{
+		EXT_ERRORF("setsockopt SO_REUSEADDR failed: %m");
+		goto no_option;
+	}
+#endif
+
+	if (bind(_group->socket, (struct sockaddr *) &addr, sizeof(addr)))
+	{
+		EXT_ERRORF("bind failed: %m");
+		goto no_option;
+	}
+
+	if (setsockopt(_group->socket, SOL_SOCKET, SO_BINDTODEVICE, devName, strlen(devName)))
+	{
+		EXT_ERRORF("setsockopt SO_BINDTODEVICE failed: %m");
+		goto no_option;
+	}
+	
+#if 0	
+	if (setsockopt(fd, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl)))
+	{
+		pr_err("setsockopt IP_MULTICAST_TTL failed: %m");
+		goto no_option;
+	}
+#endif
+
+	if(groupIp)
+	{
+		if (_cmnSysNetMcastJoin(_group, groupIp) )
+		{
+			EXT_ERRORF("mcast join failed");
+			goto no_option;
+		}
+	}
+
+	return _group;
+	
+no_option:
+	close(_group->socket);
+
+	return NULL;
+}
+
+
+void cmnSysNetMGroupDestory(CmnMGroup *_group)
+{
+	close(_group->socket);
+	memset(_group, 0, sizeof(CmnMGroup));
+	_group->address = INVALIDATE_VALUE_U32;
+}
 

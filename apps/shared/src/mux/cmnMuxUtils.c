@@ -982,7 +982,7 @@ const uint8_t extCmnIntFindName(CMN_INT_TYPE  intType, uint8_t type)
 		_str++;
 	}
 
-	EXT_ERRORF(("unknown type %d in constant type :%d", type, intType) );
+	EXT_ERRORF("unknown type %d in constant type :%d", type, intType);
 	return 0xFF;
 }
 
@@ -1015,7 +1015,7 @@ const uint8_t extCmnIntFindType(CMN_INT_TYPE  intType, uint8_t name)
 		_str++;
 	}
 	
-	EXT_ERRORF(("unknown type %d in constant type :%d", name, intType) );
+	EXT_ERRORF("unknown type %d in constant type :%d", name, intType);
 	return 0xFF;
 }
 
@@ -1238,7 +1238,7 @@ const MediaParam *extCmnVideoParamFind(EXT_RUNTIME_CFG *runCfg)
 		videoP ++;
 	}
 
-	EXT_ERRORF(("Video Param: 'w:%d; h:%d; fps:%d; interlace:%d' not found", runCfg->runtime.vWidth, runCfg->runtime.vHeight, runCfg->runtime.vFrameRate, runCfg->runtime.vIsInterlaced) );
+	EXT_ERRORF("Video Param: 'w:%d; h:%d; fps:%d; interlace:%d' not found", runCfg->runtime.vWidth, runCfg->runtime.vHeight, runCfg->runtime.vFrameRate, runCfg->runtime.vIsInterlaced);
 
 	return NULL;
 }
@@ -1249,7 +1249,7 @@ char extCmnVideoParamPopulate(EXT_RUNTIME_CFG *runCfg, uint8_t index)
 
 	if(index >= EXT_ARRAYSIZE(constMediaParams) )
 	{
-		EXT_ERRORF(("Index %d is out of the range %ld of params", index, EXT_ARRAYSIZE(constMediaParams) ));
+		EXT_ERRORF("Index %d is out of the range %ld of params", index, EXT_ARRAYSIZE(constMediaParams) );
 		return EXIT_FAILURE;
 	}
 

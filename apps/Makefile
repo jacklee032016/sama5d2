@@ -60,7 +60,9 @@ endif
 	APP_DIRS += src/client
 	# CGI/REST API
 	# APP_DIRS += src/rest
+
 	APP_DIRS += src/main
+	APP_DIRS += src/tests
 
 
 SUBDIRS += $(SHARED_DIRS)

@@ -667,7 +667,7 @@ int cmnMuxObjectParseSecurity(struct DATA_CONN *dataConn, cJSON *dataObj)
 #if 0
 				if(parser->runCfg->sc->readMac[i] != parser->runCfg->sc->secret[i] )
 				{
-					EXT_ERRORF(("Key #%d %02x != %02x (board)", i, parser->runCfg->sc->readMac[i], parser->runCfg->sc->secret[i]) );
+					EXT_ERRORF("Key #%d %02x != %02x (board)", i, parser->runCfg->sc->readMac[i], parser->runCfg->sc->secret[i]);
 					snprintf(parser->msg, sizeof(parser->msg), "'%s' error: key is not correct", EXT_IPCMD_SC_GET_STATUS);
 				}
 #endif				
