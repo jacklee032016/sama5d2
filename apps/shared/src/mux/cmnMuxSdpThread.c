@@ -1,6 +1,5 @@
 
 #include "libCmn.h"
-#include "libMedia.h"
 #include "libMux.h"
 
 #include <sys/stat.h>
@@ -281,10 +280,12 @@ static int _initFtpThread(CmnThread *th, void *data)
 	struct CMN_FTP_CONTROLLER *ftpAgent = (struct CMN_FTP_CONTROLLER *)cmn_malloc(sizeof(struct CMN_FTP_CONTROLLER));
 
 //	localPath = cfg->usbHome;
+#if 0
 	res = _checkAndMakeDirectory(localPath);
 	if(res != EXIT_SUCCESS)
 		return res;
-	
+#endif
+
 	FtpInit();
 
 	snprintf(ftpAgent->localPath, CMN_NAME_LENGTH, "%s", localPath);
@@ -304,9 +305,9 @@ static void _destoryFtpThread(struct _CmnThread *th)
 
 
 
-CmnThread  threadCmnFtp =
+CmnThread  threadSdpClient =
 {
-	name		:	"FTP",
+	name		:	"SDP",
 	flags		:	SET_BIT(1, CMN_THREAD_FLAG_WAIT),
 	
 	init			:	_initFtpThread,
@@ -341,6 +342,6 @@ int cmnMuxFtpAddEvent(char *server, 	char *username, char *password, char *path,
 	jsonEvent->object = (cJSON *)client;
 	jsonEvent->priv = dataConn;
 
-	return cmnThreadAddEvent(&threadCmnFtp, jsonEvent);
+	return cmnThreadAddEvent(&threadSdpClient, jsonEvent);
 }
 

@@ -106,6 +106,9 @@
       		"others": 
       		{
 				"debug": 1,
+				"debugRest": 0,
+				"debugCmd": 0,
+				"authen": 0,
 				"threads":[]
       		}
 }

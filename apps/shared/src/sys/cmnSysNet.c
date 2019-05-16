@@ -15,6 +15,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 
+#include <net/route.h>		/*rtentry */
+
 #include <stdint.h>
 
 #include "libCmn.h"
@@ -195,6 +197,47 @@ uint32_t cmnSysNetGetDefaultGw(char *hwName)
 }
 
 
+int cmnSysNetSetGateway(char *gateway, char *devName)
+{
+	int sockfd;
+	struct rtentry rt;	/* route entry */
+
+	sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+	if (sockfd == -1)
+	{
+		EXT_ERRORF("socket creation failed: %m");
+		return EXIT_FAILURE;
+	}
+
+	struct sockaddr_in *sockinfo = (struct sockaddr_in *)&rt.rt_gateway;
+	sockinfo->sin_family = AF_INET;
+	sockinfo->sin_addr.s_addr = inet_addr(gateway);
+
+	sockinfo = (struct sockaddr_in *)&rt.rt_dst;
+	sockinfo->sin_family = AF_INET;
+	sockinfo->sin_addr.s_addr = INADDR_ANY;
+
+	sockinfo = (struct sockaddr_in *)&rt.rt_genmask;
+	sockinfo->sin_family = AF_INET;
+	sockinfo->sin_addr.s_addr = INADDR_ANY;
+
+	rt.rt_flags = RTF_UP | RTF_GATEWAY;
+	rt.rt_dev = devName;
+
+	if (ioctl(sockfd, SIOCADDRT, &rt) < 0)
+	{
+		EXT_ERRORF("set gateway of %s as %s failed: %m", devName, gateway);
+		close(sockfd);
+		return EXIT_FAILURE;
+	}
+
+	close(sockfd);
+	
+	return EXIT_FAILURE;
+}
+
+
+
 char *cmnSysNetAddress( uint32_t address)
 {
 	static char addressStr[20];
@@ -286,7 +329,7 @@ int cmnSysNetInterfaceIndex(int fd, const char *devName)
 }
 
 
-static int _cmnSysNetMcastJoin(CmnMGroup *_group, char *groupIp)
+static int _cmnSysNetMcastJoin(CmnMultiGroup *_group, char *groupIp)
 {
 #define	__WITH_INDEX		1	/* define source interface with index or IP address */
 	int err;
@@ -353,16 +396,16 @@ static int _cmnSysNetMcastJoin(CmnMGroup *_group, char *groupIp)
 	return EXIT_SUCCESS;
 }
 
-static CmnMGroup _mGroup;
+static CmnMultiGroup _mGroup;
 
-CmnMGroup *cmnSysNetMGroupInit(const char *devName, char *groupIp)
+CmnMultiGroup *cmnSysNetMGroupInit(const char *devName, char *groupIp)
 {
-	CmnMGroup *_group = &_mGroup;	
+	CmnMultiGroup *_group = &_mGroup;	
 	struct sockaddr_in addr;
 //	int ttl = 10;
 	int on = 1;
 	
-	memset(_group, 0, sizeof(CmnMGroup));
+	memset(_group, 0, sizeof(CmnMultiGroup));
 	_group->address = INVALIDATE_VALUE_U32;
 	
 	memset(&addr, 0, sizeof(addr));
@@ -385,7 +428,7 @@ CmnMGroup *cmnSysNetMGroupInit(const char *devName, char *groupIp)
 	snprintf(_group->devName, sizeof(_group->devName), "%s", devName);
 	_group->changeGroup = _cmnSysNetMcastJoin;
 
-	EXT_DEBUGF(DEBUG_SYS_NET, ("Index of %s is %d",_group->devName, _group->ifIndex) );
+	EXT_DEBUGF(EXT_DBG_OFF, ("Index of %s is %d",_group->devName, _group->ifIndex) );
 #if 1
 	if (setsockopt(_group->socket, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)))
 	{
@@ -401,7 +444,7 @@ CmnMGroup *cmnSysNetMGroupInit(const char *devName, char *groupIp)
 	}
 
 	if (setsockopt(_group->socket, SOL_SOCKET, SO_BINDTODEVICE, devName, strlen(devName)))
-	{
+	{/* only root can call it */
 		EXT_ERRORF("setsockopt SO_BINDTODEVICE failed: %m");
 		goto no_option;
 	}
@@ -432,10 +475,37 @@ no_option:
 }
 
 
-void cmnSysNetMGroupDestory(CmnMGroup *_group)
+void cmnSysNetMGroupDestory(CmnMultiGroup *_group)
 {
 	close(_group->socket);
-	memset(_group, 0, sizeof(CmnMGroup));
+	memset(_group, 0, sizeof(CmnMultiGroup));
 	_group->address = INVALIDATE_VALUE_U32;
 }
+
+int cmnSysNetMulticastIP4Mac(uint32_t	ipAddress, EXT_MAC_ADDRESS *macAddress)
+{
+	if(IP4_ADDR_IS_MULTICAST(ipAddress) )
+	{/* Hash IP multicast address to MAC address.*/
+		macAddress->address[0] = LL_IP4_MULTICAST_ADDR_0;
+		macAddress->address[1] = LL_IP4_MULTICAST_ADDR_1;
+		macAddress->address[2] = LL_IP4_MULTICAST_ADDR_2;
+		macAddress->address[3] = ip4_addr2(ipAddress) & 0x7f;
+		macAddress->address[4] = ip4_addr3(ipAddress);
+		macAddress->address[5] = ip4_addr4(ipAddress);
+
+		return EXIT_SUCCESS;
+	}
+
+	return EXIT_FAILURE;
+}
+
+void cmnSysNetChangeByteOrderOfMac(EXT_MAC_ADDRESS *mac, unsigned char *address)
+{
+	int i;
+	for(i=0; i<EXT_MAC_ADDRESS_LENGTH; i++ )
+	{
+		address[i] = mac->address[EXT_MAC_ADDRESS_LENGTH-i-1];
+	}
+}
+
 

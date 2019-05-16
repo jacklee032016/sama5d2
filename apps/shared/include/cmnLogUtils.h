@@ -85,7 +85,6 @@ void log_information(int pri, const char* frmt,...);
 
 log_level_t get_current_level();
 
-char *cmn_read_file(const char *filename);
 
 void cmnThreadMask(char *threadName);
 

@@ -265,7 +265,7 @@ static void _sys_timer_quit(void)
 }
 
 /* in unit of ms, round to 10 ms */
-void *cmn_add_timer(int interval, CMN_THREAD_TIMER_CALLBACK callback, void *param, char *name)
+void *cmn_add_timer(int interval, CMN_THREAD_TIMER_CALLBACK callback, void *param, const char *name)
 {
 	cmn_timer_id_t  *t;
 	

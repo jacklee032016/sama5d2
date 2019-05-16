@@ -1,7 +1,6 @@
 
 
 #include "libCmn.h"
-#include "libMedia.h"
 #include "libMux.h"
 #include "libCmnSys.h"
 
@@ -18,7 +17,7 @@ int main(int argc, char *argv[])
 			NULL
 		};
 	
-	CmnMGroup *group = cmnSysNetMGroupInit("eth0", "239.111.0.1");
+	CmnMultiGroup *group = cmnSysNetMGroupInit("eth0", "239.111.0.1");
 
 	while(1)
 	{

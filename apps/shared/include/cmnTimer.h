@@ -69,7 +69,7 @@ extern int cmn_set_timer(int interval /* in unit of ms, round to 10 ms */, CMN_A
 
 
 /* Add a new timer to the pool of timers already running. Returns a timer ID, or NULL when an error occurs. */
-extern void *cmn_add_timer(int interval /* in unit of ms, round to 10 ms */, CMN_THREAD_TIMER_CALLBACK callback, void *param, char *name);
+extern void *cmn_add_timer(int interval /* in unit of ms, round to 10 ms */, CMN_THREAD_TIMER_CALLBACK callback, void *param, const char *name);
 
 
 /* Remove one of the multiple timers knowing its ID.  Returns a boolean value indicating success. */

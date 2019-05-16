@@ -3,7 +3,6 @@
 
 
 #include "libCmn.h"
-#include "libMedia.h"
 #include "libMux.h"
 
 static int _parseGlobalConfig(const char **p, MuxMain *muxMain, int linenum)
@@ -38,34 +37,6 @@ static int _parseGlobalConfig(const char **p, MuxMain *muxMain, int linenum)
 #if DEBUG_CONFIG_FILE
 		MUX_INFO("AUTHEN: %s", STR_BOOL_VALUE(muxMain->isAuthen));
 #endif
-	}
-	else if (!strcasecmp(cmd, "AvSyncType"))
-	{
-		cmnParseGetArg(arg, sizeof(arg), p);
-#if 1
-		muxMain->mediaCaptureConfig.avSyncType = CMN_MUX_FIND_SYNC_TYPE(arg);
-#else
-		if (!strcasecmp(arg, "None"))
-		{
-			muxMain->mediaCaptureConfig.avSyncType = MUX_SYNC_MASTER_NONE;
-		}
-		else if (!strcasecmp(arg, "Audio"))
-		{
-			muxMain->mediaCaptureConfig.avSyncType = MUX_SYNC_MASTER_AUDIO;
-		}
-		else if (!strcasecmp(arg, "Video"))
-		{
-			muxMain->mediaCaptureConfig.avSyncType = MUX_SYNC_MASTER_VIDEO;
-		}
-		else if (!strcasecmp(arg, "System"))
-		{
-			muxMain->mediaCaptureConfig.avSyncType = MUX_SYNC_MASTER_SYSTEM;
-		}
-		else
-		{
-			muxMain->mediaCaptureConfig.avSyncType = MUX_SYNC_MASTER_NONE;
-		}	
-#endif		
 	}
 	else if (!strcasecmp(cmd, "Daemon"))
 	{
@@ -124,57 +95,7 @@ static int _parseGlobalConfig(const char **p, MuxMain *muxMain, int linenum)
 		MUX_INFO("Controller UNIX Port: %s", muxMain->unixPort);
 #endif
 	}
-	/***** configuration for Player *****/
-	else if (!strcasecmp(cmd, "SDHomeDir"))
-	{
-		cmnParseGetArg(muxMain->mediaCaptureConfig.sdHome, CMN_NAME_LENGTH, p);
-#if DEBUG_CONFIG_FILE
-		MUX_INFO("SDHomeDir: %s", muxMain->mediaCaptureConfig.sdHome );
-#endif
-	}
-	else if (!strcasecmp(cmd, "USBHomeDir"))
-	{
-		cmnParseGetArg(muxMain->mediaCaptureConfig.usbHome, CMN_NAME_LENGTH, p);
-#if DEBUG_CONFIG_FILE
-		MUX_INFO("USBHomeDir: %s", muxMain->mediaCaptureConfig.usbHome );
-#endif
-	}
 
-	/***** configuration items for recorder *****/
-	else if (!strcasecmp(cmd, "RecordDevice"))
-	{
-		cmnParseGetArg(arg, sizeof(arg), p);
-
-		if (!strcasecmp(arg, "SDCard"))
-		{
-			muxMain->mediaCaptureConfig.storeType = MEDIA_DEVICE_SDCARD;
-		}
-		else
-		{
-			muxMain->mediaCaptureConfig.storeType = MEDIA_DEVICE_USBDISK;
-		}	
-#if DEBUG_CONFIG_FILE
-		MUX_INFO("RecordDevice: %d('%s')", muxMain->mediaCaptureConfig.storeType, arg );
-#endif
-	}
-
-	/* stream description */
-	else if (!strcasecmp(cmd, "Author"))
-	{
-		cmnParseGetArg(muxMain->mediaDescription.author, sizeof(muxMain->mediaDescription.author),  p);
-	}
-	else if (!strcasecmp(cmd, "Comment"))
-	{
-		cmnParseGetArg(muxMain->mediaDescription.comment, sizeof(muxMain->mediaDescription.comment), p);
-	}
-	else if (!strcasecmp(cmd, "Copyright"))
-	{
-		cmnParseGetArg(muxMain->mediaDescription.copyright, sizeof(muxMain->mediaDescription.copyright), p);
-	}
-	else if (!strcasecmp(cmd, "Title"))
-	{
-		cmnParseGetArg(muxMain->mediaDescription.title, sizeof(muxMain->mediaDescription.title), p);
-	}
 	else
 	{
 		MUX_ERROR("Invalidate configuration item: %s on line %d", cmd, linenum);
@@ -250,15 +171,6 @@ int cmnMuxMainParse(const char *filename, MuxMain *muxMain)
 	muxMain->muxLog.lstyle = USE_FILE;
 	muxMain->muxLog.llevel  = CMN_LOG_DEBUG;
 	muxMain->muxLog.isDaemonized = TRUE;
-
-
-	muxMain->mediaCaptureConfig.inputFrameRate  = 50;
-	muxMain->mediaCaptureConfig.outputFrameRate = 30;
-
-	muxMain->mediaCaptureConfig.audioType = 0; /* output audio type, only AAC is supported by HW, HA_CODEC_ID_E */
-	muxMain->mediaCaptureConfig.audioSampleRate = 48000;
-	muxMain->mediaCaptureConfig.audioFormat = 32;  /*32 bit or 16 bit per sample */
-	muxMain->mediaCaptureConfig.audioChannels = 2;	/* 2 or 1 */
 
 	cmn_list_init(SYS_PLAYLISTS(muxMain) );
 	muxMain->playlistLock = cmn_mutex_init();

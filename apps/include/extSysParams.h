@@ -24,6 +24,8 @@
 
 #include <stdint.h>
 
+#define	IP_ADDRESS_IN_NET_ORDER		1
+
 
 /** The 24-bit IANA IPv4-multicast OUI is 01-00-5e: */
 #define LL_IP4_MULTICAST_ADDR_0 0x01
@@ -144,22 +146,17 @@
 /** The IP address being used. */
 #define ETHERNET_CONF_IPADDR0					192
 #define ETHERNET_CONF_IPADDR1					168
-#if ARCH_ARM
-	#if EXTLAB_BOARD
-	#define ETHERNET_CONF_IPADDR2_TX			168
-	#define ETHERNET_CONF_IPADDR2_RX			168
-	#define ETHERNET_CONF_IPADDR3_TX			64
-	#else
-	#define ETHERNET_CONF_IPADDR2_TX			169
-	#define ETHERNET_CONF_IPADDR2_RX			169
-	#define ETHERNET_CONF_IPADDR3_TX			121
-	#endif
+
+#if 1//EXTLAB_BOARD
+#define ETHERNET_CONF_IPADDR2_TX				168
+#define ETHERNET_CONF_IPADDR2_RX				168
+#define ETHERNET_CONF_IPADDR3_TX				64
 #else
-	/* X86 test environment */
-	#define ETHERNET_CONF_IPADDR2_TX			166
-	#define ETHERNET_CONF_IPADDR2_RX			167
-	#define ETHERNET_CONF_IPADDR3_TX			2
+#define ETHERNET_CONF_IPADDR2_TX				169
+#define ETHERNET_CONF_IPADDR2_RX				169
+#define ETHERNET_CONF_IPADDR3_TX				121
 #endif
+
 
 #if ARCH_ARM
 #define ETHERNET_CONF_IPADDR3_RX				65
@@ -418,13 +415,13 @@
 #define ANSI_COLOR_RESET			"\x1b[0m"	/* for all colors, other than red, this must be used. April,15,2018. JL*/
 
 
-#define	ERROR_TEXT_BEGIN			"\t\e[31m ERR:"
-#define	ERROR_TEXT_END			"\e[0m"
+#define	EXT_ERROR_TEXT_BEGIN			"\t\e[31m ERR:"
+#define	EXT_ERROR_TEXT_END			"\e[0m"
 
 
-#define	WARN_TEXT_BEGIN			""ANSI_COLOR_MAGENTA"WARN:"
+#define	EXT_WARN_TEXT_BEGIN			""ANSI_COLOR_MAGENTA"WARN:"
 
-#define	INFO_TEXT_BEGIN			""ANSI_COLOR_BLUE"INFO:"
+#define	EXT_INFO_TEXT_BEGIN			""ANSI_COLOR_BLUE"INFO:"
 
 
 #ifndef __EXT_RELEASE__
@@ -446,10 +443,10 @@
                              
 	#define	EXT_INFOF(message...)		{printf(ANSI_COLOR_CYAN "%s:[%s-%u]:", sysTaskName(), __FILE__, __LINE__);EXT_PRINTF((message));printf((ANSI_COLOR_RESET EXT_NEW_LINE));}
 	
-	#define	EXT_ERRORF(message...)		{printf(ERROR_TEXT_BEGIN "%s: ERROR:[%s-%u]:", sysTaskName(), __FILE__, __LINE__);EXT_PRINTF((message)); printf(ERROR_TEXT_END  EXT_NEW_LINE);}
+	#define	EXT_ERRORF(message...)		{printf(EXT_ERROR_TEXT_BEGIN "%s: ERROR:[%s-%u]:", sysTaskName(), __FILE__, __LINE__);EXT_PRINTF((message)); printf(EXT_ERROR_TEXT_END  EXT_NEW_LINE);}
 
 //	#define	EXT_ASSERT(x)				{printf("Assertion \"%s\" failed at line %d in %s\n", x, __LINE__, __FILE__); while(1);}
-	#define	EXT_ASSERT(x, msg...)			{if((x)==0) {printf(ERROR_TEXT_BEGIN"%s: ASSERT: [%s-%u]:",  sysTaskName(), __FILE__, __LINE__ );printf(msg);printf((ERROR_TEXT_END EXT_NEW_LINE)); while(0){};}}
+	#define	EXT_ASSERT(x, msg...)			{if((x)==0) {printf(EXT_ERROR_TEXT_BEGIN"%s: ASSERT: [%s-%u]:",  sysTaskName(), __FILE__, __LINE__ );printf(msg);printf((EXT_ERROR_TEXT_END EXT_NEW_LINE)); while(0){};}}
 	#define	EXT_ABORT(fmt, args... )		printf("%s: ABORT in [" __FILE__ "-%u]:" fmt EXT_NEW_LINE, sysTaskName(), __LINE__, ##args );while(1){}
 #else
 	#define	EXT_PRINTF(x)						{;}
@@ -487,6 +484,11 @@
                                 (int)((d) & 0xff))
 
 #if IP_ADDRESS_IN_NET_ORDER	
+/* IP address in string form of 'a.b.c.d' */
+/* network/big byte-order: 
+*  sent : a sent first, then b; 
+*  storage: a saved in high address; d saved in lowest address
+*/
 #define CFG_MAKE_IP_ADDRESS(a,b,c,d) (((int)((d) & 0xff) << 24) | \
                                ((int)((c) & 0xff) << 16) | \
                                ((int)((b) & 0xff) << 8)  | \
@@ -678,6 +680,8 @@ typedef	struct
 typedef struct
 {
 	EXT_MAC_ADDRESS		mac;
+
+	/* in network byte-order: IP_ADDRESS_IN_NET_ORDER =1 */
 	uint32_t					ip;
 	uint32_t					audioIp;
 	uint32_t					ancIp;
@@ -1044,6 +1048,8 @@ typedef struct
 	((fpgaAuto)==FPGA_CFG_AUTO)?EXT_WEB_CFG_FIELD_FPGA_AUTO_V_AUTO:((fpgaAuto)==FPGA_CFG_MANUAL)?EXT_WEB_CFG_FIELD_FPGA_AUTO_V_MANUAL:((fpgaAuto)==FPGA_CFG_SDP)?EXT_WEB_CFG_FIELD_FPGA_AUTO_V_SDP:"None"
 
 
+struct _MuxMain;
+
 /* IP address, port number and state are all defined as unsigned type */
 struct	_EXT_RUNTIME_CFG
 {
@@ -1125,9 +1131,9 @@ struct	_EXT_RUNTIME_CFG
 	/* following fields are only for runtime and not save in NVRAM */
 	unsigned	int			debugOptions;
 
-	unsigned	int			debugHttpClient;
-	unsigned	int			debugHttp;
-	unsigned	int			debugUdpCmd;
+	unsigned	int			debugSdp;
+	unsigned	int			debugRest;
+	unsigned	int			debugCmd;
 	
 	unsigned int			currentTimestamp;	/* ms */
 	char					currentHttpConns;	/* number of current HTTP connection */
@@ -1143,6 +1149,10 @@ struct	_EXT_RUNTIME_CFG
 	void					*netif;
 
 	SC_CTRL				sc;
+
+	struct _MuxMain		*mMain;
+
+	void					*fpgaCfg;
 };//__attribute__((packed));
 
 //EXT_PACK_RESET();
@@ -1189,8 +1199,7 @@ void extBcd2Ascii(unsigned char src, char *dest);
 char extSysAtoInt8(const char *str, unsigned char *value);
 char	extMacAddressParse(EXT_MAC_ADDRESS *macAddress, const char *macStr);
 
-void extCfgFromFactory( EXT_RUNTIME_CFG *cfg );
-void extCfgFactoryKeepMac( EXT_RUNTIME_CFG *cfg );
+void cmnSysCfgFromFactory( EXT_RUNTIME_CFG *cfg );
 
 void extCfgInitAfterReadFromFlash(EXT_RUNTIME_CFG *runCfg);
 
@@ -1204,9 +1213,6 @@ unsigned int cmnMuxCRC32b(void *message, int len);
 
 
 char extTxMulticastIP2Mac(EXT_RUNTIME_CFG *runCfg);
-
-
-extern	EXT_RUNTIME_CFG			extRun;
 
 
 #define	EXT_DEBUG_FLAG_IP_IN					(1<<0)
@@ -1224,64 +1230,37 @@ extern	EXT_RUNTIME_CFG			extRun;
 #define	EXT_DEBUG_FLAG_CMD					(1<<16)		/* debug IP CMD */	
 
 
-
-#define	EXT_DEBUG_IS_ENABLE(flag)		\
-				((extRun.debugOptions&(flag)) )
-
-
-#define	EXT_DEBUG_PKTS_ENABLR()		\
-				((extRun.debugOptions != 0) )
-
-
-#define	EXT_DEBUG_SET_DISABLE(_optFlag)	\
-				CFG_CLEAR_FLAGS(extRun.debugOptions, (_optFlag) )
-
-#define	EXT_DEBUG_SET_ENABLE(_optFlag)	\
-				CFG_SET_FLAGS(extRun.debugOptions, (_optFlag) )
-
-
-#define	EXT_DEBUG_PKTS_IS_ENABLE()		\
-				((extRun.debugOptions != 0) )
-
-#define	EXT_DEBUG_PKTS_SET_DISABLE()	\
-				(extRun.debugOptions = 0 )
-
-#define	EXT_DEBUG_PKTS_SET_ENABLE()	\
-				(extRun.debugOptions = 1 )
-
-
 /* debug for UDP Command  */
-#define	EXT_DEBUG_UDP_CMD_IS_ENABLE()		\
-				((extRun.debugUdpCmd != 0) )
+#define	EXT_DEBUG_CMD_IS_ENABLE(runCfg)		\
+				(((runCfg)->debugCmd != 0) )
 
-#define	EXT_DEBUG_UDP_CMD_SET_DISABLE()	\
-				(extRun.debugUdpCmd = 0 )
+#define	EXT_DEBUG_CMD_SET_DISABLE(runCfg)	\
+				((runCfg)->debugUdpCmd = 0 )
 
-#define	EXT_DEBUG_UDP_CMD_SET_ENABLE()	\
-				(extRun.debugUdpCmd = 1 )
-
+#define	EXT_DEBUG_CMD_SET_ENABLE(runCfg)	\
+				((runCfg)->debugUdpCmd = 1 )
 
 
 /* debug for HTTP server */
-#define	EXT_DEBUG_HTTP_IS_ENABLE()		\
-				((extRun.debugHttp != 0) )
+#define	EXT_DEBUG_REST_IS_ENABLE( runCfg )		\
+				((runCfg)->debugRest != 0) 
 
-#define	EXT_DEBUG_HTTP_SET_DISABLE()	\
-				(extRun.debugHttp = 0 )
+#define	EXT_DEBUG_REST_SET_DISABLE(runCfg)	\
+				((runCfg)->debugRest = 0 )
 
-#define	EXT_DEBUG_HTTP_SET_ENABLE()	\
-				(extRun.debugHttp = 1 )
+#define	EXT_DEBUG_REST_SET_ENABLE(runCfg)	\
+				( (runCfg)->debugRest = 1 )
 
 
 /* debug for HTTP client */
-#define	EXT_DEBUG_HC_IS_ENABLE()		\
-				((extRun.debugHttpClient != 0) )
+#define	EXT_DEBUG_SDP_IS_ENABLE( runCfg )		\
+				(( (runCfg)->debugSdp != 0) )
 
-#define	EXT_DEBUG_HC_SET_DISABLE()	\
-				(extRun.debugHttpClient = 0 )
+#define	EXT_DEBUG_HC_SET_DISABLE(runCfg)	\
+				((runCfg)->debugSdp = 0 )
 
-#define	EXT_DEBUG_HC_SET_ENABLE()	\
-				(extRun.debugHttpClient= 1 )
+#define	EXT_DEBUG_HC_SET_ENABLE(runCfg)	\
+				((runCfg)->debugSdp = 1 )
 
 
 #define	EXT_IS_TX(runCfg)	\
@@ -1332,7 +1311,8 @@ char cmnCmdVersion(const struct _EXT_CLI_CMD *cmd,  char *outBuffer,  unsigned i
 
 
 
-char bspCfgSave( EXT_RUNTIME_CFG *cfg, EXT_CFG_TYPE cfgType );
+int cmnSysCfgSave( EXT_RUNTIME_CFG *cfg, EXT_CFG_TYPE cfgType );
+int cmnSysCfgRead( EXT_RUNTIME_CFG *cfg, EXT_CFG_TYPE cfgType);
 
 #ifdef	ARM 
 #define	FOR_U32 	"lu"
@@ -1356,7 +1336,6 @@ char cmnUtilsParseInt8(char *strValue, uint8_t  *value);
 void extSysClearConfig(EXT_RUNTIME_CFG *rxCfg);
 
 char extSysCompareParams(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg);
-char extSysConfigCtrl(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg);
 char extSysConfigSdpClient(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg);
 
 
@@ -1410,6 +1389,16 @@ unsigned char rs232SendHexStr(char *str );
 uint32_t sys_get_ms(void);
 
 char *sysTimestamp(void);
+
+
+#define IP4_ADDR_IS_MULTICAST(addr)			(((addr) & _PP_HTONL(0xf0000000UL)) == _PP_HTONL(0xe0000000UL))
+
+#define IP4_ADDR_IS_LINKLOCAL(addr)			(((addr) & _PP_HTONL(0xffff0000UL)) == _PP_HTONL(0xa9fe0000UL))
+
+#define ip4_addr1(ipaddr32)			( ((ipaddr32)&_PP_HTONL(0x000000FF)) >> 0)
+#define ip4_addr2(ipaddr32)			( ((ipaddr32)&_PP_HTONL(0x0000FF00)) >> 8)
+#define ip4_addr3(ipaddr32)			( ((ipaddr32)&_PP_HTONL(0x00FF0000)) >> 16)
+#define ip4_addr4(ipaddr32)			( ((ipaddr32)&_PP_HTONL(0xFF0000FF)) >> 24)
 
 
 #endif

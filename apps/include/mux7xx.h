@@ -1,75 +1,20 @@
+/*
+* definitions about board dependent
+* include from libMux.h, definitions for MuxMain
+*/
 
 #ifndef	__MUX_7XX_H__
 #define	__MUX_7XX_H__
 
-#define	IP_ADDRESS_IN_NET_ORDER		1
-
-/* LED */
-#define VIDEO_LED_MAGIC 'V'
-#define VIDEO_LED_ON  	_IO(VIDEO_LED_MAGIC,0)  
-#define VIDEO_LED_OFF 	_IO(VIDEO_LED_MAGIC,1)
-
-#define POWER_LED_MAGIC 'P'
-#define POWER_LED_ON  	_IO(POWER_LED_MAGIC, 0)  
-#define POWER_LED_OFF 	_IO(POWER_LED_MAGIC, 1)
-
-#define ACT_LED_MAGIC 'A'
-#define ACT_LED_ON  	_IO(ACT_LED_MAGIC, 0)  
-#define ACT_LED_OFF 	_IO(ACT_LED_MAGIC, 1)
+/* board type, so libMux and libCmnSys can be customized */
+#define	EXT_BOARD_TYPE			MUX_BOARD_TYPE_774
 
 
-/* button */
-#define BUTTON_MAGIC	'B'
-#define READ_BUTTON  	_IOR(BUTTON_MAGIC, 1, unsigned char *)
-
-
-#define		DEV_HOME				"/dev"
-
-#define		MUX_DEV_BUTTON		DEV_HOME"/muxbutton"
-#define		MUX_DEV_SWITCH		DEV_HOME"/muxswitch"
-#define		MUX_DEV_LED			DEV_HOME"/powerled"
-
-#define		MUX_DEV_RS232			DEV_HOME"/ttyS1"
-#define		MUX_DEV_WATCHDOG	DEV_HOME"/watchdog"
-#define		MUX_DEV_EXP_RESET	DEV_HOME"/exprst"
-#define		MUX_DEV_HDMI_RESET	DEV_HOME"/hdmirst"	/* no in 774 */
-
-#define		MUX_DEV_I2C_0			DEV_HOME"/i2c-0"
-#define		MUX_DEV_I2C_1			DEV_HOME"/i2c-1"
-
-
-#define MAX_SPI_WRITE 64
-
-#define		SPI_0_FILENAME				DEV_HOME"/spidev32766.0"
-
-#define SPI_TST_ADDR 0x0001
-#define SPI_TST_D0 0x5A
-#define SPI_TST_D1 0xC3
-
-
-#define		SET_LED_BLINK(muxMain)		((muxMain)->ledCtrl.ledMode = LED_MODE_BLINK)
-
-#define		LINUX_SYS_ROUTE_PROC			"/proc/net/route"
-
-typedef struct
-{
-	unsigned char Cmd_Code;
-	unsigned char Src_Addr;
-	unsigned char Dest_Addr;
-} CEC_Cmd_Data;
-
-unsigned int ASCII_2_HEX(unsigned char * ASCIIBuffer);
-
-#define TX_COM_MSG_MAX_DATA_SIZE 508
-#define TX_COM_PACKET_SIZE  TX_COM_MSG_MAX_DATA_SIZE + 4
-
-#define INFO_FRAME_PORT 6000
-
-// int multicast_ip_change_flag;
+/* debug option, in EXT_DEBUG_XXXX  */
+#define	EXT_DEBUG_INIT				EXT_DBG_ON
 
 
 #include "extSysParams.h"
-
 
 
 typedef	enum
@@ -141,6 +86,24 @@ typedef	struct _Rs232Ctrl
 
 
 #define	DEBUG_SYS_NET		EXT_DBG_ON
+
+
+
+/* following devices attached on I2C of MCU directly */
+#define	EXT_I2C_PCA9554_ADDRESS				(0xE0 >> 1)
+
+#define	EXT_I2C_ADDRESS_LM1983				(0xCA >> 1)		/* ADDR pin is Tie low */
+#define	EXT_I2C_ADDRESS_LM1983_FLOAT		(0xCE >> 1)
+#define	EXT_I2C_ADDRESS_FPGA					(0x60 >> 1)
+#define	EXT_I2C_ADDRESS_FPGA_B				(0x62 >> 1)
+
+
+#define	EXT_I2C_PCA9554_CS_MAC				(4)	/* CS0, MAC address; not used */
+#define	EXT_I2C_PCA9554_CS_SENSOR			(5)	/* CS1, sensor and EEPROM  */
+#define	EXT_I2C_PCA9554_CS_FPGA				(6)	/* CS2, FPGA */
+#define	EXT_I2C_PCA9554_CS_BOOTROM			(7)	/* CS3, Ethernet switch */
+
+#define	EXT_I2C_PCA9554_CS_NONE				(0xFF) /* connect to I2C of MCU directly */
 
 
 #endif

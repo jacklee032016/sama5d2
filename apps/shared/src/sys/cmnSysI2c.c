@@ -129,3 +129,122 @@ int cmnSysI2cRead(int deviceID, unsigned char offset, unsigned char *buffer, int
 	return ret;
 }
 
+
+int extI2CRead(unsigned char chanNo, unsigned char deviceAddress, unsigned int regAddress, unsigned char regAddressSize, unsigned char *regVal, unsigned char regSize)
+{
+#if 0
+	int twiStatus;
+	twihs_packet_t	packet;
+
+#if EXTLAB_BOARD
+	if(chanNo != EXT_I2C_PCA9554_CS_NONE)
+	{
+		_extI2cPca9554Config(chanNo);
+	}
+	else
+		_extI2cPca9554Config(0);
+
+#endif
+
+	/* Configure the data packet to be received */
+	packet.chip        = deviceAddress;
+
+#if 0
+	if(regAddressSize >= 1)
+	{
+		packet.addr[0] = regAddress;
+	}
+	if(regAddressSize >= 2 )
+	{
+		packet.addr[1] = regAddress >> 8;
+	}
+	if(regAddressSize >= 3)
+	{
+		packet.addr[2] = regAddress >> 16;
+	}	
+	packet.addr[0]     = regAddress;
+	packet.addr[1]     = regAddress >> 8;
+	packet.addr[2]     = regAddress >> 16;
+	
+	packet.addr_length = regAddressSize;
+#else
+	I2C_ASSIGN_ADDRESS(packet, regAddress, regAddressSize);
+#endif
+
+	packet.buffer = (void *)regVal;
+	packet.length = regSize;
+
+	twiStatus= twihs_master_read(TWIHS0, &packet);
+	if (twiStatus  != TWIHS_SUCCESS)
+	{
+//		EXT_ABORT("TWIHS read channel %d, device %x, regAdd:%x, AddSize:%d failed: %d", chanNo, deviceAddress, regAddress, regAddressSize, twiStatus);
+#if __BSP_DEBUG_I2C_NAME
+		EXT_ERRORF(( "I2C read channel %d, device %s, regAdd:%x, AddSize:%d failed: %d", chanNo, _extI2cDeviceName(deviceAddress), regAddress, regAddressSize, twiStatus));
+#else
+		EXT_ERRORF(( "I2C read channel %d, device %x, regAdd:%x, AddSize:%d failed: %d", chanNo, deviceAddress, regAddress, regAddressSize, twiStatus));
+#endif
+		return EXIT_FAILURE;
+	}
+#endif
+
+	return EXIT_SUCCESS;
+}
+
+int extI2CWrite(unsigned char chanNo, unsigned char deviceAddress, unsigned int regAddress, unsigned char regAddressSize,  unsigned char *regVal, unsigned char regSize)
+{
+#if 0	
+	int twiStatus;
+	twihs_packet_t packet;
+
+#if EXTLAB_BOARD
+	if(chanNo != EXT_I2C_PCA9554_CS_NONE)
+	{
+		_extI2cPca9554Config(chanNo);
+	}
+	else
+		_extI2cPca9554Config(0);
+#endif
+
+	/* Configure the data packet to be transmitted */
+	packet.chip        = deviceAddress;
+
+#if 0
+	if(regAddressSize >= 1)
+	{
+		packet.addr[0] = regAddress;
+	}
+	if(regAddressSize >= 2 )
+	{
+		packet.addr[1] = regAddress >> 8;
+	}
+	if(regAddressSize >= 3)
+	{
+		packet.addr[2] = regAddress >> 16;
+	}	
+	packet.addr_length = regAddressSize;
+#else
+	I2C_ASSIGN_ADDRESS(packet, regAddress, regAddressSize);
+#endif
+
+	packet.buffer = (void *)regVal;
+	packet.length = regSize;
+
+	twiStatus = twihs_master_write(TWIHS0, &packet);
+	if ( twiStatus != TWIHS_SUCCESS)
+	{
+#if __BSP_DEBUG_I2C_NAME
+		EXT_ERRORF(("I2C write channel %d, device %s, regAdd:0x%x, regSize:%d, dataSize:%d failed: %d", 
+			chanNo, _extI2cDeviceName(deviceAddress), regAddress, regAddressSize, regSize, twiStatus));
+#else
+		EXT_ERRORF(("I2C write channel %d, device %x, regAdd:0x%x, regSize:%d, dataSize:%d failed: %d", 
+			chanNo, deviceAddress, regAddress, regAddressSize, regSize, twiStatus));
+#endif
+		return EXIT_FAILURE;
+	}
+#endif
+
+	return EXIT_SUCCESS; 
+}
+
+
+

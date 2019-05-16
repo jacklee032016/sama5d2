@@ -8,7 +8,6 @@
 #include <arpa/inet.h>
 
 #include "libCmn.h"
-#include "libMedia.h"
 #include "libMux.h"
 
 #include "_cmnMux.h"
@@ -538,7 +537,15 @@ int cmnMuxDataConnRestInput(struct DATA_CONN *dataConn)
 	_dataArrayObj = cJSON_GetObjectItem(reqObj, IPCMD_NAME_KEYWORD_DATA);
 	if(cJSON_IsArray(_dataArrayObj) )
 	{
-		dataConn->dataObj = cJSON_GetArrayItem(_dataArrayObj, 0);
+		/* for POST of SDP object, it is an array with more than one item */
+		if(cJSON_GetArraySize(_dataArrayObj) == 1)
+		{
+			dataConn->dataObj = cJSON_GetArrayItem(_dataArrayObj, 0);
+		}
+		else
+		{
+			dataConn->dataObj = _dataArrayObj;
+		}
 	}
 	else
 	{

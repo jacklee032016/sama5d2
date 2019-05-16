@@ -1,5 +1,7 @@
 # rule for every directory
 
+# ARCH=ARM
+
 # support PC environments
 ifndef  ARCH
 ARCH=X86
@@ -88,7 +90,12 @@ endif
 
 CC_CFLAGS+= -Wno-deprecated
 
-CFLAGS += -DROOT_DIR='"$(ROOT_DIR)"' -I$(ROOT_DIR) $(INCLUDE_DIR) -I. -I./ 
+CFLAGS += -DROOT_DIR='"$(ROOT_DIR)"' -I$(ROOT_DIR) $(INCLUDE_DIR) -I. -I./ \
+			-fdata-sections -ffunction-sections 
+
+# -fdata-sections -ffunction-sections : remove not used symbole when linking, but only usable in X86 static library, not ARM shared library
+# 05.14, 2019
+
 
 SHARED_CFLAGS += -I$(SHARED_HOME)/include -I$(SHARED_HOME)/src/sys/include
 SHARED_LDFLAGS += -L$(SHARED_HOME)/Linux.bin.$(ARCH)/lib -lMux -lShared 
@@ -113,7 +120,7 @@ MISC_CFLAGS += -g -Wno-error -Wno-error=deprecated-declarations -Wdeprecated-dec
 			-Wno-switch -Wno-format-zero-length -Wno-pointer-sign \
 			-O3 -fno-math-errno -fno-signed-zeros -fno-tree-vectorize -Werror=format-security \
 			-Werror=return-type \
-			-Werror=vla -Wformat -fdiagnostics-color=auto -Wno-maybe-uninitialized 
+			-Werror=vla -Wformat -fdiagnostics-color=auto -Wno-maybe-uninitialized \
 
 # -Wno-error : disable all warns as error
 #-MMD -MF -MT\
@@ -183,4 +190,4 @@ else
 
 endif
 
-LDFLAGS := $(LDFLAGS) -L$(BIN_DIR)/lib \
+LDFLAGS := $(LDFLAGS) -L$(BIN_DIR)/lib -Wl,--gc-sections \

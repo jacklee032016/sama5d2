@@ -19,51 +19,12 @@ int extSystemJsonInit(const cJSON *array)
 }
 
 
-cJSON *extSystemFindObject(MuxMain *muxMain, const char*objName )
-{
-	cJSON *obj =	cJSON_GetObjectItem(muxMain->systemJson, objName);
-	if (obj== NULL)
-	{
-		MUX_ERROR("No data for '%s' is found", objName);
-	}
-	return obj;
-}
-
-
-/* only called by process of IP command */
-cJSON *extSystemGetSubItem(cJSON *sysObj, char *item, int index)
-{
-	cJSON *itemObj;
-
-	itemObj = cJSON_GetObjectItem(sysObj, item);
-	if (itemObj== NULL)
-	{
-		MUX_ERROR("No data for '%s' is found", item);
-		return NULL;
-	}
-	
-	if(index != INVALIDATE_VALUE_U32)
-	{
-		cJSON *obj = cJSON_GetArrayItem(itemObj, index);
-		if(obj == NULL)
-		{
-			MUX_ERROR("No index#%d in data item '%s' is found", index, item);
-		}
-
-		return obj;
-	}
-
-
-	MUX_DEBUG_JSON_OBJ(itemObj);
-	
-	return itemObj;
-}
 
 cJSON *extSystemGetKey(cJSON *sysObj, char *item, int index, char *key)
 {
 	cJSON *itemObj, *destObj;
 
-	itemObj = extSystemGetSubItem(sysObj, item, index);
+	itemObj = cmnJsobSystemGetSubItem(sysObj, item, index);
 	if(item == NULL)
 	{
 		MUX_ERROR("No data for '%s' is found", item);
@@ -80,95 +41,103 @@ cJSON *extSystemGetKey(cJSON *sysObj, char *item, int index, char *key)
 	return destObj;
 }
 
-
-/* refresh params into JSON object */
-int extSystemUpdateJsonObject(MuxMain *muxMain)
+static int	_extSysNetInit(MuxMain		*muxMain)
 {
-	cJSON *newObj = NULL;
-	cJSON *itemObj = NULL;
-	char macAddress[128];
+	char *ifName = MUX_ETH_DEVICE;
+	EXT_RUNTIME_CFG		*runCfg = &muxMain->runCfg;
 	
+	runCfg->local.ip = cmnSysNetGetIp(ifName);
+	runCfg->ipMask = cmnSysNetGetMask(ifName);
+	runCfg->ipGateway = cmnSysNetGetDefaultGw(ifName);
 
-	itemObj = extSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_SYSTEM, INVALIDATE_VALUE_U32);
-	
-	newObj = cJSON_CreateString(cmnSysNetAddress(muxMain->runCfg.local.ip) );
-	cJSON_ReplaceItemInObject(itemObj, FIELD_SYS_CFG_ADDRESS, newObj);
-
-	newObj = cJSON_CreateString(cmnSysNetAddress(muxMain->runCfg.ipMask) );
-	cJSON_ReplaceItemInObject(itemObj, FIELD_SYS_CFG_NETMASK, newObj);
-
-	newObj = cJSON_CreateString(cmnSysNetAddress(muxMain->runCfg.ipGateway) );
-	cJSON_ReplaceItemInObject(itemObj, FIELD_SYS_CFG_GATEWAY, newObj);
-
-	snprintf(macAddress, sizeof(macAddress), "%.2X:%.2X:%.2X:%.2X:%.2X:%.2X" , 
-		muxMain->runCfg.local.mac.address[0], muxMain->runCfg.local.mac.address[1], muxMain->runCfg.local.mac.address[2], 
-		muxMain->runCfg.local.mac.address[3], muxMain->runCfg.local.mac.address[4], muxMain->runCfg.local.mac.address[5]);
-
-	newObj = cJSON_CreateString(macAddress);
-	cJSON_ReplaceItemInObject(itemObj, FIELD_SYS_CFG_MAC, newObj);
-	
+	if(cmnSysNetGetMacAddress(ifName, &muxMain->runCfg.local.mac) == EXIT_FAILURE)
+	{
+		return EXIT_FAILURE;
+	}
+		
+	EXT_DEBUGF(EXT_DEBUG_INIT, ("IP is %s, 0x%x", cmnSysNetAddress(runCfg->local.ip), runCfg->local.ip) );
+	EXT_DEBUGF(EXT_DEBUG_INIT, ("MASK is %s, 0x%x", cmnSysNetAddress(runCfg->ipMask), runCfg->ipMask));
+	EXT_DEBUGF(EXT_DEBUG_INIT, ("Gateway is %s, 0x%x", cmnSysNetAddress(runCfg->ipGateway), runCfg->ipGateway) );
+	EXT_DEBUGF(EXT_DEBUG_INIT, ("Mac : %.2X:%.2X:%.2X:%.2X:%.2X:%.2X" , runCfg->local.mac.address[0], runCfg->local.mac.address[1], runCfg->local.mac.address[2], 
+		runCfg->local.mac.address[3], runCfg->local.mac.address[4], runCfg->local.mac.address[5]) );
 
 	return EXIT_SUCCESS;
 }
 
 
+static int	_extSysJsonInit(MuxMain		*muxMain)
+{
+	muxMain->systemJson = cmnMuxJsonLoadConfiguration(MUX_SYSTEM_JSON_CONFIG);
+	if (muxMain->systemJson == NULL)
+	{
+		MUX_ERROR("IP Command configuration file '%s' Parsing failed", MUX_SYSTEM_JSON_CONFIG);
+		return EXIT_FAILURE;
+	}
+
+#if 0//EXT_DEBUG_INIT
+	int count = 0, i;
+	count = cJSON_GetArraySize(muxSystemJson);
+	MUX_DEBUG("Total %d items", count );
+	for(i=0; i < count; i++ )
+	{
+		cJSON *item = cJSON_GetArrayItem(muxSystemJson, i);
+		cJSON *obj = cJSON_GetArrayItem(item, 0);
+		MUX_DEBUG("Item#%d:%s, No#1:%s", i, item->string, obj->string );
+		
+		if(obj)
+		{
+//				MUX_DEBUG("\t#%d: %s:%s", i, type->string, type->valuestring);
+			int _count = extSystemJsonInit(item);
+			MUX_DEBUG("\tTotal %d==%d sub functions", _count, cJSON_GetArraySize(item) );
+		}
+	}
+#endif
+
+	return cmnSysJsonUpdate(muxMain);
+}
+
+
 int32_t	extSystemInit(MuxMain		*muxMain)
 {
-//	uint32_t ip, mask;
-	char *ifName ="eth0";
 	EXT_RUNTIME_CFG		*runCfg = &muxMain->runCfg;
+	unsigned char isTx = EXT_FALSE;
+	int ret;
 
-	extCfgFromFactory(runCfg);
+	/* read FPGA info to determine whether this is TX or RX before get other configuration */
+	if(sysFpgaCheck(runCfg)== EXIT_FAILURE)
+	{
+		EXT_ERRORF("Check FPGA failed");
+	}
+
+	isTx = runCfg->isTx;
+	ret = cmnSysCfgRead(runCfg, EXT_CFG_MAIN);
+	runCfg->isTx = isTx;
+
+	if(ret == EXIT_FAILURE)
+	{
+		MUX_ERROR("Read configuration data failed, using factory default data");
+		cmnSysCfgFromFactory(runCfg);
+	}
+
+	if(_extSysNetInit(muxMain)== EXIT_FAILURE)
+	{
+		MUX_ERROR("Network initialization failed");
+		return EXIT_FAILURE;
+	}
+
+	if(_extSysJsonInit(muxMain)== EXIT_FAILURE)
+	{
+		MUX_ERROR("JSON initialization failed");
+		return EXIT_FAILURE;
+	}
+
+	/* config FPGA and join multicast group */
+	if(sysFpgaInit(runCfg)== EXIT_FAILURE)
+	{
+		MUX_ERROR("FPGA failed");
+	}
 	
-	{
-		runCfg->local.ip = cmnSysNetGetIp(ifName);
-		runCfg->ipMask = cmnSysNetGetMask(ifName);
-		runCfg->ipGateway = cmnSysNetGetDefaultGw(ifName);
-
-		if(cmnSysNetGetMacAddress(ifName, &muxMain->runCfg.local.mac) == EXIT_FAILURE)
-		{
-			return EXIT_FAILURE;
-		}
-		
-		MUX_DEBUG("IP is %s, 0x%x", cmnSysNetAddress(runCfg->local.ip), runCfg->local.ip);
-		MUX_DEBUG("MASK is %s, 0x%x", cmnSysNetAddress(runCfg->ipMask), runCfg->ipMask);
-		MUX_DEBUG("Gateway is %s, 0x%x", cmnSysNetAddress(runCfg->ipGateway), runCfg->ipGateway);
-		MUX_DEBUG("Mac : %.2X:%.2X:%.2X:%.2X:%.2X:%.2X" , runCfg->local.mac.address[0], runCfg->local.mac.address[1], runCfg->local.mac.address[2], 
-			runCfg->local.mac.address[3], runCfg->local.mac.address[4], runCfg->local.mac.address[5]);
-
-	}
-
-	{
-		cJSON				*muxSystemJson = NULL;
-		int count = 0, i;
-
-		muxSystemJson = cmnMuxJsonLoadConfiguration(MUX_SYSTEM_CONFIG_FILE);
-		if (muxSystemJson== NULL)
-		{
-			MUX_ERROR("IP Command configuration file '%s' Parsing failed", MUX_SYSTEM_CONFIG_FILE);
-			return EXIT_FAILURE;
-		}
-		muxMain->systemJson = muxSystemJson;
-
-		count = cJSON_GetArraySize(muxSystemJson);
-		MUX_DEBUG("Total %d items", count );
-		for(i=0; i < count; i++ )
-		{
-			cJSON *item = cJSON_GetArrayItem(muxSystemJson, i);
-			cJSON *obj = cJSON_GetArrayItem(item, 0);
-			MUX_DEBUG("Item#%d:%s, No#1:%s", i, item->string, obj->string );
-			
-			if(obj)
-			{
-//				MUX_DEBUG("\t#%d: %s:%s", i, type->string, type->valuestring);
-				int _count = extSystemJsonInit(item);
-				MUX_DEBUG("\tTotal %d==%d sub functions", _count, cJSON_GetArraySize(item) );
-			}
-		}
-	}
-
-
-	return extSystemUpdateJsonObject(muxMain);
+	return EXIT_SUCCESS;
 }
 
 

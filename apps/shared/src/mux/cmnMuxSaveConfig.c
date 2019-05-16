@@ -6,7 +6,6 @@
 #include <ctype.h>
 
 #include "libCmn.h"
-#include "libMedia.h"
 #include "libMux.h"
 
 static int _savePrompt(FILE *f)
@@ -260,42 +259,6 @@ static int _saveGlobalConfig(FILE *f, MuxMain *muxMain)
 	res = fprintf(f, "DebugLevel\t\t%d\n\n", muxMain->muxLog.llevel);
 	res = fprintf(f, "Daemon\t\t%s\n\n\n", STR_BOOL_VALUE(muxMain->muxLog.isDaemonized) );
 	
-	/* storage config */
-	res = fprintf(f, "## Storage configuration ##\nSDHomeDir\t\t%s\n\n", muxMain->mediaCaptureConfig.sdHome);
-	res = fprintf(f, "USBHomeDir\t\t%s\n\n", muxMain->mediaCaptureConfig.usbHome);
-	if(muxMain->mediaCaptureConfig.storeType ==MEDIA_DEVICE_SDCARD)
-	{
-		name = "SDCard";
-	}
-	else if(muxMain->mediaCaptureConfig.storeType ==MEDIA_DEVICE_USBDISK)
-	{
-		name = "USBDisk";
-	}
-	else
-	{
-		name = "USBDisk";
-	}
-	res = fprintf(f, "RecordDevice\t\t%s\n\n\n", name );
-
-	/* capture configuration: audio */
-	res = fprintf(f, "## Audio capturing configuration ##\nCaptureAudioType\t\t%s\n\n", (muxMain->mediaCaptureConfig.audioType==0)?"AAC":"MP3" );
-	res = fprintf(f, "CaptureAudioSampleRate\t\t%d\n\n", muxMain->mediaCaptureConfig.audioSampleRate);
-	res = fprintf(f, "CaptureAudioFormat\t\t%d\n\n", muxMain->mediaCaptureConfig.audioFormat);
-	res = fprintf(f, "CaptureAudioChannels\t\t%d\n\n", muxMain->mediaCaptureConfig.audioChannels);
-
-	res = fprintf(f, "AvSyncType\t\t%s\n\n\n", CMN_MUX_FIND_SYNC_NAME(muxMain->mediaCaptureConfig.avSyncType));
-
-#if 0
-	res = fprintf(f, "EnableScreenDebug\t\t%s\n"), STR_BOOL_VALUE(muxMain->mediaCaptureConfig.enableScreenDebug) );
-	res = fprintf(f, "WindowKeepLastFrame\t\t%s\n\n", STR_BOOL_VALUE(muxMain->mediaCaptureConfig.keepLastFrame) );
-#endif
-
-	res = fprintf(f, "\n## Stream description ## \n");
-	res = fprintf(f, "Author\t\t%s\n", muxMain->mediaDescription.author);
-	res = fprintf(f, "Comment\t\t%s\n", muxMain->mediaDescription.comment);
-	res = fprintf(f, "Copyright\t\t%s\n", muxMain->mediaDescription.copyright);
-	res = fprintf(f, "Title\t\t%s\n\n\n", muxMain->mediaDescription.title);
-
 	return res;
 }
 

@@ -213,7 +213,7 @@ typedef	enum _MUX_MEDIA_TYPE
 
 #define	WARN_TEXT_BEGIN			""ANSI_COLOR_MAGENTA"WARN:"
 
-#define	INFO_TEXT_BEGIN			""ANSI_COLOR_BLUE"INFO:"
+#define	INFO_TEXT_BEGIN			""ANSI_COLOR_YELLOW"INFO:"
 
 
 
@@ -533,6 +533,9 @@ extern volatile int recvSigalTerminal;
 	{ char *printedStr =cJSON_Print((obj));  MUX_DEBUG("JSON object %s :\n'%s'", #obj, printedStr);	\
 		free(printedStr);}
 
+
+char *cmn_read_file(const char *filename, uint32_t *size);
+int cmn_write_file(const char *filename, void *data, uint32_t size);
 
 
 #ifdef __cplusplus

@@ -177,62 +177,6 @@ static int _muxMainStartThreadEvent(MuxMain *muxMain, CmnThread *thread, void *d
 	return -EXIT_FAILURE;
 }
 
-static int _muxMainRegisterConsumer(MuxMain *muxMain, MuxMediaConsumer *mediaConsumer, char *captureName)
-{
-	MuxMediaCapture *mediaCapture = muxMain->mediaCaptures;
-	
-	if(!mediaCapture)
-	{
-		MUX_WARN("No media capturer is available, register consumer '%s' failed", mediaConsumer->name);
-		return EXIT_FAILURE;
-	}
-	
-	
-	while(mediaCapture)
-	{
-		if(!strcasecmp(mediaCapture->name, captureName))
-		{
-			ADD_ELEMENT(mediaCapture->mediaConsumers, mediaConsumer);
-			mediaConsumer->mediaCapture = mediaCapture;
-			mediaCapture->nbConsumers++;
-
-			MUX_INFO("Media consumer of '%s' is registered in Media Capturer '%s'!", mediaConsumer->name, captureName);
-			return EXIT_SUCCESS;
-		}
-		
-		mediaCapture = mediaCapture->next;
-	}
-
-	MUX_WARN("No media capturer of name '%s' is available, register consumer '%s' failed", captureName, mediaConsumer->name);
-	return EXIT_FAILURE;
-}
-
-static int _muxMainAddCapture(MuxMain *muxMain, MuxMediaCapture *mediaCapture)
-{
-	MuxMediaCapture *_tmp = muxMain->mediaCaptures;
-	int ret = EXIT_SUCCESS;
-
-	while(_tmp)
-	{
-		if(!strcasecmp(_tmp->name, mediaCapture->name) )
-		{
-			CMN_ABORT("Media capturer with name of '%s' has been registered, so add media capture '%s' failed", mediaCapture->name);
-			return EXIT_FAILURE;
-		}
-
-		_tmp = _tmp->next;
-	}
-
-	mediaCapture->muxMain = muxMain;
-	ADD_ELEMENT(muxMain->mediaCaptures, mediaCapture);
-	if(mediaCapture->createMediaDescribers )
-	{
-		ret = mediaCapture->createMediaDescribers(mediaCapture);
-	}
-	
-	return ret;
-}
-
 
 int main(int argc, char **argv)
 {
@@ -240,8 +184,6 @@ int main(int argc, char **argv)
 	MuxMain		*muxMain = &_muxMain;
 	MuxPlugIn	*plugin = NULL;
 	MuxThread 	*muxThread = NULL;
-	MuxMediaCapture *mediaCapture = NULL;
-	int	i;
 	
 	int res = EXIT_SUCCESS;
 
@@ -251,6 +193,7 @@ int main(int argc, char **argv)
 	CMN_SHARED_INIT();
 
 	memset(muxMain, 0 , sizeof(MuxMain) );
+	muxMain->runCfg.mMain = muxMain;
 
 	cmnThreadSetName("main");
 //	putenv("http_proxy");
@@ -265,14 +208,9 @@ int main(int argc, char **argv)
 	}
 	
 	snprintf(muxMain->muxLog.name, sizeof(muxMain->muxLog.name), "%s", CMN_MODULE_MAIN_NAME);
-//	muxMain->mediaCaptureConfig.logLevel = muxMain->muxLog.llevel;
-	muxMain->mediaCaptureConfig.boardType = muxMain->boardType;
-	muxMain->mediaCaptureConfig.priv = muxMain;
 	
 	muxMain->reportEvent = _muxMainReportEvent;
 	muxMain->initThread = _muxMainStartThreadEvent;
-	muxMain->registerConsumer = _muxMainRegisterConsumer;
-	muxMain->addCapture = _muxMainAddCapture;
 
 	/* signal init */
 	signal(SIGPIPE, SIG_IGN);
@@ -346,10 +284,10 @@ int main(int argc, char **argv)
 
 //	usleep(10*1000);
 
-	res = muxMain->initThread(muxMain, &threadCmnFtp, muxMain->mediaCaptureConfig.usbHome);
+	res = muxMain->initThread(muxMain, &threadSdpClient, NULL);// muxMain->mediaCaptureConfig.usbHome);
 	if(res < 0 )
 	{
-		MUX_ERROR("failed when '%s' initializing", threadCmnFtp.name);
+		MUX_ERROR("failed when '%s' initializing", threadSdpClient.name);
 		exit(1);
 	}
 
@@ -367,45 +305,7 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	/* start Capture thread in PLAYER and FileFeed thread in SERVER, and register thread in threadlist of muxMain */
-	mediaCapture = muxMain->mediaCaptures;
-	while(mediaCapture)
-	{
-		if(mediaCapture->startCapture )
-		{
-			MUX_DEBUG("Start MediaCapturer of '%s' to begin capturing.....", mediaCapture->name );
-			res = mediaCapture->startCapture(mediaCapture);
-			if(res != EXIT_SUCCESS)
-			{
-				MUX_ERROR("failed when '%s' start capturing", mediaCapture->name );
-			}
-//			MUX_DEBUG("MediaCapturer '%s' start capturing", mediaCapture->name );
-		}
-
-		mediaCapture = mediaCapture->next;
-	}
-
-	mediaCapture = muxMain->mediaCaptures;
-	while(mediaCapture)
-	{
-		MuxMediaConsumer *mediaConsumer = mediaCapture->mediaConsumers;
-		MUX_DEBUG("MediaCapture '%s' has %d streams, %d consumers", mediaCapture->name, mediaCapture->nbStreams, mediaCapture->nbConsumers);
-		for(i=0; i< mediaCapture->nbStreams; i++)
-		{
-			MUX_DEBUG("\t\tNo.%d MediaStream is '%s'", i+1, mediaCapture->capturedMedias[i]->name);
-		}
-		
-		i=0;
-		while(mediaConsumer)
-		{
-			MUX_DEBUG("\tNo.%d MediaConsumer is '%s'", ++i, mediaConsumer->name );
-			mediaConsumer = mediaConsumer->next;
-		}
-		mediaCapture = mediaCapture->next;
-	}
-	
 	muxThread = muxMain->threads;
-	i = 0;
 	while(muxThread)
 	{
 //		MUX_DEBUG("No.%d thread '%s' is joined", ++i, muxThread->thread->name );

@@ -1,6 +1,5 @@
 
 #include "libCmn.h"
-#include "libMedia.h"
 #include "libMux.h"
 
 #include "_cmnMux.h"
@@ -28,7 +27,7 @@ unsigned char rs232SendHexStr(char *str )
 #endif
 
 #ifdef	ARM
-		extRs232Write(&value, 1);
+		cmnSysRs232Write(&value, 1);
 #endif
 		
 	}
@@ -69,7 +68,7 @@ int extIpCmdSendRsData(struct DATA_CONN *dataConn)
 		return EXIT_FAILURE;
 	}
 	
-	if(EXT_DEBUG_UDP_CMD_IS_ENABLE())
+	if(EXT_DEBUG_CMD_IS_ENABLE())
 	{
 		printf("RS232 Data: hexdata:'%s'; feedback:%d; waitMs:%d"EXT_NEW_LINE, muxMain->setupData.hexData, muxMain->setupData.isFeedBack, muxMain->setupData.waitMs);
 	}
@@ -105,7 +104,7 @@ int extIpCmdSendRsData(struct DATA_CONN *dataConn)
 	data = muxMain->outBuffer+IPCMD_HEADER_LENGTH + muxMain->outIndex;
 	size = muxMain->outSize - IPCMD_HEADER_LENGTH - muxMain->outIndex;
 	
-	if(EXT_DEBUG_UDP_CMD_IS_ENABLE())
+	if(EXT_DEBUG_CMD_IS_ENABLE())
 	{
 		printf(EXT_IPCMD_RS232_DATA_FEEDBACK": '%s'"EXT_NEW_LINE, parser->setupData.hexData);
 	}

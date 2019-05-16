@@ -62,6 +62,7 @@ endif
 	# APP_DIRS += src/rest
 
 	APP_DIRS += src/main
+#	APP_DIRS += src/envs
 	APP_DIRS += src/tests
 
 

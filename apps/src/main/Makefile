@@ -25,7 +25,6 @@ else
 endif
 
 SYS_SRC += \
-		sys/extSysConfig.c \
 		sys/extSysInit.c \
 
 		

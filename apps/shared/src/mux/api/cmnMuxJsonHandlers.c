@@ -1,7 +1,6 @@
 
 
 #include "libCmn.h"
-#include "libMedia.h"
 #include "libMux.h"
 
 #include "_cmnMux.h"
@@ -101,7 +100,7 @@ static int	_ipCmdHandle4GetParams(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataCo
 //	dataConn->resultObject = cJSON_CreateArray();
 	
 	MuxMain *muxMain = SYS_MAIN(dataConn);
-	EXT_RUNTIME_CFG		*runCfg = &muxMain->runCfg;
+//	EXT_RUNTIME_CFG		*runCfg = &muxMain->runCfg;
 
 	SYS_PLAYLIST_LOCK(muxMain);
 
@@ -133,7 +132,7 @@ static int	_ipCmdHandle4SetParams(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataCo
 	cJSON *obj = NULL;
 	
 	MuxMain *muxMain = SYS_MAIN(dataConn);
-	EXT_RUNTIME_CFG		*runCfg = &muxMain->runCfg;
+//	EXT_RUNTIME_CFG		*runCfg = &muxMain->runCfg;
 
 	MUX_DEBUG_JSON_OBJ((dataConn)->dataObj);
 
@@ -141,49 +140,48 @@ static int	_ipCmdHandle4SetParams(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataCo
 
 	cmnMuxClearConfig(&muxMain->rxCfg);
 
-	obj = extSystemGetSubItem(dataConn->dataObj, MUX_REST_URI_SYSTEM, INVALIDATE_VALUE_U32);
-TRACE();
+	obj = cmnJsobSystemGetSubItem(dataConn->dataObj, MUX_REST_URI_SYSTEM, INVALIDATE_VALUE_U32);
 	
 	if(obj &&  cmnMuxObjectParseSystem(dataConn, obj) == EXIT_FAILURE)
 	{
 		goto failed;
 	}
 
-	obj = extSystemGetSubItem(dataConn->dataObj, MUX_REST_URI_VIDEO, INVALIDATE_VALUE_U32);
+	obj = cmnJsobSystemGetSubItem(dataConn->dataObj, MUX_REST_URI_VIDEO, INVALIDATE_VALUE_U32);
 	if(obj && cmnMuxObjectParseVideo(dataConn, obj) == EXIT_FAILURE)
 	{
 		goto failed;
 	}
 
 TRACE();
-	obj = extSystemGetSubItem(dataConn->dataObj, MUX_REST_URI_AUDIO, INVALIDATE_VALUE_U32);
+	obj = cmnJsobSystemGetSubItem(dataConn->dataObj, MUX_REST_URI_AUDIO, INVALIDATE_VALUE_U32);
 	if(obj && cmnMuxObjectParseAudio(dataConn, obj) == EXIT_FAILURE)
 	{
 		goto failed;
 	}
 
-	obj = extSystemGetSubItem(dataConn->dataObj, MUX_REST_URI_ANC, INVALIDATE_VALUE_U32);
+	obj = cmnJsobSystemGetSubItem(dataConn->dataObj, MUX_REST_URI_ANC, INVALIDATE_VALUE_U32);
 	if(obj && cmnMuxObjectParseAnc(dataConn, obj) == EXIT_FAILURE)
 	{
 		goto failed;
 	}
 
 TRACE();
-	obj = extSystemGetSubItem(dataConn->dataObj, MUX_REST_URI_SDP, INVALIDATE_VALUE_U32);
+	obj = cmnJsobSystemGetSubItem(dataConn->dataObj, MUX_REST_URI_SDP, INVALIDATE_VALUE_U32);
 	if(obj && cmnMuxObjectParseSdp(dataConn, obj) == EXIT_FAILURE)
 	{
 		goto failed;
 	}
 
 TRACE();
-	obj = extSystemGetSubItem(dataConn->dataObj, MUX_REST_URI_RS232, INVALIDATE_VALUE_U32);
+	obj = cmnJsobSystemGetSubItem(dataConn->dataObj, MUX_REST_URI_RS232, INVALIDATE_VALUE_U32);
 	if(obj && cmnMuxObjectParseRs232(dataConn, obj) == EXIT_FAILURE)
 	{
 		goto failed;
 	}
 
 TRACE();
-	obj = extSystemGetSubItem(dataConn->dataObj, MUX_REST_URI_SECURITY, INVALIDATE_VALUE_U32);
+	obj = cmnJsobSystemGetSubItem(dataConn->dataObj, MUX_REST_URI_SECURITY, INVALIDATE_VALUE_U32);
 	if(obj && cmnMuxObjectParseSecurity(dataConn, obj) == EXIT_FAILURE)
 	{
 		goto failed;
@@ -191,14 +189,14 @@ TRACE();
 
 TRACE();
 	
-	obj = extSystemGetSubItem(dataConn->dataObj, MUX_REST_URI_OTHERS, INVALIDATE_VALUE_U32);
+	obj = cmnJsobSystemGetSubItem(dataConn->dataObj, MUX_REST_URI_OTHERS, INVALIDATE_VALUE_U32);
 	if(obj && cmnMuxObjectParseOthers(dataConn, obj) == EXIT_FAILURE)
 	{
 		goto failed;
 	}
 
 	cmnMuxSystemConfig(muxMain);
-TRACE();
+
 #if 0
 	obj = cmnMuxSystemJSon2Flat(muxMain->systemJson);
 #else
@@ -279,7 +277,7 @@ static int	_restDefaultGet(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataConn, cJS
 
 	SYS_PLAYLIST_LOCK(muxMain);
 
-	resultObj = extSystemFindObject(muxMain, dataConn->cmd+1);
+	resultObj = cmnJsonSystemFindObject(muxMain, dataConn->cmd+1);
 	REPLY_DATACONN_OK(dataConn, resultObj);
 
 	SYS_PLAYLIST_UNLOCK(muxMain);
@@ -296,7 +294,7 @@ static int	_restHandle4GetSystem(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataCon
 
 	SYS_PLAYLIST_LOCK(muxMain);
 
-	dataConn->resultObject = extSystemFindObject(muxMain, dataConn->cmd+1);
+	dataConn->resultObject = cmnJsonSystemFindObject(muxMain, dataConn->cmd+1);
 
 	SYS_PLAYLIST_UNLOCK(muxMain);
 
@@ -319,29 +317,33 @@ static int	_restHandle4SetSystem(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataCon
 	cJSON *obj = NULL;
 	
 	MuxMain *muxMain = SYS_MAIN(dataConn);
-	EXT_RUNTIME_CFG		*runCfg = &muxMain->runCfg;
+//	EXT_RUNTIME_CFG		*runCfg = &muxMain->runCfg;
 
-MUX_DEBUG_JSON_OBJ((dataConn)->dataObj);
+	MUX_DEBUG_JSON_OBJ(data);
+
 	SYS_PLAYLIST_LOCK(muxMain);
 
-		
-#if 0
-	obj = cmnMuxSystemJSon2Flat(muxMain->systemJson);
-#else
-	obj = muxMain->systemJson;
-#endif
+	cmnMuxClearConfig(&muxMain->rxCfg);
 
-	REPLY_DATACONN_OK(dataConn, obj);
+	if(!data || cmnMuxObjectParseSystem(dataConn, data) == EXIT_FAILURE)
+	{
+		SYS_PLAYLIST_UNLOCK(muxMain);
+		return EXIT_FAILURE;
+	}
+
+	// FIELD_RS232_DATA_FEEDBACK
+		
+	cmnMuxSystemConfig(muxMain);
+
+	obj = dataConn->dataObj;
+
+TRACE();
+	if(dataConn->errCode == IPCMD_ERR_NOERROR)
+	{
+		REPLY_DATACONN_OK(dataConn, obj);
+	}	
 
 	SYS_PLAYLIST_UNLOCK(muxMain);
-//	cJSON_AddItemToArray(dataConn->resultObject, objects);
-
-#if 0
-	else
-	{
-		return DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Data invalidate: action '%s' is not validate", action);
-	}
-#endif
 
 	return EXIT_SUCCESS;
 }
@@ -357,7 +359,7 @@ static int	_restHandle4SetVideo(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataConn
 	cJSON *obj = NULL;
 	
 	MuxMain *muxMain = SYS_MAIN(dataConn);
-	EXT_RUNTIME_CFG		*runCfg = &muxMain->runCfg;
+//	EXT_RUNTIME_CFG		*runCfg = &muxMain->runCfg;
 
 	MUX_DEBUG_JSON_OBJ(data);
 
@@ -398,7 +400,7 @@ static int	_restHandle4SetAudio(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataConn
 	cJSON *obj = NULL;
 	
 	MuxMain *muxMain = SYS_MAIN(dataConn);
-	EXT_RUNTIME_CFG		*runCfg = &muxMain->runCfg;
+//	EXT_RUNTIME_CFG		*runCfg = &muxMain->runCfg;
 
 	MUX_DEBUG_JSON_OBJ(data);
 
@@ -439,7 +441,7 @@ static int	_restHandle4SetAnc(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataConn, 
 	cJSON *obj = NULL;
 	
 	MuxMain *muxMain = SYS_MAIN(dataConn);
-	EXT_RUNTIME_CFG		*runCfg = &muxMain->runCfg;
+//	EXT_RUNTIME_CFG		*runCfg = &muxMain->runCfg;
 
 	MUX_DEBUG_JSON_OBJ(data);
 
@@ -480,7 +482,7 @@ static int	_restHandle4SetSdp(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataConn, 
 	cJSON *obj = NULL;
 	
 	MuxMain *muxMain = SYS_MAIN(dataConn);
-	EXT_RUNTIME_CFG		*runCfg = &muxMain->runCfg;
+//	EXT_RUNTIME_CFG		*runCfg = &muxMain->runCfg;
 
 	MUX_DEBUG_JSON_OBJ(data);
 
@@ -523,7 +525,7 @@ static int	_handle4SetRs232(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataConn, cJ
 	cJSON *obj = NULL;
 	
 	MuxMain *muxMain = SYS_MAIN(dataConn);
-	EXT_RUNTIME_CFG		*runCfg = &muxMain->runCfg;
+//	EXT_RUNTIME_CFG		*runCfg = &muxMain->runCfg;
 
 	MUX_DEBUG_JSON_OBJ(data);
 
@@ -543,7 +545,6 @@ static int	_handle4SetRs232(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataConn, cJ
 
 	obj = dataConn->dataObj;
 
-TRACE();
 	if(dataConn->errCode == IPCMD_ERR_NOERROR)
 	{
 		REPLY_DATACONN_OK(dataConn, obj);
@@ -560,7 +561,7 @@ static int	_handle4SetIR(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataConn, cJSON
 	cJSON *obj = NULL;
 	
 	MuxMain *muxMain = SYS_MAIN(dataConn);
-	EXT_RUNTIME_CFG		*runCfg = &muxMain->runCfg;
+//	EXT_RUNTIME_CFG		*runCfg = &muxMain->runCfg;
 
 	MUX_DEBUG_JSON_OBJ(data);
 
@@ -602,7 +603,7 @@ static int	_handle4SetSecurity(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataConn,
 	cJSON *obj = NULL;
 	
 	MuxMain *muxMain = SYS_MAIN(dataConn);
-	EXT_RUNTIME_CFG		*runCfg = &muxMain->runCfg;
+//	EXT_RUNTIME_CFG		*runCfg = &muxMain->runCfg;
 
 	MUX_DEBUG_JSON_OBJ(data);
 
@@ -655,7 +656,7 @@ struct json_handler jsonActionHandlers[] =
 		.name 		= MUX_REST_URI_ROOT MUX_REST_URI_SYSTEM,
 		.dest		= MUX_PLUGIN_TYPE_MAIN,
 		.handleGet	= _restHandle4GetSystem,
-		.handlePost	= NULL
+		.handlePost	= _restHandle4SetSystem
 	},
 	{
 		.name 		= MUX_REST_URI_ROOT MUX_REST_URI_VIDEO,

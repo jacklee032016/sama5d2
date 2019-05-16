@@ -375,7 +375,7 @@ void safe_read (int fd,const char *filename,void *buf,size_t count, int verbose)
 }
 
 
-char *cmn_read_file(const char *filename)
+char *cmn_read_file(const char *filename, uint32_t *size)
 {
 	FILE *file = NULL;
 	long length = 0;
@@ -426,6 +426,8 @@ char *cmn_read_file(const char *filename)
 		goto cleanup;
 	}
 	content[read_chars] = '\0';
+	
+	*size = length;
 
 cleanup:
 	if (file != NULL)
@@ -434,6 +436,37 @@ cleanup:
 	}
 
 	return content;
+}
+
+int cmn_write_file(const char *filename, void *data, uint32_t size)
+{
+   	ssize_t result;
+	int fd;
+#if 0	
+	fd = safe_open(filename, O_WRONLY|O_CREAT);
+#else
+	/* open has 2 forms to call */
+   	fd = open (filename, O_WRONLY|O_CREAT, S_IRWXU);
+#endif
+   	if (fd < 0)
+   	{
+		MUX_ERROR("While writing data into %s: %m",filename);
+		return -EXIT_FAILURE;
+   	}
+
+   	result = write (fd, data, size);
+   	if (size != result)
+	{
+		if (result < 0)
+		{
+			MUX_ERROR("While writing data into %s: %m",filename);
+			return -EXIT_FAILURE;
+		}
+		
+		MUX_ERROR( "Short write count returned while writing into %s", filename);
+	}
+	
+	return result;
 }
 
 

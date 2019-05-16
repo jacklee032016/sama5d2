@@ -20,11 +20,9 @@ endif
 
 
 MUX_SRC += \
-		cmnMuxPlaylist.c \
-		cmnMuxFtpThread.c \
+		cmnMuxSdpThread.c \
 		cmnMuxUtils.c \
 		cmnMuxMainConfig.c	\
-		cmnMuxPlayerConfig.c	\
 		cmnMuxSaveConfig.c \
 		cmnMuxDs.c \
 		api/cmnMuxBroker.c \
@@ -36,7 +34,10 @@ MUX_SRC += \
 		api/cmnMuxJsonMedia.c \
 		api/cmnMuxCtrl.c \
 		api/cmnMuxClient.c \
-		cmnMuxConfigWeb.c	\
+
+#		cmnMuxConfigWeb.c	\
+#		cmnMuxPlayerConfig.c	\
+#		cmnMuxPlaylist.c \
 
 
 SRC += \

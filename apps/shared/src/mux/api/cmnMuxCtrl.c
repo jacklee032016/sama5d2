@@ -1,11 +1,14 @@
 
 #include "libCmn.h"
-#include "libMedia.h"
 #include "libMux.h"
 
 #include "_cmnMux.h"
 
 #include "libCmnSys.h"
+
+#include "mux7xx.h"
+
+#include "muxFpga.h"
 
 typedef	enum
 {
@@ -375,27 +378,23 @@ char extSysCompareParams(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 	if(FIELD_IS_CHANGED_U8(rxCfg->runtime.blink) && (rxCfg->runtime.blink != runCfg->runtime.blink) ) 
 	{
 		 runCfg->runtime.blink = rxCfg->runtime.blink;
-#ifdef ARM
-		extFpgaBlinkPowerLED(runCfg->runtime.blink);
-#endif
+
+		cmnSysCtrlBlinkPowerLED(runCfg->runtime.blink);
+
 	}
 
 	if(FIELD_IS_CHANGED_U8(rxCfg->runtime.reset) && (rxCfg->runtime.reset != runCfg->runtime.reset) ) 
 	{
-		 runCfg->runtime.reset = rxCfg->runtime.reset;
+		runCfg->runtime.reset = rxCfg->runtime.reset;
 
-#ifdef ARM
-		extDelayReset(3000);
-#endif
+		cmnSysCtrlDelayReset(3000, &runCfg->runtime);
 	}
 
 	if(FIELD_IS_CHANGED_U8(rxCfg->runtime.reboot) && (rxCfg->runtime.reboot != runCfg->runtime.reboot) ) 
 	{
 		 runCfg->runtime.reboot = rxCfg->runtime.reboot;
 
-#ifdef ARM
-		extDelayReboot(2800);
-#endif
+		cmnSysCtrlDelayReboot(2800, &runCfg->runtime);
 	}
 
 	if(! IS_STRING_NULL_OR_ZERO(rxCfg->hexData) )
@@ -403,10 +402,10 @@ char extSysCompareParams(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 		memcpy(runCfg->hexData, rxCfg->hexData, sizeof(rxCfg->hexData) );
 	}
 
-	if(EXT_DEBUG_HTTP_IS_ENABLE() || EXT_DEBUG_HC_IS_ENABLE())
+	if(EXT_DEBUG_REST_IS_ENABLE(runCfg) || EXT_DEBUG_SDP_IS_ENABLE(runCfg))
 	{
 		printf(EXT_NEW_LINE"After configured, Runtime Configuration:"EXT_NEW_LINE);
-		cmnMuxCfgDebugData(&extRun);
+		cmnMuxCfgDebugData(runCfg);
 	}
 	return EXIT_SUCCESS;
 }
@@ -440,70 +439,62 @@ static char _sendRsData(EXT_RUNTIME_CFG *runCfg)
 	return ret;
 }
 
-char extSysConfigCtrl(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
+static int _cmnSysConfigCtrl(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 {
+	FpgaConfig 	*fpga = (FpgaConfig 	*)runCfg->fpgaCfg;
+	
 //	EXT_DEBUGF(EXT_DBG_ON, ("config options:0x%x (0x%x)"LWIP_NEW_LINE, _setupType, SETUP_CHECK_TYPE(_SETUP_TYPE_RS232) ) );
+
+	if(fpga== NULL)
+	{
+		EXT_ERRORF("FPGA is not initialized");
+		return EXIT_FAILURE;
+	}
 
 	/* save configuration, and reboot to make it active */
 	//if(needReboot || hasNewMedia  || needSave)
 	if( SETUP_CHECK_TYPE(_SETUP_TYPE_SYSTEM) )	
 	{
-#ifdef	ARM
-		bspCfgSave(runCfg, EXT_CFG_MAIN);
-//		bspCmdReboot(NULL, NULL, 0);
-#else
+		cmnSysCfgSave(runCfg, EXT_CFG_MAIN);
 		EXT_DEBUGF(EXT_DBG_ON, ("New system configuration, saving configuration and reboot") );
-#endif
 	}
 
 	if( SETUP_CHECK_TYPE(_SETUP_TYPE_SDP) )	
 	{
-#ifdef	ARM
-		bspCfgSave(runCfg, EXT_CFG_MAIN);
+		cmnSysCfgSave(runCfg, EXT_CFG_MAIN);
 //		bspCmdReboot(NULL, NULL, 0);
-//#else
 		EXT_DEBUGF(EXT_DBG_ON, ("New SDP parameters") );
-#endif
 	}
 
 	//if(needReboot)
 	if(SETUP_CHECK_TYPE(_SETUP_TYPE_RS232) || SETUP_CHECK_TYPE(_SETUP_TYPE_NAME))
 	{
-#ifdef	ARM
-		bspCfgSave(runCfg, EXT_CFG_MAIN);
+		cmnSysCfgSave(runCfg, EXT_CFG_MAIN);
 		if(SETUP_CHECK_TYPE(_SETUP_TYPE_RS232) )
 		{
-			extHwRs232Config(runCfg);
+			cmnSysRs232Config(runCfg);
 		}
-#else
 		EXT_DEBUGF(EXT_DBG_ON, ("RS232 save and setup") );
-#endif
 	}
 	
 	//if(hasNewMedia)
 	if(SETUP_CHECK_TYPE(_SETUP_TYPE_PROTOCOL) )
 	{
-#ifdef	ARM
 //		extIgmpGroupMgr(rxCfg, EXT_FALSE);
 //		memcpy(&runCfg->dest,  &rxCfg->dest, sizeof(EXT_VIDEO_CONFIG));
 
-		bspCfgSave(runCfg, EXT_CFG_MAIN);
+		cmnSysCfgSave(runCfg, EXT_CFG_MAIN);
 
-		extFpgaConfig(runCfg);
-#else
+		fpga->opProtocolCtrl(fpga);
 		EXT_DEBUGF(EXT_DBG_ON, ("FPGA configuration Protocol"));
-#endif
 	}
 	
 	if( SETUP_CHECK_TYPE(_SETUP_TYPE_MEDIA) )
 	{
-#ifdef	ARM
 
-		bspCfgSave(runCfg, EXT_CFG_MAIN);
-		extFpgaConfigParams(runCfg);
-#else
+		cmnSysCfgSave(runCfg, EXT_CFG_MAIN);
+		fpga->opMediaWrite(fpga);
 		EXT_DEBUGF(EXT_DBG_ON, ("FPGA configuration Media") );
-#endif
 	}
 
 #if 0
@@ -571,6 +562,6 @@ int cmnMuxSystemConfig(MuxMain *muxMain)
 
 	extSysCompareParams(&muxMain->runCfg, &muxMain->rxCfg);
 
-	return extSysConfigCtrl(&muxMain->runCfg, &muxMain->rxCfg);
+	return _cmnSysConfigCtrl(&muxMain->runCfg, &muxMain->rxCfg);
 }
 

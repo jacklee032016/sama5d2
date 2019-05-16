@@ -81,8 +81,10 @@ class MuxResource(Resource):
         data =kwargs.get(settings.SERVICE_DATA_FIELD_DATA, None)  
         if data is not None:
             print(data)
-            self.req[settings.SERVICE_DATA_FIELD_DATA] = []
-            self.req[settings.SERVICE_DATA_FIELD_DATA].insert(0, data) 
+            # following make data to be array of array, eg [[]]. Jack Lee, 05.15, 2019
+            #self.req[settings.SERVICE_DATA_FIELD_DATA] = []
+            #self.req[settings.SERVICE_DATA_FIELD_DATA].insert(0, data) 
+            self.req[settings.SERVICE_DATA_FIELD_DATA] = data 
 
         ret = self.conn.connect(cmd=self.req)
         return ret, 201

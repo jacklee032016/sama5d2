@@ -1,6 +1,5 @@
 
 #include "libCmn.h"
-#include "libMedia.h"
 #include "libMux.h"
 
 #include "_cmnMux.h"
@@ -184,6 +183,7 @@ int	cmnMuxObjectParseVideo(struct DATA_CONN *dataConn, cJSON *dataObj)
 	MuxMain *muxMain = SYS_MAIN(dataConn);
 	EXT_RUNTIME_CFG *rxCfg = &muxMain->rxCfg;
 
+TRACE();
 	value = cmnGetStrFromJsonObject(dataObj, FIELD_VIDEO_IP);
 	if(!IS_STRING_NULL_OR_ZERO(value) )
 	{
@@ -195,9 +195,11 @@ int	cmnMuxObjectParseVideo(struct DATA_CONN *dataConn, cJSON *dataObj)
 		}
 	}
 
+TRACE();
 	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_VIDEO_PORT);
 	if( FIELD_IS_CHANGED_U32(intValue) )
 	{
+TRACE();
 		rxCfg->dest.vport = intValue;
 	}
 
@@ -541,7 +543,7 @@ int	cmnMuxObjectParseRs232(struct DATA_CONN *dataConn, cJSON *dataObj)
 
 int	cmnMuxObjectParseIR(struct DATA_CONN *dataConn, cJSON *dataObj)
 {
-	char *value;
+//	char *value;
 	int	intValue;
 	
 	MuxMain *muxMain = SYS_MAIN(dataConn);
@@ -623,7 +625,7 @@ int cmnMuxObjectParseSecurity(struct DATA_CONN *dataConn, cJSON *dataObj)
 	MuxMain *muxMain = SYS_MAIN(dataConn);
 	EXT_RUNTIME_CFG *rxCfg = &muxMain->rxCfg;
 //	int intValue;
-	char *value;
+//	char *value;
 
 #if 0
 	extIpCmdSendMediaData(parser, EXT_FALSE);

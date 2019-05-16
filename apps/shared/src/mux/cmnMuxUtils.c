@@ -3,7 +3,6 @@
  #include <string.h>
 
 #include "libCmn.h"
-#include "libMedia.h"
 #include "libMux.h"
 
 
@@ -166,67 +165,6 @@ typedef	struct	_CfgTypes
 	int		type;
 	char		*name;
 }CfgType;
-
-
-TYPE_NAME_T cmnMuxSyncTypes[] =
-{
-	{
-		.type = MUX_SYNC_MASTER_NONE,
-		.name = "None",	
-		.value = NULL,
-	},
-	{
-		.type = MUX_SYNC_MASTER_AUDIO,
-		.name = "Audio",	
-		.value = NULL,
-	},
-	{
-		.type = MUX_SYNC_MASTER_VIDEO,
-		.name = "Video",	
-		.value = NULL,
-	},
-	{
-		.type = MUX_SYNC_MASTER_SYSTEM,
-		.name = "System",	
-		.value = NULL,
-	},
-	{
-		.type = MUX_SYNC_MASTER_UNKNOWN,
-		.name = NULL,	
-		.value = NULL,
-	}
-};
-
-
-
-TYPE_NAME_T cmnMuxAudioCaptureTypes[] =
-{
-	{
-		.type = MUX_SYNC_MASTER_NONE,
-		.name = "None",	
-		.value = NULL,
-	},
-	{
-		.type = MUX_SYNC_MASTER_AUDIO,
-		.name = "Audio",	
-		.value = NULL,
-	},
-	{
-		.type = MUX_SYNC_MASTER_VIDEO,
-		.name = "Video",	
-		.value = NULL,
-	},
-	{
-		.type = MUX_SYNC_MASTER_SYSTEM,
-		.name = "System",	
-		.value = NULL,
-	},
-	{
-		.type = MUX_SYNC_MASTER_UNKNOWN,
-		.name = NULL,	
-		.value = NULL,
-	}
-};
 
 
 TYPE_NAME_T cmnMuxPluginTypes[] =
@@ -1249,7 +1187,7 @@ char extCmnVideoParamPopulate(EXT_RUNTIME_CFG *runCfg, uint8_t index)
 
 	if(index >= EXT_ARRAYSIZE(constMediaParams) )
 	{
-		EXT_ERRORF("Index %d is out of the range %ld of params", index, EXT_ARRAYSIZE(constMediaParams) );
+		EXT_ERRORF("Index %d is out of the range %d of params", index, EXT_ARRAYSIZE(constMediaParams) );
 		return EXIT_FAILURE;
 	}
 
@@ -1260,8 +1198,5 @@ char extCmnVideoParamPopulate(EXT_RUNTIME_CFG *runCfg, uint8_t index)
 
 	return EXIT_SUCCESS;
 }
-
-
-
 
 

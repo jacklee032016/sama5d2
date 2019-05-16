@@ -1,3 +1,7 @@
+/*
+* header only for app
+*/
+
 #ifndef	__MUX_H__
 #define	__MUX_H__
 
@@ -26,7 +30,6 @@
 #include <dlfcn.h>
 
 #include "libCmn.h"
-#include "libMedia.h"
 #include "libMux.h"
 
 #include "libCmnSys.h"

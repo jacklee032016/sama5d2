@@ -1,7 +1,7 @@
 
 #include "libCmn.h"
-#include "libMedia.h"
 #include "libMux.h"
+#include "libCmnSys.h"
 
 #include "_cmnMux.h"
 
@@ -94,8 +94,9 @@ int cmnGetIntegerFromJsonObject(cJSON* json, const char * key)
 cJSON *cmnMuxJsonLoadConfiguration(char *cfgFileName)
 {
 	cJSON *cfgHandlers = NULL;
+	uint32_t size;
 
-	char *jsonStr = cmn_read_file(cfgFileName);
+	char *jsonStr = cmn_read_file(cfgFileName, &size);
 	if ((jsonStr == NULL) )
 	{
 		MUX_ERROR("IP Command configuration file '%s' reading failed", cfgFileName);
@@ -150,6 +151,45 @@ cJSON *cmnMuxSystemJSon2Flat(cJSON *systemJson)
 	MUX_DEBUG_JSON_OBJ(flatObj);
 
 	return flatObj;
+}
+
+/* only called by process of IP command */
+cJSON *cmnJsobSystemGetSubItem(cJSON *sysObj, char *item, int index)
+{
+	cJSON *itemObj;
+
+	itemObj = cJSON_GetObjectItem(sysObj, item);
+	if (itemObj== NULL)
+	{
+		MUX_ERROR("No data for '%s' is found", item);
+		return NULL;
+	}
+	
+	if(index != INVALIDATE_VALUE_U32)
+	{
+		cJSON *obj = cJSON_GetArrayItem(itemObj, index);
+		if(obj == NULL)
+		{
+			MUX_ERROR("No index#%d in data item '%s' is found", index, item);
+		}
+
+		return obj;
+	}
+
+
+//	MUX_DEBUG_JSON_OBJ(itemObj);
+	
+	return itemObj;
+}
+
+cJSON *cmnJsonSystemFindObject(MuxMain *muxMain, const char*objName )
+{
+	cJSON *obj =	cJSON_GetObjectItem(muxMain->systemJson, objName);
+	if (obj== NULL)
+	{
+		MUX_ERROR("No data for '%s' is found", objName);
+	}
+	return obj;
 }
 
 

@@ -33,7 +33,9 @@
 #endif
 
 
-#define	MUX_SYSTEM_CONFIG_FILE			CONFIG_FILE_HOME_PROJECT"muxSystem.json"
+#define	MUX_SYSTEM_JSON_CONFIG			CONFIG_FILE_HOME_PROJECT"muxSystem.json"
+
+#define	MUX_SYSTEM_CONFIG_DATA			CONFIG_FILE_HOME_PROJECT"muxConfig.dat"
 
 
 #define	CRON_TASK_FILE						"/var/spool/cron/crontabs/root"
@@ -902,16 +904,6 @@ typedef struct _MuxPlayerConfig
 
 	char						captureName[CMN_NAME_LENGTH];
 
-#if 0
-	/* configuration items of audio of recorder, eg. virtual track */
-	int						recordAudioType; /* output audio type, only AAC is supported by HW, HA_CODEC_ID_E */
-	int						recordAudioSampleRate;
-	int						recordAudioFormat;  /*32 bit r 16 bit per sample */
-	int						recordAudioChannels;	/* 2 or 1 */
-#else
-	MuxMediaConfig			mediaPlayCaptConfig;
-#endif
-
 	char						playUrl[CMN_NAME_LENGTH];
 	char						urlHttp[CMN_NAME_LENGTH];
 	char						urlRtsp[CMN_NAME_LENGTH];
@@ -1015,10 +1007,6 @@ typedef	struct _MuxMain
 	int						isAuthen;
 	
 //	CTRL_LINK_TYPE			ctrlProtocol;
-	
-	MuxMediaConfig			mediaCaptureConfig;
-
-	stream_descript_t			mediaDescription;
 
 	cmn_list_t				playlists;
 	cmn_mutex_t				*playlistLock;  /* lock between controller and players which update or access playlist. add Jan.22nd, 2018 */
@@ -1037,8 +1025,6 @@ typedef	struct _MuxMain
 	EXT_RUNTIME_CFG			rxCfg;
 
 	/*** data structure of run-time      *******/
-	MEDIA_FILE_LIST_T		*mediaFiles;		/* data sructure for scan directory */
-
 
 	CMN_FTP_CLIENT			ftpClient;
 	
@@ -1049,14 +1035,6 @@ typedef	struct _MuxMain
 	int 	(*initThread)(struct _MuxMain *, CmnThread *, void *);
 	int 	(*reportEvent)(struct _MuxMain *, MUX_PLUGIN_TYPE , CMN_PLAY_JSON_EVENT *);
 
-
-	/* add following function pointers to remove function declaration */
-	int (*registerConsumer)(struct _MuxMain *, MuxMediaConsumer *, char * ); /* char captureNameregister this consumer to one capture */
-	int (*addCapture)(struct _MuxMain *, MuxMediaCapture *);
-
-
-
-	MuxMediaCapture			*mediaCaptures;	/* Capture of PLAYER or Capture of FILE registered here */
 }MuxMain;
 
 
@@ -1065,11 +1043,12 @@ typedef	struct _MuxMain
 
 extern	TYPE_NAME_T jsonErrors[];
 
-extern	TYPE_NAME_T cmnMuxSyncTypes[];
 extern	TYPE_NAME_T cmnMuxPluginTypes[];
 extern	TYPE_NAME_T cmnMuxRequestMethods[];
 
 extern	const	TYPE_NAME_T	_videoColorSpaces[];
+extern	const	TYPE_NAME_T	_videoFramerates[];
+
 extern	const short	videoWidthList[];
 extern	const short 	videoHeightList[];
 
@@ -1183,16 +1162,6 @@ extern	const	EXT_CONST_INT	intVideoFpsList[];
 #define	CMN_MUX_FIND_PLUGIN_NAME( type) \
 		cmnMuxTypeFindName(cmnMuxPluginTypes, (type))
 
-
-
-/* sync type */
-#define	CMN_MUX_FIND_SYNC_TYPE( name) \
-		cmnMuxTypeFindType(cmnMuxSyncTypes, (name))
-		
-#define	CMN_MUX_FIND_SYNC_NAME( type) \
-		cmnMuxTypeFindName(cmnMuxSyncTypes, (type))
-
-
 /* request method name */
 #define	CMN_MUX_FIND_METHOD_NAME( type) \
 		cmnMuxTypeFindName(cmnMuxRequestMethods, (type))
@@ -1281,14 +1250,8 @@ cJSON *cmnMuxClientRequest(cJSON *ipCmd);
 
 extern	CmnThread  threadBroker;
 extern	CmnThread  threadController;
-extern	CmnThread  threadCmnFtp;
+extern	CmnThread  threadSdpClient;
 
-int	cmnMuxPlayListUpdate(cmn_list_t *playlists, int playlistIndex, PLAY_LIST *playList);
-int	cmnMuxPlayListAdd(cmn_list_t *playlists, PLAY_LIST *playList);
-int	cmnMuxPlayListRemove(cmn_list_t *playlists, char *playlistName);
-int	cmnMuxPlayListFileRemove(cmn_list_t *playlists, char *playlistName, char *mediaFileName);
-
-PLAY_LIST *cmnMuxPlaylistFind(cmn_list_t *playlists, char *playlistName);
 
 MuxPlugIn *cmnMuxPluginFind(MuxMain *muxMain, MUX_PLUGIN_TYPE type);
 
@@ -1297,7 +1260,6 @@ int	cmnMuxJsonPluginReplay(struct DATA_CONN *dataConn, CMN_PLAY_JSON_EVENT *json
 
 
 
-PLAY_LIST *cmnMuxCreateOnePlaylist(char *playlistName, cmn_list_t *files);
 
 char *cmnMuxTypeFindName(const TYPE_NAME_T *types, int type);
 int	cmnMuxTypeFindType(const TYPE_NAME_T *types, char *name);
@@ -1310,9 +1272,6 @@ int cmnMuxMainParse(const char *filename, MuxMain *muxMain);
 int cmnMuxPlayerParseConfig(const char *filename, MuxPlayerConfig *cfg);
 
 int cmnMuxConfigParseRecord(const char *filename, CmnMuxRecordConfig *recordConfig);
-
-/* config */
-void cmnMuxConfigParseWeb(char *filename, CmnMuxWebConfig	*cfg);
 
 
 int	cmnMuxRectsSave(FILE *f, cmn_list_t *winsOrOsds);
@@ -1335,7 +1294,10 @@ int cmnMuxDsValidate(void);
 
 cJSON *cmnMuxSystemJSon2Flat(cJSON *systemJson);
 
+cJSON *cmnJsobSystemGetSubItem(cJSON *sysObj, char *item, int index);
+cJSON *cmnJsonSystemFindObject(MuxMain *muxMain, const char*objName );
 
+cJSON *cmnMuxJsonLoadConfiguration(char *cfgFileName);
 
 #endif
 

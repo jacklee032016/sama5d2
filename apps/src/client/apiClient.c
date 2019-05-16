@@ -5,6 +5,7 @@
 
 #include "apiClient.h"
 
+#include "libCmnSys.h"
 /*
 #include <stdio.h>
 #include <stdlib.h>
@@ -176,14 +177,15 @@ static int _writeCmdExec(struct API_CLIENT_CMD_HANDLER *handle, struct API_PARAM
 	return EXIT_FAILURE;
 }
 
-
+#if 0
 /* commands for WEB */	
 static int _clientWebInfosExec(struct API_CLIENT_CMD_HANDLER *handle, struct API_PARAMETERS *params)
 {
 	params->result = NULL;// muxApiWebInfos();
 	return EXIT_SUCCESS;
 }
-	
+#endif
+
 static int _clientSysAdminThreadsExec(struct API_CLIENT_CMD_HANDLER *handle, struct API_PARAMETERS *params)
 {
 	params->result = NULL;//muxApiSysAdminThreads();
