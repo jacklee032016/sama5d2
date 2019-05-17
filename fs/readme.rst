@@ -2,6 +2,17 @@ Read me for File System package
 ################################
 April 17th, 2019
 
+Usage
+============================
+05.16, 2019
+
+Keep only one tar.gz file in this directory;
+
+* if ``minimal`` existed, delete it;
+* ``loadTar.sh`` to uncompress tar file into minimal;
+* Modify or update files in ``minimal`` as wish;
+* ``mkJffs.sh`` to make new JFFS2 image which is updated onboard by tftp in u-boot;
+
 
 Update logs
 ============================

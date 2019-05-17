@@ -13,7 +13,7 @@
 #include <linux/types.h>
 #include <linux/spi/spidev.h>
 
-#include "libCmn.h"
+#include "libCmnSys.h"
 #include "mux7xx.h"
 
 

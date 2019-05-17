@@ -18,6 +18,7 @@
 
 static int _cmnSysJsonUpdateOthers(EXT_RUNTIME_CFG *runCfg, cJSON *systemObj)
 {
+#if 0
 	char strValue[128];
 
 	/* system name */
@@ -26,6 +27,7 @@ static int _cmnSysJsonUpdateOthers(EXT_RUNTIME_CFG *runCfg, cJSON *systemObj)
 	snprintf(strValue, sizeof(strValue), "%.2X.%.2X-%.3X",  runCfg->version.major, runCfg->version.minor, runCfg->version.revision);
 
 	CJSON_REPLACE_INTEGRE(systemObj, FIELD_SYS_CFG_DIP, (runCfg->isDipOn==0)?0:1 );
+#endif	
 	return EXIT_SUCCESS;
 }
 

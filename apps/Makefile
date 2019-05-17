@@ -42,28 +42,19 @@ export RELEASES_NAME
 include $(RULE_DIR)/Rules.mak
 
 	SHARED_DIRS += shared/src/common
-# SHARED_DIRS += shared/src/media
 	SHARED_DIRS += shared/src/mux
 	SHARED_DIRS += shared/src/sys
-
-#	SHARED_DIRS += shared/libcgi
-
-
 
 
 ifeq ($(PLUGINS),YES)
 endif
 
-#	APP_DIRS += src/web
-
-	# Command Line client
+# Command Line client
 	APP_DIRS += src/client
-	# CGI/REST API
-	# APP_DIRS += src/rest
 
 	APP_DIRS += src/main
-#	APP_DIRS += src/envs
-	APP_DIRS += src/tests
+	APP_DIRS += src/uenvs
+#	APP_DIRS += src/tests
 
 
 SUBDIRS += $(SHARED_DIRS)

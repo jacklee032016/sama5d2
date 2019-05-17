@@ -36,6 +36,9 @@
 #include <linux/io.h>
 #include <linux/gpio.h>
 
+#include "mux7xxCompact.h"
+
+
 /* QSPI register offsets */
 #define QSPI_CR      0x0000  /* Control Register */
 #define QSPI_MR      0x0004  /* Mode Register */
@@ -625,6 +628,7 @@ static int atmel_qspi_probe(struct platform_device *pdev)
 	struct mtd_info *mtd;
 	int irq, err = 0;
 
+TRACE();
 	if (of_get_child_count(np) != 1)
 		return -ENODEV;
 	child = of_get_next_child(np, NULL);
@@ -707,15 +711,20 @@ static int atmel_qspi_probe(struct platform_device *pdev)
 	if (err)
 		goto disable_clk;
 
+TRACE();
+
+	EXT_INFOF("Begin to scan NOR flash");
 	err = spi_nor_scan(nor, NULL, &hwcaps);
 	if (err)
 		goto disable_clk;
 
+	EXT_INFOF("Begin to register MTD device");
 	err = mtd_device_register(mtd, NULL, 0);
 	if (err)
 		goto disable_clk;
 
 	of_node_put(child);
+TRACE();
 
 	return 0;
 

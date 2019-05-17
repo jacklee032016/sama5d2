@@ -39,4 +39,7 @@ Then ARCH environment variable is set, then ``make`` directly to build for ARM;
 
 Check whether SDK is initialized, use ``printenv | grep ARCH`` or ``printenv | grep CC``;
 
+
+ make CROSS_COMPILE=arm-poky-linux-gnueabi- envtools 
+
 	

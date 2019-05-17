@@ -3,6 +3,39 @@ Work Logs for File System
 April 17th, 2019
 
 
+05.16, 2019
+==============================
+Add i2c-tools
+------------------------------
+Recipe position: poky/meta/recipes-devtools/i2c-tools/i2c-tools_4.0.bb
+
+Add into image: IMAGE_INSTALL_append += " i2c-tools "  in local.conf
+
+
+Add python3-six
+------------------------------
+Module six is needed by argparser in flask;
+
+Recipe position: poky/meta/recipes-devtools/python/python3-six_1.11.0.bb
+
+Add into image: CORE_IMAGE_EXTRA_INSTALL = "python3-core python3-pip python3-flask python3-flask-restful python3-six"  in local.conf
+
+Add fw-printenv
+------------------------------
+fw-printenv is from u-boot, used to operate environment of u-boot in Linux;
+
+It failed when build with yocto SDK;
+
+Recipe position: poky/meta/recipes-bsp/u-boot/u-boot-fw-utils_2018.01.bb
+
+Add into image: CORE_IMAGE_EXTRA_INSTALL = "python3-core python3-pip python3-flask python3-flask-restful python3-six"  in local.conf
+
+
+bitbake core-image-minima
+bitbake core-image-minimal -c populate_sdk
+
+
+
 04.18, 2019
 ------------------------------
 * remove `ethtool` from image in local.conf;

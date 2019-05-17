@@ -25,6 +25,8 @@
 #include <linux/spi/flash.h>
 #include <linux/mtd/spi-nor.h>
 
+#include "mux7xxCompact.h"
+
 /* Define max times to check status register before we give up. */
 
 /*
@@ -1261,8 +1263,16 @@ static const struct flash_info spi_nor_ids[] = {
 	{ "n25q128a13",  INFO(0x20ba18, 0, 64 * 1024,  256, SECT_4K | SPI_NOR_QUAD_READ) },
 	{ "n25q256a",    INFO(0x20ba19, 0, 64 * 1024,  512, SECT_4K | SPI_NOR_DUAL_READ | SPI_NOR_QUAD_READ) },
 	{ "n25q256ax1",  INFO(0x20bb19, 0, 64 * 1024,  512, SECT_4K | SPI_NOR_QUAD_READ) },
+
 	{ "n25q512a",    INFO(0x20bb20, 0, 64 * 1024, 1024, SECT_4K | USE_FSR | SPI_NOR_QUAD_READ) },
-	{ "n25q512ax3",  INFO(0x20ba20, 0, 64 * 1024, 1024, SECT_4K | USE_FSR | SPI_NOR_QUAD_READ) },
+
+	/* MUX774 */
+#if 0
+	/*                             J id,    extId, sector_size  n_sector  flags */
+	{ "n25q512ax3",  INFO(0x20ba20, 0, 64 * 1024, 1024, 0) },
+#else	
+	{ "n25q512ax3",  INFO(0x20ba20, 0, 64 * 1024, 1024, SECT_4K | USE_FSR | SPI_NOR_QUAD_READ) },	/* specs. p.43 */
+#endif	
 	{ "n25q00",      INFO(0x20ba21, 0, 64 * 1024, 2048, SECT_4K | USE_FSR | SPI_NOR_QUAD_READ | NO_CHIP_ERASE) },
 	{ "n25q00a",     INFO(0x20bb21, 0, 64 * 1024, 2048, SECT_4K | USE_FSR | SPI_NOR_QUAD_READ | NO_CHIP_ERASE) },
 
@@ -3300,7 +3310,9 @@ spi_nor_select_uniform_erase(struct spi_nor_erase_map *map,
 	int i;
 	u8 uniform_erase_type = map->uniform_erase_type;
 
+TRACE();
 	for (i = SNOR_ERASE_TYPE_MAX - 1; i >= 0; i--) {
+TRACE();
 		if (!(uniform_erase_type & BIT(i)))
 			continue;
 
@@ -3324,8 +3336,12 @@ spi_nor_select_uniform_erase(struct spi_nor_erase_map *map,
 	}
 
 	if (!erase)
+	{
+TRACE();
 		return ERR_PTR(-EINVAL);
+	}
 
+TRACE();
 	/* Disable all other Sector Erase commands. */
 	map->uniform_erase_type &= ~SNOR_ERASE_TYPE_MASK;
 	map->uniform_erase_type |= BIT(erase - map->erase_type);
@@ -3335,7 +3351,8 @@ spi_nor_select_uniform_erase(struct spi_nor_erase_map *map,
 static int spi_nor_select_erase(struct spi_nor *nor, u32 sector_size)
 {
 	struct mtd_info *mtd = &nor->mtd;
-#if 0
+	
+#if 1
 	struct spi_nor_erase_map *map = &nor->erase_map;
 	const struct spi_nor_erase_type *erase = NULL;
 	int i;
@@ -3354,9 +3371,14 @@ static int spi_nor_select_erase(struct spi_nor *nor, u32 sector_size)
 #endif
 
 	if (spi_nor_has_uniform_erase(nor)) {
+		TRACE();
 		erase = spi_nor_select_uniform_erase(map, sector_size);
 		if (IS_ERR(erase))
+		{
+			EXT_ERRORF("No uniform erase is found");
 			return PTR_ERR(erase);
+		}
+		
 		nor->erase_opcode = erase->opcode;
 		mtd->erasesize = erase->size;
 		return 0;
@@ -3367,7 +3389,10 @@ static int spi_nor_select_erase(struct spi_nor *nor, u32 sector_size)
 	 * maximum erase sector size. No need to set nor->erase_opcode.
 	 */
 	for (i = SNOR_ERASE_TYPE_MAX - 1; i >= 0; i--) {
-		if (map->erase_type[i].size) {
+		TRACE();
+		if (map->erase_type[i].size)
+		{
+			EXT_INFOF("#%d erase size", i);
 			erase = &map->erase_type[i];
 			break;
 		}
@@ -3375,6 +3400,7 @@ static int spi_nor_select_erase(struct spi_nor *nor, u32 sector_size)
 
 	if (!erase)
 		return -EINVAL;
+	EXT_INFOF("erase size :%d", erase->size);
 	mtd->erasesize = erase->size;
 #else
 	/* make it works on mux7xx board. April 11, 2019 Jack Lee */

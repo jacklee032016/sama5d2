@@ -73,9 +73,17 @@
 					"sf read 0x22000000 0x6c000 0x394000; "	\
 					"bootz 0x22000000 - 0x21000000"
 #elif CONFIG_QSPI_BOOT
+#if 0
 #define CONFIG_ENV_OFFSET		0x140000
 #define CONFIG_ENV_SIZE			0x20000
-#define CONFIG_ENV_SECT_SIZE		0x1000
+#else
+/* J.L. 05.16, 2019 */
+#define CONFIG_ENV_OFFSET		0x10000
+/* 32K */
+/*#define CONFIG_ENV_SIZE			0x8000	*/
+#define CONFIG_ENV_SIZE			0x10000		/* 64K, one sector */
+#endif
+#define CONFIG_ENV_SECT_SIZE		0x1000	/* 4096 */
 #define CONFIG_BOOTCOMMAND		"sf probe 0; "					\
 					"sf read 0x21000000 0x180000 0x80000; "		\
 					"sf read 0x22000000 0x200000 0x600000; "	\

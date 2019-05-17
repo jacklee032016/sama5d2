@@ -21,14 +21,11 @@ SRCDIR=`echo $2 | sed 's/\/\//\//g'`
 	mkdir -p $PKGDIR/lib
 	mkdir -p $PKGDIR/etc/mLab
 	mkdir -p $PKGDIR/etc/sys
+	mkdir -p $PKGDIR/etc/apache2
 	mkdir -p $PKGDIR/var/www/apis
 	mkdir -p $PKGDIR/var/www/cgi-bin
 
-CONFIG_FILES="muxLab.png muxMain.conf muxPlayer.conf muxRecorder.conf 
-		muxServer.conf muxWeb.conf 
-		ipCmds.json mediaActions.json playActions.json 
-		recordActions.json serverActions.json 
-		sysAdminActions.json webActions.json 
+CONFIG_FILES="muxLab.png muxMain.conf muxConfig.dat 
 		muxSystem.json 
 		"
 	
@@ -39,7 +36,8 @@ CONFIG_FILES="muxLab.png muxMain.conf muxPlayer.conf muxRecorder.conf
 	for cfg in $CONFIG_FILES; do
 		cp $VERBOSE -r $SRCDIR/etc/mLab/$cfg $PKGDIR/etc/mLab
 	done
-	cp $VERBOSE -r $SRCDIR/etc/apache2	$PKGDIR/etc/
+	cp $VERBOSE $SRCDIR/etc/apache2/httpd.conf	$PKGDIR/etc/apache2/
+	cp $VERBOSE $SRCDIR/etc/fw_env.config	$PKGDIR/etc/
 
 	#	cp $VERBOSE -r $SRCDIR/etc/mLab/muxWeb.conf $PKGDIR/etc/mLab/muxWeb.conf
 
@@ -94,12 +92,12 @@ CONFIG_FILES="muxLab.png muxMain.conf muxPlayer.conf muxRecorder.conf
 	
 		echo ""
 #	echo "   Copy CGI into $PKGDIR..."
-	EXES=`find $DATDIR/var/www/cgi-bin/ -type f `
-	for p in $EXES; do
-			f=`basename $p`
-			echo "                  $f is copied..."
-			cp $VERBOSE $p $PKGDIR/var/www/cgi-bin/
-	done
+#	EXES=`find $DATDIR/var/www/cgi-bin/ -type f `
+#	for p in $EXES; do
+#			f=`basename $p`
+#			echo "                  $f is copied..."
+#			cp $VERBOSE $p $PKGDIR/var/www/cgi-bin/
+#	done
 
 
 	CVS_FILES=`find $PKGDIR -name \.svn `

@@ -215,10 +215,17 @@
 #define	EXT_MEDIA_PORT_RX_DATA				48020
 #define	EXT_MEDIA_PORT_RX_STREA				48030
 
+#if (EXT_BOARD_TYPE == MUX_BOARD_TYPE_774)
+#define	EXT_MUX_PRODUCT_NAME				"HdmiOverIP-774"
+#define	EXT_MUX_MODEL							"500774"
+#elif (EXT_BOARD_TYPE == MUX_BOARD_TYPE_767)
+#define	EXT_MUX_PRODUCT_NAME				"SdiOverIP-767"
+#define	EXT_MUX_MODEL							"500767"
+#else
+#define	EXT_MUX_PRODUCT_NAME				"AVOverIP-7XX"
+#define	EXT_MUX_MODEL							"5007XX"
+#endif
 
-#define	EXT_767_PRODUCT_NAME				"SdiOverIP-767"
-
-#define	EXT_767_MODEL							"500767"
 
 #define	EXT_USER								"admin"
 #define	EXT_PASSWORD							"admin"
@@ -446,7 +453,7 @@
 	#define	EXT_ERRORF(message...)		{printf(EXT_ERROR_TEXT_BEGIN "%s: ERROR:[%s-%u]:", sysTaskName(), __FILE__, __LINE__);EXT_PRINTF((message)); printf(EXT_ERROR_TEXT_END  EXT_NEW_LINE);}
 
 //	#define	EXT_ASSERT(x)				{printf("Assertion \"%s\" failed at line %d in %s\n", x, __LINE__, __FILE__); while(1);}
-	#define	EXT_ASSERT(x, msg...)			{if((x)==0) {printf(EXT_ERROR_TEXT_BEGIN"%s: ASSERT: [%s-%u]:",  sysTaskName(), __FILE__, __LINE__ );printf(msg);printf((EXT_ERROR_TEXT_END EXT_NEW_LINE)); while(0){};}}
+	#define	EXT_ASSERT(x, msg...)			{if((x)==0) {printf(EXT_ERROR_TEXT_BEGIN"%s: ASSERT: [%s-%u]:",  sysTaskName(), __FILE__, __LINE__ );printf(msg);printf(EXT_ERROR_TEXT_END EXT_NEW_LINE); while(0){};}}
 	#define	EXT_ABORT(fmt, args... )		printf("%s: ABORT in [" __FILE__ "-%u]:" fmt EXT_NEW_LINE, sysTaskName(), __LINE__, ##args );while(1){}
 #else
 	#define	EXT_PRINTF(x)						{;}

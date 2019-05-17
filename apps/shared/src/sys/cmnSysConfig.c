@@ -17,8 +17,9 @@ void cmnSysCfgFromFactory( EXT_RUNTIME_CFG *cfg )
 	cfg->magic[0] = EXT_MAGIC_VALUE_A;
 	cfg->magic[1] = EXT_MAGIC_VALUE_B;
 
-	sprintf(cfg->name, "%s", EXT_767_PRODUCT_NAME);
-	sprintf(cfg->model, "%s", EXT_767_MODEL);
+	sprintf(cfg->product, "%s", EXT_MUX_PRODUCT_NAME);
+	sprintf(cfg->name, "%s", EXT_MUX_PRODUCT_NAME);
+	sprintf(cfg->model, "%s", EXT_MUX_MODEL);
 
 	cfg->version.major = BL_VERSION_MAJOR;
 	cfg->version.minor = BL_VERSION_MINOR;

@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <string.h>
 
-#include "libCmn.h"
+#include "libCmnSys.h"
 #include "mux7xx.h"
 
 static int _cmnSysI2CFile(unsigned short slaveAddr)

@@ -7,9 +7,9 @@
 # built with cross tools. Although it may look weird, we only replace "HOSTCC"
 # with "CC" here for the maximum code reuse of scripts/Makefile.host.
 
-BUILD_ROOT_HOME=/home/lzj/yocto/774/buildroot
+# BUILD_ROOT_HOME=/home/lzj/yocto/774/buildroot
 
-CROSS_COMPILE=$(BUILD_ROOT_HOME)/output/host/bin/arm-linux-
+# CROSS_COMPILE=$(BUILD_ROOT_HOME)/output/host/bin/arm-linux-
 
 override HOSTCC = $(CC)
 
@@ -19,6 +19,11 @@ HOST_EXTRACFLAGS  = $(patsubst -I%,-idirafter%, $(filter -I%, $(UBOOTINCLUDE))) 
 		-DUSE_HOSTCC \
 		-DTEXT_BASE=$(TEXT_BASE)
 
+HOST_EXTRACFLAGS  = -DUSE_HOSTCC \
+		-DTEXT_BASE=$(TEXT_BASE) \
+		 -march=armv7-a -marm -mfpu=neon -mfloat-abi=hard -mcpu=cortex-a5 --sysroot=/home/lzj/yocto/opt/sdk/sysroots/cortexa5hf-neon-poky-linux-gnueabi $(UBOOTINCLUDE) 
+		
+		
 ifeq ($(MTD_VERSION),old)
 HOST_EXTRACFLAGS += -DMTD_OLD
 endif
