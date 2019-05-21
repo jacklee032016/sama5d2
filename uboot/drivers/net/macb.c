@@ -6,6 +6,9 @@
 #include <clk.h>
 #include <dm.h>
 
+/* board directory is included in default include path. J.L. */
+#include "mux7xxCompact.h"
+
 /*
  * The u-boot networking stack is a little weird.  It seems like the
  * networking core allocates receive buffers up front without any
@@ -602,8 +605,11 @@ static int macb_phy_init(struct macb_device *macb, const char *name)
 		 ? 1 : 0);
 	duplex = (media & ADVERTISE_FULL) ? 1 : 0;
 
+#if	(MUX_BOARD == MUX_ATMEL_XPLAINED)
+#else
 speed=1;
 duplex=1;
+#endif
 
 	printf("%s: link up, %sMbps %s-duplex \n",
 	       name,

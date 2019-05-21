@@ -41,8 +41,8 @@ Page size is 256 bytes.
 QSPI Flash
 ------------------
 
-Detected memory size is 33554432 bytes: 32MB
-
+Detected memory size is 33554432 bytes: 32MB; which is not the type descripted in xplained datasheet;
+Chip:  MX25L25635F;
 Page size is 256 bytes.
 
 

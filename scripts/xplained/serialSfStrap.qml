@@ -3,6 +3,8 @@ import SAMBA.Connection.Serial 3.2
 //import SAMBA.Connection.JLink 3.2
 import SAMBA.Device.SAMA5D2 3.2
 
+// Serial Flash, programming Strap in serial port
+
 SerialConnection {
 //JLinkConnection {
 
@@ -45,21 +47,8 @@ SerialConnection {
 		initializeApplet("serialflash")
 
 		// erase then write files
-		print("-I- === Load AT91Bootstrap ===")
-		eraseWrite(0x00000000, "Mux7XX-bootStrap-3.8.10.bin", true)
-
-		print("-I- === Load u-boot environment ===")
-//		eraseWrite(0x00006000, ubootEnvFileName)
-
-		print("-I- === Load u-boot ===")
-//		eraseWrite(0x00008000, "u-boot.bin")
-
-		// initialize SD/MMC applet for on-board eMMC
-		print("-I- === Initialize eMMC access ===")
-//		initializeApplet("sdmmc")
-
-		print("-I- === Load rootfs on eMMC ===")
-//		applet.write(0, "atmel-xplained-demo-image-sama5d2-xplained.wic", false)
+		print("-I- === Load AT91Bootstrap Sama5d2Xpld-bootStrap-3.8.10 ===")
+		eraseWrite(0x00000000, "Sama5d2Xpld-bootStrap-3.8.10.bin", true)
 
 		print("-I- === Done. ===")
 	}

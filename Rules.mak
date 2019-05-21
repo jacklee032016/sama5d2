@@ -5,6 +5,27 @@
 # ARCH=
 ARCH=arm
 
+# change one of following board
+MUX_BOARD=MUX_ATMEL_XPLAINED
+#MUX_BOARD=MUX_BOARD_768
+#MUX_BOARD=MUX_BOARD_774
+#MUX_BOARD=MUX_BOARD_767
+
+
+ifeq ($(MUX_BOARD), MUX_ATMEL_XPLAINED)
+BOARD_NAME:=Sama5d2Xpld
+else 
+	ifeq ($(MUX_BOARD), MUX_BOARD_774)
+		BOARD_NAME:=Mux744
+	else 
+		BOARD_NAME:=Mux768
+	endif
+endif
+
+
+MUX_FLAGS += -DMUX_BOARD=$(MUX_BOARD)  -DBOARD_NAME=$(BOARD_NAME)
+
+BUILDTIME := $(shell TZ=CN date -u "+%Y_%m_%d")
 
 CPU_SAMA5D27=YES
 

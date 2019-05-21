@@ -183,7 +183,10 @@ int muxHwInit(void)
 	fpgaCtrl->devAddrRll = EXT_I2C_DEV_FPGA_DRP_PLL;
 
 	// init M500768 hw specific
+#if	(MUX_BOARD == MUX_ATMEL_XPLAINED)
 	EXT_INFOF((EXT_OS_NAME));
+	return 0;
+#endif
 
 	muxSi5351bHwInit();
 

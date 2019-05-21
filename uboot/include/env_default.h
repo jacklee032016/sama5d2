@@ -8,9 +8,17 @@
  */
 
 #include <env_callback.h>
+/* board directory is included in default include path */
+#include "mux7xxCompact.h"
 
+#if	(MUX_BOARD == MUX_ATMEL_XPLAINED)
+#define	CONFIG_IPADDR		192.168.1.181
+#define	CONFIG_SERVERIP	192.168.1.101
+#else
 #define	CONFIG_IPADDR		192.168.168.181
 #define	CONFIG_SERVERIP	192.168.168.101
+#endif
+
 #define	CONFIG_NETMASK	255.255.255.0
 
 

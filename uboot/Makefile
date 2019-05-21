@@ -6,6 +6,8 @@ SUBLEVEL =
 EXTRAVERSION = -linux4sam_6.0
 NAME =
 
+include ../Rules.mak
+
 # *DOCUMENTATION*
 # To see a list of typical targets execute "make help"
 # More info can be located in ./README
@@ -950,6 +952,7 @@ u-boot-dtb.bin: u-boot-nodtb.bin dts/dt.dtb FORCE
 
 u-boot.bin: u-boot-dtb.bin FORCE
 	$(call if_changed,copy)
+	cp u-boot.bin $(BOARD_NAME).u-boot.bin
 else
 u-boot.bin: u-boot-nodtb.bin FORCE
 	$(call if_changed,copy)

@@ -1,17 +1,24 @@
 #ifndef	__MUX7XX_COMPACT_H__
 #define	__MUX7XX_COMPACT_H__
 
-
+#if 0
 #define	MUX_BOARD_768			2
 #define	MUX_BOARD_774			3
 #define	MUX_BOARD_767			4
 
 #define	MUX_BOARD				MUX_BOARD_774
 //#define	MUX_BOARD				MUX_BOARD_768
+#endif
 
 #define	MUX_NAME				"Mux"
 
-#if	(MUX_BOARD == MUX_BOARD_768)
+#if	(MUX_BOARD == MUX_ATMEL_XPLAINED)
+	#define	EXT_SYSTEM					"Sama5d2Xpld"
+	#define	I2C_CHAN_4_SENSOR				0
+	#define	I2C_CHAN_4_SWITCH			0
+	
+	#define	EXT_I2C_DEV_SENSOR			(0x00 >> 1)
+#elif	(MUX_BOARD == MUX_BOARD_768)
 	#define	EXT_SYSTEM					MUX_NAME"768"
 	#define	I2C_CHAN_4_SENSOR			1
 	#define	I2C_CHAN_4_SWITCH		3

@@ -388,6 +388,9 @@ int extSwitchSetup(void)
 #endif
 
 	EXT_INFOF((""EXT_SYSTEM " is initializing ...") );
+#if	(MUX_BOARD == MUX_ATMEL_XPLAINED)
+	return 0;
+#endif
 	EXT_INFOF(("\tChannel switch:#%d; sensor:#%d;", I2C_CHAN_4_SWITCH, I2C_CHAN_4_SENSOR) );
 
 	err = extI2CRead(I2C_CHAN_4_SENSOR, EXT_I2C_DEV_SENSOR, 0, &temperature, 1);

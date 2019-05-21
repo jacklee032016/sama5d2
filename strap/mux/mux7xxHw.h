@@ -20,7 +20,9 @@
 #define	EXT_I2C_DEV_FPGA_PCSPMA		(0x6E>>1)	/* 0x37 */
 
 
-#if	(MUX_BOARD == MUX_BOARD_768)
+#if	(MUX_BOARD == MUX_ATMEL_XPLAINED)
+	#define	EXT_I2C_DEV_SENSOR			(0x30 >> 1)
+#elif	(MUX_BOARD == MUX_BOARD_768)
 	#define	EXT_I2C_DEV_SENSOR			(0x30 >> 1)
 #elif (MUX_BOARD == MUX_BOARD_774)
 	#define	EXT_I2C_DEV_SENSOR			(0x90 >> 1)

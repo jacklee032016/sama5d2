@@ -48,7 +48,7 @@
 #include "twi.h"
 #include "arch/tz_matrix.h"
 #include "matrix.h"
-
+#include "mux7xxCompact.h"
 
 static void at91_dbgu_hw_init(void)
 {
@@ -901,7 +901,7 @@ unsigned int at91_twi0_hw_init(void)
 {
 	unsigned int base_addr = AT91C_BASE_TWI0;
 
-#if 0
+#if	(MUX_BOARD == MUX_ATMEL_XPLAINED)
 	/* new xplaind board. Jack 03.16, 2019 */
 	const struct pio_desc twi_pins[] = {
 		{"TWD0", AT91C_PIN_PD(21), 0, PIO_DEFAULT, PIO_PERIPH_B},

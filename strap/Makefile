@@ -8,6 +8,9 @@
 # o  use make's built-in rules and variables
 #    (this increases performance and avoids hard-to-debug behaviour);
 # o  print "Entering directory ...";
+
+include ../Rules.mak
+
 MAKEFLAGS += -rR --no-print-directory
 
 TOPDIR=$(shell pwd)
@@ -204,7 +207,7 @@ endif
 # comment as new 
 # BOOT_NAME=$(BOARDNAME)-$(PROJECT)$(CARD_SUFFIX)boot-$(TARGET_NAME)$(BLOB)-$(VERSION)$(REV)
 #BOOT_NAME=767samaBootstrap
-BOOT_NAME=Mux7XX-bootStrap-3.8.10
+BOOT_NAME=$(BOARD_NAME)-bootStrap-3.8.10
 AT91BOOTSTRAP:=$(BINDIR)/$(BOOT_NAME).bin
 
 ifeq ($(IMAGE),)
@@ -250,7 +253,7 @@ CPPFLAGS=$(NOSTDINC_FLAGS) -ffunction-sections -g -Os -Wall \
 	-fno-stack-protector -fno-common -fno-builtin -fno-jump-tables -fno-pie \
 	-I$(INCL) -Icontrib/include -Iinclude -Ifs/include \
 	-I$(TOPDIR)/config/at91bootstrap-config \
-	-DAT91BOOTSTRAP_VERSION=\"$(VERSION)\" -DCOMPILE_TIME="\"$(DATE)\"" -D__EXT_RELEASE__
+	-DAT91BOOTSTRAP_VERSION=\"$(VERSION)\" -DCOMPILE_TIME="\"$(DATE)\"" -D__EXT_RELEASE__ $(MUX_FLAGS)
 
 #	-DAT91BOOTSTRAP_VERSION=\"$(VERSION)$(REV)$(SCMINFO)\" -DCOMPILE_TIME="\"$(DATE)\""
 

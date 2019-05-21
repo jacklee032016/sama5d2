@@ -1,6 +1,13 @@
 README for Bootstrap
 ################################
 
+05.18, 2019
+----------------
+* Support multiple boards: xplained, Mux774;
+* Binary name is related with board name and from Makefile;
+   * Makefile include macros from ../Rules.makl
+* include from mux7xx.h and mux7xxCompact.h;
+
 03.14, 2019
 ----------------
 * remove directory of 'config/at91bootstrap-config': this is for 'make menuconfig', a lot of header files with size of 0;

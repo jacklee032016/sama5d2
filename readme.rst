@@ -31,6 +31,20 @@ When try to program, it complains "qml/SAMBA/Applet.qml:232: Error: Could not in
 
     Plug off the shorted pins, and begin to program;
 
+
+When can't change to binary mode:
+::
+
+		$ sam-ba.exe -x scripts/sfSerialUboot.qml
+		Opening serial port 'COM10'
+		Error: Could not switch monitor on port 'COM10' to binary mode
+		Connection closed.
+		
+		In serial software, such as SecureCRT, connect to COM10, and disconnect;
+		Then try again;
+		
+		It is because the serial port operation in Windows or MinGw.
+				
 	
 When this happens, try later:
 ::
@@ -38,6 +52,7 @@ When this happens, try later:
    $ sam-ba -p jlink -d sama5d2 -a bootconfig
    Opening J-Link with S/N '29424457'
    Error: Unsupported device   
+
 
    
 2 Partitions
