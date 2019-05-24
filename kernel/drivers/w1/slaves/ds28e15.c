@@ -16,42 +16,36 @@
 
 #include <linux/w1.h>
 
-
 #include "mux7xxCompact.h"
 
-#if 0
-#define W1_EEPROM_DS2805       0x0D
-#define W1_F0D_EEPROM_SIZE		128
-#else
 
-#define W1_EEPROM_DS2805       		0x17
-#define W1_F0D_EEPROM_SIZE		64
-#endif
+#define W1_EEPROM_DS28E15       		0x17
+#define W1_F17_EEPROM_SIZE		64
 
-#define W1_F0D_PAGE_BITS			3
-#define W1_F0D_PAGE_SIZE			(1<<W1_F0D_PAGE_BITS)
-#define W1_F0D_PAGE_MASK			0x0F
+#define W1_F17_PAGE_BITS			3
+#define W1_F17_PAGE_SIZE			(1<<W1_F17_PAGE_BITS)
+#define W1_F17_PAGE_MASK			0x0F
 
-#define W1_F0D_SCRATCH_BITS		1
-#define W1_F0D_SCRATCH_SIZE		(1<<W1_F0D_SCRATCH_BITS)
-#define W1_F0D_SCRATCH_MASK		(W1_F0D_SCRATCH_SIZE-1)
+#define W1_F17_SCRATCH_BITS		1
+#define W1_F17_SCRATCH_SIZE		(1<<W1_F17_SCRATCH_BITS)
+#define W1_F17_SCRATCH_MASK		(W1_F17_SCRATCH_SIZE-1)
 
-#define W1_F0D_READ_EEPROM		0xF0
-#define W1_F0D_WRITE_EEPROM		0x55
-#define W1_F0D_RELEASE				0xFF
+#define W1_F17_READ_EEPROM		0xF0
+#define W1_F17_WRITE_EEPROM		0x55
+#define W1_F17_RELEASE				0xFF
 
-#define W1_F0D_CS_OK		0xAA /* Chip Status Ok */
+#define W1_F17_CS_OK		0xAA /* Chip Status Ok */
 
-#define W1_F0D_TPROG_MS		16
+#define W1_F17_TPROG_MS		16
 
-#define W1_F0D_READ_RETRIES		10
-#define W1_F0D_READ_MAXLEN		W1_F0D_EEPROM_SIZE
+#define W1_F17_READ_RETRIES		10
+#define W1_F17_READ_MAXLEN		W1_F17_EEPROM_SIZE
 
 /*
  * Check the file size bounds and adjusts count as needed.
  * This would not be needed if the file size didn't reset to 0 after a write.
  */
-static inline size_t w1_f0d_fix_count(loff_t off, size_t count, size_t size)
+static inline size_t w1_f17_fix_count(loff_t off, size_t count, size_t size)
 {
 	if (off > size)
 		return 0;
@@ -69,14 +63,14 @@ static inline size_t w1_f0d_fix_count(loff_t off, size_t count, size_t size)
  *
  * count must not exceed W1_F0D_READ_MAXLEN.
  */
-static int w1_f0d_readblock(struct w1_slave *sl, int off, int count, char *buf)
+static int w1_f17_readblock(struct w1_slave *sl, int off, int count, char *buf)
 {
 	u8 wrbuf[3];
-	u8 cmp[W1_F0D_READ_MAXLEN];
-	int tries = W1_F0D_READ_RETRIES;
+	u8 cmp[W1_F17_READ_MAXLEN];
+	int tries = W1_F17_READ_RETRIES;
 
 	do {
-		wrbuf[0] = W1_F0D_READ_EEPROM;
+		wrbuf[0] = W1_F17_READ_EEPROM;
 		wrbuf[1] = off & 0x7f;
 		wrbuf[2] = 0;
 
@@ -97,19 +91,19 @@ static int w1_f0d_readblock(struct w1_slave *sl, int off, int count, char *buf)
 	} while (--tries);
 
 	dev_err(&sl->dev, "proof reading failed %d times\n",
-			W1_F0D_READ_RETRIES);
+			W1_F17_READ_RETRIES);
 
 	return -1;
 }
 
-static ssize_t w1_f0d_read_bin(struct file *filp, struct kobject *kobj,
+static ssize_t w1_f17_read_bin(struct file *filp, struct kobject *kobj,
 			       struct bin_attribute *bin_attr,
 			       char *buf, loff_t off, size_t count)
 {
 	struct w1_slave *sl = kobj_to_w1_slave(kobj);
 	int todo = count;
 
-	count = w1_f0d_fix_count(off, count, W1_F0D_EEPROM_SIZE);
+	count = w1_f17_fix_count(off, count, W1_F17_EEPROM_SIZE);
 	if (count == 0)
 		return 0;
 
@@ -119,19 +113,19 @@ static ssize_t w1_f0d_read_bin(struct file *filp, struct kobject *kobj,
 	while (todo > 0) {
 		int block_read;
 
-		if (todo >= W1_F0D_READ_MAXLEN)
-			block_read = W1_F0D_READ_MAXLEN;
+		if (todo >= W1_F17_READ_MAXLEN)
+			block_read = W1_F17_READ_MAXLEN;
 		else
 			block_read = todo;
 
-		if (w1_f0d_readblock(sl, off, block_read, buf) < 0) {
+		if (w1_f17_readblock(sl, off, block_read, buf) < 0) {
 			count = -EIO;
 			break;
 		}
 
-		todo -= W1_F0D_READ_MAXLEN;
-		buf += W1_F0D_READ_MAXLEN;
-		off += W1_F0D_READ_MAXLEN;
+		todo -= W1_F17_READ_MAXLEN;
+		buf += W1_F17_READ_MAXLEN;
+		off += W1_F17_READ_MAXLEN;
 	}
 
 	mutex_unlock(&sl->master->mutex);
@@ -152,11 +146,11 @@ static ssize_t w1_f0d_read_bin(struct file *filp, struct kobject *kobj,
  * @param data	The data to write
  * @return	0=Success -1=failure
  */
-static int w1_f0d_write(struct w1_slave *sl, int addr, int len, const u8 *data)
+static int w1_f17_write(struct w1_slave *sl, int addr, int len, const u8 *data)
 {
-	int tries = W1_F0D_READ_RETRIES;
+	int tries = W1_F17_READ_RETRIES;
 	u8 wrbuf[3];
-	u8 rdbuf[W1_F0D_SCRATCH_SIZE];
+	u8 rdbuf[W1_F17_SCRATCH_SIZE];
 	u8 cs;
 
 	if ((addr & 1) || (len != 2)) {
@@ -171,7 +165,7 @@ retry:
 	if (w1_reset_select_slave(sl))
 		return -1;
 
-	wrbuf[0] = W1_F0D_WRITE_EEPROM;
+	wrbuf[0] = W1_F17_WRITE_EEPROM;
 	wrbuf[1] = addr & 0xff;
 	wrbuf[2] = 0xff; /* ?? from Example */
 
@@ -187,7 +181,7 @@ retry:
 
 		dev_err(&sl->dev,
 			"could not write to eeprom, scratchpad compare failed %d times\n",
-			W1_F0D_READ_RETRIES);
+			W1_F17_READ_RETRIES);
 		pr_info("%s: rdbuf = %#x %#x data = %#x %#x\n",
 		    __func__, rdbuf[0], rdbuf[1], data[0], data[1]);
 
@@ -195,14 +189,14 @@ retry:
 	}
 
 	/* Trigger write out to EEPROM */
-	w1_write_8(sl->master, W1_F0D_RELEASE);
+	w1_write_8(sl->master, W1_F17_RELEASE);
 
 	/* Sleep for tprog ms to wait for the write to complete */
-	msleep(W1_F0D_TPROG_MS);
+	msleep(W1_F17_TPROG_MS);
 
 	/* Check CS (Command Status) == 0xAA ? */
 	cs = w1_read_8(sl->master);
-	if (cs != W1_F0D_CS_OK) {
+	if (cs != W1_F17_CS_OK) {
 		dev_err(&sl->dev, "save to eeprom failed = CS=%#x\n", cs);
 		return -1;
 	}
@@ -210,7 +204,7 @@ retry:
 	return 0;
 }
 
-static ssize_t w1_f0d_write_bin(struct file *filp, struct kobject *kobj,
+static ssize_t w1_f17_write_bin(struct file *filp, struct kobject *kobj,
 				struct bin_attribute *bin_attr,
 				char *buf, loff_t off, size_t count)
 {
@@ -218,7 +212,7 @@ static ssize_t w1_f0d_write_bin(struct file *filp, struct kobject *kobj,
 	int addr, len;
 	int copy;
 
-	count = w1_f0d_fix_count(off, count, W1_F0D_EEPROM_SIZE);
+	count = w1_f17_fix_count(off, count, W1_F17_EEPROM_SIZE);
 	if (count == 0)
 		return 0;
 
@@ -230,33 +224,32 @@ static ssize_t w1_f0d_write_bin(struct file *filp, struct kobject *kobj,
 	while (len > 0) {
 
 		/* if len too short or addr not aligned */
-		if (len < W1_F0D_SCRATCH_SIZE || addr & W1_F0D_SCRATCH_MASK) {
-			char tmp[W1_F0D_SCRATCH_SIZE];
+		if (len < W1_F17_SCRATCH_SIZE || addr & W1_F17_SCRATCH_MASK) {
+			char tmp[W1_F17_SCRATCH_SIZE];
 
 			/* read the block and update the parts to be written */
-			if (w1_f0d_readblock(sl, addr & ~W1_F0D_SCRATCH_MASK,
-					W1_F0D_SCRATCH_SIZE, tmp)) {
+			if (w1_f17_readblock(sl, addr & ~W1_F17_SCRATCH_MASK,  W1_F17_SCRATCH_SIZE, tmp)) {
 				count = -EIO;
 				goto out_up;
 			}
 
 			/* copy at most to the boundary of the PAGE or len */
-			copy = W1_F0D_SCRATCH_SIZE -
-				(addr & W1_F0D_SCRATCH_MASK);
+			copy = W1_F17_SCRATCH_SIZE -
+				(addr & W1_F17_SCRATCH_MASK);
 
 			if (copy > len)
 				copy = len;
 
-			memcpy(&tmp[addr & W1_F0D_SCRATCH_MASK], buf, copy);
-			if (w1_f0d_write(sl, addr & ~W1_F0D_SCRATCH_MASK,
-					W1_F0D_SCRATCH_SIZE, tmp) < 0) {
+			memcpy(&tmp[addr & W1_F17_SCRATCH_MASK], buf, copy);
+			if (w1_f17_write(sl, addr & ~W1_F17_SCRATCH_MASK, 	W1_F17_SCRATCH_SIZE, tmp) < 0) {
 				count = -EIO;
 				goto out_up;
 			}
-		} else {
-
-			copy = W1_F0D_SCRATCH_SIZE;
-			if (w1_f0d_write(sl, addr, copy, buf) < 0) {
+		}
+		else
+		{
+			copy = W1_F17_SCRATCH_SIZE;
+			if (w1_f17_write(sl, addr, copy, buf) < 0) {
 				count = -EIO;
 				goto out_up;
 			}
@@ -272,51 +265,54 @@ out_up:
 	return count;
 }
 
-static struct bin_attribute w1_f0d_bin_attr = {
+
+static struct bin_attribute w1_f17_bin_attr = {
 	.attr = {
 		.name = "eeprom",
 		.mode = S_IRUGO | S_IWUSR,
 	},
-	.size = W1_F0D_EEPROM_SIZE,
-	.read = w1_f0d_read_bin,
-	.write = w1_f0d_write_bin,
+	.size = W1_F17_EEPROM_SIZE,
+	.read = w1_f17_read_bin,
+	.write = w1_f17_write_bin,
 };
 
-static int w1_f0d_add_slave(struct w1_slave *sl)
+static int w1_f17_add_slave(struct w1_slave *sl)
 {
-	return sysfs_create_bin_file(&sl->dev.kobj, &w1_f0d_bin_attr);
+	return sysfs_create_bin_file(&sl->dev.kobj, &w1_f17_bin_attr);
 }
 
-static void w1_f0d_remove_slave(struct w1_slave *sl)
+static void w1_f17_remove_slave(struct w1_slave *sl)
 {
-	sysfs_remove_bin_file(&sl->dev.kobj, &w1_f0d_bin_attr);
+	sysfs_remove_bin_file(&sl->dev.kobj, &w1_f17_bin_attr);
 }
 
-static struct w1_family_ops w1_f0d_fops = {
-	.add_slave      = w1_f0d_add_slave,
-	.remove_slave   = w1_f0d_remove_slave,
+static struct w1_family_ops w1_f17_fops =
+{
+	.add_slave      = w1_f17_add_slave,
+	.remove_slave   = w1_f17_remove_slave,
 };
 
-static struct w1_family w1_family_2d = {
-	.fid = W1_EEPROM_DS2805,
-	.fops = &w1_f0d_fops,
+static struct w1_family w1_family_17 =
+{
+	.fid = W1_EEPROM_DS28E15,
+	.fops = &w1_f17_fops,
 };
 
-static int __init w1_f0d_init(void)
+static int __init w1_f17_init(void)
 {
 	pr_info("%s()\n", __func__);
-	return w1_register_family(&w1_family_2d);
+	return w1_register_family(&w1_family_17);
 }
 
-static void __exit w1_f0d_fini(void)
+static void __exit w1_f17_fini(void)
 {
 	pr_info("%s()\n", __func__);
-	w1_unregister_family(&w1_family_2d);
+	w1_unregister_family(&w1_family_17);
 }
 
-module_init(w1_f0d_init);
-module_exit(w1_f0d_fini);
+module_init(w1_f17_init);
+module_exit(w1_f17_fini);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Andrew Worsley amworsley@gmail.com");
-MODULE_DESCRIPTION("w1 family 0d driver for DS2805, 1kb EEPROM");
+MODULE_DESCRIPTION("w1 family 0d driver for DS28E15, 1kb EEPROM");

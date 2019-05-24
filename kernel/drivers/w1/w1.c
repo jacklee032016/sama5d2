@@ -32,9 +32,12 @@
 #include "w1_internal.h"
 #include "w1_netlink.h"
 
+
+#include "mux7xxCompact.h"
+
 #define W1_FAMILY_DEFAULT	0
 
-static int w1_timeout = 10;
+static int w1_timeout = 1;//10;
 module_param_named(timeout, w1_timeout, int, 0);
 MODULE_PARM_DESC(timeout, "time in seconds between automatic slave searches");
 
@@ -51,7 +54,8 @@ MODULE_PARM_DESC(timeout_us,
  * device on the network and w1_max_slave_count is set to 1, the device id can
  * be read directly skipping the normal slower search process.
  */
-int w1_max_slave_count = 64;
+int w1_max_slave_count = 1;// 64;
+
 module_param_named(max_slave_count, w1_max_slave_count, int, 0);
 MODULE_PARM_DESC(max_slave_count,
 	"maximum number of slaves detected in a search");
@@ -631,6 +635,7 @@ static int w1_family_notify(unsigned long action, struct w1_slave *sl)
 
 	switch (action) {
 	case BUS_NOTIFY_ADD_DEVICE:
+		EXT_INFOF("Add Device");
 		/* if the family driver needs to initialize something... */
 		if (fops->add_slave) {
 			err = fops->add_slave(sl);
@@ -665,6 +670,7 @@ static int w1_family_notify(unsigned long action, struct w1_slave *sl)
 		}
 		break;
 	case BUS_NOTIFY_DEL_DEVICE:
+		EXT_INFOF("Delete Device");
 		if (IS_REACHABLE(CONFIG_HWMON) && fops->chip_info &&
 			    sl->hwmon)
 			hwmon_device_unregister(sl->hwmon);
@@ -695,6 +701,8 @@ static int __w1_attach_slave_device(struct w1_slave *sl)
 		 (unsigned int) sl->reg_num.family,
 		 (unsigned long long) sl->reg_num.id);
 
+	EXT_INFOF(" registering %s as %p.\n", dev_name(&sl->dev), sl);
+	
 	dev_dbg(&sl->dev, "%s: registering %s as %p.\n", __func__,
 		dev_name(&sl->dev), sl);
 
@@ -717,6 +725,7 @@ static int __w1_attach_slave_device(struct w1_slave *sl)
 	list_add_tail(&sl->w1_slave_entry, &sl->master->slist);
 	mutex_unlock(&sl->master->list_mutex);
 
+	TRACE();
 	return 0;
 }
 
@@ -748,9 +757,12 @@ int w1_attach_slave_device(struct w1_master *dev, struct w1_reg_num *rn)
 	dev_info(&dev->dev, "Attaching one wire slave %02x.%012llx crc %02x\n",
 		  rn->family, (unsigned long long)rn->id, rn->crc);
 
+	EXT_INFOF("Attaching one wire slave %02x.%012llx crc %02x\n", rn->family, (unsigned long long)rn->id, rn->crc);
+
 	/* slave modules need to be loaded in a context with unlocked mutex */
 	mutex_unlock(&dev->mutex);
 	request_module("w1-family-0x%02X", rn->family);
+	EXT_INFOF("request module: w1-family-0x%02X", rn->family);
 	mutex_lock(&dev->mutex);
 
 	spin_lock(&w1_flock);
@@ -760,6 +772,8 @@ int w1_attach_slave_device(struct w1_master *dev, struct w1_reg_num *rn)
 		dev_info(&dev->dev, "Family %x for %02x.%012llx.%02x is not registered.\n",
 			  rn->family, rn->family,
 			  (unsigned long long)rn->id, rn->crc);
+		EXT_INFOF("Family %x for %02x.%012llx.%02x is not registered.\n", rn->family, rn->family, (unsigned long long)rn->id, rn->crc);
+
 	}
 	__w1_family_get(f);
 	spin_unlock(&w1_flock);
@@ -927,11 +941,17 @@ void w1_slave_found(struct w1_master *dev, u64 rn)
 	atomic_inc(&dev->refcnt);
 
 	tmp = (struct w1_reg_num *) &rn;
+	EXT_INFOF("Slave with ID '0x%x' is found", tmp->family);
 
 	sl = w1_slave_search_device(dev, tmp);
-	if (sl) {
+	if (sl)
+	{
+		EXT_INFOF("Slave set to active");
 		set_bit(W1_SLAVE_ACTIVE, &sl->flags);
-	} else {
+	}
+	else
+	{
+		EXT_INFOF("Slave acttaching...");
 		if (rn && tmp->crc == w1_calc_crc8((u8 *)&rn_le, 7))
 			w1_attach_slave_device(dev, tmp);
 	}
@@ -972,10 +992,12 @@ void w1_search(struct w1_master *dev, u8 search_type, w1_slave_found_callback cb
 
 	desc_bit = 64;
 
+	EXT_INFOF("W1 search, max slave :%d...", dev->max_slave_count);
 	while ( !last_device && (slave_count++ < dev->max_slave_count) ) {
 		last_rn = rn;
 		rn = 0;
 
+		EXT_INFOF("W1 search...");
 		/*
 		 * Reset bus and all 1-wire device state machines
 		 * so they can respond to our requests.
@@ -986,22 +1008,30 @@ void w1_search(struct w1_master *dev, u8 search_type, w1_slave_found_callback cb
 		if (w1_reset_bus(dev)) {
 			mutex_unlock(&dev->bus_mutex);
 			dev_dbg(&dev->dev, "No devices present on the wire.\n");
+			EXT_INFOF("No devices present on the wire %s", dev->name);
 			break;
 		}
 
 		/* Do fast search on single slave bus */
 		if (dev->max_slave_count == 1) {
 			int rv;
+
+			EXT_INFOF("Read ROM on %s when max slave is 1...", dev->name);
 			w1_write_8(dev, W1_READ_ROM);
 			rv = w1_read_block(dev, (u8 *)&rn, 8);
 			mutex_unlock(&dev->bus_mutex);
 
+			EXT_INFOF("Read ROM %d bytes", rv);
 			if (rv == 8 && rn)
+			{
+				EXT_INFOF("Found ...");
 				cb(dev, rn);
+			}
 
 			break;
 		}
 
+TRACE();
 		/* Start the search */
 		w1_write_8(dev, search_type);
 		for (i = 0; i < 64; ++i) {
@@ -1069,6 +1099,8 @@ void w1_search_process_cb(struct w1_master *dev, u8 search_type,
 {
 	struct w1_slave *sl, *sln;
 
+	EXT_INFOF("W1 search...");
+	
 	mutex_lock(&dev->list_mutex);
 	list_for_each_entry(sl, &dev->slist, w1_slave_entry)
 		clear_bit(W1_SLAVE_ACTIVE, &sl->flags);
@@ -1092,6 +1124,7 @@ void w1_search_process_cb(struct w1_master *dev, u8 search_type,
 		dev->search_count--;
 }
 
+/* search in kthread */
 static void w1_search_process(struct w1_master *dev, u8 search_type)
 {
 	w1_search_process_cb(dev, search_type, w1_slave_found);

@@ -3352,7 +3352,7 @@ static int spi_nor_select_erase(struct spi_nor *nor, u32 sector_size)
 {
 	struct mtd_info *mtd = &nor->mtd;
 	
-#if 1
+#if 0
 	struct spi_nor_erase_map *map = &nor->erase_map;
 	const struct spi_nor_erase_type *erase = NULL;
 	int i;
@@ -3405,6 +3405,7 @@ static int spi_nor_select_erase(struct spi_nor *nor, u32 sector_size)
 #else
 	/* make it works on mux7xx board. April 11, 2019 Jack Lee */
 	mtd->erasesize = 64*1024u;
+//	mtd->erasesize = 4*1024u;
 #endif
 	return 0;
 }

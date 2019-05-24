@@ -18,3 +18,7 @@ ifeq ($(ARCH),arm)
 else
 endif
 
+DRIVER_HOME=$(ROOT_DIR)/drivers
+
+CFLAGS_DRIVER=-I$(DRIVER_HOME)/include
+

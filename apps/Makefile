@@ -54,7 +54,7 @@ endif
 
 	APP_DIRS += src/main
 	APP_DIRS += src/uenvs
-#	APP_DIRS += src/tests
+	APP_DIRS += src/tests
 
 
 SUBDIRS += $(SHARED_DIRS)

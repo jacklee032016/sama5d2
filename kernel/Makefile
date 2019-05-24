@@ -1227,7 +1227,8 @@ ifdef CONFIG_MODULES
 
 # By default, build modules as well
 
-all: modules
+all: 
+# modules
 
 # Build modules
 #
