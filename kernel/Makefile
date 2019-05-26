@@ -5,6 +5,8 @@ SUBLEVEL = 73
 EXTRAVERSION = -linux4sam_6.0
 NAME = Petit Gorille
 
+include ../Rules.mak
+
 # *DOCUMENTATION*
 # To see a list of typical targets execute "make help"
 # More info can be located in ./README
@@ -1227,7 +1229,8 @@ ifdef CONFIG_MODULES
 
 # By default, build modules as well
 
-all: modules
+all: 
+# modules
 
 # Build modules
 #

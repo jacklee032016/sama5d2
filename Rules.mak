@@ -78,3 +78,6 @@ endif
 export BUILDTIME
 export RELEASES_NAME
 
+export MUX_BOARD
+export BOARD_NAME
+
