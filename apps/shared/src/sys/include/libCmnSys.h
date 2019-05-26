@@ -138,5 +138,13 @@ int	sysFpgaInit(EXT_RUNTIME_CFG *runCfg );
 int cmnSysJsonUpdate(MuxMain *muxMain);
 
 
+char *cmnSysLedFindState(LED_MODE_T mode);
+LED_MODE_T cmnSysLedCheck(LED_TYPE_T type);
+int cmnSysLedCtrl(LED_TYPE_T type, LED_MODE_T mode);
+
+
+int cmnSysSW1Check(void);
+int cmnSysDipSwitchCheck(void);
+
 #endif
 

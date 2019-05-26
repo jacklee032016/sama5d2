@@ -24,6 +24,15 @@ typedef	enum
 	LED_MODE_BLINK	= 2
 }LED_MODE_T;
 
+typedef	enum
+{
+	LED_TYPE_POWER	=	0,
+	LED_TYPE_VIDEO	,
+	LED_TYPE_ACT,
+	LED_TYPE_UNKNOWN
+}LED_TYPE_T;
+
+
 typedef	struct _LedCtrl
 {
 	int					fd;

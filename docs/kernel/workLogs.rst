@@ -2,6 +2,14 @@ Work logs for kernel
 ################################
 
 
+05.23, 2019
+--------------------
+* Remove touchscreens;
+* Remove media --> video capture;
+* Remove Graphics;
+
+About 3.5M size of kernel;
+
 
 04.17, 2019
 --------------------

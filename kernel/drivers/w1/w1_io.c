@@ -20,6 +20,8 @@
 
 #include "w1_internal.h"
 
+#include "mux7xxCompact.h"
+
 static int w1_delay_parm = 1;
 module_param_named(delay_coef, w1_delay_parm, int, 0);
 
@@ -327,11 +329,20 @@ int w1_reset_bus(struct w1_master *dev)
 	int result;
 	unsigned long flags = 0;
 
+	EXT_INFOF("W1 reset bus...");
+
 	if(w1_disable_irqs) local_irq_save(flags);
 
 	if (dev->bus_master->reset_bus)
+	{
+		TRACE();
 		result = dev->bus_master->reset_bus(dev->bus_master->data) & 0x1;
-	else {
+	}
+	else
+	{
+		int i;
+		TRACE();
+		
 		dev->bus_master->write_bit(dev->bus_master->data, 0);
 		/* minimum 480, max ? us
 		 * be nice and sleep, except 18b20 spec lists 960us maximum,
@@ -344,7 +355,16 @@ int w1_reset_bus(struct w1_master *dev)
 		dev->bus_master->write_bit(dev->bus_master->data, 1);
 		w1_delay(70);
 
-		result = dev->bus_master->read_bit(dev->bus_master->data) & 0x1;
+		for(i=0; i< 200; i++)
+		{
+			w1_delay(10);
+			result = dev->bus_master->read_bit(dev->bus_master->data) & 0x1;
+			if(result == 0)
+			{
+				break;
+			}
+		}
+		
 		/* minimum 70 (above) + 430 = 500 us
 		 * There aren't any timing requirements between a reset and
 		 * the following transactions.  Sleeping is safe here.

@@ -24,6 +24,8 @@
 #include "w1_internal.h"
 #include "w1_netlink.h"
 
+#include "mux7xxCompact.h"
+
 static int w1_search_count = -1; /* Default is continual scan */
 module_param_named(search_count, w1_search_count, int, 0);
 
@@ -96,6 +98,7 @@ static void w1_free_dev(struct w1_master *dev)
 }
 
 /**
+ * add w1_master for every w1_bus_master 
  * w1_add_master_device() - registers a new master device
  * @master:	master bus device to register
  */
@@ -146,12 +149,12 @@ int w1_add_master_device(struct w1_bus_master *master)
 
 	dev->initialized = 1;
 
+	EXT_INFOF("Kernel thread %s for w1 master %d", dev->name, dev->id );
+	
 	dev->thread = kthread_run(&w1_process, dev, "%s", dev->name);
 	if (IS_ERR(dev->thread)) {
 		retval = PTR_ERR(dev->thread);
-		dev_err(&dev->dev,
-			 "Failed to create new kernel thread. err=%d\n",
-			 retval);
+		dev_err(&dev->dev, "Failed to create new kernel thread. err=%d\n", retval);
 		mutex_unlock(&w1_mlock);
 		goto err_out_rm_attr;
 	}
