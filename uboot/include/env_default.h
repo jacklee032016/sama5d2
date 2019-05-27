@@ -44,7 +44,8 @@ const uchar default_environment[] = {
 #ifdef	CONFIG_USE_BOOTARGS
 
 	#if	(MUX_BOARD == MUX_ATMEL_XPLAINED)
- 		"bootargs=root=/dev/mmcblk0p0 rw rootwait bootargs=console=ttyS0,115200 earlyprintk" "\0"
+		/* p1 is first partition in mmc */
+ 		"bootargs=root=/dev/mmcblk0p1 rw rootwait bootargs=console=ttyS0,115200 earlyprintk" "\0"
 	#else
 		"bootargs="	CONFIG_BOOTARGS			"\0"
 	#endif

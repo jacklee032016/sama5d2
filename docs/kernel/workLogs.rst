@@ -2,6 +2,14 @@ Work logs for kernel
 ################################
 
 
+05.26, 2019
+--------------------
+* When usb2: ehci@500000 {
+			status = "okay";
+		};
+	enabled, kernel reboot when EHCI driver is loading;
+
+
 05.23, 2019
 --------------------
 * Remove touchscreens;

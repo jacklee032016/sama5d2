@@ -1,8 +1,13 @@
 # SPDX-License-Identifier: GPL-2.0
 ifeq ($(CONFIG_OF),y)
 
-dtb-$(CONFIG_SOC_SAM_V7) += \
-	mux774_v2.dtb 
+ifeq ($(MUX_BOARD), MUX_ATMEL_XPLAINED)
+	dtb-$(CONFIG_SOC_SAM_V7) += \
+		at91-sama5d2_xplained.dtb 
+else 
+	dtb-$(CONFIG_SOC_SAM_V7) += \
+		mux774_v2.dtb 
+endif
 
 #	at91-sama5d2_xplained.dtb 
 	

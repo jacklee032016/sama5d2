@@ -85,9 +85,11 @@
 			status = "okay";
 		};
 
+		/* ??? 05.26, 2019
 		usb2: ehci@500000 {
 			status = "okay";
 		};
+		*/
 
 		sdmmc0: sdio-host@a0000000 {
 			bus-width = <8>;
@@ -172,23 +174,11 @@
 						reg = <0x00100000 0x00400000>;
 					};
 
-					rootfs@00500000 {
-						label = "rootfs";
-						reg = <0x00500000 0x03000000>;
-
-					};
-
-					data@03500000 {
+					data@00500000 {
 						label = "data";
-						reg = <0x03500000 0x00A00000>;
-
+						reg = <0x00500000 0x01B00000>; /* 0x1B00000:27MB; 5MB+27MB is size of QSPI Flash */
 					};
 
-					reserved2@03F00000 {
-						label = "reserved-2";
-						reg = <0x03F00000 0x00100000>;
-
-					};
 				};
 			};
 
@@ -724,12 +714,12 @@
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_key_gpio_default>;
 
-		bp1 {
+		/*bp1 {
 			label = "PB_USER";
 			gpios = <&pioA PIN_PB9 GPIO_ACTIVE_LOW>;
 			linux,code = <0x104>;
 			wakeup-source;
-		};
+		};*/
 	};
 
 	leds {

@@ -38,8 +38,7 @@ Steps:
 #. **Program DTB in u-boot**
 ::
 
-   tftpboot 0x21000000 at91-sama5d2_xplained.dtb
-   sf probe 1:0; sf erase 0x20000 0x10000; sf write 0x21000000 0x20000 0x10000
+   tftpboot 0x21000000 at91-sama5d2_xplained.dtb;   sf probe 1:0; sf erase 0x20000 0x10000; sf write 0x21000000 0x20000 0x10000
    tftpboot 0x21000000 mux774_v2.dtb;sf probe 1:0; sf erase 0x20000 0x10000; sf write 0x21000000 0x20000 0x10000
 
    
@@ -58,7 +57,15 @@ Clear environment:
 
 #. **Program JFFS2 root File System**
 ::
+   128M*2018 Blocks = 262144, =0x40000
+   tftpboot 0x21000000 App.ext4.2019_05_26
+   mmc write 0x21000000 8 40000
 
+   256M*2018 Blocks = 262144*2, =0x80000
+   tftpboot 0x21000000 App.ext4.2019_05_27
+   mmc write 0x21000000 8 80000
+
+   
    tftpboot 0x21000000 root.jffs2.2019_04_10
    sf probe 1:0; sf erase 0x500000 0x3000000; 
    

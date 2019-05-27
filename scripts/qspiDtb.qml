@@ -22,9 +22,9 @@ JLinkConnection {
 		// initialize QSPI applet
 		initializeApplet("qspiflash")
 
-		applet.erase(0x40000, 0x10000)
+		applet.erase(0x20000, 0x10000)
 
-		applet.write(0x40000, "at91-sama5d2_xplained.dtb", true)//
+		applet.write(0x20000, "at91-sama5d2_xplained.dtb", true)//
 
 		// initialize boot config applet
 //		initializeApplet("bootconfig")

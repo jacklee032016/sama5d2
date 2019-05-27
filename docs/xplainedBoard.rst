@@ -1,6 +1,12 @@
 About sama5d2-xplained board
 ###############################
 
+
+* 4Gb SDRAM, 512MB memory;
+* 32MB QSPI Flash;
+* one-wire EEPROM;
+
+
 Write testimage from Website
 ===================================
 
