@@ -2,7 +2,7 @@
 # $Id$
 #
 
-include $(RULE_DIR)/Makefile.pre
+include $(ROOT_DIR)/Makefile.pre
 
 CODE_SUBDIRS = \
 				.
@@ -30,6 +30,10 @@ MUX_SRC += \
 		cmnSysFpgaOps.c \
 		cmnSysConfig.c \
 		cmnSysJson.c \
+		cmnSysNetlinkW1.c \
+		cmnSysSecureChip.c \
+		sha256.c \
+		
 
 
 SRC += \

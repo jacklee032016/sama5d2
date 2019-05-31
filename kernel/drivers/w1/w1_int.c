@@ -24,6 +24,8 @@
 #include "w1_internal.h"
 #include "w1_netlink.h"
 
+#define	__EXT_RELEASE__
+
 #include "mux7xxCompact.h"
 
 static int w1_search_count = -1; /* Default is continual scan */
@@ -149,7 +151,8 @@ int w1_add_master_device(struct w1_bus_master *master)
 
 	dev->initialized = 1;
 
-	EXT_INFOF("Kernel thread %s for w1 master %d", dev->name, dev->id );
+
+	EXT_DEBUGF(MUX_W1_DEBUG, "Kernel thread %s for w1 master %d", dev->name, dev->id );
 	
 	dev->thread = kthread_run(&w1_process, dev, "%s", dev->name);
 	if (IS_ERR(dev->thread)) {

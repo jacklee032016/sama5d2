@@ -351,13 +351,15 @@ static ssize_t crccheck_store(struct device *dev, struct device_attribute *attr,
 			      const char *buf, size_t count)
 {
 	char val;
+	u32 uV;
 
 	if (count != 1 || !buf)
 		return -EINVAL;
 
-	if (get_user(val, buf))
+	if (get_user(uV, buf))
 		return -EFAULT;
 
+	val = (char)uV;
 	/* convert to decimal */
 	val = val - 0x30;
 	if (val != 0 && val != 1)

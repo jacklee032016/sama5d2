@@ -24,6 +24,9 @@ int testLeds(void);
 int testSw1(void);
 int testSecureChipId(void);
 
+int testDs2815(void );
+int testSC(void );
+
 static void _usage(char* base)
 {
 	printf("%s: \n\tTest command line utility.\n"\
@@ -84,7 +87,9 @@ int main(int argc, char *argv[])
 	}
 	else if(IS_STRING_EQUAL(cmd, TEST_CMD_SECURE_CHIP))
 	{
-		testSecureChipId();
+		testSC();
+//		testDs2815();
+//		testSecureChipId();
 	}
 	else
 	{

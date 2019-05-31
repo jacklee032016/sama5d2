@@ -2,7 +2,7 @@
 # $Id$
 #
 
-include $(RULE_DIR)/Makefile.pre
+include $(ROOT_DIR)/Makefile.pre
 
 CODE_SUBDIRS = \
 					md5 \

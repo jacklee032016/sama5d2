@@ -146,5 +146,71 @@ int cmnSysLedCtrl(LED_TYPE_T type, LED_MODE_T mode);
 int cmnSysSW1Check(void);
 int cmnSysDipSwitchCheck(void);
 
+
+int	cmnSysW1GetRomId(unsigned char *romId);
+
+/* definitions for security chip */
+#define	SC_ROM_ID_SIZE				8
+#define	SC_PAGE_SIZE				32
+#define	SC_PERSONNAL_SIZE			4
+#define	SC_CHALLENGE_SIZE			32
+
+#define	SC_SECRET_SIZE				32
+
+
+typedef struct
+{
+	char		romId[CMN_NAME_LENGTH];
+	
+	char		pageFile[CMN_NAME_LENGTH];	
+	char		keyFile[CMN_NAME_LENGTH];	
+	char		macFile[CMN_NAME_LENGTH];	
+
+	char		crcFile[CMN_NAME_LENGTH];	/* controll CRC enable/disable*/
+
+	SC_CTRL			sc;
+}SecurityFiles;
+
+
+#define	IS_SECURITY_CHIP_EXIST(sc)		\
+	( (sc)->isExist == EXT_TRUE )
+
+
+SecurityFiles *cmnSysScInit(void);
+
+int	cmnSysScRWPage(SecurityFiles *scf, unsigned char *page, int isRead);
+int	cmnSysScRWKey(SecurityFiles *scf, unsigned char *page, int isRead);
+int	cmnSysScRWMac(SecurityFiles *scf, unsigned char *page, int isRead);
+int	cmnSysScCrc(SecurityFiles *scf, int isEnable);
+
+char cmnSysScComputeMAC(SC_CTRL *sc);
+int cmnSysScChallegeInit(SC_CTRL *sc);
+
+#define	SC_PAGE_READ(scf, data)	\
+	cmnSysScRWPage((scf), (data), EXT_TRUE)
+
+#define	SC_PAGE_WRITE(scf, data)	\
+	cmnSysScRWPage((scf), (data), EXT_FALSE)
+
+#define	SC_KEY_READ(scf, data)	\
+	cmnSysScRWKey((scf), (data), EXT_TRUE)
+
+#define	SC_KEY_WRITE(scf, data)	\
+	cmnSysScRWKey((scf), (data), EXT_FALSE)
+
+#define	SC_MAC_READ(scf, data)	\
+	cmnSysScRWMac((scf), (data), EXT_TRUE)
+
+#define	SC_MAC_WRITE(scf, data)	\
+	cmnSysScRWMac((scf), (data), EXT_FALSE)
+
+
+#define	SC_CRC_DISABLE(scf)	\
+	cmnSysScCrc((scf), EXT_FALSE)
+
+#define	SC_CRC_ENABLE(scf)	\
+	cmnSysScCrc((scf), EXT_TRUE)
+
+
 #endif
 

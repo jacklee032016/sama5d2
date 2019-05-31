@@ -18,7 +18,7 @@ endif
 PROJECT_NAME:=mux7xxApp
 
 ROOT_DIR:=$(shell pwd)
-RULE_DIR:=$(ROOT_DIR)/
+RULE_DIR:=$(ROOT_DIR)/../
 
 # conditional build options: X86/ARM, Player/Server/Web
 
@@ -40,6 +40,7 @@ export BUILDTIME
 export RELEASES_NAME
 
 include $(RULE_DIR)/Rules.mak
+include $(ROOT_DIR)/Rules.mak
 
 	SHARED_DIRS += shared/src/common
 	SHARED_DIRS += shared/src/mux

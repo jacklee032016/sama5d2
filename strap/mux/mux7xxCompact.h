@@ -1,14 +1,14 @@
 #ifndef	__MUX7XX_COMPACT_H__
 #define	__MUX7XX_COMPACT_H__
 
-#if 0
-#define	MUX_ATMEL_XPLAINED	1
-#define	MUX_BOARD_768			2
-#define	MUX_BOARD_774			3
-#define	MUX_BOARD_767			4
+#if 1
+#define	MUX_ATMEL_XPLAINED		1
+#define	MUX_BOARD_768				2
+#define	MUX_BOARD_774				3
+#define	MUX_BOARD_767				4
 
-#define	MUX_BOARD				MUX_BOARD_774
-#define	MUX_BOARD				MUX_ATMEL_XPLAINED
+//#define	MUX_BOARD				MUX_BOARD_774
+//#define	MUX_BOARD				MUX_ATMEL_XPLAINED
 #endif
 
 #define	MUX_NAME				"Mux"

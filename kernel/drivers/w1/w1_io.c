@@ -20,6 +20,8 @@
 
 #include "w1_internal.h"
 
+#define	__EXT_RELEASE__
+
 #include "mux7xxCompact.h"
 
 static int w1_delay_parm = 1;
@@ -51,6 +53,7 @@ static void w1_delay(unsigned long tm)
 {
 	udelay(tm * w1_delay_parm);
 }
+
 
 static void w1_write_bit(struct w1_master *dev, int bit);
 static u8 w1_read_bit(struct w1_master *dev);
@@ -85,6 +88,7 @@ static void w1_write_bit(struct w1_master *dev, int bit)
 
 	if(w1_disable_irqs) local_irq_save(flags);
 
+#if	(MUX_BOARD == MUX_ATMEL_XPLAINED)
 	if (bit) {
 		dev->bus_master->write_bit(dev->bus_master->data, 0);
 		w1_delay(6);
@@ -96,6 +100,22 @@ static void w1_write_bit(struct w1_master *dev, int bit)
 		dev->bus_master->write_bit(dev->bus_master->data, 1);
 		w1_delay(10);
 	}
+#else
+	if (bit)
+	{/* tW1L, 1~2 */
+		dev->bus_master->write_bit(dev->bus_master->data, 0);
+		w1_delay(1);
+		dev->bus_master->write_bit(dev->bus_master->data, 1);
+		w1_delay(11);
+	}
+	else
+	{/* tW0L, 8~16, tSLOT=13  */
+		dev->bus_master->write_bit(dev->bus_master->data, 0);
+		w1_delay(9);
+		dev->bus_master->write_bit(dev->bus_master->data, 1);
+		w1_delay(2);
+	}
+#endif
 
 	if(w1_disable_irqs) local_irq_restore(flags);
 }
@@ -173,6 +193,7 @@ static u8 w1_read_bit(struct w1_master *dev)
 
 	/* sample timing is critical here */
 	local_irq_save(flags);
+#if	(MUX_BOARD == MUX_ATMEL_XPLAINED)
 	dev->bus_master->write_bit(dev->bus_master->data, 0);
 	w1_delay(6);
 	dev->bus_master->write_bit(dev->bus_master->data, 1);
@@ -182,6 +203,17 @@ static u8 w1_read_bit(struct w1_master *dev)
 	local_irq_restore(flags);
 
 	w1_delay(55);
+#else
+	dev->bus_master->write_bit(dev->bus_master->data, 0);/* for Not Open Drain, this is output 0 on this pin */
+	w1_delay(1);
+	dev->bus_master->write_bit(dev->bus_master->data, 1); /* for Not Open Drain, this is set as input pin */
+	ndelay(500);
+
+	result = dev->bus_master->read_bit(dev->bus_master->data);
+	local_irq_restore(flags);
+
+	w1_delay(10);
+#endif
 
 	return result & 0x1;
 }
@@ -329,19 +361,17 @@ int w1_reset_bus(struct w1_master *dev)
 	int result;
 	unsigned long flags = 0;
 
-	EXT_INFOF("W1 reset bus...");
+//	EXT_DEBUGF(MUX_W1_DEBUG, "W1 reset bus...");
 
 	if(w1_disable_irqs) local_irq_save(flags);
 
 	if (dev->bus_master->reset_bus)
 	{
-		TRACE();
 		result = dev->bus_master->reset_bus(dev->bus_master->data) & 0x1;
 	}
 	else
 	{
 		int i;
-		TRACE();
 		
 		dev->bus_master->write_bit(dev->bus_master->data, 0);
 		/* minimum 480, max ? us
@@ -351,16 +381,23 @@ int w1_reset_bus(struct w1_master *dev)
 		 * cpu for such a short amount of time AND get it back in
 		 * the maximum amount of time.
 		 */
+#if	(MUX_BOARD == MUX_ATMEL_XPLAINED)
 		w1_delay(500);
 		dev->bus_master->write_bit(dev->bus_master->data, 1);
 		w1_delay(70);
+#else
+		/* p34. Figure 10, Reset pulse */
+		w1_delay(58);/* tRSTL, 48~80, page table */
+		dev->bus_master->write_bit(dev->bus_master->data, 1);
+#endif		
 
 		for(i=0; i< 200; i++)
 		{
-			w1_delay(10);
+			w1_delay(10);	/* tMSP, 8~10 us */
 			result = dev->bus_master->read_bit(dev->bus_master->data) & 0x1;
 			if(result == 0)
 			{
+//				EXT_INFOF("Reset finished with loop#%d", i);
 				break;
 			}
 		}

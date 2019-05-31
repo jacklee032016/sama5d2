@@ -3,7 +3,7 @@
 #
 
 
-include $(RULE_DIR)/Makefile.pre
+include $(ROOT_DIR)/Makefile.pre
 
 C_FLAGS += $(SHARED_CFLAGS)
 

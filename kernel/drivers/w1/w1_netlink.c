@@ -20,6 +20,10 @@
 #include "w1_internal.h"
 #include "w1_netlink.h"
 
+#define	__EXT_RELEASE__
+
+#include "mux7xxCompact.h"
+
 #if defined(CONFIG_W1_CON) && (defined(CONFIG_CONNECTOR) || (defined(CONFIG_CONNECTOR_MODULE) && defined(CONFIG_W1_MODULE)))
 
 /* Bundle together everything required to process a request in one memory
@@ -722,7 +726,7 @@ out_cont:
 int w1_init_netlink(void)
 {
 	struct cb_id w1_id = {.idx = CN_W1_IDX, .val = CN_W1_VAL};
-
+	EXT_INFOF("W1 Netlink is register with 0x%x:0x%x on board %s", w1_id.idx, w1_id.val, BOARD_NAME );
 	return cn_add_callback(&w1_id, "w1", &w1_cn_callback);
 }
 

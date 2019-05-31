@@ -23,6 +23,8 @@
 #include <linux/w1.h>
 
 
+#define	__EXT_RELEASE__
+
 #include "mux7xxCompact.h"
 
 static u8 w1_gpio_set_pullup(void *data, int delay)
@@ -45,6 +47,7 @@ static u8 w1_gpio_set_pullup(void *data, int delay)
 	return 0;
 }
 
+/* Not Open Drain, this is used by DS28E15 */
 static void w1_gpio_write_bit_dir(void *data, u8 bit)
 {
 	struct w1_gpio_platform_data *pdata = data;
@@ -54,6 +57,7 @@ static void w1_gpio_write_bit_dir(void *data, u8 bit)
 	else
 		gpio_direction_output(pdata->pin, 0);
 }
+
 
 static void w1_gpio_write_bit_val(void *data, u8 bit)
 {
@@ -87,24 +91,20 @@ static int w1_gpio_probe_dt(struct platform_device *pdev)
 	if (!pdata)
 		return -ENOMEM;
 
-	TRACE();
 	if (of_get_property(np, "linux,open-drain", NULL))
 	{
-		
 		pdata->is_open_drain = 1;
 	}
 
 	gpio = of_get_gpio(np, 0);
 	if (gpio < 0) {
 		if (gpio != -EPROBE_DEFER)
-			dev_err(&pdev->dev,
-					"Failed to parse gpio property for data pin (%d)\n",
-					gpio);
+			dev_err(&pdev->dev, "Failed to parse gpio property for data pin (%d)\n", gpio);
 
 		return gpio;
 	}
 	pdata->pin = gpio;
-	EXT_INFOF("GPIO pin %d", gpio);
+	EXT_DEBUGF(MUX_W1_DEBUG, "GPIO pin %d", gpio);
 
 	gpio = of_get_gpio(np, 1);
 	if (gpio == -EPROBE_DEFER)
@@ -124,7 +124,8 @@ static int w1_gpio_probe(struct platform_device *pdev)
 	struct w1_gpio_platform_data *pdata;
 	int err;
 
-	EXT_INFOF("%s is initialize...", pdev->name);
+//	EXT_INFOF("%s on %s is initialize...", pdev->name, BOARD_NAME );
+	EXT_INFOF("Master W1-GPIO on %s is initialize...", BOARD_NAME );
 	if (of_have_populated_dt()) {
 		err = w1_gpio_probe_dt(pdev);
 		if (err < 0)
@@ -138,72 +139,67 @@ static int w1_gpio_probe(struct platform_device *pdev)
 		return -ENXIO;
 	}
 
-	TRACE();
 	master = devm_kzalloc(&pdev->dev, sizeof(struct w1_bus_master), GFP_KERNEL);
 	if (!master) {
 		dev_err(&pdev->dev, "Out of memory\n");
 		return -ENOMEM;
 	}
 
-	TRACE();
 	err = devm_gpio_request(&pdev->dev, pdata->pin, "w1");
 	if (err) {
 		dev_err(&pdev->dev, "gpio_request (pin) failed\n");
 		return err;
 	}
 
-	EXT_INFOF("W1 pin:%d", pdata->pin );
-	TRACE();
+	EXT_DEBUGF(MUX_W1_DEBUG, "W1 pin:%d", pdata->pin );
 	if (gpio_is_valid(pdata->ext_pullup_enable_pin))
 	{
 		
-		EXT_INFOF("W1 pullup pin enabled" );
+		EXT_DEBUGF(MUX_W1_DEBUG, "W1 pullup pin enabled" );
 		err = devm_gpio_request_one(&pdev->dev,
 				pdata->ext_pullup_enable_pin, GPIOF_INIT_LOW,
 				"w1 pullup");
-		if (err < 0) {
+		if (err < 0)
+		{
 			dev_err(&pdev->dev, "gpio_request_one "
 					"(ext_pullup_enable_pin) failed\n");
 			return err;
 		}
 		
-		EXT_INFOF("W1 pullup pin:%d", pdata->ext_pullup_enable_pin );
+		EXT_DEBUGF(MUX_W1_DEBUG, "W1 pullup pin:%d", pdata->ext_pullup_enable_pin );
 	}
 
 
 	master->data = pdata;
 	master->read_bit = w1_gpio_read_bit;
 
-	TRACE();
-	if (pdata->is_open_drain) {
-		EXT_INFOF("OpenDrain");
+	if (pdata->is_open_drain)
+	{
 		gpio_direction_output(pdata->pin, 1);
 		master->write_bit = w1_gpio_write_bit_val;
-	} else {
-		EXT_INFOF("Not OpenDrain");
+	}
+	else
+	{
 		gpio_direction_input(pdata->pin);
 		master->write_bit = w1_gpio_write_bit_dir;
 		master->set_pullup = w1_gpio_set_pullup;
 	}
 
-	TRACE();
 	err = w1_add_master_device(master);
 	if (err) {
 		dev_err(&pdev->dev, "w1_add_master device failed\n");
 		return err;
 	}
 
-	TRACE();
 	if (pdata->enable_external_pullup)
 		pdata->enable_external_pullup(1);
 
 	if (gpio_is_valid(pdata->ext_pullup_enable_pin))
 		gpio_set_value(pdata->ext_pullup_enable_pin, 1);
 
-	TRACE();
 	platform_set_drvdata(pdev, master);
 
-	EXT_INFOF("Master W1-GPIO is probed now");
+	EXT_INFOF("Master W1-GPIO %s is probed now", BOARD_NAME);
 	return 0;
 }
 

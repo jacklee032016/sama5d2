@@ -1,15 +1,22 @@
 #ifndef __MUX_7XX_COMPACT_H__
 #define	__MUX_7XX_COMPACT_H__
 
-#define	MUX_BOARD_768			2
-#define	MUX_BOARD_774			3
-#define	MUX_BOARD_767			4
+#if 1
+#define	MUX_ATMEL_XPLAINED		1
+#define	MUX_BOARD_768				2
+#define	MUX_BOARD_774				3
+#define	MUX_BOARD_767				4
 
-#define	MUX_BOARD				MUX_BOARD_774
+//#define	MUX_BOARD				MUX_BOARD_774
+//#define	MUX_BOARD				MUX_BOARD_768
+#endif
 
 #define	MUX_NAME				"Mux"
 
-#if	(MUX_BOARD == MUX_BOARD_768)
+#if	(MUX_BOARD == MUX_ATMEL_XPLAINED)
+	#define	EXT_SYSTEM					"Sama5d2Xpld"
+
+#elif	(MUX_BOARD == MUX_BOARD_768)
 	#define	EXT_SYSTEM		MUX_NAME"768"
 #elif (MUX_BOARD == MUX_BOARD_774)
 	#define	EXT_SYSTEM		MUX_NAME"774"
@@ -67,11 +74,14 @@
 
 #define	INFO_TEXT_BEGIN			""ANSI_COLOR_BLUE"INFO:"
 
-#define	EXT_NEW_LINE							"\r\n"
+#define	EXT_NEW_LINE							"\n"
 
 #include <linux/printk.h>
 
+#define pr_fmt(fmt) fmt
+
 #define	SYS_PRINT					pr_err
+
 
 #ifndef	sysTaskName
 #define	sysTaskName()				"TEST"
@@ -81,12 +91,12 @@
 	#define	EXT_PRINTF(x)						{SYS_PRINT x ;}
 	
 //	#define	EXT_DEBUGF(fmt, args...)	{printf("[%s-%u] DEBUG: " fmt EXT_NEW_LINE, __FILE__, __LINE__, ## args);}
-	#define	EXT_DEBUGF(debug, message...)		do { \
+	#define	EXT_DEBUGF(debug, message, ...)		do { \
                                if ( \
                                    ((debug) & EXT_DBG_ON) && \
                                    ((debug) & EXT_DBG_TYPES_ON) && \
                                    ((short)((debug) & EXT_DBG_MASK_LEVEL) >= EXT_DBG_MIN_LEVEL)) { \
-                                 _TRACE_OUT(message);SYS_PRINT(EXT_NEW_LINE); \
+                                 EXT_PRINTF(( message, ##__VA_ARGS__));SYS_PRINT(EXT_NEW_LINE); \
                                  if ((debug) & EXT_DBG_HALT) { \
                                    while(1); \
                                  } \
@@ -115,8 +125,8 @@
 	#define	EXT_ABORT(fmt, args... )		{}
 #endif
 
-#define	_TRACE_OUT(message...)	\
-			{EXT_PRINTF(("%s: [%s-%u.%s()]: ",  sysTaskName(), __FILE__, __LINE__, __FUNCTION__));EXT_PRINTF((message)); }
+#define	_TRACE_OUT(message, ...)	\
+			{EXT_PRINTF(("%s: [%s-%u.%s()]: ",  sysTaskName(), __FILE__, __LINE__, __FUNCTION__));EXT_PRINTF((message, ##__VA_ARGS__)); }
 
 #define	TRACE()						_TRACE_OUT(EXT_NEW_LINE )
 
@@ -164,6 +174,11 @@
 			EXT_STRINGIFY(EXT_VERSION_TOKEN)	
 
 #define	EXT_OS_NAME		EXT_SYSTEM_STRING(EXT_SYSTEM, EXT_VERSION_STRING)
+
+#define	MUX_W1_DEBUG		EXT_DBG_OFF
+
+#define	K_HEX_DUMP( prompt, buf, size)	\
+	print_hex_dump(KERN_ERR, (prompt), DUMP_PREFIX_NONE, 16, 1, (buf), (size), false)
 
 #endif
 

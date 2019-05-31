@@ -300,13 +300,13 @@ static struct w1_family w1_family_17 =
 
 static int __init w1_f17_init(void)
 {
-	pr_info("%s()\n", __func__);
+	EXT_INFOF("DS28E15 on %s is Loading", BOARD_NAME );
 	return w1_register_family(&w1_family_17);
 }
 
 static void __exit w1_f17_fini(void)
 {
-	pr_info("%s()\n", __func__);
+	EXT_INFOF("DS28E15 on %s is destroyed", BOARD_NAME );
 	w1_unregister_family(&w1_family_17);
 }
 

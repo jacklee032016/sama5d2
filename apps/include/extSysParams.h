@@ -1024,6 +1024,8 @@ typedef	struct _HttpClientReq
 
 #define	SC_SECRET_SIZE				32
 
+#define	SC_SD28E15_ID				0x17
+
 
 typedef struct
 {
@@ -1031,11 +1033,11 @@ typedef struct
 	unsigned char		secret[SC_SECRET_SIZE];			
 	unsigned char		challenge[SC_CHALLENGE_SIZE];
 	unsigned char		pageData[SC_PAGE_SIZE];	/* memory page data, 32 byte */
-	unsigned char		manId[2];
+	unsigned char		manId[2];	/* default is 0x0, 0x0. page#13 */
 //	unsigned char 	personalityByte[SC_PERSONNAL_SIZE];
 	
 	unsigned char		readMac[SC_PAGE_SIZE]; /* MAC from chip*/
-	unsigned char 	pageNum;/*page number */
+	unsigned char 	pageNum;/*page number, only first page is used */
 
 	unsigned char		isAnon;	/*anonymous flag. 1--anonymous mode, 0-NOT anonymous mode, using ROM ID */
 
