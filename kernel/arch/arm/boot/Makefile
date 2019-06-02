@@ -54,6 +54,7 @@ $(obj)/compressed/vmlinux: $(obj)/Image FORCE
 
 $(obj)/zImage:	$(obj)/compressed/vmlinux FORCE
 	$(call if_changed,objcopy)
+	cp $@ $@.$(BOARD_NAME)
 
 endif
 

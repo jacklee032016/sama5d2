@@ -1,7 +1,18 @@
 Work logs for kernel
 ################################
 
+05.27~06.02, 2019
+--------------------
+* enable w1(one-wire) and w1-gpio master;
+* add DS28E15 as module in w1;
+* disable wireless (WLAN in kernel: network/wireless, drivers/net/wireless);
+* build kernel and output zImage file with extension of board name;
+* add ptp support in macb driver: dts and its capacity definition in driver:
+	* add device tree defintion for driver: ``compatible = "atmel,sama5d2-gem"``; 
+	* add ``MACB_CAPS_GEM_HAS_PTP`` into capacity of ``sama5d2_config``;
+	* disable pm of sama5d2_config;
 
+	
 05.26, 2019
 --------------------
 * When usb2: ehci@500000 {

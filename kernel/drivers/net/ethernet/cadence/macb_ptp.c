@@ -34,6 +34,10 @@
 
 #include "macb.h"
 
+#define	__EXT_RELEASE__
+
+#include "mux7xxCompact.h"
+
 #define  GEM_PTP_TIMER_NAME "gem-ptp-timer"
 
 static struct macb_dma_desc_ptp *macb_ptp_desc(struct macb *bp,
@@ -358,6 +362,7 @@ void gem_ptp_init(struct net_device *dev)
 	struct macb_queue *queue;
 	unsigned int q;
 
+	EXT_INFOF( "%s ptp clock registered...", GEM_PTP_TIMER_NAME);
 	bp->ptp_clock_info = gem_ptp_caps_template;
 
 	/* nominal frequency and maximum adjustment in ppb */
@@ -384,8 +389,9 @@ void gem_ptp_init(struct net_device *dev)
 
 	gem_ptp_init_tsu(bp);
 
-	dev_info(&bp->pdev->dev, "%s ptp clock registered.\n",
-		 GEM_PTP_TIMER_NAME);
+	dev_info(&bp->pdev->dev, "%s ptp clock registered.\n", GEM_PTP_TIMER_NAME);
+	
+	EXT_INFOF( "%s ptp clock registered!", GEM_PTP_TIMER_NAME);
 }
 
 void gem_ptp_remove(struct net_device *ndev)
@@ -397,8 +403,8 @@ void gem_ptp_remove(struct net_device *ndev)
 
 	gem_ptp_clear_timer(bp);
 
-	dev_info(&bp->pdev->dev, "%s ptp clock unregistered.\n",
-		 GEM_PTP_TIMER_NAME);
+	dev_info(&bp->pdev->dev, "%s ptp clock unregistered.\n", GEM_PTP_TIMER_NAME);
+	
 }
 
 static int gem_ptp_set_ts_mode(struct macb *bp,

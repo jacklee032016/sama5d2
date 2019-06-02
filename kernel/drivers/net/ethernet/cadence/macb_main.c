@@ -39,6 +39,10 @@
 #include <linux/tcp.h>
 #include "macb.h"
 
+//#define	__EXT_RELEASE__
+
+#include "mux7xxCompact.h"
+
 #define MACB_RX_BUFFER_SIZE	128
 #define RX_BUFFER_MULTIPLE	64  /* bytes */
 
@@ -417,7 +421,7 @@ static void macb_handle_link_change(struct net_device *dev)
 		    (bp->duplex != phydev->duplex)) {
 			u32 reg;
 /* J.L. support RTL8307 switch chip. 04.17, 2019 */
-#if 0
+#if	(MUX_BOARD == MUX_ATMEL_XPLAINED)
 			reg = macb_readl(bp, NCFGR);
 			reg &= ~(MACB_BIT(SPD) | MACB_BIT(FD));
 			if (macb_is_gem(bp))
@@ -2244,7 +2248,7 @@ static void macb_init_hw(struct macb *bp)
 		gem_writel(bp, JML, bp->config->jumbo_max_len);
 
 /* J.L. support RTL8307 switch chip. 04.17, 2019 */
-#if 0
+#if	(MUX_BOARD == MUX_ATMEL_XPLAINED)
 	bp->speed = SPEED_10;
 	bp->duplex = DUPLEX_HALF;
 #else
@@ -3311,6 +3315,7 @@ static void macb_configure_caps(struct macb *bp)
 	if (bp->config)
 		bp->caps = bp->config->caps;
 
+TRACE();
 	if (hw_is_gem(bp->regs, bp->native_io)) {
 		bp->caps |= MACB_CAPS_MACB_IS_GEM;
 
@@ -3320,11 +3325,15 @@ static void macb_configure_caps(struct macb *bp)
 		dcfg = gem_readl(bp, DCFG2);
 		if ((dcfg & (GEM_BIT(RX_PKT_BUFF) | GEM_BIT(TX_PKT_BUFF))) == 0)
 			bp->caps |= MACB_CAPS_FIFO_MODE;
+TRACE();
 #ifdef CONFIG_MACB_USE_HWSTAMP
+TRACE();
 		if (gem_has_ptp(bp)) {
+TRACE();
 			if (!GEM_BFEXT(TSU, gem_readl(bp, DCFG5)))
 				pr_err("GEM doesn't support hardware ptp.\n");
 			else {
+TRACE();
 				bp->hw_dma_cap |= HW_DMA_CAP_PTP;
 				bp->ptp_info = &gem_ptp_info;
 			}
@@ -4015,11 +4024,18 @@ static const struct macb_config pc302gem_config = {
 };
 
 static const struct macb_config sama5d2_config = {
+#if 0	
 	.caps = MACB_CAPS_USRIO_DEFAULT_IS_MII_GMII,
+#else	
+	.caps = MACB_CAPS_USRIO_DEFAULT_IS_MII_GMII|MACB_CAPS_GEM_HAS_PTP,	/* JL. add PTP support */
+#endif	
 	.dma_burst_length = 16,
 	.clk_init = macb_clk_init,
 	.init = macb_init,
+#if 0
+	/* disable by JL */
 	.pm = &macb_sama5d2_pm,
+#endif	
 };
 
 static const struct macb_config sama5d3_config = {
@@ -4112,6 +4128,7 @@ static int macb_probe(struct platform_device *pdev)
 	struct macb *bp;
 	int err, val;
 
+	EXT_INFOF("Driver ethernet device on board %s.", BOARD_NAME);
 	regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	mem = devm_ioremap_resource(&pdev->dev, regs);
 	if (IS_ERR(mem))
@@ -4181,6 +4198,7 @@ static int macb_probe(struct platform_device *pdev)
 
 	spin_lock_init(&bp->lock);
 
+TRACE();
 	/* setup capabilities */
 	macb_configure_caps(bp);
 
