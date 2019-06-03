@@ -182,10 +182,13 @@ int testSC(void )
 		EXT_INFOF(EXT_NEW_LINE"\tMAC Validating result: Success"EXT_NEW_LINE);
 	}
 
-	EXT_INFOF(EXT_NEW_LINE"\tCRC ...");
-	cmnSysScCrc(scf, EXT_TRUE);
+	EXT_INFOF(EXT_NEW_LINE"\tEnable CRC ...");
+	SC_CRC_ENABLE(scf);
 
-	cmnSysScCrc(scf, EXT_FALSE);
+	EXT_INFOF(EXT_NEW_LINE"\tDisable CRC ...");
+	SC_CRC_DISABLE(scf);
+	
+	EXT_INFOF(EXT_NEW_LINE"Test OK!!!");
 	return EXIT_SUCCESS;
 }
 

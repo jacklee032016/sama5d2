@@ -147,7 +147,7 @@ static int w1_e15_read(struct w1_slave *sl, int addr, int len, char *data)
 	/* read directly from the EEPROM */
 	if (w1_reset_select_slave(sl)) /* SKIP_ROM command will be sent if slave count is 1 */
 	{
-		EXT_ERRORF("Reset failed");
+		EXT_ERRORF("Failed in reset slave when reading page");
 		return -EIO;
 	}
 
@@ -168,14 +168,14 @@ static ssize_t page0_read(struct file *filp, struct kobject *kobj, struct bin_at
 	struct w1_e15_data *data = sl->family_data;
 	int i, min_page, max_page;
 
-	EXT_INFOF("off:%lld; count:%d", off, count);
+	EXT_DEBUGF(MUX_W1_DEBUG, "off:%lld; count:%d", off, count);
 	count = w1_e15_fix_count(off, count, W1_E15_EEPROM_SIZE);
 	if (count == 0)
 	{
 		EXT_ERRORF("Params error:off:%lld; count:%d", off, count);
 		return 0;
 	}
-	EXT_INFOF("After fixed, count:%d", count);
+	EXT_DEBUGF(MUX_W1_DEBUG, "After fixed, count:%d", count);
 
 	mutex_lock(&sl->master->mutex);
 
@@ -203,7 +203,7 @@ static ssize_t page0_read(struct file *filp, struct kobject *kobj, struct bin_at
 out_up:
 	mutex_unlock(&sl->master->mutex);
 
-	EXT_INFOF("Read count:%d bytes", count);
+	EXT_DEBUGF(MUX_W1_DEBUG, "Read count:%d bytes", count);
 	return count;
 }
 
@@ -211,19 +211,17 @@ static int w1_e15_write_page(struct w1_slave *sl, int addr, int len, const u8 *d
 {
 	u8 wrbuf[4];
 	u8 rdbuf[W1_E15_PAGE_SIZE + 3];
-	u8 es = (addr + len - 1) & 0x1f;
 	int i;
-	struct w1_e15_data *f1C = sl->family_data;
 	int ret = 0;
 
-	EXT_INFOF("write, addr:%d; len:%d", addr, len);
+	EXT_DEBUGF(MUX_W1_DEBUG, "write, addr:%d; len:%d", addr, len);
 	wrbuf[0] = W1_E15_WRITE_EEPROM;
 	wrbuf[1] = 0; /* from seg0, page0 to end of page */
 
 	/* Write Command and param byte */
 	if (w1_reset_select_slave(sl))
 	{
-		TRACE();
+		EXT_ERRORF("Failed in reset slave when writing page");
 		return -EIO;
 	}
 
@@ -234,6 +232,7 @@ static int w1_e15_write_page(struct w1_slave *sl, int addr, int len, const u8 *d
 
 	/* Compare what was read against the data written */
 #if 0	
+	u8 es = (addr + len - 1) & 0x1f;
 	if ((rdbuf[0] != wrbuf[1]) || (rdbuf[1] != wrbuf[2]) || (rdbuf[2] != es) || (memcmp(data, &rdbuf[3], len) != 0))
 	{
 		TRACE();
@@ -251,20 +250,21 @@ static int w1_e15_write_page(struct w1_slave *sl, int addr, int len, const u8 *d
 		w1_write_block(sl->master, wrbuf, 1);
 
 		/* Wait is mandidate requirement for writing of every segment. JL. 05.31, 2019*/
-		if (!w1_e15_strong_pullup)
-			msleep(EEPROM_WRITE_DELAY - 8); /*max is 10 */
+		//if (!w1_e15_strong_pullup)
+		//msleep(EEPROM_WRITE_DELAY - 8); /*max is 10 */
 
 		/* sometime it is read as 0xAB: delay too longer, so read the following 0xff */
 		w1_read_block(sl->master, rdbuf, 1);/* read CS */
 		if(rdbuf[0] != 0xAA)
 		{
-			EXT_ERRORF("Failed in write seg#%d: 0x%x", i, rdbuf[0]);
+			EXT_ERRORF("Failed in write seg#%d, status: 0x%x", i, rdbuf[0]);
 			ret = -1;
 			break;
 		}
 	}
 
 #if 0
+	struct w1_e15_data *f1C = sl->family_data;
 	wrbuf[0] = W1_E15_COPY_SCRATCH;
 	wrbuf[3] = es;
 
@@ -289,9 +289,8 @@ static int w1_e15_write_page(struct w1_slave *sl, int addr, int len, const u8 *d
 #endif
 
 	/* Reset the bus to wake up the EEPROM (this may not be needed) */
-//	w1_reset_bus(sl->master);
+	w1_reset_bus(sl->master);
 
-	TRACE();
 	return ret;
 }
 
@@ -381,7 +380,7 @@ static ssize_t page0_write(struct file *filp, struct kobject *kobj, struct bin_a
 	int addr, len, idx;
 	u16 crc = CRC16_INIT;
 
-	EXT_INFOF("off:%lld; count:%d", off, count);
+	EXT_DEBUGF(MUX_W1_DEBUG, "off:%lld; count:%d", off, count);
 	count = w1_e15_fix_count(off, count, W1_E15_EEPROM_SIZE);
 	if (count == 0)
 	{
@@ -452,14 +451,14 @@ static int w1_e15_read_scratchpad(struct w1_slave *sl, int addr, int len, const 
 	u8 es = (addr + len - 1) & 0x1f;
 	struct w1_e15_data *f1C = sl->family_data;
 
-	EXT_INFOF("Read ScratchPas, addr:%d; len:%d", addr, len);
+	EXT_DEBUGF(MUX_W1_DEBUG, "Read ScratchPas, addr:%d; len:%d", addr, len);
 	wrbuf[0] = W1_E15_WRITE_SCRATCH;
 	wrbuf[1] = 0x0F; /* read from scratch pad */
 
 	/* Write Command and param byte */
 	if (w1_reset_select_slave(sl))
 	{
-		TRACE();
+		EXT_ERRORF("Failed in reset slave when reading key(scratchpad)");
 		return -EIO;
 	}
 
@@ -495,10 +494,9 @@ static ssize_t key_read(struct file *filp, struct kobject *kobj,
 			size_t count)
 {
 	struct w1_slave *sl = kobj_to_w1_slave(kobj);
-	int ret;
 	u8 wrbuf[2];
 
-	EXT_INFOF("off:%lld; count:%d", off, count);
+	EXT_DEBUGF(MUX_W1_DEBUG, "off:%lld; count:%d", off, count);
 	/* check arguments */
 	if (off != 0 || count != W1_E15_PAGE_SIZE || buf == NULL)
 	{
@@ -513,7 +511,7 @@ static ssize_t key_read(struct file *filp, struct kobject *kobj,
 		return 0;
 	}
 
-	EXT_INFOF("Read KEY: After fixed, count:%d", count);
+	EXT_DEBUGF(MUX_W1_DEBUG, "Read KEY: After fixed, count:%d", count);
 #if _E15_TEST_READ_SCRATCH_PAD
 #else
 	wrbuf[0] = W1_E15_READ_STATUS;
@@ -530,7 +528,7 @@ static ssize_t key_read(struct file *filp, struct kobject *kobj,
 	/* read directly from the EEPROM */
 	if (w1_reset_select_slave(sl)) /* function command of SJIP_ROM in one-wire has been sent be this function. spec.32 */
 	{
-		EXT_ERRORF("Reset slave failed");
+		EXT_ERRORF("Failed in reset slave when reading key(personality)");
 		return -EIO;
 	}
 
@@ -550,18 +548,15 @@ static int w1_e15_write_scratchpad(struct w1_slave *sl, int addr, int len, const
 {
 	u8 wrbuf[4];
 	u8 rdbuf[W1_E15_PAGE_SIZE + 3];
-	u8 es = (addr + len - 1) & 0x1f;
 
-	struct w1_e15_data *f1C = sl->family_data;
-
-	EXT_INFOF("write, addr:%d; len:%d", addr, len);
+	EXT_DEBUGF(MUX_W1_DEBUG, "write, addr:%d; len:%d", addr, len);
 	wrbuf[0] = W1_E15_WRITE_SCRATCH;
 	wrbuf[1] = 0; /* 0: write scratch pad */
 
 	/* Write Command and param byte */
 	if (w1_reset_select_slave(sl))
 	{
-		TRACE();
+		EXT_ERRORF("Failed in reset slave when writing scratchpad");
 		return -EIO;
 	}
 
@@ -572,6 +567,7 @@ static int w1_e15_write_scratchpad(struct w1_slave *sl, int addr, int len, const
 
 	/* Compare what was read against the data written */
 #if 0	
+	u8 es = (addr + len - 1) & 0x1f;
 	if ((rdbuf[0] != wrbuf[1]) || (rdbuf[1] != wrbuf[2]) || (rdbuf[2] != es) || (memcmp(data, &rdbuf[3], len) != 0))
 	{
 		TRACE();
@@ -595,10 +591,7 @@ static int w1_e15_write_lock_key(struct w1_slave *sl, int addr, int len, const u
 {
 	u8 wrbuf[4];
 	u8 rdbuf[W1_E15_PAGE_SIZE + 3];
-	u8 es = (addr + len - 1) & 0x1f;
 
-	int i;
-	struct w1_e15_data *f1C = sl->family_data;
 	int ret = 0;
 
 	if(w1_e15_write_scratchpad(sl, addr, len, data) <0)
@@ -618,7 +611,7 @@ static int w1_e15_write_lock_key(struct w1_slave *sl, int addr, int len, const u
 	/* Write Command and param byte */
 	if (w1_reset_select_slave(sl))
 	{
-		TRACE();
+		EXT_ERRORF("Failed in reset slave when locking key");
 		return -EIO;
 	}
 
@@ -635,7 +628,8 @@ static int w1_e15_write_lock_key(struct w1_slave *sl, int addr, int len, const u
 //	if (!w1_e15_strong_pullup)
 //		msleep(SECRET_PROGRAM_DELAY/2 ); /* tPRS */
 
-	msleep(SECRET_PROGRAM_DELAY-70 ); /* tPRS */
+//	msleep(SECRET_PROGRAM_DELAY-80 ); /* tPRS */
+	msleep(SECRET_PROGRAM_DELAY-88 ); /* tPRS */
 	
 	w1_read_block(sl->master, rdbuf, 1);/* read CS */
 	if(rdbuf[0] == 0xAA)
@@ -649,11 +643,15 @@ static int w1_e15_write_lock_key(struct w1_slave *sl, int addr, int len, const u
 	}
 	else
 	{
-		EXT_ERRORF("Status error when write key: 0x%x", rdbuf[0]);
+		EXT_ERRORF("Failed in locking the key, status: 0x%x", rdbuf[0]);
 		ret = -1;
 	}
 
 #if 0
+	int i;
+	struct w1_e15_data *f1C = sl->family_data;
+	u8 es = (addr + len - 1) & 0x1f;
+	
 	wrbuf[0] = W1_E15_COPY_SCRATCH;
 	wrbuf[3] = es;
 
@@ -678,9 +676,8 @@ static int w1_e15_write_lock_key(struct w1_slave *sl, int addr, int len, const u
 #endif
 
 	/* Reset the bus to wake up the EEPROM (this may not be needed) */
-//	w1_reset_bus(sl->master);
+	w1_reset_bus(sl->master);
 
-	TRACE();
 	return ret;
 }
 
@@ -693,7 +690,7 @@ static ssize_t key_write(struct file *filp, struct kobject *kobj, struct bin_att
 	int addr, len, idx;
 	u16 crc = CRC16_INIT;
 
-	EXT_INFOF("off:%lld; count:%d", off, count);
+	EXT_DEBUGF(MUX_W1_DEBUG, "off:%lld; count:%d", off, count);
 	count = w1_e15_fix_count(off, count, W1_E15_EEPROM_SIZE);
 	if (count == 0)
 	{
@@ -757,10 +754,9 @@ static ssize_t MAC_read(struct file *filp, struct kobject *kobj, struct bin_attr
 	char *buf, loff_t off, size_t count)
 {
 	struct w1_slave *sl = kobj_to_w1_slave(kobj);
-	int ret;
 	u8 wrbuf[2];
 
-	EXT_INFOF("off:%lld; count:%d", off, count);
+	EXT_DEBUGF(MUX_W1_DEBUG, "off:%lld; count:%d", off, count);
 	/* check arguments */
 	if (off != 0 || count != W1_E15_PAGE_SIZE || buf == NULL)
 	{
@@ -775,13 +771,13 @@ static ssize_t MAC_read(struct file *filp, struct kobject *kobj, struct bin_attr
 		return 0;
 	}
 
-	EXT_INFOF("After fixed, count:%d", count);
+	EXT_DEBUGF(MUX_W1_DEBUG, "After fixed, count:%d", count);
 	mutex_lock(&sl->master->mutex);
 
 	/* read directly from the EEPROM */
 	if (w1_reset_select_slave(sl)) /* function command of SJIP_ROM in one-wire has been sent be this function. spec.32 */
 	{
-		EXT_ERRORF("Reset slave failed");
+		EXT_ERRORF("Failed in reset slave when reading MAC");
 		return -EIO;
 	}
 
@@ -801,14 +797,18 @@ static ssize_t MAC_read(struct file *filp, struct kobject *kobj, struct bin_attr
 //	if (!w1_e15_strong_pullup) /* delay */
 //		msleep(SHA_COMPUTATION_DELAY*2 -2);/* waiting 2*tCSHA */
 
-	msleep(SHA_COMPUTATION_DELAY-2);/* waiting 2*tCSHA */
+//	msleep(SHA_COMPUTATION_DELAY-2);/* waiting 2*tCSHA */
+
+//	msleep(SHA_COMPUTATION_DELAY-2);/* waiting 2*tCSHA */
+	udelay(850);
+//	ndelay(550);
 
 	w1_read_block(sl->master, wrbuf, 1);/* read CS */
 	if(wrbuf[0] != 0xAA)
 	{
 		EXT_ERRORF("Failed in status when read MAC: 0x%x", wrbuf[0]);
-		count = -EIO;
-		goto _exit;
+//		count = -EIO;
+//		goto _exit;
 	}
 	
 	w1_read_block(sl->master, buf, count);	/* 32 bytes MAC */
@@ -829,7 +829,7 @@ static ssize_t MAC_write(struct file *filp, struct kobject *kobj, struct bin_att
 	int addr, len, idx;
 	u16 crc = CRC16_INIT;
 
-	EXT_INFOF("off:%lld; count:%d", off, count);
+	EXT_DEBUGF(MUX_W1_DEBUG, "off:%lld; count:%d", off, count);
 	count = w1_e15_fix_count(off, count, W1_E15_EEPROM_SIZE);
 	if (count == 0)
 	{
@@ -890,24 +890,30 @@ static BIN_ATTR_RW(MAC, W1_E15_PAGE_SIZE);
 
 static ssize_t crc_show(struct device *dev, struct device_attribute *attr, char *buf)
 {
+#if 0
 	if (put_user(w1_e15_enable_crccheck + 0x30, buf))
 		return -EFAULT;
-
 	return sizeof(w1_e15_enable_crccheck);
+#else	
+	return sprintf(buf, "%u\n", w1_e15_enable_crccheck);
+#endif
 }
 
 static ssize_t crc_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
 {
+#if 0
 	char val;
 
 	TRACE();
+
 	if (count != 1 || !buf)
 	{
 		EXT_ERRORF("value invalidated");
 		return -EINVAL;
 	}
 
-	EXT_INFOF("buf :'%s'", buf);
+	EXT_INFOF("buf :'%s', size:%d", buf, sizeof(*buf) );
+	/* sizeof(*buf) always is 1, and pointer of buf is always 4, so this function also return error */
 	if (get_user(val, (char *)buf))
 	{
 		EXT_ERRORF("Can't get data from user space");
@@ -921,7 +927,18 @@ static ssize_t crc_store(struct device *dev, struct device_attribute *attr, cons
 		EXT_ERRORF("value must be '1' or '0'");
 		return -EINVAL;
 	}
+#else
+	unsigned val;
+	int ret;
 
+	ret = sscanf(buf, "%u", &val);
+	if (ret < 1 || (val != 0 && val != 1) )
+	{
+		dev_err(dev, "invalid value\n");
+		return -EINVAL;
+	}
+
+#endif
 	/* set the new value */
 	w1_e15_enable_crccheck = val;
 
@@ -930,6 +947,7 @@ static ssize_t crc_store(struct device *dev, struct device_attribute *attr, cons
 
 
 /* device attributes: show/store */
+/* refer to drivers/led/trigger/ledtrig-gpio.c */
 static DEVICE_ATTR_RW(crc);
 
 /* crc functions */
