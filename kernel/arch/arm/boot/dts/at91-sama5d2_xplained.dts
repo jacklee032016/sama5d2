@@ -197,7 +197,7 @@
 			};
 
 			macb0: ethernet@f8008000 {
-				compatible = "atmel,sama5d2-gem"; /* added. JL. 06.02, 2019 */
+				/*compatible = "atmel,sama5d2-gem";*//* added. JL. 06.02, 2019 */
 				pinctrl-names = "default";
 				pinctrl-0 = <&pinctrl_macb0_default &pinctrl_macb0_phy_irq>;
 				phy-mode = "rmii";

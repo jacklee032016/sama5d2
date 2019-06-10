@@ -43,6 +43,9 @@
 
 #include "mux7xxCompact.h"
 
+#define	MUX_DEBUG_MACB			EXT_DBG_ON
+
+
 #define MACB_RX_BUFFER_SIZE	128
 #define RX_BUFFER_MULTIPLE	64  /* bytes */
 
@@ -3327,17 +3330,25 @@ TRACE();
 			bp->caps |= MACB_CAPS_FIFO_MODE;
 TRACE();
 #ifdef CONFIG_MACB_USE_HWSTAMP
-TRACE();
+
+#if 0
+		/* when PTP is enabled, macb f8008000.ethernet eth0: DMA bus error: HRESP not OK. JL. 06.10, 2019 */
 		if (gem_has_ptp(bp)) {
-TRACE();
 			if (!GEM_BFEXT(TSU, gem_readl(bp, DCFG5)))
+			{
 				pr_err("GEM doesn't support hardware ptp.\n");
-			else {
-TRACE();
+				EXT_ERRORF("GEM doesn't support hardware ptp");
+			}
+			else
+			{
+				EXT_INFOF("GEM support hardware PTP");
 				bp->hw_dma_cap |= HW_DMA_CAP_PTP;
 				bp->ptp_info = &gem_ptp_info;
 			}
 		}
+#else
+		EXT_ERRORF("GEM PTP is disabled now");
+#endif
 #endif
 	}
 
@@ -4136,10 +4147,18 @@ static int macb_probe(struct platform_device *pdev)
 
 	if (np) {
 		const struct of_device_id *match;
-
+		EXT_DEBUGF(MUX_DEBUG_MACB, "Raw device node :'%s', type:%s", np->name, np->type );
 		match = of_match_node(macb_dt_ids, np);
 		if (match && match->data)
+		{
+			EXT_DEBUGF(MUX_DEBUG_MACB, "Found device node :'%s', type:'%s', compatible:'%s'", 
+				match->name, match->type, match->compatible);
 			macb_config = match->data;
+		}
+	}
+	else
+	{
+		EXT_DEBUGF(MUX_DEBUG_MACB, "Default macb is used");
 	}
 
 	err = macb_config->clk_init(pdev, &pclk, &hclk, &tx_clk, &rx_clk);

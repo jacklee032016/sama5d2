@@ -1,6 +1,19 @@
 Work logs for kernel
 ################################
 
+06.10, 2019
+--------------------
+RTC, hardware clock and system 
+* Enable kernel RTC:
+    * system clock sync to hardware clock;
+	* read hardware clock to system clock when OS start up;
+	* RTC_DRV_AT91RM9200;
+* Test 
+    * date -s 06102019
+    * hwclock -w|--systohc  # system clock to hardware clock
+	* power off and power on;
+
+	
 05.27~06.02, 2019
 --------------------
 * enable w1(one-wire) and w1-gpio master;
