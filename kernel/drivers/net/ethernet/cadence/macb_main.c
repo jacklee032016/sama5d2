@@ -4158,7 +4158,7 @@ static int macb_probe(struct platform_device *pdev)
 	}
 	else
 	{
-		EXT_DEBUGF(MUX_DEBUG_MACB, "Default macb is used");
+		EXT_DEBUGF(MUX_DEBUG_MACB, "Default macb is used on %s", BOARD_NAME);
 	}
 
 	err = macb_config->clk_init(pdev, &pclk, &hclk, &tx_clk, &rx_clk);

@@ -106,7 +106,7 @@ int muxFpgaInit(FPGA_CTRL *fpgaCtrl)
 //	data[2] = 0xfd;
 //	data[3] = 0xfc;
 	FPGA_READ_SYSTM_REG(fpgaCtrl, MUX_FPGA_REG_RESET, 1, _chArray, 4);
-	EXT_INFOF(("FPGA(60.0) %x %x %x %x ", _chArray[0], _chArray[1], _chArray[2], _chArray[3] ));
+	EXT_INFOF("FPGA(60.0) %x %x %x %x ", _chArray[0], _chArray[1], _chArray[2], _chArray[3] );
 
 //	twi_addr = 4;
 	_chArray[0] = (fpgaCtrl->isTx)? 0x10: 0x11;
@@ -228,33 +228,33 @@ int muxFpgaReset(FPGA_CTRL *fpgaCtrl)
 
 	if(FPGA_READ_SYSTM_REG(fpgaCtrl, MUX_FPGA_REG_STREAM_ENBALE, 1, &_chData, 1) )
 	{
-		EXT_ERRORF(("Read streams register %x failed", MUX_FPGA_REG_STREAM_ENBALE));
+		EXT_ERRORF("Read streams register %x failed", MUX_FPGA_REG_STREAM_ENBALE);
 	}
 	
 	if(_chData != 0x0)
 	{
-		EXT_ERRORF(("After reset all streams, streams register is %x. Reset all streams again %x"));
+		EXT_ERRORF("After reset all streams, streams register is %x. Reset all streams again %x");
 		_chData = 0x0;
 		FPGA_WRITE_SYSTM_REG(fpgaCtrl, MUX_FPGA_REG_STREAM_ENBALE, 1, &_chData, 1);
 	}
 	else
 	{
-		EXT_INFOF(("After reset all streams, streams register is OK!" ));
+		EXT_INFOF("After reset all streams, streams register is OK!" );
 	}
 
 
 	// read fpga version,revision
 	if(FPGA_READ_SYSTM_REG(fpgaCtrl, MUX_FPGA_REG_VERSION, 1, version, 3))
 	{
-		EXT_ERRORF(("FPGA version read failed" ));
+		EXT_ERRORF("FPGA version read failed" );
 	}
 	else
 	{
-		EXT_INFOF(("FPGA version %x %x %x", version[0],version[1],version[2] ));
+		EXT_INFOF("FPGA version %x %x %x", version[0],version[1],version[2] );
 	}
 
 	fpgaCtrl->isTx = ((version[0] & 0x80) == 0)?0:1;	
-	EXT_INFOF(("FPGA %s unit", (fpgaCtrl->isTx)?"TX":"RX" ));
+	EXT_INFOF("FPGA %s unit", (fpgaCtrl->isTx)?"TX":"RX" );
 	
 	int dac = (fpgaCtrl->isTx)?0:1000;
 	if(fpgaCtrl->isTx)

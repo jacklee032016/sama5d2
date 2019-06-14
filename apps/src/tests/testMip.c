@@ -194,7 +194,17 @@ int testLeds(void)
 
 int testSw1(void)
 {
-	printf("Please press SW1 button..."EXT_NEW_LINE);
+	EXT_INFOF("Please press SW1 button...");
 	return cmnSysSW1Check();
+}
+
+
+int testI2c(void)
+{
+	EXT_INFOF("Test I2C...");
+
+	cmnSysI2cTest();
+
+	return EXIT_SUCCESS;
 }
 

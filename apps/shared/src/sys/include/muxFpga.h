@@ -208,11 +208,13 @@ typedef	struct	_FpgaConfig
 
 /* 8 bits address, and 8 bit data */
 #define	FPGA_I2C_WRITE(address, val, size)		\
-	extI2CWrite(EXT_I2C_PCA9554_CS_NONE, EXT_I2C_ADDRESS_FPGA, (address), 1, (val), size)
+	I2C_EXT_WRITE(0, EXT_I2C_PCA9554_CS_NONE, EXT_I2C_ADDRESS_FPGA, (address), 1, (val), size)
+
+//	extI2CWrite(EXT_I2C_PCA9554_CS_NONE, EXT_I2C_ADDRESS_FPGA, (address), 1, (val), size)
 
 #define	FPGA_I2C_READ(address, val, size)		\
-	extI2CRead(EXT_I2C_PCA9554_CS_NONE, EXT_I2C_ADDRESS_FPGA, (address), 1, (val), size)
-
+	I2C_EXT_READ(0, EXT_I2C_PCA9554_CS_NONE, EXT_I2C_ADDRESS_FPGA, (address), 1, (val), size)
+//	extI2CRead(EXT_I2C_PCA9554_CS_NONE, EXT_I2C_ADDRESS_FPGA, (address), 1, (val), size)
 
 #define	_extFpgaReadByte(address, value)	\
 	FPGA_I2C_READ((address), (value), 1)

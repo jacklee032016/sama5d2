@@ -7,6 +7,9 @@ One-Wire interface in Kernel
 --------------------
 * Enable ``drivers/connector``: this is Connector of socket link;
 	* w1_netlink is built into Wire.ko;
+* Only access the interface from master device, refer to ``enum w1_commands``;
+	* access: command, data, length, for standard EEPROM;
+* Interface of ``struct attribute`` from slave device can only access from sys file system;
 
 
 * driver

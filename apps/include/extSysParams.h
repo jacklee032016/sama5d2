@@ -374,7 +374,7 @@
 
 
 #define	EXT_DBG_MASK_LEVEL			0x04
-#define	EXT_DBG_LEVEL_OFF			LWIP_DBG_LEVEL_ALL
+#define	EXT_DBG_LEVEL_OFF				EXT_DBG_LEVEL_ALL
 
 
 #define	EXT_DBG_ON					0x80U
@@ -430,17 +430,18 @@
 
 #define	EXT_INFO_TEXT_BEGIN			""ANSI_COLOR_BLUE"INFO:"
 
+#define	SYS_PRINT							printf
 
 #ifndef __EXT_RELEASE__
-	#define	EXT_PRINTF(x)						{printf x ;}
+//	#define	EXT_PRINTF(x)						{printf x ;}
 	
 //	#define	EXT_DEBUGF(fmt, args...)	{printf("[%s-%u] DEBUG: " fmt EXT_NEW_LINE, __FILE__, __LINE__, ## args);}
-	#define	EXT_DEBUGF(debug, message...)		do { \
+	#define	EXT_DEBUGF(debug, format, message...)		do { \
                                if ( \
                                    ((debug) & EXT_DBG_ON) && \
                                    ((debug) & EXT_DBG_TYPES_ON) && \
                                    ((int16_t)((debug) & EXT_DBG_MASK_LEVEL) >= EXT_DBG_MIN_LEVEL)) { \
-                                 _TRACE_OUT(message);printf(EXT_NEW_LINE); \
+                                 SYS_PRINT("%s: [%s-%u.%s()]: " format EXT_NEW_LINE,  sysTaskName(), __FILE__, __LINE__, __FUNCTION__, ##message); \
                                  if ((debug) & EXT_DBG_HALT) { \
                                    while(1); \
                                  } \
@@ -448,31 +449,34 @@
                              } while(0)
 
                              
-	#define	EXT_INFOF(message...)		{printf(ANSI_COLOR_CYAN "%s:[%s-%u]:", sysTaskName(), __FILE__, __LINE__);EXT_PRINTF((message));printf((ANSI_COLOR_RESET EXT_NEW_LINE));}
+	#define	EXT_INFOF(format, message...)		{SYS_PRINT(ANSI_COLOR_CYAN "%s:[%s-%u]:" format ANSI_COLOR_RESET EXT_NEW_LINE, sysTaskName(), __FILE__, __LINE__, ##message);}
 	
-	#define	EXT_ERRORF(message...)		{printf(EXT_ERROR_TEXT_BEGIN "%s: ERROR:[%s-%u]:", sysTaskName(), __FILE__, __LINE__);EXT_PRINTF((message)); printf(EXT_ERROR_TEXT_END  EXT_NEW_LINE);}
+	#define	EXT_ERRORF(format, message...)		{SYS_PRINT(EXT_ERROR_TEXT_BEGIN "%s: ERROR:[%s-%u]:" format EXT_ERROR_TEXT_END  EXT_NEW_LINE, sysTaskName(), __FILE__, __LINE__, ##message);}
 
-//	#define	EXT_ASSERT(x)				{printf("Assertion \"%s\" failed at line %d in %s\n", x, __LINE__, __FILE__); while(1);}
-	#define	EXT_ASSERT(x, msg...)			{if((x)==0) {printf(EXT_ERROR_TEXT_BEGIN"%s: ASSERT: [%s-%u]:",  sysTaskName(), __FILE__, __LINE__ );printf(msg);printf(EXT_ERROR_TEXT_END EXT_NEW_LINE); while(0){};}}
-	#define	EXT_ABORT(fmt, args... )		printf("%s: ABORT in [" __FILE__ "-%u]:" fmt EXT_NEW_LINE, sysTaskName(), __LINE__, ##args );while(1){}
+//	#define	EXT_ASSERT(x)						{printf("Assertion \"%s\" failed at line %d in %s\n", x, __LINE__, __FILE__); while(1);}
+	#define	EXT_ASSERT(x, format, msg...)		{if((x)==0) {SYS_PRINT(EXT_ERROR_TEXT_BEGIN"%s: ASSERT: [%s-%u]:" format EXT_ERROR_TEXT_END EXT_NEW_LINE,  sysTaskName(), __FILE__, __LINE__ , ##msg);while(0){};}}
+	#define	EXT_ABORT(fmt, args... )				SYS_PRINT("%s: ABORT in [" __FILE__ "-%u]:" fmt EXT_NEW_LINE, sysTaskName(), __LINE__, ##args );while(1){}
+
+//	#define	TRACE()								_TRACE_OUT(EXT_NEW_LINE )
 #else
-	#define	EXT_PRINTF(x)						{;}
+//	#define	EXT_PRINTF(x)						{;}
 
-	#define	EXT_DEBUGF(debug, message...)		{}
+	#define	EXT_DEBUGF(debug, format, message...)		{}
 
-	#define	EXT_INFOF(message...)				{printf(message); printf(EXT_NEW_LINE);}
+	#define	EXT_INFOF(format, message...)				{SYS_PRINT(ANSI_COLOR_CYAN format ANSI_COLOR_RESET, ##message );}
 
-	#define	EXT_ERRORF(message...)				{printf(message); printf(EXT_NEW_LINE);}
+	#define	EXT_ERRORF(format, message...)				{SYS_PRINT(ERROR_TEXT_BEGIN format ERROR_TEXT_END, ##message);}
 	
 //	#define	EXT_ASSERT(x)				{while (1);}
-	#define	EXT_ASSERT(x, msg...)				{}
-	#define	EXT_ABORT(fmt, args... )		{}
+	#define	EXT_ASSERT(x, format, msg...)				{}
+	#define	EXT_ABORT(fmt, args... )						{}
+
+//	#define	TRACE()										{}
 #endif
 
-#define	_TRACE_OUT(message...)	\
-			{EXT_PRINTF(("%s: [%s-%u.%s()]: ",  sysTaskName(), __FILE__, __LINE__, __FUNCTION__) );EXT_PRINTF(message); }
+#define	_TRACE_OUT(format, message...)	\
+			{SYS_PRINT("%s: [%s-%u.%s()]: "format,  sysTaskName(), __FILE__, __LINE__, __FUNCTION__, ##message); }
 
-//#define	TRACE()						_TRACE_OUT((EXT_NEW_LINE) )
 
 
 
@@ -640,6 +644,10 @@ typedef	struct
 
 #define IP_ADDR_IS_MULTICAST( addr)  \
 		((addr & _PP_HTONL(0xf0000000UL)) == _PP_HTONL(0xe0000000UL))
+
+#define	EXT_BYTE_ORDER_SHORT(_sh)	\
+	( (((_sh)>>8)&0xff) | ( ((_sh)<<8)&0xFF00))
+
 
 
 #define	INVALIDATE_VALUE_U8						0xFF

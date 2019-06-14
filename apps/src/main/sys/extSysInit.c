@@ -55,11 +55,11 @@ static int	_extSysNetInit(MuxMain		*muxMain)
 		return EXIT_FAILURE;
 	}
 		
-	EXT_DEBUGF(EXT_DEBUG_INIT, ("IP is %s, 0x%x", cmnSysNetAddress(runCfg->local.ip), runCfg->local.ip) );
-	EXT_DEBUGF(EXT_DEBUG_INIT, ("MASK is %s, 0x%x", cmnSysNetAddress(runCfg->ipMask), runCfg->ipMask));
-	EXT_DEBUGF(EXT_DEBUG_INIT, ("Gateway is %s, 0x%x", cmnSysNetAddress(runCfg->ipGateway), runCfg->ipGateway) );
-	EXT_DEBUGF(EXT_DEBUG_INIT, ("Mac : %.2X:%.2X:%.2X:%.2X:%.2X:%.2X" , runCfg->local.mac.address[0], runCfg->local.mac.address[1], runCfg->local.mac.address[2], 
-		runCfg->local.mac.address[3], runCfg->local.mac.address[4], runCfg->local.mac.address[5]) );
+	EXT_DEBUGF(EXT_DEBUG_INIT, "IP is %s, 0x%x", cmnSysNetAddress(runCfg->local.ip), runCfg->local.ip);
+	EXT_DEBUGF(EXT_DEBUG_INIT, "MASK is %s, 0x%x", cmnSysNetAddress(runCfg->ipMask), runCfg->ipMask);
+	EXT_DEBUGF(EXT_DEBUG_INIT, "Gateway is %s, 0x%x", cmnSysNetAddress(runCfg->ipGateway), runCfg->ipGateway) ;
+	EXT_DEBUGF(EXT_DEBUG_INIT, "Mac : %.2X:%.2X:%.2X:%.2X:%.2X:%.2X" , runCfg->local.mac.address[0], runCfg->local.mac.address[1], runCfg->local.mac.address[2], 
+		runCfg->local.mac.address[3], runCfg->local.mac.address[4], runCfg->local.mac.address[5] );
 
 	return EXIT_SUCCESS;
 }

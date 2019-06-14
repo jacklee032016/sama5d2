@@ -1269,6 +1269,7 @@ static const struct flash_info spi_nor_ids[] = {
 	/* MUX774 */
 #if 0
 	/*                             J id,    extId, sector_size  n_sector  flags */
+	/* 64 * 1024, 1024: one sector is 64*1024=64KB, total 1024 sectors. page 7. specs */
 	{ "n25q512ax3",  INFO(0x20ba20, 0, 64 * 1024, 1024, 0) },
 #else	
 	{ "n25q512ax3",  INFO(0x20ba20, 0, 64 * 1024, 1024, SECT_4K | USE_FSR | SPI_NOR_QUAD_READ) },	/* specs. p.43 */
@@ -3303,26 +3304,33 @@ static int spi_nor_select_pp(struct spi_nor *nor,
 }
 
 static const struct spi_nor_erase_type *
-spi_nor_select_uniform_erase(struct spi_nor_erase_map *map,
-			     const u32 sector_size)
+spi_nor_select_uniform_erase(struct spi_nor_erase_map *map, const u32 sector_size)
 {
 	const struct spi_nor_erase_type *tested_erase, *erase = NULL;
 	int i;
 	u8 uniform_erase_type = map->uniform_erase_type;
 
+	EXT_DEBUGF(EXT_DBG_ON, "erase type:0x%x; sector size:%d", uniform_erase_type, sector_size);
+
 TRACE();
-	for (i = SNOR_ERASE_TYPE_MAX - 1; i >= 0; i--) {
+	for (i = SNOR_ERASE_TYPE_MAX - 1; i >= 0; i--)
+	{
 TRACE();
 		if (!(uniform_erase_type & BIT(i)))
 			continue;
 
+TRACE();
 		tested_erase = &map->erase_type[i];
+
+		EXT_DEBUGF(EXT_DBG_ON, "Erase Type No#%d: size:%d; shift:%d; mask:%d; op:%d; idx:%d;", 
+			i, tested_erase->size, tested_erase->size_shift, tested_erase->size_mask, tested_erase->opcode, tested_erase->idx);
 
 		/*
 		 * If the current erase size is the one, stop here:
 		 * we have found the right uniform Sector Erase command.
 		 */
-		if (tested_erase->size == sector_size) {
+		if (tested_erase->size == sector_size)
+		{
 			erase = tested_erase;
 			break;
 		}
@@ -3352,7 +3360,7 @@ static int spi_nor_select_erase(struct spi_nor *nor, u32 sector_size)
 {
 	struct mtd_info *mtd = &nor->mtd;
 	
-#if 0
+#if 1
 	struct spi_nor_erase_map *map = &nor->erase_map;
 	const struct spi_nor_erase_type *erase = NULL;
 	int i;
@@ -3370,7 +3378,8 @@ static int spi_nor_select_erase(struct spi_nor *nor, u32 sector_size)
 	sector_size = 4096u;
 #endif
 
-	if (spi_nor_has_uniform_erase(nor)) {
+	if (spi_nor_has_uniform_erase(nor))
+	{
 		TRACE();
 		erase = spi_nor_select_uniform_erase(map, sector_size);
 		if (IS_ERR(erase))

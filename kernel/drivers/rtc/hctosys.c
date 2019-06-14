@@ -13,6 +13,10 @@
 
 #include <linux/rtc.h>
 
+#define	__EXT_RELEASE__
+
+#include "mux7xxCompact.h"
+
 /* IMPORTANT: the RTC only stores whole seconds. It is arbitrary
  * whether it stores the most close value or the value with partial
  * seconds truncated. However, it is important that we use it to store
@@ -56,12 +60,20 @@ static int __init rtc_hctosys(void)
 
 	err = do_settimeofday64(&tv64);
 
+#if 0
 	dev_info(rtc->dev.parent,
 		"setting system clock to "
 		"%d-%02d-%02d %02d:%02d:%02d UTC (%lld)\n",
 		tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
 		tm.tm_hour, tm.tm_min, tm.tm_sec,
 		(long long) tv64.tv_sec);
+#else	
+	EXT_INFOF("%s RTC: setting system clock to "
+		"%d-%02d-%02d %02d:%02d:%02d UTC (%lld)\n", BOARD_NAME,
+		tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
+		tm.tm_hour, tm.tm_min, tm.tm_sec,
+		(long long) tv64.tv_sec);
+#endif
 
 err_read:
 	rtc_class_close(rtc);

@@ -1,3 +1,5 @@
+
+cat /sys/devices/w1_bus_master1/17-0000008843c8/crc
 printf "%b" '\x31' > /sys/devices/w1_bus_master1/17-0000008843c8/crc
 
 echo "12234567890123457576aabbccddee1" > page0

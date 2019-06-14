@@ -162,23 +162,23 @@ int	sysFpgaRxConfig(FpgaConfig *fpga)
 	/* reset */
 #if _USING_OR_OP
 	_extFpgaReadByte(EXT_FPGA_REG_ETHERNET_RESET, &chValue);
-	EXT_DEBUGF(EXT_DBG_ON, ("RX Read %x from register 0x%x", chValue, EXT_FPGA_REG_ETHERNET_RESET));
+	EXT_DEBUGF(EXT_DBG_ON, "RX Read %x from register 0x%x", chValue, EXT_FPGA_REG_ETHERNET_RESET);
 	chValue = (chValue | (1<<1));
 #else		
 	chValue = 0x02;
 #endif
-	EXT_DEBUGF(EXT_DBG_ON, ("RX Write %x to register 0x%x: reset FPGA", chValue, EXT_FPGA_REG_ETHERNET_RESET));
+	EXT_DEBUGF(EXT_DBG_ON, "RX Write %x to register 0x%x: reset FPGA", chValue, EXT_FPGA_REG_ETHERNET_RESET);
 	_extFpgaWriteByte(EXT_FPGA_REG_ETHERNET_RESET, &chValue);
 
 		/* release reset */
 #if _USING_OR_OP
 	_extFpgaReadByte(EXT_FPGA_REG_ETHERNET_RESET, &chValue);
-	EXT_DEBUGF(EXT_DBG_ON, ("RX ReRead %x from register 0x%x", chValue, EXT_FPGA_REG_ETHERNET_RESET));
+	EXT_DEBUGF(EXT_DBG_ON, "RX ReRead %x from register 0x%x", chValue, EXT_FPGA_REG_ETHERNET_RESET);
 	chValue = chValue & 0xFD;
 #else		
 	chValue = 0x00;
 #endif
-	EXT_DEBUGF(EXT_DBG_ON,  ("TX ReWrite %x to register 0x%x: release reset of FPGA", chValue, EXT_FPGA_REG_ETHERNET_RESET));
+	EXT_DEBUGF(EXT_DBG_ON,  "TX ReWrite %x to register 0x%x: release reset of FPGA", chValue, EXT_FPGA_REG_ETHERNET_RESET);
 	_extFpgaWriteByte(EXT_FPGA_REG_ETHERNET_RESET, &chValue);
 #endif
 
@@ -224,7 +224,7 @@ int	sysFpgaRxConfig(FpgaConfig *fpga)
 
 //		EXT_DELAY_MS(5000);
 
-	EXT_DEBUGF(EXT_DBG_ON,  ("FPGA RX Configuration ended!"));
+	EXT_DEBUGF(EXT_DBG_ON,  "FPGA RX Configuration ended!");
 	return EXIT_SUCCESS;
 }
 
@@ -278,13 +278,13 @@ int sysFpgaTxReadParams(FpgaConfig *fpga)
 #if 0
 	if(_chValue == 0x0f)
 	{
-		EXT_ERRORF(("Lock %02x from register 0x%x, shifted. Reset I2C", _chValue, EXT_FPGA_REG_SDI_STATUS));
+		EXT_ERRORF("Lock %02x from register 0x%x, shifted. Reset I2C", _chValue, EXT_FPGA_REG_SDI_STATUS);
 		extI2cReset();
 		_extFpgaReadShort(EXT_FPGA_REG_SDI_STATUS, (unsigned char *)&_chValue);
 	}
 #endif
 
-	EXT_DEBUGF(EXT_DBG_ON, ("Lock %02x from register 0x%x", _chValue, EXT_FPGA_REG_SDI_STATUS));
+	EXT_DEBUGF(EXT_DBG_ON, "Lock %02x from register 0x%x", _chValue, EXT_FPGA_REG_SDI_STATUS);
 	if(!_chValue)
 	{
 		FIELD_INVALIDATE_U16(runCfg->runtime.vWidth);

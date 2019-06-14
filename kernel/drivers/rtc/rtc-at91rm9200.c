@@ -37,6 +37,11 @@
 
 #include "rtc-at91rm9200.h"
 
+//#define	__EXT_RELEASE__
+
+#include "mux7xxCompact.h"
+
+
 #define at91_rtc_read(field) \
 	readl_relaxed(at91_rtc_regs + field)
 #define at91_rtc_write(field, val) \
@@ -151,9 +156,14 @@ static int at91_rtc_readtime(struct device *dev, struct rtc_time *tm)
 	tm->tm_yday = rtc_year_days(tm->tm_mday, tm->tm_mon, tm->tm_year);
 	tm->tm_year = tm->tm_year - 1900;
 
+#ifdef	MUX_BOARD
+	EXT_INFOF("RTC read time: %4d-%02d-%02d %02d:%02d:%02d", 1900 + tm->tm_year, tm->tm_mon, tm->tm_mday,
+		tm->tm_hour, tm->tm_min, tm->tm_sec);
+#else
 	dev_dbg(dev, "%s(): %4d-%02d-%02d %02d:%02d:%02d\n", __func__,
 		1900 + tm->tm_year, tm->tm_mon, tm->tm_mday,
 		tm->tm_hour, tm->tm_min, tm->tm_sec);
+#endif
 
 	return 0;
 }
@@ -165,10 +175,14 @@ static int at91_rtc_settime(struct device *dev, struct rtc_time *tm)
 {
 	unsigned long cr;
 
+#ifdef	MUX_BOARD
+	EXT_INFOF("RTC set time: %4d-%02d-%02d %02d:%02d:%02d", 1900 + tm->tm_year, tm->tm_mon, tm->tm_mday,
+		tm->tm_hour, tm->tm_min, tm->tm_sec);
+#else
 	dev_dbg(dev, "%s(): %4d-%02d-%02d %02d:%02d:%02d\n", __func__,
 		1900 + tm->tm_year, tm->tm_mon, tm->tm_mday,
 		tm->tm_hour, tm->tm_min, tm->tm_sec);
-
+#endif
 	wait_for_completion(&at91_rtc_upd_rdy);
 
 	/* Stop Time/Calendar from counting */
@@ -214,9 +228,14 @@ static int at91_rtc_readalarm(struct device *dev, struct rtc_wkalrm *alrm)
 	alrm->enabled = (at91_rtc_read_imr() & AT91_RTC_ALARM)
 			? 1 : 0;
 
+#ifdef	MUX_BOARD
+	EXT_INFOF("RTC read alarm: %4d-%02d-%02d %02d:%02d:%02d", 1900 + tm->tm_year, tm->tm_mon, tm->tm_mday,
+		tm->tm_hour, tm->tm_min, tm->tm_sec);
+#else
 	dev_dbg(dev, "%s(): %4d-%02d-%02d %02d:%02d:%02d\n", __func__,
 		1900 + tm->tm_year, tm->tm_mon, tm->tm_mday,
 		tm->tm_hour, tm->tm_min, tm->tm_sec);
+#endif
 
 	return 0;
 }
@@ -254,9 +273,14 @@ static int at91_rtc_setalarm(struct device *dev, struct rtc_wkalrm *alrm)
 		at91_rtc_write_ier(AT91_RTC_ALARM);
 	}
 
+#ifdef	MUX_BOARD
+	EXT_INFOF("RTC set alarm: %4d-%02d-%02d %02d:%02d:%02d", at91_alarm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour,
+		tm.tm_min, tm.tm_sec);
+#else
 	dev_dbg(dev, "%s(): %4d-%02d-%02d %02d:%02d:%02d\n", __func__,
 		at91_alarm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour,
 		tm.tm_min, tm.tm_sec);
+#endif
 
 	return 0;
 }
@@ -455,8 +479,11 @@ static int __init at91_rtc_probe(struct platform_device *pdev)
 	 * completion.
 	 */
 	at91_rtc_write_ier(AT91_RTC_SECEV);
-
+#ifdef	MUX_BOARD
+	EXT_INFOF("AT91 Real Time Clock driver.");
+#else
 	dev_info(&pdev->dev, "AT91 Real Time Clock driver.\n");
+#endif
 	return 0;
 
 err_clk:

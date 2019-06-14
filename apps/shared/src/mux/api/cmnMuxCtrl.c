@@ -103,11 +103,11 @@ static char _compareSystemCfg(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 	{
 		if(! MAC_ADDR_IS_EQUAL(&runCfg->local.mac, &rxCfg->local.mac) )
 		{
-			EXT_DEBUGF(EXT_DBG_ON, ("MAC address is not same:%.2x:%.2x:%.2x:%.2x:%.2x:%.2x=%.2x:%.2x:%.2x:%.2x:%.2x:%.2x"EXT_NEW_LINE, 
+			EXT_DEBUGF(EXT_DBG_ON, "MAC address is not same:%.2x:%.2x:%.2x:%.2x:%.2x:%.2x=%.2x:%.2x:%.2x:%.2x:%.2x:%.2x"EXT_NEW_LINE, 
 				runCfg->local.mac.address[0], runCfg->local.mac.address[1], runCfg->local.mac.address[2], 
 				runCfg->local.mac.address[3], runCfg->local.mac.address[4], runCfg->local.mac.address[5], 
 				rxCfg->local.mac.address[0], rxCfg->local.mac.address[1], rxCfg->local.mac.address[2],
-				rxCfg->local.mac.address[3], rxCfg->local.mac.address[4], rxCfg->local.mac.address[3]));
+				rxCfg->local.mac.address[3], rxCfg->local.mac.address[4], rxCfg->local.mac.address[3]);
 			memcpy(&runCfg->local.mac, &rxCfg->local.mac, EXT_MAC_ADDRESS_LENGTH);
 			runCfg->isMacConfiged = EXT_TRUE;
 			ret = EXT_TRUE;
@@ -128,7 +128,7 @@ static char _compareSystemCfg(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 	_checkNumU8FieldValue(&runCfg->isDipOn, rxCfg->isDipOn, ret);
 	if(ret == EXT_TRUE)
 	{
-		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("DipOn:%s"EXT_NEW_LINE, STR_BOOL_VALUE(runCfg->isDipOn)) );
+		EXT_DEBUGF(EXT_IPCMD_DEBUG, "DipOn:%s"EXT_NEW_LINE, STR_BOOL_VALUE(runCfg->isDipOn) );
 
 		if(!EXT_IS_DIP_ON(runCfg) )
 		{/* DIP ON --> OFF */
@@ -284,7 +284,7 @@ static char _compareProtocolConfig(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxC
 	if(rxCfg->dest.ip != INVALIDATE_VALUE_U32 && rxCfg->dest.ip != runCfg->dest.ip )
 	{
 //		runCfg->ipMulticast = rxCfg->dest.ip;
-		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("New video McastAddress:%s"EXT_NEW_LINE, cmnSysNetAddress(rxCfg->dest.ip)) );
+		EXT_DEBUGF(EXT_IPCMD_DEBUG, "New video McastAddress:%s"EXT_NEW_LINE, cmnSysNetAddress(rxCfg->dest.ip) );
 #if EXT_DIP_SWITCH_ON
 		if(!EXT_IS_DIP_ON(runCfg) )
 		{/* FPGA maybe configured twice: furst here; second, in setupParams() */
@@ -302,7 +302,7 @@ static char _compareProtocolConfig(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxC
 
 	if(rxCfg->dest.audioIp != INVALIDATE_VALUE_U32 && rxCfg->dest.audioIp != runCfg->dest.audioIp )
 	{
-		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("New Audio McastAddress:%s"EXT_NEW_LINE, cmnSysNetAddress(rxCfg->dest.ip)) );
+		EXT_DEBUGF(EXT_IPCMD_DEBUG, "New Audio McastAddress:%s"EXT_NEW_LINE, cmnSysNetAddress(rxCfg->dest.ip) );
 //		extLwipGroupMgr(runCfg, runCfg->dest.audioIp, EXT_FALSE);
 		
 		runCfg->dest.audioIp = rxCfg->dest.audioIp;
@@ -311,7 +311,7 @@ static char _compareProtocolConfig(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxC
 
 	if(rxCfg->dest.ancIp != INVALIDATE_VALUE_U32 && rxCfg->dest.ancIp != runCfg->dest.ancIp )
 	{
-		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("New ANC McastAddress:%s"EXT_NEW_LINE, cmnSysNetAddress(rxCfg->dest.ip)) );
+		EXT_DEBUGF(EXT_IPCMD_DEBUG, "New ANC McastAddress:%s"EXT_NEW_LINE, cmnSysNetAddress(rxCfg->dest.ip) );
 //		extLwipGroupMgr(runCfg, runCfg->dest.ancIp, EXT_FALSE);
 
 		runCfg->dest.ancIp = rxCfg->dest.ancIp;
@@ -321,7 +321,7 @@ static char _compareProtocolConfig(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxC
 #if EXT_FPGA_AUX_ON	
 	if(rxCfg->dest.auxIp != INVALIDATE_VALUE_U32 && rxCfg->dest.auxIp != runCfg->dest.auxIp )
 	{
-		EXT_DEBUGF(EXT_IPCMD_DEBUG, ("New AUX McastAddress:%s"EXT_NEW_LINE, cmnSysNetAddress(rxCfg->dest.ip)) );
+		EXT_DEBUGF(EXT_IPCMD_DEBUG, "New AUX McastAddress:%s"EXT_NEW_LINE, cmnSysNetAddress(rxCfg->dest.ip) );
 		runCfg->dest.auxIp = rxCfg->dest.auxIp;
 		ret = EXT_TRUE;
 	}
@@ -346,32 +346,32 @@ char extSysCompareParams(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 
 	if(_compareSystemCfg(runCfg, rxCfg) == EXT_TRUE)
 	{
-		EXT_DEBUGF(EXT_DBG_OFF, ("System params changing") );
+		EXT_DEBUGF(EXT_DBG_OFF, "System params changing" );
 		SETUP_SET_TYPE(_SETUP_TYPE_SYSTEM);
 	}
 
 	if(_compareProtocolConfig(runCfg, rxCfg) == EXT_TRUE)
 	{
-		EXT_DEBUGF(EXT_DBG_OFF, ("Protocol params changing") );
+		EXT_DEBUGF(EXT_DBG_OFF, "Protocol params changing" );
 		SETUP_SET_TYPE(_SETUP_TYPE_PROTOCOL);
 	}
 	
 	if(_compareMediaCfg(runCfg, rxCfg) == EXT_TRUE)
 	{
-		EXT_DEBUGF(EXT_DBG_OFF, ("Media params changing") );
+		EXT_DEBUGF(EXT_DBG_OFF, "Media params changing" );
 		SETUP_SET_TYPE(_SETUP_TYPE_MEDIA);
 	}
 
 
 	if(_compareSdpConfig(runCfg, rxCfg) == EXT_TRUE)
 	{
-		EXT_DEBUGF(EXT_DBG_OFF, ("SDP params changing") );
+		EXT_DEBUGF(EXT_DBG_OFF, "SDP params changing" );
 		SETUP_SET_TYPE(_SETUP_TYPE_SDP);
 	}
 
 	if(_compareRs232Config(runCfg, rxCfg) == EXT_TRUE)
 	{
-		EXT_DEBUGF(EXT_DBG_OFF, ("RS232 params changing") );
+		EXT_DEBUGF(EXT_DBG_OFF, "RS232 params changing" );
 		SETUP_SET_TYPE(_SETUP_TYPE_RS232);
 	}
 
@@ -456,14 +456,14 @@ static int _cmnSysConfigCtrl(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 	if( SETUP_CHECK_TYPE(_SETUP_TYPE_SYSTEM) )	
 	{
 		cmnSysCfgSave(runCfg, EXT_CFG_MAIN);
-		EXT_DEBUGF(EXT_DBG_ON, ("New system configuration, saving configuration and reboot") );
+		EXT_DEBUGF(EXT_DBG_ON, "New system configuration, saving configuration and reboot" );
 	}
 
 	if( SETUP_CHECK_TYPE(_SETUP_TYPE_SDP) )	
 	{
 		cmnSysCfgSave(runCfg, EXT_CFG_MAIN);
 //		bspCmdReboot(NULL, NULL, 0);
-		EXT_DEBUGF(EXT_DBG_ON, ("New SDP parameters") );
+		EXT_DEBUGF(EXT_DBG_ON, "New SDP parameters" );
 	}
 
 	//if(needReboot)
@@ -474,7 +474,7 @@ static int _cmnSysConfigCtrl(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 		{
 			cmnSysRs232Config(runCfg);
 		}
-		EXT_DEBUGF(EXT_DBG_ON, ("RS232 save and setup") );
+		EXT_DEBUGF(EXT_DBG_ON, "RS232 save and setup" );
 	}
 	
 	//if(hasNewMedia)
@@ -486,7 +486,7 @@ static int _cmnSysConfigCtrl(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 		cmnSysCfgSave(runCfg, EXT_CFG_MAIN);
 
 		fpga->opProtocolCtrl(fpga);
-		EXT_DEBUGF(EXT_DBG_ON, ("FPGA configuration Protocol"));
+		EXT_DEBUGF(EXT_DBG_ON, "FPGA configuration Protocol");
 	}
 	
 	if( SETUP_CHECK_TYPE(_SETUP_TYPE_MEDIA) )
@@ -494,7 +494,7 @@ static int _cmnSysConfigCtrl(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 
 		cmnSysCfgSave(runCfg, EXT_CFG_MAIN);
 		fpga->opMediaWrite(fpga);
-		EXT_DEBUGF(EXT_DBG_ON, ("FPGA configuration Media") );
+		EXT_DEBUGF(EXT_DBG_ON, "FPGA configuration Media" );
 	}
 
 #if 0
@@ -554,10 +554,10 @@ void cmnMuxCfgDebugData(EXT_RUNTIME_CFG *cfg)
 
 int cmnMuxSystemConfig(MuxMain *muxMain)
 {
-	EXT_INFOF(("Existed data:"));
+	EXT_INFOF("Existed data:");
 	cmnMuxCfgDebugData(&muxMain->runCfg);
 
-	EXT_INFOF(("Received/parsed data:"));
+	EXT_INFOF("Received/parsed data:");
 	cmnMuxCfgDebugData(&muxMain->rxCfg);
 
 	extSysCompareParams(&muxMain->runCfg, &muxMain->rxCfg);

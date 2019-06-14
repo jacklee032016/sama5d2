@@ -33,6 +33,7 @@ fi
 
 
 ERASE_BLOCK_SIZE=$SIZE_64K
+#ERASE_BLOCK_SIZE=$SIZE_4K
 
 if [[ ! -d $SRC_DIR ]]
 then
@@ -42,7 +43,7 @@ fi
 
 
 #--no-cleanmarkers: Don't add a cleanmarker to every eraseblock
-echo "   make JFFS2 file system into '$OUT_FILE' from '$SRC_DIR', size $PAD_SIZE..."
+echo "   make JFFS2 file system into '$OUT_FILE' from '$SRC_DIR', size $PAD_SIZE, erase block size $ERASE_BLOCK_SIZE..."
 
 mkfs.jffs2 -r $SRC_DIR -e $ERASE_BLOCK_SIZE -p $PAD_SIZE --no-cleanmarkers --little-endian -o $OUT_FILE || exit 1
 

@@ -367,7 +367,7 @@ static int _cmnSysNetMcastJoin(CmnMultiGroup *_group, char *groupIp)
 		}
 		else
 		{
-			EXT_DEBUGF(DEBUG_SYS_NET, ("Leave multicast group '%s' successfully", _group->groupAddress) );
+			EXT_DEBUGF(DEBUG_SYS_NET, "Leave multicast group '%s' successfully", _group->groupAddress );
 		}
 	}
 
@@ -382,7 +382,7 @@ static int _cmnSysNetMcastJoin(CmnMultiGroup *_group, char *groupIp)
 
 	_group->address = _gIp;
 	snprintf(_group->groupAddress, sizeof(_group->groupAddress), "%s", groupIp);
-	EXT_DEBUGF(DEBUG_SYS_NET, ("Join multicast group '%s' successfully", _group->groupAddress) );
+	EXT_DEBUGF(DEBUG_SYS_NET, "Join multicast group '%s' successfully", _group->groupAddress );
 
 #if 0	
 	err = setsockopt(fd, IPPROTO_IP, IP_MULTICAST_LOOP, &off, sizeof(off));
@@ -428,7 +428,7 @@ CmnMultiGroup *cmnSysNetMGroupInit(const char *devName, char *groupIp)
 	snprintf(_group->devName, sizeof(_group->devName), "%s", devName);
 	_group->changeGroup = _cmnSysNetMcastJoin;
 
-	EXT_DEBUGF(EXT_DBG_OFF, ("Index of %s is %d",_group->devName, _group->ifIndex) );
+	EXT_DEBUGF(EXT_DBG_OFF, "Index of %s is %d",_group->devName, _group->ifIndex );
 #if 1
 	if (setsockopt(_group->socket, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)))
 	{

@@ -84,15 +84,14 @@
 #endif
 
 #ifndef __EXT_RELEASE__
-	#define	EXT_PRINTF(x)						{SYS_PRINT x ;}
 	
 //	#define	EXT_DEBUGF(fmt, args...)	{printf("[%s-%u] DEBUG: " fmt EXT_NEW_LINE, __FILE__, __LINE__, ## args);}
-	#define	EXT_DEBUGF(debug, message)		do { \
+	#define	EXT_DEBUGF(debug, format, message...)		do { \
                                if ( \
                                    ((debug) & EXT_DBG_ON) && \
                                    ((debug) & EXT_DBG_TYPES_ON) && \
                                    ((short)((debug) & EXT_DBG_MASK_LEVEL) >= EXT_DBG_MIN_LEVEL)) { \
-                                 _TRACE_OUT(message);SYS_PRINT(EXT_NEW_LINE); \
+                                 _TRACE_OUT(format, message);SYS_PRINT(EXT_NEW_LINE); \
                                  if ((debug) & EXT_DBG_HALT) { \
                                    while(1); \
                                  } \
@@ -100,31 +99,33 @@
                              } while(0)
 
                              
-	#define	EXT_INFOF(message)		{SYS_PRINT(ANSI_COLOR_CYAN "%s:[%s-%u]:", sysTaskName(), __FILE__, __LINE__);EXT_PRINTF(message);SYS_PRINT((ANSI_COLOR_RESET EXT_NEW_LINE));}
+	#define	EXT_INFOF(format, message...)		{SYS_PRINT(ANSI_COLOR_CYAN "%s:[%s-%u]:" format ANSI_COLOR_RESET EXT_NEW_LINE, sysTaskName(), __FILE__, __LINE__, ##message);}
 	
-	#define	EXT_ERRORF(message)		{SYS_PRINT(ERROR_TEXT_BEGIN "%s: ERROR:[%s-%u]:", sysTaskName(), __FILE__, __LINE__);EXT_PRINTF(message); SYS_PRINT((ERROR_TEXT_END  EXT_NEW_LINE));}
+	#define	EXT_ERRORF(format, message...)		{SYS_PRINT(ERROR_TEXT_BEGIN "%s: ERROR:[%s-%u]:" format ERROR_TEXT_END  EXT_NEW_LINE, sysTaskName(), __FILE__, __LINE__, ##message);}
 
 //	#define	EXT_ASSERT(x)				{printf("Assertion \"%s\" failed at line %d in %s\n", x, __LINE__, __FILE__); while(1);}
-	#define	EXT_ASSERT(msg, x)			{if((x)==0) {SYS_PRINT(ERROR_TEXT_BEGIN"%s: ASSERT: [%s-%u]:",  sysTaskName(), __FILE__, __LINE__ );SYS_PRINT msg ;SYS_PRINT((ERROR_TEXT_END EXT_NEW_LINE)); while(0){};}}
+	#define	EXT_ASSERT(x, format, msg...)			{if((x)==0) {SYS_PRINT(ERROR_TEXT_BEGIN"%s: ASSERT: [%s-%u]:" format ERROR_TEXT_END EXT_NEW_LINE,  sysTaskName(), __FILE__, __LINE__, ##msg); while(0){};}}
 	#define	EXT_ABORT(fmt, args... )		SYS_PRINT("%s: ABORT in [" __FILE__ "-%u]:" fmt EXT_NEW_LINE, sysTaskName(), __LINE__, ##args );while(1){}
+
+	#define	TRACE()						_TRACE_OUT(EXT_NEW_LINE )
+
 #else
-	#define	EXT_PRINTF(x)						{;}
 
-	#define	EXT_DEBUGF(debug, message)		{}
+	#define	EXT_DEBUGF(debug, format, message...)		{}
 
-	#define	EXT_INFOF(message)				{SYS_PRINT(ANSI_COLOR_CYAN );SYS_PRINT message ;SYS_PRINT((ANSI_COLOR_RESET EXT_NEW_LINE));}
+	#define	EXT_INFOF(format, message...)				{SYS_PRINT(ANSI_COLOR_CYAN format ANSI_COLOR_RESET EXT_NEW_LINE, ##message);}
 
-	#define	EXT_ERRORF(message)				{SYS_PRINT(ERROR_TEXT_BEGIN);SYS_PRINT message ; SYS_PRINT((ERROR_TEXT_END EXT_NEW_LINE));}
+	#define	EXT_ERRORF(format, message...)				{SYS_PRINT(ERROR_TEXT_BEGIN format ERROR_TEXT_END EXT_NEW_LINE, ##message);}
 	
 //	#define	EXT_ASSERT(x)				{while (1);}
-	#define	EXT_ASSERT(msg, x)				{}
-	#define	EXT_ABORT(fmt, args... )		{}
+	#define	EXT_ASSERT(x, format, msg...)				{}
+	#define	EXT_ABORT(fmt, args... )						{}
+
+	#define	TRACE()										{}
 #endif
 
-#define	_TRACE_OUT(message)	\
-			{EXT_PRINTF(("%s: [%s-%u.%s()]: ",  sysTaskName(), __FILE__, __LINE__, __FUNCTION__) );EXT_PRINTF(message); }
-
-#define	TRACE()						_TRACE_OUT((EXT_NEW_LINE) )
+#define	_TRACE_OUT(format, message...)	\
+			{SYS_PRINT("%s: [%s-%u.%s()]: " format,  sysTaskName(), __FILE__, __LINE__, __FUNCTION__, ##message); }
 
 
 
@@ -173,6 +174,10 @@
 			EXT_STRINGIFY(EXT_VERSION_TOKEN)	
 
 #define	EXT_OS_NAME		EXT_SYSTEM_STRING(EXT_SYSTEM, EXT_VERSION_STRING)
+
+
+#define	EXT_BYTE_ORDER_SHORT(_sh)	\
+	( (((_sh)>>8)&0xff) | ( ((_sh)<<8)&0xFF00))
 
 #endif
 

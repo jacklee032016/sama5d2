@@ -122,7 +122,7 @@ static int _ledCtrlCheck(char *filename)
 		return EXT_FALSE;
 	}
 
-	EXT_DEBUGF(_LED_DEBUG, ("read '%c(%d)' out from %s", _chValue, _chValue, filename) );
+	EXT_DEBUGF(_LED_DEBUG, "read '%c(%d)' out from %s", _chValue, _chValue, filename );
 
 	close(fd);
 
@@ -284,7 +284,7 @@ int cmnSysLedCtrl(LED_TYPE_T type, LED_MODE_T mode)
 	}
 
 	currentMode = cmnSysLedCheck(type);
-	EXT_DEBUGF(_LED_DEBUG, ("LED %s is on state of %s", led->name, cmnSysLedFindState(currentMode)) );
+	EXT_DEBUGF(_LED_DEBUG, "LED %s is on state of %s", led->name, cmnSysLedFindState(currentMode) );
 	if(currentMode == mode)
 	{
 		EXT_INFOF("LED %s has been in state of %s", led->name, cmnSysLedFindState(mode) );
@@ -293,17 +293,17 @@ int cmnSysLedCtrl(LED_TYPE_T type, LED_MODE_T mode)
 
 	if(currentMode == LED_MODE_BLINK )
 	{/* first stop blink */
-		EXT_DEBUGF(_LED_DEBUG, ("LED %s stop BLINK", led->name));
+		EXT_DEBUGF(_LED_DEBUG, "LED %s stop BLINK", led->name);
 		_LED_BLINK(led, EXT_FALSE);
 	}
 
 	if(mode== LED_MODE_BLINK)
 	{
-		EXT_DEBUGF(_LED_DEBUG, ("LED %s start BLINK", led->name));
+		EXT_DEBUGF(_LED_DEBUG, "LED %s start BLINK", led->name);
 		return _LED_BLINK(led, EXT_TRUE);
 	}
 
-	EXT_DEBUGF(_LED_DEBUG, ("LED %s set %s", led->name, (mode== LED_MODE_ON)?"ON":"OFF") );
+	EXT_DEBUGF(_LED_DEBUG, "LED %s set %s", led->name, (mode== LED_MODE_ON)?"ON":"OFF" );
 	return _LED_CTRL(led, (mode== LED_MODE_ON)?EXT_TRUE:EXT_FALSE);
 }
 

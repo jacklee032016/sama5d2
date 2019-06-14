@@ -135,8 +135,8 @@
 				flash@0 {
 					#address-cells = <1>;
 					#size-cells = <1>;
-					#compatible = "jedec,spi-nor";
-					compatible = "micron,n25q256";
+					compatible = "jedec,spi-nor";
+					#compatible = "micron,n25q256";
 					reg = <0>;
 					#spi-max-frequency = <83000000>;
 					spi-max-frequency = <50000000>;
@@ -193,8 +193,8 @@
 
 				m25p80@0 { 
 /*				spidev@0 {*/
-					#compatible = "atmel,at25df321a";
-					compatible = "spidev";
+					//compatible = "atmel,at25df321a";
+					compatible = "atmel,n25q512ax3";
 					reg = <0>;
 					spi-max-frequency = <50000000>;
 				};
@@ -414,6 +414,7 @@
 				status = "okay";
 			};
 
+			/* 
 			flx4: flexcom@fc018000 {
 				atmel,flexcom-mode = <ATMEL_FLEXCOM_MODE_TWI>;
 				status = "okay";
@@ -433,6 +434,7 @@
 					status = "okay";
 				};
 			};
+			*/
 
 			i2c1: i2c@fc028000 {
 				dmas = <0>, <0>;
@@ -532,8 +534,8 @@
 				};
 
 				pinctrl_i2c0_default: i2c0_default {
-					pinmux = <PIN_PD21__TWD0>,
-						 <PIN_PD22__TWCK0>;
+					pinmux = <PIN_PD29__TWD0>, /* from PD21 --> PD29 JL */
+						 <PIN_PD30__TWCK0>; /* from PD22 --> PD30 JL */
 					bias-disable;
 				};
 

@@ -61,7 +61,7 @@ static void _hdmiHwReset(void)
 
 static void _fpgaHwReset(void)
 {
-	EXT_DEBUGF(EXT_BOOTSTRAP_DEBUG, ("rest FPGA on pin %d", FPGA_RST_N) );
+	EXT_DEBUGF(EXT_BOOTSTRAP_DEBUG, "rest FPGA on pin %d", FPGA_RST_N );
 	/* reset FPGA chip */
 	pio_set_gpio_output(FPGA_RST_N, 1);
 	pio_set_value(FPGA_RST_N, 0);
@@ -77,7 +77,7 @@ static int  _extBspFpgaWaitDone(unsigned int  seconds)
 	
 	timeout = seconds;
 
-	EXT_DEBUGF(EXT_BOOTSTRAP_DEBUG, ("read FPGA Done %d", FPGA_DONE));
+	EXT_DEBUGF(EXT_BOOTSTRAP_DEBUG, "read FPGA Done %d", FPGA_DONE);
 	while (1)
 	{
 		done = pio_get_value(FPGA_DONE);
@@ -93,7 +93,7 @@ static int  _extBspFpgaWaitDone(unsigned int  seconds)
 		
 		if (timeout == 0)
 		{
-			EXT_ERRORF(("Timeout in waiting FPGA Done"));
+			EXT_ERRORF("Timeout in waiting FPGA Done");
 			return done;
 		}
 
@@ -109,8 +109,8 @@ static int  _extBspFpgaWaitDone(unsigned int  seconds)
 
 static int _muxFpgaReload(void)
 {
-	EXT_DEBUGF(EXT_BOOTSTRAP_DEBUG, ("Reload FPGA firmware on pin %d...", FPGA_PROGRAM));
-	EXT_INFOF(("Reload FPGA firmware on pin %d...", FPGA_PROGRAM));
+	EXT_DEBUGF(EXT_BOOTSTRAP_DEBUG, "Reload FPGA firmware on pin %d...", FPGA_PROGRAM);
+	EXT_INFOF("Reload FPGA firmware on pin %d...", FPGA_PROGRAM);
 	/* start load FPGA firmware */
 	pio_set_gpio_output(FPGA_PROGRAM, 1);
 	pio_set_value(FPGA_PROGRAM, 0);
@@ -132,7 +132,6 @@ static void _ledReset(void)
 
 static unsigned _cfgReadPins(void)
 {
-	int count = 0;
 	const struct pio_desc pio_pins[] =
 	{
 		{"SW1", DIPSW_01, 1, PIO_DEFAULT, PIO_INPUT},
@@ -147,9 +146,14 @@ static unsigned _cfgReadPins(void)
 
 //	pio_set_gpio_input(RX_SELECT2, PIO_PULLUP);
 
-	count = pio_configure(pio_pins);
-	EXT_DEBUGF(EXT_BOOTSTRAP_DEBUG, ("%d input pins are configured", count));
+#ifndef __EXT_RELEASE__
+	int count = 0;
 
+	count = pio_configure(pio_pins);
+	EXT_DEBUGF(EXT_BOOTSTRAP_DEBUG, "%d input pins are configured", count);
+#else
+	pio_configure(pio_pins);
+#endif
 	pmc_sam9x5_enable_periph_clk(AT91C_ID_PIOA);
 	pmc_sam9x5_enable_periph_clk(AT91C_ID_PIOB);
 	pmc_sam9x5_enable_periph_clk(AT91C_ID_PIOC);
@@ -182,15 +186,17 @@ int muxHwInit(void)
 	fpgaCtrl->devAddrPcspma = EXT_I2C_DEV_FPGA_PCSPMA;
 	fpgaCtrl->devAddrRll = EXT_I2C_DEV_FPGA_DRP_PLL;
 
+	EXT_INFOF( BOARD_NAME " is initializing ...");
 	// init M500768 hw specific
 #if	(MUX_BOARD == MUX_ATMEL_XPLAINED)
-	EXT_INFOF((EXT_OS_NAME));
+	EXT_INFOF(EXT_OS_NAME);
 	return 0;
 #endif
 
 	muxSi5351bHwInit();
 
-
+	TRACE();
+	
 //	RTL8307H_hw_reset();
 #if	(MUX_BOARD == MUX_BOARD_768)
 //	AQR105_hw_reset();
@@ -200,7 +206,7 @@ int muxHwInit(void)
 
 	// read DIP switch value
 	btnCfg = _cfgReadPins();
-	EXT_INFOF(("DIP SW: %x; RX_SELECT: %x", btnCfg&0x0F, (btnCfg>>4)&0x03));
+	EXT_INFOF("DIP SW: %x; RX_SELECT: %x", btnCfg&0x0F, (btnCfg>>4)&0x03);
 	
 	_ledReset();
 	_muxFpgaReload();

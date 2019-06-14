@@ -73,7 +73,7 @@ int extIpCmdSendRsData(struct DATA_CONN *dataConn)
 		printf("RS232 Data: hexdata:'%s'; feedback:%d; waitMs:%d"EXT_NEW_LINE, muxMain->setupData.hexData, muxMain->setupData.isFeedBack, muxMain->setupData.waitMs);
 	}
 
-//	EXT_DEBUGF(EXT_IPCMD_DEBUG, ("RS Data: hexdata:'%s'; feedback:%d; waitMs:%d",parser->setupData.hexData, parser->setupData.isFeedBack, parser->setupData.waitMs));
+//	EXT_DEBUGF(EXT_IPCMD_DEBUG, "RS Data: hexdata:'%s'; feedback:%d; waitMs:%d",parser->setupData.hexData, parser->setupData.isFeedBack, parser->setupData.waitMs);
 
 	rs232StartRx();
 	

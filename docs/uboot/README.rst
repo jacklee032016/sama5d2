@@ -2,11 +2,17 @@ README for u-boot
 ################################
 02.18, 2019
 
+add build flags from Rule.mak
+-------------------------------
+* into file of board/atmel/sama5d2_xplained/config.mk;
+* __EXT_RELEASE__ defined in header file directly;
+* move into config.mk;
+
 
 uImage and zImage
 -------------------------------
-zImage: from kernel building, it is extracted by itselt; no mkimage is needed;
-uImage: mkimage, like that "mkimage -A arm -O linux -C none -T kernel -a $MEM_ADDRESS -e $MEM_ADDRESS -n $NAME -d zImage uImage"
+* zImage: from kernel building, it is extracted by itselt; no mkimage is needed;
+* uImage: mkimage, like that "mkimage -A arm -O linux -C none -T kernel -a $MEM_ADDRESS -e $MEM_ADDRESS -n $NAME -d zImage uImage"
 
 
 02.26, 2019

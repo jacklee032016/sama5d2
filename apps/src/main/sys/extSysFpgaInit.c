@@ -86,7 +86,7 @@ static unsigned char _translateFrameRate(unsigned char rate, unsigned char isFro
 		}
 	}
 
-	EXT_ERRORF(("FrameRate %d is invalidate value for %s", rate, (isFromFpga)?"MCU":"FPGA") );
+	EXT_ERRORF("FrameRate %d is invalidate value for %s", rate, (isFromFpga)?"MCU":"FPGA" );
 	
 	if(isFromFpga)
 		return EXT_V_DEPTH_8;
@@ -110,7 +110,7 @@ static unsigned char _translateDepth(unsigned char depth, unsigned char isFromFp
 		}
 	}
 
-	EXT_ERRORF(("vDepth %d is invalidate value for %s", depth, (isFromFpga)?"MCU":"FPGA") );
+	EXT_ERRORF("vDepth %d is invalidate value for %s", depth, (isFromFpga)?"MCU":"FPGA" );
 	
 	if(isFromFpga)
 		return EXT_V_FRAMERATE_T_23;
@@ -137,7 +137,7 @@ void extFpgaTimerJob(MuxRunTimeParam  *mediaParams)
 	if(value != EXT_FPGA_FLAGS_PARAM_USABLE)
 		return;
 
-	EXT_DEBUGF(EXT_DBG_ON, ("New Media Params is available now!"));
+	EXT_DEBUGF(EXT_DBG_ON, "New Media Params is available now!");
 	
 //	extFpgaReadParams(mediaParams);
 	/* clear register */
@@ -209,10 +209,10 @@ char  extBspFpgaReload(void)
 		isOK = FPGA_I2C_READ(EXT_FPGA_REG_ETHERNET_RESET, &data, 1);
 		timeoutSecond--;
 		
-//		EXT_ERRORF(("Timeout %d seconds when waiting FPGA status10"EXT_NEW_LINE, timeoutSecond));
+//		EXT_ERRORF("Timeout %d seconds when waiting FPGA status10"EXT_NEW_LINE, timeoutSecond);
 		if(timeoutSecond<0)
 		{
-//			EXT_ERRORF(("Timeout %d seconds when waiting FPGA status0"EXT_NEW_LINE, _TIMEOUT_VALUE));
+//			EXT_ERRORF("Timeout %d seconds when waiting FPGA status0"EXT_NEW_LINE, _TIMEOUT_VALUE);
 			break;
 		}
 		EXT_DELAY_US(1000*100);
@@ -234,7 +234,7 @@ char  extBspFpgaReload(void)
 	}
 	else
 	{
-		EXT_ERRORF(("Timeout %d seconds when waiting FPGA status"EXT_NEW_LINE, _TIMEOUT_VALUE));
+		EXT_ERRORF("Timeout %d seconds when waiting FPGA status"EXT_NEW_LINE, _TIMEOUT_VALUE);
 	}
 	
 	return isOK;
@@ -272,7 +272,7 @@ void extFpgaInit(void)
 		timeout--;
 		if (timeout == 0)
 		{
-			EXT_ERRORF(("FPGA read version timeout"));
+			EXT_ERRORF("FPGA read version timeout");
 			break;	// too long , exit loop
 		}
 	}

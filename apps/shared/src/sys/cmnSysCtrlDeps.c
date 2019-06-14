@@ -42,7 +42,7 @@ int cmnSysCfgRead(EXT_RUNTIME_CFG *cfg, EXT_CFG_TYPE cfgType)
 	if(_readOut->magic[0]!=EXT_MAGIC_VALUE_A ||_readOut->magic[1] != EXT_MAGIC_VALUE_B )
 #endif		
 	{
-		EXT_ERRORF(("Configuration data is corrupted!!"EXT_NEW_LINE));
+		EXT_ERRORF("Configuration data is corrupted!!");
 		return EXIT_FAILURE;
 	}
 

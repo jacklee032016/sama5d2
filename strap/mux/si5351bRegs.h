@@ -139,7 +139,7 @@ Reg_Data const Reg_Store[NUM_REGS_MAX] = {
 
 typedef struct
 {
-	unsigned int address; /* 16-bit register address */
+	unsigned int address; /* 16-bit register address??? page 17. only 8 bit register address for Si5351B. JL. 06.14, 2019 */
 	unsigned char value; /* 8-bit register data */
 
 } si5351b_revb_register_t;

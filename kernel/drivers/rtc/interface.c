@@ -17,6 +17,10 @@
 #include <linux/log2.h>
 #include <linux/workqueue.h>
 
+#define	__EXT_RELEASE__
+
+#include "mux7xxCompact.h"
+
 static int rtc_timer_enqueue(struct rtc_device *rtc, struct rtc_timer *timer);
 static void rtc_timer_remove(struct rtc_device *rtc, struct rtc_timer *timer);
 
@@ -289,10 +293,17 @@ int __rtc_read_alarm(struct rtc_device *rtc, struct rtc_wkalrm *alarm)
 
 done:
 	if (err) {
+#ifdef	MUX_BOARD
+		EXT_ERRORF("RTC: invalid alarm value: %d-%d-%d %d:%d:%d\n",
+			alarm->time.tm_year + 1900, alarm->time.tm_mon + 1,
+			alarm->time.tm_mday, alarm->time.tm_hour, alarm->time.tm_min,
+			alarm->time.tm_sec);
+#else
 		dev_warn(&rtc->dev, "invalid alarm value: %d-%d-%d %d:%d:%d\n",
 			alarm->time.tm_year + 1900, alarm->time.tm_mon + 1,
 			alarm->time.tm_mday, alarm->time.tm_hour, alarm->time.tm_min,
 			alarm->time.tm_sec);
+#endif
 	}
 
 	return err;

@@ -91,14 +91,6 @@ typedef struct _CmnMultiGroup
 }CmnMultiGroup;
 
 
-int cmnSysI2cWrite(int deviceID, unsigned char offset, unsigned char *buffer, int length);
-int cmnSysI2cRead(int deviceID, unsigned char offset, unsigned char *buffer, int length);
-
-
-int extI2CRead(unsigned char chanNo, unsigned char deviceAddress, unsigned int regAddress, unsigned char regAddressSize, unsigned char *regVal, unsigned char regSize);
-int extI2CWrite(unsigned char chanNo, unsigned char deviceAddress, unsigned int regAddress, unsigned char regAddressSize,  unsigned char *regVal, unsigned char regSize);
-
-
 /* system network */
 uint32_t cmnSysNetGetIp(char * hwName);
 uint32_t cmnSysNetGetMask(char *hwName);
@@ -210,6 +202,79 @@ int cmnSysScChallegeInit(SC_CTRL *sc);
 
 #define	SC_CRC_ENABLE(scf)	\
 	cmnSysScCrc((scf), EXT_TRUE)
+
+
+
+int cmnSysI2cRW(int bus, unsigned char slaveAddr, unsigned int regAddr, int regAddrSize, unsigned char *buffer, int length, int isRead);
+int cmnSysI2cExtRW(int bus, unsigned char chanNo, unsigned char slaveAddr, unsigned int regAddr, int regAddrSize, unsigned char *buffer, int length, int isRead);
+int cmnSysI2cSensor(void);
+
+/* I2C read/write */
+#define	I2C_READ(bus, slave, offset, offSize, buf, size)		\
+			cmnSysI2cRW((bus), (slave), (offset), (offSize), (unsigned char *)(buf), (size), EXT_TRUE)
+
+#define	I2C_WRITE(bus, slave, offset, offSize, buf, size)		\
+			cmnSysI2cRW((bus), (slave), (offset), (offSize), (unsigned char *)(buf), (size), EXT_FALSE)
+
+#define	I2C_READ_SHORT(bus, ch, slave, offset, offSize, shortBuf, ret)		\
+			{(ret) = I2C_READ((bus), (ch), (slave), (offset), (offSize), (shortBuf), (2)); *shortBuf = EXT_BYTE_ORDER_SHORT(*shortBuf);}
+
+#define	I2C_READ_INTEGER(bus, ch, slave, offset, offSize, intBuf, ret)		\
+			{(ret) = I2C_READ((bus), (ch), (slave), (offset), (offSize), (intBuf), (4)); *intBuf = _PP_HTONL(*intBuf);}
+
+
+#define	I2C_WRITE_SHORT(bus, ch, slave, offset, offSize, shortBuf, ret)		\
+			{ unsigned short _val = EXT_BYTE_ORDER_SHORT(*shortBuf); (ret) = I2C_WRITE((bus), (ch), (slave), (offset), (offSize), (unsigned char *)&_val, (2));}
+
+#define	I2C_WRITE_INTEGER(bus, ch, slave, offset, offSize, intBuf, ret)		\
+			{ unsigned int _val = _PP_HTONL(*intBuf); (ret) = I2C_READ((bus), (ch), (slave), (offset), (offSize), (unsigned char *)&_val, (4));}
+
+
+/* I2C extended read/write: read/write with multiplexer  */
+#define	I2C_EXT_READ(bus, ch, slave, offset, offSize, buf, size)		\
+			cmnSysI2cExtRW((bus), (ch), (slave), (offset), (offSize), (unsigned char *)(buf), (size), EXT_TRUE)
+
+#define	I2C_EXT_WRITE(bus, ch, slave, offset, offSize, buf, size)		\
+			cmnSysI2cExtRW((bus), (ch), (slave), (offset), (offSize), (unsigned char *)(buf), (size), EXT_FALSE)
+
+
+#define	I2C_EXT_READ_SHORT(bus, ch, slave, offset, offSize, shortBuf, ret)		\
+			{(ret) = I2C_EXT_READ((bus), (ch), (slave), (offset), (offSize), (shortBuf), (2)); *shortBuf = EXT_BYTE_ORDER_SHORT(*shortBuf);}
+
+#define	I2C_EXT_READ_INTEGER(bus, ch, slave, offset, offSize, intBuf, ret)		\
+			{(ret) = I2C_EXT_READ((bus), (ch), (slave), (offset), (offSize), (intBuf), (4)); *intBuf = _PP_HTONL(*intBuf);}
+
+
+#define	I2C_EXT_WRITE_SHORT(bus, ch, slave, offset, offSize, shortBuf, ret)		\
+			{ unsigned short _val = EXT_BYTE_ORDER_SHORT(*shortBuf); (ret) = I2C_EXT_WRITE((bus), (ch), (slave), (offset), (offSize), (unsigned char *)&_val, (2));}
+
+#define	I2C_EXT_WRITE_INTEGER(bus, ch, slave, offset, offSize, intBuf, ret)		\
+			{ unsigned int _val = _PP_HTONL(*intBuf); (ret) = I2C_EXT_READ((bus), (ch), (slave), (offset), (offSize), (unsigned char *)&_val, (4));}
+
+
+#define	SI5351B_READ(reg, value, length)	\
+		I2C_EXT_READ(0, I2C_CHAN_4_SI5351B, EXT_I2C_DEV_SI5351B, (reg), 1, (value), (length) )
+
+#define	SI5351B_WRITE(reg, value, length)	\
+		I2C_EXT_WRITE(0, I2C_CHAN_4_SI5351B, EXT_I2C_DEV_SI5351B, (reg), 1, (value), (length) )
+
+/* MCP47716 DAC with EEPROM*/
+#define	MCP4716_READ(reg, value, length)	\
+		I2C_EXT_READ(0, I2C_CHAN_4_MCP4716, EXT_I2C_DEV_MCP4617, (reg), 1, (value), (length) )
+
+#define	MCP4716_WRITE(reg, value, length)	\
+		I2C_EXT_WRITE(0, I2C_CHAN_4_MCP4716, EXT_I2C_DEV_MCP4617, (reg), 1, (value), (length) )
+
+
+#define	EEPROM_READ(start, value, length)	\
+		I2C_EXT_READ(0, I2C_CHAN_4_EEPROM, EXT_I2C_EEPROM_ADDRESS, (start), 2, (value), (length))
+
+#define	EEPROM_WRITE(start, value, length)	\
+		I2C_EXT_WRITE(0, I2C_CHAN_4_EEPROM, EXT_I2C_EEPROM_ADDRESS, (start), 2, (value), (length))
+
+
+
+int	cmnSysI2cTest(void);
 
 
 #endif

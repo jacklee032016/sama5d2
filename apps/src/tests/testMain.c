@@ -16,6 +16,7 @@
 #define	TEST_CMD_SW1					"sw1"
 #define	TEST_CMD_SECURE_CHIP			"sc"
 
+#define	TEST_CMD_I2C					"i2c"
 
 int testIgmp(void);
 int testDipSwitch(void);
@@ -26,13 +27,14 @@ int testSecureChipId(void);
 
 int testDs2815(void );
 int testSC(void );
+int testI2c(void);
 
 static void _usage(char* base)
 {
 	printf("%s: \n\tTest command line utility.\n"\
 		"\t%s -c command "
 		"\t\t Current command:  " \
-		"\n\t\t\t"TEST_CMD_IGMP", "TEST_CMD_DIP_SWITCH", "TEST_CMD_LEDS", "TEST_CMD_SW1", "TEST_CMD_SECURE_CHIP" \n", 
+		"\n\t\t\t"TEST_CMD_IGMP", "TEST_CMD_DIP_SWITCH", "TEST_CMD_LEDS", "TEST_CMD_SW1", "TEST_CMD_SECURE_CHIP", "TEST_CMD_I2C" \n", 
 		  base, base);
 
 	exit(-1);
@@ -90,6 +92,10 @@ int main(int argc, char *argv[])
 		testSC();
 //		testDs2815();
 //		testSecureChipId();
+	}
+	else if(IS_STRING_EQUAL(cmd, TEST_CMD_I2C))
+	{
+		testI2c();
 	}
 	else
 	{

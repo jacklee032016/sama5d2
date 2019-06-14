@@ -34,12 +34,12 @@ unsigned int muxHwTwiSetMuxChannel(unsigned char channo)
 	buffer[0] = 0x04 | channo;	// set mux for si5351b 
 	if(twi_write(bus, EXT_I2C_DEV_PCA9544, 0, 0, buffer, 1) )
 	{
-		EXT_ERRORF(("PCA9544 %x, buffer %x failed", EXT_I2C_DEV_PCA9544, buffer[0] ));
+		EXT_ERRORF("PCA9544 %x, buffer %x failed", EXT_I2C_DEV_PCA9544, buffer[0] );
 		return INVALIDATE_VALUE_U32;
 	}
 	else
 	{
-		EXT_DEBUGF(EXT_BOOTSTRAP_DEBUG, ("PCA9544 %x, buffer %x OK", EXT_I2C_DEV_PCA9544, buffer[0] ));
+		EXT_DEBUGF(EXT_BOOTSTRAP_DEBUG, "PCA9544 %x, buffer %x OK", EXT_I2C_DEV_PCA9544, buffer[0]);
 	}
 
 	return bus;
@@ -61,13 +61,13 @@ int extI2CRead(unsigned char chanNo, unsigned char deviceAddress, unsigned int r
 
 	if(bus == INVALIDATE_VALUE_U32)
 	{
-		EXT_ERRORF(("I2C read abort because PCA operation failed"));
+		EXT_ERRORF("I2C read abort because PCA operation failed");
 		return -1;
 	}
 
 	if(twi_read(bus, deviceAddress, regAddress, regAddressSize, regVal, regSize))
 	{
-		EXT_ERRORF(("I2C read failed on Channel %d, dev %x, reg %x", chanNo, deviceAddress, regAddress));
+		EXT_ERRORF("I2C read failed on Channel %d, dev %x, reg %x", chanNo, deviceAddress, regAddress);
 		return -1;
 	}
 
@@ -89,13 +89,13 @@ char extI2CWrite(unsigned char chanNo, unsigned char deviceAddress, unsigned int
 
 	if(bus == INVALIDATE_VALUE_U32)
 	{
-		EXT_ERRORF(("I2C write abort because PCA operation failed"));
+		EXT_ERRORF("I2C write abort because PCA operation failed");
 		return -1;
 	}
 
 	if(twi_write(bus, deviceAddress, regAddress, regAddressSize, regVal, regSize))
 	{
-		EXT_ERRORF(("I2C write failed on Channel %d, dev %x, reg %x", chanNo, deviceAddress, regAddress));
+		EXT_ERRORF("I2C write failed on Channel %d, dev %x, reg %x", chanNo, deviceAddress, regAddress);
 		return -1;
 	}
 
@@ -108,44 +108,85 @@ short extSensorGetTemperatureCelsius(void)
 {/* 11 bits: sign bit + 10 bit value */
 	unsigned char regVal =0;
 	short temperature = 0;
+	unsigned short temp;
 
-#if 1
 	unsigned int bus;
 	bus = muxHwTwiSetMuxChannel(MUX_BUS_LM9524);
 
-	if(twi_read(bus, EXT_I2C_DEV_SENSOR, EXT_I2C_SENSOR_LOCAL_TEMP_MSB, 1, &regVal, 1) )
+	/* test hardware */
+	/* write pointer register for TOS: figure 12 in p18.  */
+	regVal = 0x03;
+	if(twi_write(bus, EXT_I2C_DEV_SENSOR, 0, 0, &regVal, 1) )
 	{
-		EXT_ERRORF(("LM95245 Temp(MSB) read failed on #0x%x:%d", EXT_I2C_DEV_SENSOR, EXT_I2C_SENSOR_LOCAL_TEMP_MSB));
+		EXT_ERRORF("Sensor write Tos address failed on #0x%x", EXT_I2C_DEV_SENSOR);
+		return temperature;
+	}
+	/* read TOS value */
+	if(twi_read(bus, EXT_I2C_DEV_SENSOR, 0, 0, (unsigned char *)&temp, 2) )
+	{
+		EXT_ERRORF("Sensor Tos read failed on #0x%x", EXT_I2C_DEV_SENSOR);
 		return temperature;
 	}
 	else
 	{
-		EXT_DEBUGF(EXT_BOOTSTRAP_DEBUG, ("LM95245 Temp(MSB): %d", regVal));
+		EXT_DEBUGF(EXT_BOOTSTRAP_DEBUG, "Sensor Tos: %x", temp);
 	}
 	
+	temp = EXT_BYTE_ORDER_SHORT(temp);
+	/* table 7, page 9 */
+	if(temp == 0x5000 ||temp == 0x6E00 ||temp == 0xFB00 )
+	{
+		EXT_INFOF("Sensor PCT2075 is OK. Tos: %x", temp);
+	}
+	else
+	{
+		EXT_ERRORF("Sensor PCT2075 test failed. Tos: %x", temp);
+	}
+
+	/* read temperature */
+	/* write pointer register for temperature: figure 12 in p18.  */
+	if(twi_write(bus, EXT_I2C_DEV_SENSOR, 0, 0, &regVal, 1) )
+	{
+		EXT_ERRORF("Sensor write address failed on #0x%x", EXT_I2C_DEV_SENSOR);
+		return temperature;
+	}
+	
+	if(twi_read(bus, EXT_I2C_DEV_SENSOR, 0, 0, (unsigned char *)&temp, 2) )
+	{
+		EXT_ERRORF("Sensor Temp read failed on #0x%x", EXT_I2C_DEV_SENSOR);
+		return temperature;
+	}
+	else
+	{
+		EXT_DEBUGF(EXT_BOOTSTRAP_DEBUG, "Sensor Temp: %x", temp);
+	}
+
+#if 0	
 	temperature = (regVal<<8);
 	if(twi_read(bus, EXT_I2C_DEV_SENSOR, EXT_I2C_SENSOR_LOCAL_TEMP_LSB, 1, &regVal, 1) )
 	{
-		EXT_ERRORF(("LM95245 Temp(LSB) read failed"));
+		EXT_ERRORF("LM95245 Temp(LSB) read failed");
 		return temperature;
 	}
 	else
 	{
-		EXT_DEBUGF(EXT_BOOTSTRAP_DEBUG, ("LM95245 Temp(LSB): %d", regVal));
+		EXT_DEBUGF(EXT_BOOTSTRAP_DEBUG, "LM95245 Temp(LSB): %d", regVal);
 	}
-#else
+
 	extI2CRead(MUX_BUS_LM9524, EXT_I2C_DEV_SENSOR, EXT_I2C_SENSOR_LOCAL_TEMP_MSB, 1, &regVal, 1);
 
 	EXT_DEBUGF(EXT_BOOTSTRAP_DEBUG, ("LM95245 Temp(MSB): %d", regVal) );
 	temperature = (regVal<<8);
 	extI2CRead(MUX_BUS_LM9524, EXT_I2C_DEV_SENSOR, EXT_I2C_SENSOR_LOCAL_TEMP_LSB, 1, &regVal, 1);
 
-#endif
 	/* only 3 bits in LSB register */
 	temperature |=  (regVal>>5); //*0.125;// / 256.0;
-      
-	EXT_INFOF(("LM95245 Temp(LSB): %d*0.125;", (regVal>>5) ));
-	
+#endif
+
+	temp = (temp>>5);
+	temp = EXT_BYTE_ORDER_SHORT(temp);
+	EXT_INFOF("Sensor Temp: %d*0.125;", temp );
+
 	return temperature;
 }
 

@@ -184,11 +184,11 @@ static char __bspWriteScratchPad(unsigned char *data)
 	if( CRC16 != read_crc )
 	{
 #if BSP_SC_DEBUG
-		EXT_ERRORF(("SC: writeScratch CMD CRC error: %04x != %04x", CRC16,  read_crc) );
+		EXT_ERRORF("SC: writeScratch CMD CRC error: %04x != %04x", CRC16,  read_crc );
 #endif
 		return EXIT_FAILURE;
 	}
-	EXT_DEBUGF(BSP_SC_DEBUG, ("SC: WriteScratch CMD CRC: %04x:%04x", CRC16, read_crc));
+	EXT_DEBUGF(BSP_SC_DEBUG, "SC: WriteScratch CMD CRC: %04x:%04x", CRC16, read_crc);
 		
 	//data			
 	for(i = 0; i < 32; i++ )
@@ -207,11 +207,11 @@ static char __bspWriteScratchPad(unsigned char *data)
 	if( CRC16 != read_crc )	
 	{
 #if BSP_SC_DEBUG
-		EXT_ERRORF(("SC: writeScratch Data CRC error : %04x !=%04x !", CRC16, read_crc) );
+		EXT_ERRORF("SC: writeScratch Data CRC error : %04x !=%04x !", CRC16, read_crc );
 #endif
 		return EXIT_FAILURE;
 	}
-	EXT_DEBUGF(BSP_SC_DEBUG, ("SC: WriteScratch Data CRC: %04x:%04x", CRC16, read_crc));
+	EXT_DEBUGF(BSP_SC_DEBUG, "SC: WriteScratch Data CRC: %04x:%04x", CRC16, read_crc);
 	
 	return EXIT_SUCCESS;
 }
@@ -231,7 +231,7 @@ static char _writeKeyIntoScratchAndLock(unsigned char *secret, unsigned char loc
 	
 	if(__bspWriteScratchPad(secret) == EXIT_FAILURE)
 	{
-		EXT_ERRORF(("SC: LoadSecret error!"));
+		EXT_ERRORF("SC: LoadSecret error!");
 		return EXIT_FAILURE;
 	}	
 		
@@ -261,10 +261,10 @@ static char _writeKeyIntoScratchAndLock(unsigned char *secret, unsigned char loc
 	SC_READ_16BIT(read_crc);
 	if( CRC16 != read_crc)
 	{
-		EXT_ERRORF(("SC: LoadSecret CMD CRC error %04x != %04x!", CRC16, read_crc) );
+		EXT_ERRORF("SC: LoadSecret CMD CRC error %04x != %04x!", CRC16, read_crc );
 		return EXIT_FAILURE;
 	}		
-	EXT_DEBUGF(BSP_SC_DEBUG, ("SC: LoadSecret CMD CRC: %04x:%04x", CRC16, read_crc));
+	EXT_DEBUGF(BSP_SC_DEBUG, "SC: LoadSecret CMD CRC: %04x:%04x", CRC16, read_crc);
 	
 	//send release
 	_bspScWriteByte(0xAA);
@@ -284,12 +284,12 @@ static char _writeKeyIntoScratchAndLock(unsigned char *secret, unsigned char loc
 	}
 	else if(read_crc == 0x55)
 	{
-		EXT_ERRORF(("SC: LoadSecret: secret was locked before."));
+		EXT_ERRORF("SC: LoadSecret: secret was locked before.");
 		return EXIT_FAILURE;
 	}
 	else
 	{
-		EXT_ERRORF(("SC: LoadSecret fail."));
+		EXT_ERRORF("SC: LoadSecret fail.");
 		return EXIT_FAILURE;
 	}			
 }
@@ -325,7 +325,7 @@ static char _writeChallengeIntoScratchAndReadMAC(SC_CTRL *sc)
 	if(__bspWriteScratchPad(sc->challenge) == EXIT_FAILURE)
 	{
 #if BSP_SC_DEBUG
-		EXT_ERRORF(("SC: WriteScratchPad fail."));
+		EXT_ERRORF("SC: WriteScratchPad fail.");
 #endif
 		return EXIT_FAILURE;
 	}
@@ -348,10 +348,10 @@ static char _writeChallengeIntoScratchAndReadMAC(SC_CTRL *sc)
 		
 	if( CRC16 !=  read_crc )
 	{
-		EXT_ERRORF(("SC: ReadMAC CMD CRC error %04x != %04x!", CRC16, read_crc) );
+		EXT_ERRORF("SC: ReadMAC CMD CRC error %04x != %04x!", CRC16, read_crc );
 		return EXIT_FAILURE;
 	}		
-	EXT_DEBUGF(BSP_SC_DEBUG, ("SC: ReadMAC CMD CRC: %04x:%04x", CRC16, read_crc));
+	EXT_DEBUGF(BSP_SC_DEBUG, "SC: ReadMAC CMD CRC: %04x:%04x", CRC16, read_crc);
 
 	//wait for 2*tcsha
 	delay_ms(2*SHA_COMPUTATION_DELAY);
@@ -360,7 +360,7 @@ static char _writeChallengeIntoScratchAndReadMAC(SC_CTRL *sc)
 	read_crc = _bspScReadByte();
 	if(read_crc != 0xAA)
 	{
-		EXT_ERRORF(("SC: ReadDMA read cs error: 0x%x", read_crc));
+		EXT_ERRORF("SC: ReadDMA read cs error: 0x%x", read_crc);
 		return EXIT_FAILURE;
 	}
 	
@@ -386,7 +386,7 @@ static char _writeChallengeIntoScratchAndReadMAC(SC_CTRL *sc)
 	if(CRC16 != read_crc)
 	{
 #if BSP_SC_DEBUG
-		EXT_ERRORF(("SC: ReadMAC Data CRC error: %04x != %04x!", CRC16, read_crc) );
+		EXT_ERRORF("SC: ReadMAC Data CRC error: %04x != %04x!", CRC16, read_crc );
 		CONSOLE_DEBUG_MEM(sc->readMac, 32, 0, "Read error MAC");
 #endif
 		return EXIT_FAILURE;
@@ -394,7 +394,7 @@ static char _writeChallengeIntoScratchAndReadMAC(SC_CTRL *sc)
 
 #if BSP_SC_DEBUG
 	CONSOLE_DEBUG_MEM(sc->readMac, 32, 0, "Read MAC");
-	EXT_DEBUGF(BSP_SC_DEBUG, ("SC: ReadMAC Data CRC: %04x:%04x", CRC16, read_crc));
+	EXT_DEBUGF(BSP_SC_DEBUG, "SC: ReadMAC Data CRC: %04x:%04x", CRC16, read_crc);
 #endif
 	
 	return EXIT_SUCCESS;	

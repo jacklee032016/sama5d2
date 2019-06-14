@@ -23,6 +23,7 @@ Security Chip in Kernel
 	* Read 16 bits CRC;
 	* Read/Write 32 bytes;
 	* Read 16 bits CRC;
+	* After scratchpad has been loaded into secret, the result of read scratchpad is zero;
 * Lock secret:
 	* Write command: command: 0x33; parameter bytes: 0x00(unlock); 0xE0(lock);
 	* Read 16 bits CRC;
@@ -44,9 +45,13 @@ Security Chip in Kernel
 	    * write 4 bytes;
 		* read 16 bits CRC;
 		* Write RELEASE command;
-		* Delay;
+		* Delay, mandidate;
 		* Read status;
 	
+* Read page:
+	* Write command: command: 0xF0; parameter byte: 0x00: from seg0 of pag0 to end of page;
+	* Read 16 bits CRC;
+	* Read 32 bytes;
 
 	
 * Basic read/write operation
@@ -57,5 +62,10 @@ Security Chip in Kernel
 * Send parameter byte;
 * Read CRC(16 bits);
 
-	
+* Bus operations
+---------------------------------
+* Reset: reset all devices in bus;
+* Send ROM ID to access particular device on bus;
+* Or send SKIP_ROM_ID when only one device is on bus;
+* Refers to p.32 1-Wire ROM function commands;
 	

@@ -41,7 +41,7 @@ JLinkConnection {
 		applet.erase(0, 0x10000)
 
 		// write files
-		applet.write(0x00000, "Mux7XX-bootStrap-3.8.10.bin", true)//
+		applet.write(0x00000, "Mux744-bootStrap-3.8.10.bin", true)//
 		
 		// test code
 		// applet.write(0x00000, "m500774-bootstrap.bin", true)//

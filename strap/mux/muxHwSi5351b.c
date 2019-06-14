@@ -64,7 +64,7 @@ int  muxSi5351bHwInit(void)
 	buffer[0] = 0xff;
 	if(twi_write(bus, EXT_I2C_DEV_SI5351B, 3, 1, buffer, 1) )
 	{
-		EXT_ERRORF(("SI5351B, 3.1 failed"));
+		EXT_ERRORF("SI5351B, 3.1 failed");
 	}
 
 	for (i=0; i<SI5351B_REVB_REG_CONFIG_NUM_REGS; i++)
@@ -73,7 +73,7 @@ int  muxSi5351bHwInit(void)
 		reg_addr = si5351b_revb_registers[i].address;
 		if(twi_write(bus, EXT_I2C_DEV_SI5351B, reg_addr, 1, buffer, 1) )
 		{
-			EXT_ERRORF(("SI5351B, %x. failed", reg_addr));
+			EXT_ERRORF("SI5351B, %x. failed", reg_addr);
 		}
 		
 	}
@@ -85,7 +85,7 @@ int  muxSi5351bHwInit(void)
 	buffer[0] = 0x00;
 	if(twi_write(bus, EXT_I2C_DEV_SI5351B, 3, 1, buffer, 1) )
 	{
-		EXT_ERRORF(("SI5351B, 3.1 again failed"));
+		EXT_ERRORF("SI5351B, 3.1 again failed");
 	}
 #endif
 

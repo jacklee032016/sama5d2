@@ -5,8 +5,10 @@ README for Bootstrap
 ----------------
 * Support multiple boards: xplained, Mux774;
 * Binary name is related with board name and from Makefile;
-   * Makefile include macros from ../Rules.makl
+   * Makefile include macros from ../Rules.mak;
+   * ``-D__EXT_RELEASE__ $(MUX_FLAGS)`` added in Makefile;   
 * include from mux7xx.h and mux7xxCompact.h;
+
 
 03.14, 2019
 ----------------
