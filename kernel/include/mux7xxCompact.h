@@ -99,7 +99,7 @@
                                    ((debug) & EXT_DBG_ON) && \
                                    ((debug) & EXT_DBG_TYPES_ON) && \
                                    ((short)((debug) & EXT_DBG_MASK_LEVEL) >= EXT_DBG_MIN_LEVEL)) { \
-                                 _TRACE_OUT(format, message); SYS_PRINT(EXT_NEW_LINE); \
+                                 _TRACE_OUT(format, ##message); \
                                  if ((debug) & EXT_DBG_HALT) { \
                                    while(1); \
                                  } \

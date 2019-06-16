@@ -2,6 +2,11 @@ Work Logs for File System
 ################################
 April 17th, 2019
 
+06.16, 2019
+==============================
+Add scripts of runlevel-5 in /etc/rc5.d/S95Led
+   * scripts can be symbol link to /etc/init.d/;
+   * script must be in executing previledge;
 
 05.16, 2019
 ==============================

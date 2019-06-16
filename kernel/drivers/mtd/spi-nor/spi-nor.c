@@ -1245,6 +1245,8 @@ static const struct flash_info spi_nor_ids[] = {
 	{ "mx25u6435f",  INFO(0xc22537, 0, 64 * 1024, 128, SECT_4K) },
 	{ "mx25l12805d", INFO(0xc22018, 0, 64 * 1024, 256, 0) },
 	{ "mx25l12855e", INFO(0xc22618, 0, 64 * 1024, 256, 0) },
+
+	/* Used by Xplaind board. 06.16, 2019. JL */	
 	{ "mx25l25635e", INFO(0xc22019, 0, 64 * 1024, 512, SPI_NOR_DUAL_READ | SPI_NOR_QUAD_READ) },
 	{ "mx25u25635f", INFO(0xc22539, 0, 64 * 1024, 512, SECT_4K | SPI_NOR_4B_OPCODES) },
 	{ "mx25l25655e", INFO(0xc22619, 0, 64 * 1024, 512, 0) },
@@ -1455,7 +1457,10 @@ static const struct flash_info *spi_nor_read_id(struct spi_nor *nor)
 		info = &spi_nor_ids[tmp];
 		if (info->id_len) {
 			if (!memcmp(info->id, id, info->id_len))
+			{
+				EXT_INFOF("Found Flash NOR ID:'%s'", spi_nor_ids[tmp].name);
 				return &spi_nor_ids[tmp];
+			}
 		}
 	}
 	dev_err(nor->dev, "unrecognized JEDEC id bytes: %02x, %02x, %02x\n",
@@ -2660,6 +2665,27 @@ static int spi_nor_parse_bfpt(struct spi_nor *nor,
 #define SMPT_DESC_TYPE_MAP			BIT(1)
 #define SMPT_DESC_END				BIT(0)
 
+void _spiNorDebugEraseMap(struct spi_nor_erase_map *map, char *prompt)
+{
+	const struct spi_nor_erase_type *erase = NULL;
+	int i;
+	u8 uniform_erase_type = map->uniform_erase_type;
+
+	EXT_DEBUGF(EXT_DBG_ON, "%s:"EXT_NEW_LINE"\terase type:0x%x", prompt, uniform_erase_type);
+
+	for (i = SNOR_ERASE_TYPE_MAX - 1; i >= 0; i--)
+	{
+		if (!(uniform_erase_type & BIT(i)))
+			continue;
+		erase = &map->erase_type[i];
+		EXT_DEBUGF(EXT_DBG_ON, "Erase Type No#%d: size:%d; shift:0x%x; mask:0x%x; op:0x%x; idx:%d;", 
+			i, erase->size, erase->size_shift, erase->size_mask, erase->opcode, erase->idx);
+
+	}
+
+}
+
+
 static u8 spi_nor_smpt_addr_width(const struct spi_nor *nor, const u32 settings)
 {
 	switch (settings & SMPT_CMD_ADDRESS_LEN_MASK) {
@@ -3095,9 +3121,8 @@ exit:
 	return err;
 }
 
-static int spi_nor_init_params(struct spi_nor *nor,
-			       const struct flash_info *info,
-			       struct spi_nor_flash_parameter *params)
+
+static int spi_nor_init_params(struct spi_nor *nor, const struct flash_info *info, struct spi_nor_flash_parameter *params)
 {
 	struct spi_nor_erase_map *map = &nor->erase_map;
 	u8 i, erase_mask;
@@ -3111,11 +3136,10 @@ static int spi_nor_init_params(struct spi_nor *nor,
 
 	/* (Fast) Read settings. */
 	params->hwcaps.mask |= SNOR_HWCAPS_READ;
-	spi_nor_set_read_settings(&params->reads[SNOR_CMD_READ],
-				  0, 0, SPINOR_OP_READ,
-				  SNOR_PROTO_1_1_1);
+	spi_nor_set_read_settings(&params->reads[SNOR_CMD_READ], 0, 0, SPINOR_OP_READ, SNOR_PROTO_1_1_1);
 
-	if (!(info->flags & SPI_NOR_NO_FR)) {
+	if (!(info->flags & SPI_NOR_NO_FR))
+	{
 		params->hwcaps.mask |= SNOR_HWCAPS_READ_FAST;
 		spi_nor_set_read_settings(&params->reads[SNOR_CMD_READ_FAST],
 					  0, 8, SPINOR_OP_READ_FAST,
@@ -3147,42 +3171,51 @@ static int spi_nor_init_params(struct spi_nor *nor,
 	 */
 	erase_mask = 0;
 	i = 0;
-	if (info->flags & SECT_4K_PMC) {
+	if (info->flags & SECT_4K_PMC)
+	{
+		EXT_DEBUGF(EXT_DBG_ON, "Set SECT_4K_PMC, i=%d", i);
 		erase_mask |= BIT(i);
-		spi_nor_set_erase_type(&map->erase_type[i], 4096u,
-				       SPINOR_OP_BE_4K_PMC);
+		spi_nor_set_erase_type(&map->erase_type[i], 4096u, SPINOR_OP_BE_4K_PMC);
 		i++;
-	} else if (info->flags & SECT_4K) {
+	}
+	else if (info->flags & SECT_4K)
+	{
+		EXT_DEBUGF(EXT_DBG_ON, "Set SECT_4K, i=%d", i);
 		erase_mask |= BIT(i);
-		spi_nor_set_erase_type(&map->erase_type[i], 4096u,
-				       SPINOR_OP_BE_4K);
+		spi_nor_set_erase_type(&map->erase_type[i], 4096u, SPINOR_OP_BE_4K);
 		i++;
 	}
 	erase_mask |= BIT(i);
-	spi_nor_set_erase_type(&map->erase_type[i], info->sector_size,
-			       SPINOR_OP_SE);
+	spi_nor_set_erase_type(&map->erase_type[i], info->sector_size, SPINOR_OP_SE);
+	EXT_DEBUGF(EXT_DBG_ON, "Set size %d, i=%d, mask:0x%x", info->sector_size, i, erase_mask);
 	spi_nor_init_uniform_erase_map(map, erase_mask, params->size);
 
 	/* Select the procedure to set the Quad Enable bit. */
-	if (params->hwcaps.mask & (SNOR_HWCAPS_READ_QUAD |
-				   SNOR_HWCAPS_PP_QUAD)) {
-		switch (JEDEC_MFR(info)) {
-		case SNOR_MFR_MACRONIX:
-			params->quad_enable = macronix_quad_enable;
-			break;
+	if (params->hwcaps.mask & (SNOR_HWCAPS_READ_QUAD |SNOR_HWCAPS_PP_QUAD))
+	{
+		switch (JEDEC_MFR(info))
+		{
+			case SNOR_MFR_MACRONIX:
+				EXT_DEBUGF(EXT_DBG_ON, "SNOR_MFR_MACRONIX");
+				params->quad_enable = macronix_quad_enable;
+				break;
 
-		case SNOR_MFR_MICRON:
-			break;
+			case SNOR_MFR_MICRON:
+				EXT_DEBUGF(EXT_DBG_ON, "SNOR_MFR_MICRON");
+				break;
 
-		default:
-			/* Kept only for backward compatibility purpose. */
-			params->quad_enable = spansion_quad_enable;
-			break;
+			default:
+				/* Kept only for backward compatibility purpose. */
+				EXT_DEBUGF(EXT_DBG_ON, "SNOR_MFR default");
+				params->quad_enable = spansion_quad_enable;
+				break;
 		}
 	}
 
-	if ((info->flags & (SPI_NOR_DUAL_READ | SPI_NOR_QUAD_READ)) &&
-	    !(info->flags & SPI_NOR_SKIP_SFDP)) {
+	_spiNorDebugEraseMap(map, "Before read SFDP");
+#if 0
+	if ((info->flags & (SPI_NOR_DUAL_READ | SPI_NOR_QUAD_READ)) && !(info->flags & SPI_NOR_SKIP_SFDP))
+	{
 		struct spi_nor_flash_parameter sfdp_params;
 		struct spi_nor_erase_map prev_map;
 
@@ -3190,12 +3223,19 @@ static int spi_nor_init_params(struct spi_nor *nor,
 		memcpy(&prev_map, &nor->erase_map, sizeof(prev_map));
 
 		if (spi_nor_parse_sfdp(nor, &sfdp_params))
+		{
 			/* restore previous erase map */
-			memcpy(&nor->erase_map, &prev_map,
-			       sizeof(nor->erase_map));
+			EXT_DEBUGF(EXT_DBG_ON, "Parse SFDP failed, restore erase map");
+			memcpy(&nor->erase_map, &prev_map, sizeof(nor->erase_map));
+		}
 		else
+		{
+			EXT_DEBUGF(EXT_DBG_ON, "Parse SFDP OK, use SFDP as params");
+			_spiNorDebugEraseMap(map, "After read SFDP");
 			memcpy(params, &sfdp_params, sizeof(*params));
+		}
 	}
+#endif
 
 	return 0;
 }
@@ -3322,7 +3362,7 @@ TRACE();
 TRACE();
 		tested_erase = &map->erase_type[i];
 
-		EXT_DEBUGF(EXT_DBG_ON, "Erase Type No#%d: size:%d; shift:%d; mask:%d; op:%d; idx:%d;", 
+		EXT_DEBUGF(EXT_DBG_ON, "Erase Type No#%d: size:%d; shift:0x%x; mask:0x%x; op:0x%x; idx:%d;", 
 			i, tested_erase->size, tested_erase->size_shift, tested_erase->size_mask, tested_erase->opcode, tested_erase->idx);
 
 		/*
@@ -3533,8 +3573,7 @@ static int spi_nor_init(struct spi_nor *nor)
 	return 0;
 }
 
-int spi_nor_scan(struct spi_nor *nor, const char *name,
-		 const struct spi_nor_hwcaps *hwcaps)
+int spi_nor_scan(struct spi_nor *nor, const char *name,  const struct spi_nor_hwcaps *hwcaps)
 {
 	struct spi_nor_flash_parameter params;
 	const struct flash_info *info = NULL;

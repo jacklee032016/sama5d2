@@ -24,6 +24,14 @@ Notes:
 * 0x10000: start address of the environ partition;
 * 0x10000: sizeo of the environ partition;
 
+774 board
+	{ "n25q512ax3",  INFO(0x20ba20, 0, 64 * 1024, 1024, SECT_4K | USE_FSR | SPI_NOR_QUAD_READ) },
+
+Xplaind
+	/* Used by Xplaind board. JL */	
+	{ "mx25l25635e", INFO(0xc22019, 0, 64 * 1024, 512, SPI_NOR_DUAL_READ | SPI_NOR_QUAD_READ) },
+
+
 
 Problem
 ------------------------------
@@ -88,3 +96,41 @@ atmel_spi f8000000.spi: Atmel SPI Controller version 0x311 at 0xf8000000 (irq 28
 libphy: Fixed MDIO Bus: probed
 CAN device driver interface
 m_can: probe of f8054000.can failed with error -12
+
+
+
+at91_i2c fc018600.i2c: can't get DMA channel, continue without DMA support
+at91_i2c fc018600.i2c: Using FIFO (16 data)
+at91_i2c fc018600.i2c: AT91 i2c bus driver (hw version: 0x704).
+TEST: [drivers/mtd/spi-nor/atmel-quadspi.c-631.atmel_qspi_probe()]: 
+TEST: [drivers/mtd/spi-nor/atmel-quadspi.c-714.atmel_qspi_probe()]: 
+TEST:[drivers/mtd/spi-nor/atmel-quadspi.c-716]:Begin to scan NOR flash
+TEST: [drivers/mtd/spi-nor/spi-nor.c-3383.spi_nor_select_erase()]: 
+TEST: [drivers/mtd/spi-nor/spi-nor.c-3313.spi_nor_select_uniform_erase()]: erase type:0x7; sector size:65536
+
+TEST: [drivers/mtd/spi-nor/spi-nor.c-3315.spi_nor_select_uniform_erase()]: 
+TEST: [drivers/mtd/spi-nor/spi-nor.c-3318.spi_nor_select_uniform_erase()]: 
+TEST: [drivers/mtd/spi-nor/spi-nor.c-3318.spi_nor_select_uniform_erase()]: 
+TEST: [drivers/mtd/spi-nor/spi-nor.c-3322.spi_nor_select_uniform_erase()]: 
+TEST: [drivers/mtd/spi-nor/spi-nor.c-3326.spi_nor_select_uniform_erase()]: Erase Type No#2: size:32768; shift:15; mask:32767; op:92; i;
+
+TEST: [drivers/mtd/spi-nor/spi-nor.c-3318.spi_nor_select_uniform_erase()]: 
+TEST: [drivers/mtd/spi-nor/spi-nor.c-3322.spi_nor_select_uniform_erase()]: 
+TEST: [drivers/mtd/spi-nor/spi-nor.c-3326.spi_nor_select_uniform_erase()]: Erase Type No#1: size:0; shift:-1; mask:-1; op:255; idx:0;
+
+TEST: [drivers/mtd/spi-nor/spi-nor.c-3318.spi_nor_select_uniform_erase()]: 
+TEST: [drivers/mtd/spi-nor/spi-nor.c-3322.spi_nor_select_uniform_erase()]: 
+TEST: [drivers/mtd/spi-nor/spi-nor.c-3326.spi_nor_select_uniform_erase()]: Erase Type No#0: size:0; shift:-1; mask:-1; op:255; idx:0;
+
+TEST: [drivers/mtd/spi-nor/spi-nor.c-3352.spi_nor_select_uniform_erase()]: 
+atmel_qspi f0020000.spi: mx25l25635e (32768 Kbytes)
+TEST:[drivers/mtd/spi-nor/atmel-quadspi.c-721]:Begin to register MTD device
+7 ofpart partitions found on MTD device f0020000.spi
+Creating 7 MTD partitions on "f0020000.spi":
+0x000000000000-0x000000010000 : "at91bootstrap"
+0x000000010000-0x000000020000 : "bootloader env"
+0x000000020000-0x000000030000 : "device tree"
+0x000000030000-0x0000000d0000 : "bootloader"
+0x0000000d0000-0x000000100000 : "reserved-1"
+0x000000100000-0x000000500000 : "kernel"
+0x000000500000-0x000002000000 : "data"
