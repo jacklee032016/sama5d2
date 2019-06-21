@@ -176,15 +176,10 @@
 
 					rootfs@00500000 {
 						label = "rootfs";
-						reg = <0x00500000 0x03700000>; /* 55 MB*/
+						reg = <0x00500000 0x01B00000>; /* flash size is 32MB; so 27 MB, 0x1B00000. JL. 06.19, 2019 */
 
 					};
 
-					data@03500000 {
-						label = "data";
-						reg = <0x03C00000 0x00400000>; /* 4 MB */
-
-					};
 				};
 			};
 
@@ -194,7 +189,6 @@
 				status = "okay";
 
 				m25p80@0 { 
-					//compatible = "atmel,at25df321a";
 					compatible = "atmel,n25q512ax3";
 					reg = <0>;
 					spi-max-frequency = <50000000>;
@@ -571,7 +565,7 @@
 					bias-pull-up;
 				};
 
-				/* switches for 744. JL. 05.23, 2019 */
+				/* switches for 744/768. JL. 05.23, 2019 */
 				pinctrl_switch_gpio_default: switch_gpio_default {
 					pinmux = <PIN_PA18__GPIO>,
 						<PIN_PA19__GPIO>,
@@ -581,17 +575,16 @@
 				};
 
 				pinctrl_led_gpio_default: led_gpio_default {
-					pinmux = <PIN_PB0__GPIO>,	/* VIDEO */
-						 <PIN_PB5__GPIO>,	/* POWER */
-						 /* Mux774 */
-						 // <PIN_PB6__GPIO>;
-						 <PIN_PB9__GPIO>; /* ACT on 774 */
+					pinmux = <PIN_PB4__GPIO>,	/* LED_ACT */
+						 <PIN_PB5__GPIO>,	/* LED_POWER */
+						 <PIN_PB6__GPIO>,	/* PWM, not led */
+						 <PIN_PB7__GPIO>; /* LED_Link */
 					bias-pull-up;
 				};
 
 				pinctrl_w1_gpio_default: w1_gpio_default {
-					/* Mux774 changed as following */
-					pinmux = <PIN_PD10__GPIO>;	/* SW1 on 774 */
+					/* Mux768 changed as following */
+					pinmux = <PIN_PC25__GPIO>;	/* PD10 on 774; PC25 on 768 */
 					bias-pull-up;
 				};
 				
@@ -799,7 +792,7 @@
 
 		act {
 			label = "act";
-			gpios = <&pioA PIN_PB9 GPIO_ACTIVE_HIGH>; /* high level is ON; default is OFF, eg. level is low */
+			gpios = <&pioA PIN_PB4 GPIO_ACTIVE_HIGH>; /* high level is ON; default is OFF, eg. level is low */
 		};
 
 
@@ -811,7 +804,7 @@
 
 		video {
 			label = "video";
-			gpios = <&pioA PIN_PB0 GPIO_ACTIVE_HIGH>; /* high level is ON */
+			gpios = <&pioA PIN_PB7 GPIO_ACTIVE_HIGH>; /* high level is ON */
 			linux,default-trigger = "";		/* trigger : heartbeat|timer */
 		};
 	};
@@ -821,13 +814,13 @@
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_w1_gpio_default>;
 		//linux,open-drain;
-		gpios = <&pioA PIN_PD10 GPIO_ACTIVE_HIGH>; /*  */
+		gpios = <&pioA PIN_PC25 GPIO_ACTIVE_HIGH>; /*  */
+		
 		
 		/* param for read/write bit. JL. 06.19, 2019 */
 		tSlot = /bits/ 8 <12>;
 		tW1L = /bits/ 8 <1>;
 		tW0L = /bits/ 8 <9>;
 		tRdDelta = /bits/ 16 <500>;
-	
 	};
 };

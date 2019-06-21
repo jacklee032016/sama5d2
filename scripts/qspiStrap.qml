@@ -41,11 +41,11 @@ JLinkConnection {
 		applet.erase(0, 0x10000)
 
 		// write files
-		applet.write(0x00000, "Mux744-bootStrap-3.8.10.bin", true)//
+		//var strapBinary = "Mux768-bootStrap-3.8.10.bin"
+		var strapBinary = "Mux774-bootStrap-3.8.10.bin"
+		print("-- Write strap '", strapBinary, "' --" )
+		applet.write(0x00000, strapBinary, true)//
 		
-		// test code
-		// applet.write(0x00000, "m500774-bootstrap.bin", true)//
-		//applet.write(0x00000, "muxlab_500768-dataflashboot--3.8.10.bin", true)//
               
 	}
 }

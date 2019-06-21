@@ -28,8 +28,15 @@ JLinkConnection {
 
 		// change as following, J.L. 04.17, 2019
 		applet.erase(0x30000, 0xa0000)
-		applet.write(0x30000, "u-boot.bin", true)//
-		//applet.write(0x20000, "m500774-u-boot.bin", true)//
+		//applet.write(0x30000, "u-boot.bin", true)//
+		//applet.write(0x30000, "Mux774.u-boot.bin", true)//
+		
+		//var ubootBinary = "Mux768.u-boot.bin"
+		var ubootBinary = "Mux774.u-boot.bin"
+		
+		print("-- Write u-boot '", ubootBinary, "' --" )
+		
+		applet.write(0x30000, ubootBinary, true)//
 		
 		
 		// new version 0x60000, size 0x100000

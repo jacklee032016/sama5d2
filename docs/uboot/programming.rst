@@ -40,6 +40,7 @@ Steps:
 
    tftpboot 0x21000000 at91-sama5d2_xplained.dtb;   sf probe 1:0; sf erase 0x20000 0x10000; sf write 0x21000000 0x20000 0x10000
    tftpboot 0x21000000 mux774_v2.dtb;sf probe 1:0; sf erase 0x20000 0x10000; sf write 0x21000000 0x20000 0x10000
+   tftpboot 0x21000000 mux768.dtb;sf probe 1:0; sf erase 0x20000 0x10000; sf write 0x21000000 0x20000 0x10000
 
    
 #. **Program u-boot.bin itself **   
@@ -49,6 +50,8 @@ Steps:
 ::
 
    tftpboot 0x21000000 m774/zImage; sf probe 1:0; sf erase 0x100000 0x400000; sf write 0x21000000 0x100000 0x400000
+   tftpboot 0x21000000 zImage.Mux774; sf probe 1:0; sf erase 0x100000 0x400000; sf write 0x21000000 0x100000 0x400000
+   tftpboot 0x21000000 zImage.Mux768; sf probe 1:0; sf erase 0x100000 0x400000; sf write 0x21000000 0x100000 0x400000
    tftpboot 0x21000000 zImage; sf probe 1:0; sf erase 0x100000 0x400000; sf write 0x21000000 0x100000 0x400000
 
 Clear environment:
@@ -65,7 +68,17 @@ Clear environment:
    tftpboot 0x21000000 App.ext4.2019_05_27
    mmc write 0x21000000 8 80000
 
+# 768, small file system
+::
+
+   tftpboot 0x21000000 root.jffs2.2019_06_18
+   sf probe 1:0; sf erase 0x500000 0x1600000;   # 0x05+0x1B = 0x20, 32MB
+   sf write 0x21000000 0x500000 0xXXXX:  here XXXX is come from result of tftpboot command;
    
+   
+# 774, 64MB file system   
+::
+
    tftpboot 0x21000000 root.jffs2.2019_04_10
    sf probe 1:0; sf erase 0x500000 0x3000000; 
    

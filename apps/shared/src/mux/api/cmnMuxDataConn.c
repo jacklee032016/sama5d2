@@ -63,12 +63,19 @@ void cmnMuxDataConnClose(struct DATA_CONN *dataConn)
 //		cJSON_Delete( (dataConn)->resultObject);
 	}
 
-	close((dataConn)->sock);
-	cmn_mutex_destroy(dataConn->mutexLock);
+	if(dataConn->sock > 0) //dataConn->ctrlConn->type != CTRL_LINK_UDP)
+	{
+		close(dataConn->sock);
+	}
 	
-#if MUX_OPTIONS_DEBUG_IP_COMMAND			
-	MUX_DEBUG("free dataConn:%p", dataConn);	
-#endif
+	close(dataConn->timeFd);
+	cmn_mutex_destroy(dataConn->mutexLock);
+
+	LIST_REMOVE(dataConn, list);
+	dataConn->ctrlConn->connCount--;
+	
+	EXT_DEBUGF(MUX_DEBUG_BROKER, "free dataConn:%p", dataConn);	
+
 	cmn_free((dataConn));
 }
 
@@ -225,18 +232,23 @@ TRACE();
 
 sendout:
 
+TRACE();
 	msg = cJSON_PrintUnformatted(responseObj);
 	if(msg == NULL)
 	{
 		msg = "Unknown";
 	}
 
+TRACE();
 	len = _dataConnIpCmdOutput(dataConn, msg, strlen(msg));
 
+TRACE();
 	cmn_free(msg);
 
+TRACE();
 	dataConn->isFinished = TRUE;
 	
+TRACE();
 	return len;
 }
 
@@ -276,7 +288,7 @@ int cmnMuxDataConnRestOutput(struct DATA_CONN *dataConn)
 	}
 
 	dataConn->isFinished = TRUE;
-
+	
 	return len;
 }
 
@@ -410,36 +422,38 @@ int cmnMuxDataConnIpCmdInput(struct DATA_CONN *dataConn)
 	unsigned int crcDecoded, crcReceived;
 	cJSON *reqObj = NULL;
 	char *username = NULL, *pwd = NULL;
+	CMN_IP_COMMAND				*cmdBuffer;
 	MuxMain *muxMain = SYS_MAIN(dataConn);
-	
+
 	if(! CONN_IS_IPCMD(dataConn->ctrlConn))
 	{
 		DATA_CONN_ERR(dataConn, IPCMD_ERR_WRONG_PROTOCOL, "TCP/UDP socket can only be used in IP Command interface");
 		return EXIT_FAILURE;
 	}
 	
-	dataConn->ctrlConn->cmdBuffer = (CMN_IP_COMMAND *)dataConn->ctrlConn->buffer;
+	cmdBuffer = (CMN_IP_COMMAND *)dataConn->buffer;
 
-	dataConn->ctrlConn->cmdBuffer->length = ntohs(dataConn->ctrlConn->cmdBuffer->length);
+	TRACE();
+	cmdBuffer->length = ntohs(cmdBuffer->length);
 #if MUX_OPTIONS_DEBUG_IP_COMMAND			
-	MUX_DEBUG("received length: %d, length field: %d", dataConn->ctrlConn->length, dataConn->ctrlConn->cmdBuffer->length);
+	MUX_DEBUG("received length: %d, length field: %d", dataConn->length, cmdBuffer->length);
 #endif
 
-	if(dataConn->ctrlConn->cmdBuffer->length+4 != dataConn->ctrlConn->length )
+	if(cmdBuffer->length+4 != dataConn->length )
 	{
-		DATA_CONN_ERR(dataConn, IPCMD_ERR_WRONG_PROTOCOL,"length field:%d, received length:%d", dataConn->ctrlConn->cmdBuffer->length, dataConn->ctrlConn->length) ;
+		DATA_CONN_ERR(dataConn, IPCMD_ERR_WRONG_PROTOCOL,"length field:%d, received length:%d", cmdBuffer->length, dataConn->length) ;
 		return EXIT_FAILURE;
 	}
 
-
-	if (CMD_TAG_A != dataConn->ctrlConn->cmdBuffer->tag)
+	if (CMD_TAG_A != cmdBuffer->tag)
 	{
-		DATA_CONN_ERR(dataConn, IPCMD_ERR_WRONG_PROTOCOL, "Tag of command is wrong:0x%x", dataConn->ctrlConn->cmdBuffer->tag);
+		DATA_CONN_ERR(dataConn, IPCMD_ERR_WRONG_PROTOCOL, "Tag of command is wrong:0x%x", cmdBuffer->tag);
 		return EXIT_FAILURE;
 	}
 
-	crcReceived = *(unsigned int *)(dataConn->ctrlConn->buffer + dataConn->ctrlConn->cmdBuffer->length /*-4*/);	/* the first 4 bytes are header of command, so here is the position of CRC */
-	crcDecoded = htonl(cmnMuxCRC32b(dataConn->ctrlConn->buffer+4, dataConn->ctrlConn->cmdBuffer->length-4 /*-4*/));
+	TRACE();
+	crcReceived = *(unsigned int *)(dataConn->buffer + cmdBuffer->length /*-4*/);	/* the first 4 bytes are header of command, so here is the position of CRC */
+	crcDecoded = htonl(cmnMuxCRC32b(dataConn->buffer+4, cmdBuffer->length-4 /*-4*/));
 	if (crcReceived != crcDecoded)
 	{//Wrong CRC
 		//sendto(sockCtrl, msg_reply, n /*+ 8*/, 0, (struct sockaddr *) &addr, addrlen); //  if suceeded the updated data is send back
@@ -450,7 +464,7 @@ int cmnMuxDataConnIpCmdInput(struct DATA_CONN *dataConn)
 	MUX_DEBUG( "received CRC: 0x%x, Decoded CRC:0x%x", crcReceived, crcDecoded);
 #endif
 
-	reqObj =  _dataConnInput(dataConn, dataConn->ctrlConn->buffer+4,  dataConn->ctrlConn->cmdBuffer->length);
+	reqObj =  _dataConnInput(dataConn, dataConn->buffer+4, cmdBuffer->length);
 	if(reqObj == NULL)
 	{/* error before JSON object is parsed */
 		return EXIT_FAILURE;
@@ -458,6 +472,7 @@ int cmnMuxDataConnIpCmdInput(struct DATA_CONN *dataConn)
 
 	dataConn->cmdObjs = reqObj;
 	
+	TRACE();
 	if(muxMain->isAuthen)
 	{
 		username = cmnGetStrFromJsonObject(reqObj, IPCMD_NAME_KEYWORD_LOGIN_ACK);
@@ -488,15 +503,16 @@ int cmnMuxDataConnRestInput(struct DATA_CONN *dataConn)
 	cJSON *reqObj = NULL, *_dataArrayObj = NULL;
 	char *username = NULL, *pwd = NULL;
 	char *uri = NULL;
+	TRACE();
 	MuxMain *muxMain = SYS_MAIN(dataConn);
-	
+
 	if(CONN_IS_IPCMD(dataConn->ctrlConn))
 	{
 		DATA_CONN_ERR(dataConn, IPCMD_ERR_WRONG_PROTOCOL, "Unix socket can only be used in REST interface");
 		return EXIT_FAILURE;
 	}
 
-	reqObj = _dataConnInput(dataConn, dataConn->ctrlConn->buffer, dataConn->ctrlConn->length);
+	reqObj = _dataConnInput(dataConn, dataConn->buffer, dataConn->length);
 	if(reqObj == NULL)
 	{
 		return EXIT_FAILURE;
@@ -585,5 +601,4 @@ int cmnMuxJsonControllerReply(struct DATA_CONN *dataConn, int status, const char
 
 	return EXIT_SUCCESS;
 }
-
 

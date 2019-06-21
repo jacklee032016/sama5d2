@@ -24,6 +24,7 @@
 
 #include "mux7xxCompact.h"
 
+#include "muxlabHw.h"
 
 #define I2C_MUX_PCA_ADDR	(0xE0>>1)
 
@@ -59,7 +60,7 @@ static struct udevice *_extSelectI2cDevice(uint busNo, uint devAddr)
 	dm_i2c_probe(_i2cBus0, devAddr, 0, &dev);
 	if(dev == NULL || err )
 	{
-		EXT_ERRORF("I2C Error: Can't found device on 0x%x of bus %s: %d.\n", devAddr, _i2cBus0->name, err/* errno_str(err)*/);
+		EXT_ERRORF("I2C Error: Can't found device on 0x%x of bus %s: %d.", devAddr, _i2cBus0->name, err/* errno_str(err)*/);
 	}
 
 	return dev;
@@ -78,7 +79,7 @@ static struct udevice *_selectMultiplexerChan(uint busNo, u8 ch, uint devAddr)
 		_pcaMultiplexer = _extSelectI2cDevice(busNo, I2C_MUX_PCA_ADDR);
 		if(_pcaMultiplexer == NULL)
 		{
-			EXT_ERRORF("I2C Error: Can't found PCA954 device on bus %d.\n", busNo);
+			EXT_ERRORF("I2C Error: Can't found PCA954 device on bus %d.", busNo);
 			return NULL;
 		}
 		EXT_DEBUGF(RTL8307_DEBUG, "I2C dev-%x: %s found", I2C_MUX_PCA_ADDR, _pcaMultiplexer->name);
@@ -146,7 +147,7 @@ static struct udevice *_selectMultiplexerChan(uint busNo, u8 ch, uint devAddr)
 	return dev;
 }
 
-#define	_i2C_RW__WITH_FUNCTION		1/* otherwise read/write with i2c message */
+#define	_i2C_RW__WITH_FUNCTION		0 /* otherwise read/write with i2c message */
 
 /* only one byte register address can be supported for i2c_read and i2c_write */
 int extI2CRead(unsigned char chanNo, unsigned char deviceAddress, unsigned int regAddress, int addrSize, unsigned char *val, int valSize)
@@ -469,10 +470,48 @@ int _switchCfgOnePort(int port)
 int _extSensorGetTemperatureCelsius(void)
 {/* 11 bits: sign bit + 10 bit value */
 	unsigned char regVal =0;
-	unsigned short temp;
+	short temp;
+
 
 	unsigned int bus;
 	bus = I2C_CHAN_4_SENSOR;
+
+#if	(MUX_BOARD == MUX_BOARD_768)
+	/* sensor is LM95245 */
+#if 0
+	if(twi_read(bus, EXT_I2C_DEV_SENSOR, EXT_I2C_SENSOR_LOCAL_TEMP_LSB, 1, &regVal, 1) )
+	{
+		EXT_ERRORF("LM95245 Temp(LSB) read failed");
+		return temp;
+	}
+	else
+	{
+		EXT_DEBUGF(EXT_BOOTSTRAP_DEBUG, "LM95245 Temp(LSB): %d", regVal);
+	}
+#endif
+
+	unsigned char revisionId = 0;
+	unsigned char	manufactureId = 0;
+
+	extI2CRead(bus, EXT_I2C_DEV_SENSOR, EXT_I2C_SENSOR_MANUFACTURE_ID, 1, &manufactureId, 1);
+	extI2CRead(bus, EXT_I2C_DEV_SENSOR, EXT_I2C_SENSOR_REVISION_ID, 1, &revisionId, 1);
+
+	EXT_INFOF("\tSensor: Manu ID:'0x%x'; RevisionID:'0x%x': %s", manufactureId, revisionId, (revisionId== 0xB3 && manufactureId==0x01)?"OK":"Error" );
+	if(revisionId!= 0xB3 || manufactureId!=0x01)
+	{
+		return 0;
+	}
+
+	extI2CRead(bus, EXT_I2C_DEV_SENSOR, EXT_I2C_SENSOR_LOCAL_TEMP_MSB, 1, &regVal, 1);
+	EXT_DEBUGF(EXT_DBG_ON, "LM95245 Temp(MSB): %d", regVal );
+	temp = (regVal<<8);
+	
+	extI2CRead(bus, EXT_I2C_DEV_SENSOR, EXT_I2C_SENSOR_LOCAL_TEMP_LSB, 1, &regVal, 1);
+	EXT_DEBUGF(EXT_DBG_ON, "LM95245 Temp(LSB): %d", regVal );
+
+	/* only 3 bits in LSB register */
+	temp =  ((temp|regVal)>>5); //*0.125;// / 256.0;
+#else
 
 	/* test hardware */
 	/* write pointer register for TOS: figure 12 in p18; and then read read TOS value. actually pointer register is the address  */
@@ -513,7 +552,9 @@ int _extSensorGetTemperatureCelsius(void)
 
 	temp = (temp>>5);
 	temp = EXT_BYTE_ORDER_SHORT(temp);
-	EXT_INFOF("\tSensor Temp: %d*0.125;", temp );
+#endif
+
+	EXT_INFOF("\tSensor Temp: %d*0.125, about %d;", temp, (temp>>3) );
 
 	return 0;
 }
@@ -707,6 +748,12 @@ int32 RTL8307H_I2C_READ(uint32 switch_addr, uint32 *reg_val)
 	struct i2c_msg msg[2];
 	u8 _addr[3], _data[4];
 
+	if(_i2cSwitch == NULL)
+	{
+		EXT_ERRORF( "I2C Read: Switch can't foundon %s, check hardware definitions", BOARD_NAME);
+		return RT_ERR_NO_ACK;
+	}
+	
 	_addr[0] = switch_addr>>0;
 	_addr[1] = switch_addr>>8;
 	_addr[2] = switch_addr>>16;
@@ -769,6 +816,12 @@ int32 RTL8307H_I2C_WRITE(uint32 switch_addr, uint32 reg_val)
 #else
 	uint8_t _data[7];
 	struct i2c_msg msg;
+	
+	if(_i2cSwitch == NULL)
+	{
+		EXT_ERRORF( "I2C Write: Switch can't found on %s, check hardware definitions", BOARD_NAME);
+		return RT_ERR_NO_ACK;
+	}
 	
 	_data[0] = switch_addr>>0;
 	_data[1] = switch_addr>>8;

@@ -3,12 +3,13 @@
 ############## Common for all modules
 # support PC environments
 # ARCH=
-ARCH=arm
+# ARCH=arm
 
 # change one of following board
 # MUX_BOARD=MUX_ATMEL_XPLAINED
-#MUX_BOARD=MUX_BOARD_768
+# MUX_BOARD=MUX_BOARD_768
 MUX_BOARD=MUX_BOARD_774
+
 #MUX_BOARD=MUX_BOARD_767
 
 
@@ -16,7 +17,7 @@ ifeq ($(MUX_BOARD), MUX_ATMEL_XPLAINED)
 BOARD_NAME:=Sama5d2Xpld
 else 
 	ifeq ($(MUX_BOARD), MUX_BOARD_774)
-		BOARD_NAME:=Mux744
+		BOARD_NAME:=Mux774
 	else 
 		BOARD_NAME:=Mux768
 	endif

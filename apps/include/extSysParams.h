@@ -441,7 +441,7 @@
                                    ((debug) & EXT_DBG_ON) && \
                                    ((debug) & EXT_DBG_TYPES_ON) && \
                                    ((int16_t)((debug) & EXT_DBG_MASK_LEVEL) >= EXT_DBG_MIN_LEVEL)) { \
-                                 SYS_PRINT("%s: [%s-%u.%s()]: " format EXT_NEW_LINE,  sysTaskName(), __FILE__, __LINE__, __FUNCTION__, ##message); \
+                                 SYS_PRINT("%s %s: [%s-%u.%s()]: " format EXT_NEW_LINE, sysTimestamp(),  sysTaskName(), __FILE__, __LINE__, __FUNCTION__, ##message); \
                                  if ((debug) & EXT_DBG_HALT) { \
                                    while(1); \
                                  } \
@@ -449,13 +449,13 @@
                              } while(0)
 
                              
-	#define	EXT_INFOF(format, message...)		{SYS_PRINT(ANSI_COLOR_CYAN "%s:[%s-%u]:" format ANSI_COLOR_RESET EXT_NEW_LINE, sysTaskName(), __FILE__, __LINE__, ##message);}
+	#define	EXT_INFOF(format, message...)		{SYS_PRINT(ANSI_COLOR_CYAN "%s %s:[%s-%u]:" format ANSI_COLOR_RESET EXT_NEW_LINE, sysTimestamp(), sysTaskName(), __FILE__, __LINE__, ##message);}
 	
-	#define	EXT_ERRORF(format, message...)		{SYS_PRINT(EXT_ERROR_TEXT_BEGIN "%s: ERROR:[%s-%u]:" format EXT_ERROR_TEXT_END  EXT_NEW_LINE, sysTaskName(), __FILE__, __LINE__, ##message);}
+	#define	EXT_ERRORF(format, message...)		{SYS_PRINT(EXT_ERROR_TEXT_BEGIN "%s %s: ERROR:[%s-%u]:" format EXT_ERROR_TEXT_END  EXT_NEW_LINE, sysTimestamp(), sysTaskName(), __FILE__, __LINE__, ##message);}
 
 //	#define	EXT_ASSERT(x)						{printf("Assertion \"%s\" failed at line %d in %s\n", x, __LINE__, __FILE__); while(1);}
-	#define	EXT_ASSERT(x, format, msg...)		{if((x)==0) {SYS_PRINT(EXT_ERROR_TEXT_BEGIN"%s: ASSERT: [%s-%u]:" format EXT_ERROR_TEXT_END EXT_NEW_LINE,  sysTaskName(), __FILE__, __LINE__ , ##msg);while(0){};}}
-	#define	EXT_ABORT(fmt, args... )				SYS_PRINT("%s: ABORT in [" __FILE__ "-%u]:" fmt EXT_NEW_LINE, sysTaskName(), __LINE__, ##args );while(1){}
+	#define	EXT_ASSERT(x, format, msg...)		{if((x)==0) {SYS_PRINT(EXT_ERROR_TEXT_BEGIN"%s %s: ASSERT: [%s-%u]:" format EXT_ERROR_TEXT_END EXT_NEW_LINE, sysTimestamp(),  sysTaskName(), __FILE__, __LINE__ , ##msg);while(0){};}}
+	#define	EXT_ABORT(fmt, args... )				SYS_PRINT("%s %s: ABORT in [" __FILE__ "-%u]:" fmt EXT_NEW_LINE, sysTimestamp(), sysTaskName(), __LINE__, ##args );while(1){}
 
 //	#define	TRACE()								_TRACE_OUT(EXT_NEW_LINE )
 #else
@@ -463,9 +463,9 @@
 
 	#define	EXT_DEBUGF(debug, format, message...)		{}
 
-	#define	EXT_INFOF(format, message...)				{SYS_PRINT(ANSI_COLOR_CYAN format ANSI_COLOR_RESET, ##message );}
+	#define	EXT_INFOF(format, message...)				{SYS_PRINT(ANSI_COLOR_CYAN "%s "format ANSI_COLOR_RESET, sysTimestamp(), ##message );}
 
-	#define	EXT_ERRORF(format, message...)				{SYS_PRINT(ERROR_TEXT_BEGIN format ERROR_TEXT_END, ##message);}
+	#define	EXT_ERRORF(format, message...)				{SYS_PRINT(ERROR_TEXT_BEGIN "%s "format ERROR_TEXT_END, sysTimestamp(), ##message);}
 	
 //	#define	EXT_ASSERT(x)				{while (1);}
 	#define	EXT_ASSERT(x, format, msg...)				{}
@@ -1224,6 +1224,8 @@ void extCfgInitAfterReadFromFlash(EXT_RUNTIME_CFG *runCfg);
 
 #define	sysTaskName()		cmnThreadGetName()
 
+#define	sysTimestamp()		cmnTimestampStr()
+
 void	extNmosIdGenerate(MuxNmosID *nmosId, EXT_RUNTIME_CFG *runCfg);
 
 unsigned int cmnMuxCRC32b(void *message, int len);
@@ -1404,8 +1406,6 @@ char extCmnVideoParamPopulate(EXT_RUNTIME_CFG *runCfg, uint8_t index);
 unsigned char rs232SendHexStr(char *str );
 
 uint32_t sys_get_ms(void);
-
-char *sysTimestamp(void);
 
 
 #define IP4_ADDR_IS_MULTICAST(addr)			(((addr) & _PP_HTONL(0xf0000000UL)) == _PP_HTONL(0xe0000000UL))

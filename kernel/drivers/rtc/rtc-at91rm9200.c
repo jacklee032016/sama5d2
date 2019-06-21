@@ -157,7 +157,7 @@ static int at91_rtc_readtime(struct device *dev, struct rtc_time *tm)
 	tm->tm_year = tm->tm_year - 1900;
 
 #ifdef	MUX_BOARD
-	EXT_INFOF("RTC read time: %4d-%02d-%02d %02d:%02d:%02d", 1900 + tm->tm_year, tm->tm_mon, tm->tm_mday,
+	EXT_INFOF("RTC read time: %4d-%02d-%02d %02d:%02d:%02d", 1900 + tm->tm_year, (tm->tm_mon+1), tm->tm_mday,
 		tm->tm_hour, tm->tm_min, tm->tm_sec);
 #else
 	dev_dbg(dev, "%s(): %4d-%02d-%02d %02d:%02d:%02d\n", __func__,
@@ -176,7 +176,7 @@ static int at91_rtc_settime(struct device *dev, struct rtc_time *tm)
 	unsigned long cr;
 
 #ifdef	MUX_BOARD
-	EXT_INFOF("RTC set time: %4d-%02d-%02d %02d:%02d:%02d", 1900 + tm->tm_year, tm->tm_mon, tm->tm_mday,
+	EXT_INFOF("RTC set time: %4d-%02d-%02d %02d:%02d:%02d", 1900 + tm->tm_year, (tm->tm_mon+1), tm->tm_mday,
 		tm->tm_hour, tm->tm_min, tm->tm_sec);
 #else
 	dev_dbg(dev, "%s(): %4d-%02d-%02d %02d:%02d:%02d\n", __func__,
@@ -211,6 +211,7 @@ static int at91_rtc_settime(struct device *dev, struct rtc_time *tm)
 	at91_rtc_write(AT91_RTC_CR, cr & ~(AT91_RTC_UPDCAL | AT91_RTC_UPDTIM));
 	at91_rtc_write_ier(AT91_RTC_SECEV);
 
+EXT_INFOF("RTC write OK!");
 	return 0;
 }
 

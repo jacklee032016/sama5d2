@@ -28,14 +28,6 @@
 #define I2C_MUX_PCA_ADDR	(0xE0>>1)
 
 
-#include <dm.h>
-#include <i2c.h>
-
-#include <../drivers/mux/rtl8307h/rtk_api.h>
-#include <../drivers/mux/rtl8307h/rtk_api_ext.h>
-#include <../drivers/mux/rtl8307h/rtl8307h_types.h> 
-
-
 int extDdrMemoryTest(void);
 
 #endif

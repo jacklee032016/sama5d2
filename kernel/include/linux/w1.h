@@ -87,6 +87,19 @@ struct w1_slave {
 	struct device		*hwmon;
 };
 
+
+struct w1_rw_param
+{
+	unsigned char			tSlot;	/* n us */
+	/* write delay for 1 and 0 */
+	unsigned char			tW1L;	/* in us */
+	unsigned char			tW0L;	/* in us */
+
+	/* read delay */
+	unsigned short		tRdDelta;	/* in ns */
+};
+
+
 typedef void (*w1_slave_found_callback)(struct w1_master *, u64);
 
 /**
@@ -159,6 +172,9 @@ struct w1_bus_master {
 
 	void		(*search)(void *, struct w1_master *,
 		u8, w1_slave_found_callback);
+
+	struct w1_rw_param		rwParams;
+
 };
 
 /**

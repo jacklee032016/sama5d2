@@ -36,6 +36,7 @@
 #include <linux/io.h>
 #include <linux/gpio.h>
 
+#define	__EXT_RELEASE__
 #include "mux7xxCompact.h"
 
 
@@ -628,7 +629,6 @@ static int atmel_qspi_probe(struct platform_device *pdev)
 	struct mtd_info *mtd;
 	int irq, err = 0;
 
-TRACE();
 	if (of_get_child_count(np) != 1)
 		return -ENODEV;
 	child = of_get_next_child(np, NULL);
@@ -711,20 +711,17 @@ TRACE();
 	if (err)
 		goto disable_clk;
 
-TRACE();
-
-	EXT_INFOF("Begin to scan NOR flash");
+	EXT_INFOF("Begin to scan NOR flash on "BOARD_NAME);
 	err = spi_nor_scan(nor, NULL, &hwcaps);
 	if (err)
 		goto disable_clk;
 
-	EXT_INFOF("Begin to register MTD device");
+	EXT_INFOF("Begin to register MTD device on "BOARD_NAME);
 	err = mtd_device_register(mtd, NULL, 0);
 	if (err)
 		goto disable_clk;
 
 	of_node_put(child);
-TRACE();
 
 	return 0;
 

@@ -75,7 +75,7 @@
 	#define	EXT_MODEL						"500774"
 
 	#define	I2C_CHAN_4_SI5351B			I2C_CHAN_NO_0
-	#define	I2C_CHAN_4_PCM3060			I2C_CHAN_NO_0				/* AUdio codec */
+	#define	I2C_CHAN_4_PCM3060			I2C_CHAN_NO_0				/* Audio codec */
 	
 	#define	I2C_CHAN_4_SENSOR				I2C_CHAN_NO_1
 	#define	I2C_CHAN_4_EEPROM			I2C_CHAN_NO_1
@@ -84,6 +84,9 @@
 	
 	#define	I2C_CHAN_4_SWITCH			I2C_CHAN_NO_2				/* ethernet switch */
 
+	#define	I2C_CHAN_4_AQLX107GK7		I2C_CHAN_NO_3				/* AQLX107GK7, FPGA */
+
+	
 	#define	EXT_I2C_DEV_SENSOR			(0x90 >> 1)					/* RX only; RX 0x30 */
 	#define	EXT_I2C_DEV_PCM3060			(0x8C >> 1)					/* RX only; RX 0x30 */
 
@@ -92,6 +95,8 @@
 	#define	EXT_I2C_DEV_EP91A6			(0xCB >> 1)					/* EP91A6SQ, HDMI repeator */
 
 	#define	EXT_I2C_EEPROM_ADDRESS		EEPROM_24LC32A_ADDRESS		/* 24LC32A */
+
+
 
 
 #elif (MUX_BOARD == MUX_BOARD_767)

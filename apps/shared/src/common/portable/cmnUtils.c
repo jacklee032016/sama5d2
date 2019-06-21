@@ -519,4 +519,18 @@ void cmnForkCommand(const char *cmd)
 	return;
 }
 
+char *cmnTimestampStr(void)
+{
+	static char timestamp[32];
+	
+	struct timeval tv;
+	struct tm *ptm;
+
+	gettimeofday(&tv, NULL);
+	ptm = localtime(&tv.tv_sec);
+	strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", ptm);
+
+	return timestamp;
+}
+
 

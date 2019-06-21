@@ -612,7 +612,7 @@ static int load_1wire_info(unsigned char *buff, unsigned int size,
 		return -1;
 	}
 
-	dbg_info("1-Wire: Mux767 | [1.0] | MuxLab\n");
+	dbg_info("1-Wire: "BOARD_NAME" | [1.0] | MuxLab\n");
 
 	for (i = 0; i < count; i++) {
 		if (ds24xx_read_memory(i, 0, 0, size, buff) < 0) {
@@ -653,7 +653,7 @@ static int load_eeprom_info(unsigned char *buff, unsigned int size,
 
 	dbg_info("EEPROM: Loading AT24xx information ...\n");
 
-	dbg_info("EEPROM: Mux767 | [1.0] | MuxLab\n");
+	dbg_info("EEPROM: "BOARD_NAME" | [1.0] | MuxLab\n");
 
 #if 0
 	if (load_ek_at24xx(buff, size))

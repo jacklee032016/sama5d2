@@ -98,6 +98,7 @@ static void at91_lpddr_poweroff(void)
 		  "r" (at91_shdwc_base),
 		  "r" cpu_to_le32(AT91_SHDW_KEY | AT91_SHDW_SHDW)
 		: "r6");
+//		: "r0");
 }
 
 static int at91_poweroff_get_wakeup_mode(struct device_node *np)

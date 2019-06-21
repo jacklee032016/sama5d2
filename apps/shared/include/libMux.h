@@ -8,6 +8,14 @@
 #define	__LIB_MUX_H__
 
 #include <netinet/in.h>
+#include <sys/queue.h>
+
+#ifndef LIST_FOREACH_SAFE
+#define	LIST_FOREACH_SAFE(var, head, field, tvar)			\
+	for ((var) = LIST_FIRST((head));				\
+	    (var) && ((tvar) = LIST_NEXT((var), field), 1);		\
+	    (var) = (tvar))
+#endif
 
 #include "ms_version.h"
 
@@ -710,7 +718,11 @@ typedef	struct _ipcmd_agent
 	
 //	MuxPlayerConfig		*cfg;
 	
-	struct CTRL_CONN		*ctrlConns;
+//	struct CTRL_CONN		*ctrlConns;
+
+	LIST_HEAD(C_CON_HEAD, CTRL_CONN)	ctrlConns;	/* C_CON_HEAD is name of new struct, CTRL_CONN is `struct CTRL_CONN`; ctrlConns is field name in C_CON_HEAD */
+	int									connCount;
+
 
 #if 0
 	cmn_list_t			filelist;	/* downloaded file list */
@@ -740,9 +752,14 @@ typedef	int (*DataConnOutput)(struct DATA_CONN *dataConn);
 typedef	void (*DataConnDestroy)(struct DATA_CONN *dataConn);
 
 
+struct	DATA_CONN;
+
+
 /* Control connection for controller : wait for client's request (controller's command) */
 struct	CTRL_CONN
 {
+	LIST_ENTRY(CTRL_CONN)		list;
+
 	int						port;
 	CTRL_LINK_TYPE			type;
 	
@@ -756,6 +773,9 @@ struct	CTRL_CONN
 
 	struct	CTRL_CONN		*next;
 
+	LIST_HEAD(D_CON_HEAD, DATA_CONN)	dataConns;	/* D_CON_HEAD is name of new struct, DATA_CONN is `struct DATA_CONN`; dataConns is field name in D_CON_HEAD */
+	int									connCount;
+
 	CMN_MUX_BROKER 		*broker;
 };
 
@@ -763,31 +783,40 @@ struct	CTRL_CONN
 /* one client connection in socket interface */
 struct	DATA_CONN
 {
-	int					port;	/* port of peer */
+	int							port;	/* port of peer */
 
-	int					sock;	/* for TCP and Unix socket */
-
-	struct sockaddr_in		peerAddr;	/* for UDP socket */
-	socklen_t				addrlen;
-
-	char					cmd[CMN_NAME_LENGTH];
-	int					method;		
-	cJSON				*cmdObjs;
-	cJSON				*dataObj;	/* refer to first item of DATA array in cmdObjs */
-	cJSON				*resultObject;
+	int							sock;	/* for TCP and Unix socket */
+	int							timeFd;
 	
-	int					errCode;
-	char					detailedMsg[CMN_NAME_LENGTH];
-	cmn_mutex_t			*mutexLock;  /* lock between controller and other threads (plugins, FTP) */
 
-	int					isFinished;
+	struct sockaddr_in				peerAddr;	/* for UDP socket */
+	socklen_t						addrlen;
 
-	DataConnAuthen		handleAuthen;
-	DataConnInput		handleInput;
-	DataConnOutput		handleOutput;
-	DataConnDestroy		handleDestroy;
+	char							cmd[CMN_NAME_LENGTH];
+	int							method;		
 
-	struct CTRL_CONN		*ctrlConn;
+	unsigned char					buffer[2048];
+	int							length;
+	
+	cJSON						*cmdObjs;
+	cJSON						*dataObj;	/* refer to first item of DATA array in cmdObjs */
+	cJSON						*resultObject;
+	
+	int							errCode;
+	char							detailedMsg[CMN_NAME_LENGTH];
+	cmn_mutex_t					*mutexLock;  /* lock between controller and other threads (plugins, FTP) */
+
+	int							isFinished;
+
+	DataConnAuthen				handleAuthen;
+	DataConnInput				handleInput;
+	DataConnOutput				handleOutput;
+	DataConnDestroy				handleDestroy;
+
+
+	LIST_ENTRY(DATA_CONN)		list;
+
+	struct CTRL_CONN				*ctrlConn;
 };
 
 typedef	enum

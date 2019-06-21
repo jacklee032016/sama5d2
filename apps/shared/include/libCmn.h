@@ -538,6 +538,9 @@ char *cmn_read_file(const char *filename, uint32_t *size);
 int cmn_write_file(const char *filename, void *data, uint32_t size);
 
 
+char *cmnTimestampStr(void);
+
+
 #ifdef __cplusplus
 };
 #endif

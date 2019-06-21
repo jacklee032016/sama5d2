@@ -14,6 +14,9 @@ static struct termios _oldtty;
 
 volatile sig_atomic_t recvSigalTerminal = FALSE;
 
+#define	DISABLE_SEGMENT_FAULT	0
+
+#if DISABLE_SEGMENT_FAULT
 void sig_seg(void)
 {
 	printf("sig_seg\n");
@@ -21,6 +24,7 @@ void sig_seg(void)
 	while(1)
 		;
 }
+#endif
 
 static void doExit(MuxMain *muxMain)
 {
@@ -215,10 +219,12 @@ int main(int argc, char **argv)
 	/* signal init */
 	signal(SIGPIPE, SIG_IGN);
 
+#if DISABLE_SEGMENT_FAULT
 	if(signal(SIGSEGV,(void *)sig_seg)==SIG_ERR)
 	{
 		MUX_WARN("signal SEG error\n");
 	}
+#endif
 
 	/* every thread must be created after set terminal attributes */
 	termInit(muxMain);

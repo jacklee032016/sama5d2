@@ -9,8 +9,11 @@
 
 #include "mux7xx.h"
 
+#if	(MUX_BOARD == MUX_BOARD_768)
 #include "si5351bRegs.h"
-
+#elif (MUX_BOARD == MUX_BOARD_774)
+#include "si5351bRegisters.h"
+#endif
 
 int  muxSi5351bHwInit(void)
 {
@@ -70,13 +73,15 @@ int  muxSi5351bHwInit(void)
 	for (i=0; i<SI5351B_REVB_REG_CONFIG_NUM_REGS; i++)
 	{
 		buffer[0] = si5351b_revb_registers[i].value;
-		reg_addr = si5351b_revb_registers[i].address;
+		reg_addr = (unsigned char )si5351b_revb_registers[i].address;
 		if(twi_write(bus, EXT_I2C_DEV_SI5351B, reg_addr, 1, buffer, 1) )
 		{
 			EXT_ERRORF("SI5351B, %x. failed", reg_addr);
 		}
 		
 	}
+
+	EXT_INFOF("SI5351B total %d regsiters have been written", i);
 
 //	buffer[0] = 0xAC;
 //	twi_write(bus, EXT_I2C_DEV_SI5351B, 177, 1, buffer, 1);

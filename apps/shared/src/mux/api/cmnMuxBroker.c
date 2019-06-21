@@ -6,6 +6,52 @@
 *   3. or send to commands to correspoding threads, such as Play/Stop
 */
 
+/* for timer fd */
+#define _GNU_SOURCE
+#include <sys/syscall.h>
+#include <sys/types.h>
+#include <sys/signal.h>
+#include <sys/time.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <signal.h>
+#include <poll.h>
+#include <fcntl.h>
+#include <time.h>
+#include <errno.h>
+
+/* Definitions from include/linux/timerfd.h */
+#define TFD_TIMER_ABSTIME	(1 << 0)
+
+//#define	EXT_CLOCK_ID				CLOCK_MONOTONIC
+#define	EXT_CLOCK_ID				CLOCK_REALTIME
+
+
+
+int timerfd_create(int clockid, int flags)
+{
+	return syscall(__NR_timerfd_create, clockid, flags);
+}
+
+int timerfd_settime(int ufc, int flags, const struct itimerspec *utmr, struct itimerspec *otmr)
+{
+	return syscall(__NR_timerfd_settime, ufc, flags, utmr, otmr);
+}
+
+int timerfd_gettime(int ufc, struct itimerspec *otmr)
+{
+	return syscall(__NR_timerfd_gettime, ufc, otmr);
+}
+
+void set_timespec(struct timespec *tmr, unsigned long long ustime)
+{
+	tmr->tv_sec = (time_t) (ustime / 1000000ULL);
+	tmr->tv_nsec = (long) (1000ULL * (ustime % 1000000ULL));
+}
+
+
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/socket.h>
@@ -19,10 +65,27 @@
 
 #include "_cmnMux.h"
 
+int extSetTimer(int fd, long mstime)
+{
+	struct itimerspec tmr;
+	
+	set_timespec(&tmr.it_value, mstime*1000); /* ustime*/
+	set_timespec(&tmr.it_interval, 0);
+
+	if (timerfd_settime(fd, 0, &tmr, NULL))
+	{
+		EXT_ERRORF("timerfd_settime to %ld ms on fd %d: %m", mstime, fd);
+		return EXIT_FAILURE;
+	}
+
+	return EXIT_SUCCESS;
+}
+	
+
 /* read command and parse cmdObj for every DATA_CONN */
 static struct DATA_CONN *_createDataConnection(struct CTRL_CONN *ctrlConn)
 {
-	int dataSocket = 0;
+	int dataSocket = 0, timerFd;
 	struct DATA_CONN *dataConn = NULL;
 	struct sockaddr_in		peerAddr;
 //	struct sockaddr 		peerAddr;
@@ -32,19 +95,21 @@ static struct DATA_CONN *_createDataConnection(struct CTRL_CONN *ctrlConn)
 	
 	memset(&ctrlConn->buffer, 0, sizeof(ctrlConn->buffer) );
 
+	dataConn = cmn_malloc(sizeof(struct DATA_CONN));
+
 	addrlen = sizeof(struct sockaddr);
 	if(ctrlConn->type == CTRL_LINK_TCP || ctrlConn->type == CTRL_LINK_UNIX)
 	{
 		dataSocket = accept(ctrlConn->sockCtrl, (struct sockaddr *) &peerAddr, &addrlen);
 		if(dataSocket < 0)
 		{
-			MUX_ERROR("accept Error:%s", strerror(errno));
-			return NULL;
+			MUX_ERROR("accept error:%s; number of current connections:%d", strerror(errno), ctrlConn->connCount );
+			goto err;
 		}
 #if MUX_OPTIONS_DEBUG_IP_COMMAND			
 		MUX_DEBUG("%s connection accepted", ((ctrlConn->type == CTRL_LINK_TCP))?"TCP":"UNIX");
 #endif
-		len = read(dataSocket, (uint8_t *)ctrlConn->buffer, sizeof(ctrlConn->buffer));
+		len = read(dataSocket, (uint8_t *)dataConn->buffer, sizeof(dataConn->buffer));
 #if MUX_OPTIONS_DEBUG_IP_COMMAND			
 		if(ctrlConn->type == CTRL_LINK_TCP)
 		{
@@ -58,7 +123,8 @@ static struct DATA_CONN *_createDataConnection(struct CTRL_CONN *ctrlConn)
 	}
 	else
 	{
-		len = recvfrom(ctrlConn->sockCtrl, (uint8_t *)ctrlConn->buffer, sizeof(ctrlConn->buffer), 0, (struct sockaddr *) &peerAddr, &addrlen);
+		len = recvfrom(ctrlConn->sockCtrl, (uint8_t *)dataConn->buffer, sizeof(dataConn->buffer), 0, (struct sockaddr *) &peerAddr, &addrlen);
+		dataSocket = -1; /* UDP, this socket is not used */
 #if MUX_OPTIONS_DEBUG_IP_COMMAND			
 		MUX_DEBUG("UDP Received %d bytes packet from %s:%d, addrLen:%d", len, inet_ntoa(peerAddr.sin_addr), ntohs(peerAddr.sin_port), addrlen );
 #endif
@@ -67,26 +133,33 @@ static struct DATA_CONN *_createDataConnection(struct CTRL_CONN *ctrlConn)
 	if(len == 0)
 	{
 		MUX_INFO("Connection is broken by client");
-		return NULL;
+		goto err;
 	}
 	if(len<0)
 	{
 		MUX_ERROR("Receive data error: %s", strerror(errno));
 //		errCode = IPCMD_ERR_COMMUNICATION;
-		return NULL;
+		goto err;
+	}
+
+	timerFd = timerfd_create(EXT_CLOCK_ID, 0);
+	if(timerFd < 0)
+	{
+		MUX_ERROR("Timer ID error: %s", strerror(errno));
+//		return NULL;
+		goto err;
 	}
 	
-	ctrlConn->length = len;
-	ctrlConn->cmdBuffer = (CMN_IP_COMMAND *)ctrlConn->buffer;
+	dataConn->length = len;
 
 #if 1//MUX_OPTIONS_DEBUG_IP_COMMAND
-	CMN_HEX_DUMP( (uint8_t *)ctrlConn->cmdBuffer, ctrlConn->length, "Received data from socket" );
+	CMN_HEX_DUMP( (uint8_t *)dataConn->buffer, dataConn->length, "Received data from socket" );
 #endif
 
-	dataConn = cmn_malloc(sizeof(struct DATA_CONN));
 
 	dataConn->errCode = IPCMD_ERR_NOERROR;
 	dataConn->sock = dataSocket;
+	dataConn->timeFd = timerFd;
 	dataConn->port =  ntohs(peerAddr.sin_port);
 	memcpy(&dataConn->peerAddr, &peerAddr, addrlen);
 	dataConn->addrlen = addrlen;
@@ -107,7 +180,16 @@ static struct DATA_CONN *_createDataConnection(struct CTRL_CONN *ctrlConn)
 	dataConn->handleAuthen = cmnMuxDataConnAuthen;
 	dataConn->handleDestroy = cmnMuxDataConnClose;
 
+	ctrlConn->connCount++;
+	LIST_INSERT_HEAD(&ctrlConn->dataConns, dataConn, list );
+
+	TRACE();
 	return dataConn;
+
+err:
+	cmn_free(dataConn);
+	
+	return NULL;
 }
 
 static struct CTRL_CONN *_createCtrlConnection(CTRL_LINK_TYPE type, MuxMain *muxMain)
@@ -233,6 +315,9 @@ static struct CTRL_CONN *_createCtrlConnection(CTRL_LINK_TYPE type, MuxMain *mux
 	ctrlConn->port = port;
 	ctrlConn->handleCreateData = _createDataConnection;
 
+	LIST_INIT(&ctrlConn->dataConns);
+	ctrlConn->connCount = 0;
+
 	if(type == CTRL_LINK_UNIX)
 	{
 		MUX_DEBUG("Controller's Unix port %s", socket_path);
@@ -247,9 +332,13 @@ static struct CTRL_CONN *_createCtrlConnection(CTRL_LINK_TYPE type, MuxMain *mux
 
 
 
+/*#define	BROKER_ADD_CTRL_CONN(broker, ctrlConn) \
+//	{ if((ctrlConn)==NULL){exit(1);} (ctrlConn)->broker =(broker); if((broker)->ctrlConns==NULL) {(broker)->ctrlConns=(ctrlConn);} \
+//	else{(ctrlConn)->next=(broker)->ctrlConns; (broker)->ctrlConns = (ctrlConn);} }
+*/
+
 #define	BROKER_ADD_CTRL_CONN(broker, ctrlConn) \
-	{ if((ctrlConn)==NULL){exit(1);} (ctrlConn)->broker =(broker); if((broker)->ctrlConns==NULL) {(broker)->ctrlConns=(ctrlConn);} \
-	else{(ctrlConn)->next=(broker)->ctrlConns; (broker)->ctrlConns = (ctrlConn);} }
+		{ LIST_INSERT_HEAD(&broker->ctrlConns, ctrlConn, list);broker->connCount++; (ctrlConn)->broker =(broker);}
 	
 
 static CMN_MUX_BROKER *_cmnMuxBrokerInit(MuxMain *muxMain)
@@ -257,8 +346,8 @@ static CMN_MUX_BROKER *_cmnMuxBrokerInit(MuxMain *muxMain)
 	struct CTRL_CONN *ctrlConn = NULL;
 	CMN_MUX_BROKER *broker = NULL;
 
-
 	broker = cmn_malloc(sizeof(CMN_MUX_BROKER));
+	LIST_INIT(&broker->ctrlConns);
 
 	if(muxMain->udpCtrlPort != 0)
 	{
@@ -273,6 +362,7 @@ static CMN_MUX_BROKER *_cmnMuxBrokerInit(MuxMain *muxMain)
 	}
 
 	ctrlConn = _createCtrlConnection(CTRL_LINK_UNIX, muxMain);
+//	LIST_INSERT_HEAD(&broker->ctrlConns, ctrlConn, list);
 	BROKER_ADD_CTRL_CONN(broker, ctrlConn);
 
 	broker->muxMain = muxMain;
@@ -284,47 +374,119 @@ static CMN_MUX_BROKER *_cmnMuxBrokerInit(MuxMain *muxMain)
 
 static void _cmnMuxBrokerDestroy(CMN_MUX_BROKER *broker)
 {
-	struct CTRL_CONN *ctrlConn = broker->ctrlConns;
+	struct CTRL_CONN *ctrlConn, *tmp;// = broker->ctrlConns;
 
-	while(ctrlConn)
+	LIST_FOREACH_SAFE(ctrlConn, &broker->ctrlConns, list, tmp)
+//	while(ctrlConn)
 	{
+#if 0	
 		struct CTRL_CONN *tmp = ctrlConn;
 		ctrlConn = tmp->next;
 		
 		close(tmp->sockCtrl);
 		cmn_free(tmp);
+#else		
+		close(ctrlConn->sockCtrl);
+		cmn_free(ctrlConn);
+#endif		
 	}
 
 	cmn_free(broker);
 }
 
+#define	POLL_TIMEOUT			500 /* ms */
+
+#define	TIMER_FD_TIMEOUT		250 /* ms, must be less than POLL_TIMEOUT */
 
 
 static int _cmnMuxBrokerReceive(CMN_MUX_BROKER *broker)
 {
-	struct CTRL_CONN *ctrlConn = broker->ctrlConns;
+	struct CTRL_CONN *ctrlConn = NULL;// broker->ctrlConns;
+	struct DATA_CONN *dataConn;
+	struct pollfd 	*pollfd, *pfd;
+	int 	fdCount = 0;
+	int index;
+	
 	fd_set				readFdSet;
 	fd_set				writeFdSet;
 	int					maxFd = 0;
 	int	res = EXIT_SUCCESS;
 	struct timeval req_timeout; /* timeval for select */
 
-	FD_ZERO(&readFdSet);
-	FD_ZERO(&writeFdSet);
+//	FD_ZERO(&readFdSet);
+//	FD_ZERO(&writeFdSet);
 	
-	while(ctrlConn)
+//	while(ctrlConn)
+	LIST_FOREACH(ctrlConn, &broker->ctrlConns, list)
 	{
-		FD_SET(ctrlConn->sockCtrl, &readFdSet);
-		if(ctrlConn->sockCtrl > maxFd)
-			maxFd = ctrlConn->sockCtrl;
+//		FD_SET(ctrlConn->sockCtrl, &readFdSet);
+//		if(ctrlConn->sockCtrl > maxFd)
+//			maxFd = ctrlConn->sockCtrl;
 		
-		ctrlConn = ctrlConn->next;
+		fdCount += 1 + ctrlConn->connCount*2; /* 2 fd for every data connection */
+//		ctrlConn = ctrlConn->next;
+	}
+
+
+	/* Need to allocate one whole extra block of fds for UDS. */
+	pollfd = cmn_malloc( fdCount*sizeof(struct pollfd));
+	if (!pollfd)
+	{
+		return -1;
+	}
+
+	pfd = pollfd;
+	index = 0;
+	LIST_FOREACH(ctrlConn, &broker->ctrlConns, list)
+	{
+		pfd->fd = ctrlConn->sockCtrl;
+		pfd->events = POLLIN|POLLPRI| POLLRDHUP|POLLERR; /* poll read and error event*/
+
+//		EXT_DEBUGF(MUX_DEBUG_BROKER, "Ctrl CONN#%d.%p", index, ctrlConn);
+		pfd++;
+		index ++;
+	}
+	
+	if(index != broker->connCount)
+	{
+		EXT_ERRORF("Number of Ctrl Connection is not correct: %d != %d", index, broker->connCount )
+	}
+
+	LIST_FOREACH(ctrlConn, &broker->ctrlConns, list)
+	{
+		index = 0;
+		LIST_FOREACH(dataConn, &ctrlConn->dataConns, list)
+		{
+			if(dataConn->ctrlConn->type !=  CTRL_LINK_UDP)
+			{
+				/* socket */
+				pfd->fd = dataConn->sock;
+				pfd->events = POLLIN|POLLPRI| POLLRDHUP|POLLERR;
+				pfd++;
+
+				/* timer */
+				extSetTimer(dataConn->timeFd, TIMER_FD_TIMEOUT);
+				pfd->fd = dataConn->timeFd;
+				pfd->events = POLLIN;
+				pfd++;
+				
+				EXT_DEBUGF(MUX_DEBUG_BROKER, "DATA CONN#%d.%p", index, dataConn);
+				index++;
+			}
+		}
+		
+		if(index != ctrlConn->connCount)
+		{
+			EXT_ERRORF("Number of Data Connection in Ctrl Connection %s not correct: %d != %d", 
+				(ctrlConn->type == CTRL_LINK_TCP)?"TCP":(ctrlConn->type == CTRL_LINK_UDP)?"UDP":"UNIX", index, ctrlConn->connCount );
+		}
 	}
 
 	req_timeout.tv_sec = 5;
 	req_timeout.tv_usec = 0l; /* reset timeout */
 
-	res = select(maxFd + 1, &readFdSet, &writeFdSet, NULL, &req_timeout);
+//	res = select(maxFd + 1, &readFdSet, &writeFdSet, NULL, &req_timeout);
+	res = poll(pollfd, fdCount, POLL_TIMEOUT/*-1*/); /* in milliseconds */
 	if (res == -1 )
 	{
 		/* what is the appropriate thing to do here on EBADF */
@@ -332,7 +494,7 @@ static int _cmnMuxBrokerReceive(CMN_MUX_BROKER *broker)
 			return EXIT_SUCCESS;
 		else if (errno != EBADF)
 		{
-			MUX_ERROR("select system call failed: '%s'", strerror(errno));
+			MUX_ERROR("POLL system call failed: '%s'", strerror(errno));
 			return EXIT_FAILURE;
 		}
 	}
@@ -342,7 +504,166 @@ static int _cmnMuxBrokerReceive(CMN_MUX_BROKER *broker)
 		return EXIT_SUCCESS;
 	}
 
-	
+
+	pfd = pollfd;
+	index = 0;
+	LIST_FOREACH(ctrlConn, &broker->ctrlConns, list)
+	{
+		if( pfd->revents & (POLLIN|POLLPRI))
+		{
+			int isClose = TRUE;
+			dataConn = ctrlConn->handleCreateData(ctrlConn);
+			TRACE();
+
+#if 1			
+			if(dataConn == NULL)
+			{
+				continue;
+			}
+			
+			/* socket */
+#if MUX_OPTIONS_DEBUG_IP_COMMAND			
+			MUX_DEBUG( "Read data from peer port %d", dataConn->port );
+#endif
+			EXT_ASSERT(dataConn->handleInput, "InputHandler can't be null");
+			if(dataConn->handleInput==NULL)
+			{
+				EXT_ERRORF("InputHandler can't be null");
+			}
+			dataConn->handleInput(dataConn);
+
+			cmn_mutex_lock(dataConn->mutexLock);
+			if(dataConn->errCode == IPCMD_ERR_NOERROR )
+			{
+				if( cmnMuxControllerAddEvent(dataConn->cmd, dataConn->method, dataConn) == EXIT_SUCCESS)
+				{
+					isClose = FALSE;
+				}
+				else
+				{
+					DATA_CONN_ERR(dataConn, IPCMD_ERR_NOT_SUPPORT_COMMND,  "Command '%s' is not supportted", dataConn->cmd);
+					dataConn->isFinished = TRUE;
+				}
+			}
+
+#if 1
+			cmn_mutex_unlock(dataConn->mutexLock);
+
+			if(isClose)
+			{
+				MUX_DEBUG( "Broker reply DATA_CONN %p directly", dataConn);
+				dataConn->handleOutput(dataConn);
+					
+#if MUX_OPTIONS_DEBUG_IP_COMMAND			
+				MUX_DEBUG( "Broker finish this DATA_CONN %p", dataConn);
+#endif
+				dataConn->handleDestroy(dataConn);
+				dataConn = NULL;
+			}
+#else			
+			//if(dataConn->isFinished)
+			if(dataConn->errCode != IPCMD_ERR_IN_PROCESSING)
+			{/* not finished, ie. this dataConn is end to other process */
+				cmn_mutex_unlock(dataConn->mutexLock);
+				
+				dataConn->handleDestroy(dataConn);
+				dataConn = NULL;
+			}
+			else 
+			{/* otherwise, send data to other thread to process it */
+				cmn_mutex_unlock(dataConn->mutexLock);
+			}
+#endif				
+
+#endif
+		}
+		else if(pfd->revents & (POLLRDHUP|POLLERR))
+		{
+			EXT_ERRORF("Ctrl Connection is broken");
+			exit(1);
+		}
+
+		pfd++;
+	}
+
+	LIST_FOREACH(ctrlConn, &broker->ctrlConns, list)
+	{
+		LIST_FOREACH(dataConn, &ctrlConn->dataConns, list)
+		{
+			int isClose = TRUE;
+			
+			/* socket */
+			if( pfd->revents & (POLLIN|POLLPRI))
+			{
+#if MUX_OPTIONS_DEBUG_IP_COMMAND			
+				MUX_DEBUG( "Read data from peer port %d", dataConn->port );
+#endif
+				dataConn->handleInput(dataConn);
+
+				cmn_mutex_lock(dataConn->mutexLock);
+				if(dataConn->errCode == IPCMD_ERR_NOERROR )
+				{
+					if( cmnMuxControllerAddEvent(dataConn->cmd, dataConn->method, dataConn) == EXIT_SUCCESS)
+					{
+						isClose = FALSE;
+					}
+					else
+					{
+						DATA_CONN_ERR(dataConn, IPCMD_ERR_NOT_SUPPORT_COMMND,  "Command '%s' is not supportted", dataConn->cmd);
+						dataConn->isFinished = TRUE;
+					}
+				}
+
+			TRACE();
+#if 1
+				cmn_mutex_unlock(dataConn->mutexLock);
+
+				if(isClose)
+				{
+					MUX_DEBUG( "Broker reply DATA_CONN %p directly", dataConn);
+					dataConn->handleOutput(dataConn);
+					
+#if MUX_OPTIONS_DEBUG_IP_COMMAND			
+					MUX_DEBUG( "Broker finish this DATA_CONN %p", dataConn);
+#endif
+					dataConn->handleDestroy(dataConn);
+					dataConn = NULL;
+				}
+#else			
+				//if(dataConn->isFinished)
+				if(dataConn->errCode != IPCMD_ERR_IN_PROCESSING)
+				{/* not finished, ie. this dataConn is end to other process */
+					cmn_mutex_unlock(dataConn->mutexLock);
+					
+					dataConn->handleDestroy(dataConn);
+					dataConn = NULL;
+				}
+				else 
+				{/* otherwise, send data to other thread to process it */
+					cmn_mutex_unlock(dataConn->mutexLock);
+				}
+#endif
+			}
+			else if(pfd->revents & (POLLRDHUP|POLLERR))
+			{
+				EXT_ERRORF("Data Connection broken")
+			}
+			pfd++;
+
+			/* timer */
+			if( pfd->revents & POLLIN )
+			{
+				EXT_ERRORF("Data Connection timeout")
+			}
+			
+			index++;
+		}
+		
+	}
+
+	cmn_free(pollfd);
+
+#if 0	
 	ctrlConn = broker->ctrlConns;
 	while(ctrlConn)
 	{
@@ -409,6 +730,26 @@ static int _cmnMuxBrokerReceive(CMN_MUX_BROKER *broker)
 		
 		ctrlConn = ctrlConn->next;
 	}
+#endif
+
+	LIST_FOREACH(ctrlConn, &broker->ctrlConns, list)
+	{
+		struct DATA_CONN *tmp;
+		TRACE();
+		LIST_FOREACH_SAFE(dataConn, &ctrlConn->dataConns, list, tmp)
+		{
+			if(dataConn->isFinished ==  EXT_TRUE)
+			{
+		TRACE();
+				LIST_REMOVE(dataConn, list);
+		TRACE();
+				cmnMuxDataConnClose( dataConn);
+		TRACE();
+			}
+		}
+		
+	}
+
 
 	return EXIT_SUCCESS;
 }

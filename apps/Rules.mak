@@ -1,6 +1,7 @@
 # rule for every directory
 
 # ARCH=ARM
+# ARCH=X86
 
 # support PC environments
 ifndef  ARCH

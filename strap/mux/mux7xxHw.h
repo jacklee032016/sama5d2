@@ -35,6 +35,8 @@
 
 #define	EXT_I2C_SENSOR_LOCAL_TEMP_MSB		0x00
 #define	EXT_I2C_SENSOR_LOCAL_TEMP_LSB		0x30
+#define	EXT_I2C_SENSOR_MANUFACTURE_ID		0xFE
+#define	EXT_I2C_SENSOR_REVISION_ID			0xFF
 
 
 /* bus of multiplexer */
@@ -138,7 +140,7 @@ typedef	enum  _EXT_VIDEO_DEPTH
 #define	FPAG_VIDEO_CONFIG_REG(mod, pixSize)	(((mod)<<2) | ((pixSize)<<0))
 
 
-#define	EXT_BOOTSTRAP_DEBUG		EXT_DBG_OFF// EXT_DBG_ON
+#define	EXT_BOOTSTRAP_DEBUG		EXT_DBG_ON// EXT_DBG_ON
 
 #include "mux7xxSysParams.h"
 

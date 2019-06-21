@@ -255,11 +255,17 @@ static int w1_e15_write_page(struct w1_slave *sl, int addr, int len, const u8 *d
 
 		/* sometime it is read as 0xAB: delay too longer, so read the following 0xff */
 		w1_read_block(sl->master, rdbuf, 1);/* read CS */
-		if(rdbuf[0] != 0xAA)
+		
+		if(rdbuf[0] != 0xAA && rdbuf[0] != 0xAB )
 		{
-			EXT_ERRORF("Failed in write seg#%d, status: 0x%x", i, rdbuf[0]);
+			EXT_ERRORF("Failed in write seg#%d in page, status: 0x%x", i, rdbuf[0]);
 			ret = -1;
 			break;
+		}
+		
+		if(rdbuf[0] == 0xAB )
+		{
+			EXT_INFOF("Failed in write seg#%d in page, status: 0x%x", i, rdbuf[0]);
 		}
 	}
 
@@ -599,7 +605,6 @@ static int w1_e15_write_lock_key(struct w1_slave *sl, int addr, int len, const u
 		return -EIO;
 	}
 
-
 	/********** step 2:  lock scratch *************/
 	wrbuf[0] = W1_E15_LOCK_SECRET;
 #if 0
@@ -632,8 +637,9 @@ static int w1_e15_write_lock_key(struct w1_slave *sl, int addr, int len, const u
 	msleep(SECRET_PROGRAM_DELAY-88 ); /* tPRS */
 	
 	w1_read_block(sl->master, rdbuf, 1);/* read CS */
-	if(rdbuf[0] == 0xAA)
+	if(rdbuf[0] == 0xAA || rdbuf[0] == 0xAB )
 	{
+		EXT_INFOF("locking the key, status: 0x%x", rdbuf[0]);
 		ret = 0;
 	}
 	else if(rdbuf[0] == 0x55)
@@ -799,16 +805,21 @@ static ssize_t MAC_read(struct file *filp, struct kobject *kobj, struct bin_attr
 
 //	msleep(SHA_COMPUTATION_DELAY-2);/* waiting 2*tCSHA */
 
-//	msleep(SHA_COMPUTATION_DELAY-2);/* waiting 2*tCSHA */
-	udelay(850);
+	msleep(SHA_COMPUTATION_DELAY-2);/* waiting 2*tCSHA */
+//	udelay(850);
 //	ndelay(550);
 
 	w1_read_block(sl->master, wrbuf, 1);/* read CS */
-	if(wrbuf[0] != 0xAA)
+	if(wrbuf[0] != 0xAA && wrbuf[0] != 0xAB )
 	{
 		EXT_ERRORF("Failed in status when read MAC: 0x%x", wrbuf[0]);
 //		count = -EIO;
 //		goto _exit;
+	}
+
+	if( wrbuf[0] == 0xAB )
+	{
+		EXT_INFOF("Failed in status when read MAC: 0x%x", wrbuf[0]);
 	}
 	
 	w1_read_block(sl->master, buf, count);	/* 32 bytes MAC */

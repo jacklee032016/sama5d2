@@ -5,29 +5,16 @@ ifeq ($(MUX_BOARD), MUX_ATMEL_XPLAINED)
 	dtb-$(CONFIG_SOC_SAM_V7) += \
 		at91-sama5d2_xplained.dtb 
 else 
-	dtb-$(CONFIG_SOC_SAM_V7) += \
-		mux774_v2.dtb 
+	ifeq ($(MUX_BOARD), MUX_BOARD_768)
+		dtb-$(CONFIG_SOC_SAM_V7) += \
+			mux768.dtb 
+	else	
+		dtb-$(CONFIG_SOC_SAM_V7) += \
+			mux774_v2.dtb 
+	endif		
 endif
 
-#	at91-sama5d2_xplained.dtb 
-	
-#	at91-kizbox2.dtb \
-#	at91-nattis-2-natte-2.dtb \
-#	at91-sama5d27_som1_ek.dtb \
-#	at91-sama5d2_ptc_ek.dtb \
-#	at91-sama5d3_xplained.dtb \
-#	at91-tse850-3.dtb \
-#	sama5d31ek.dtb \
-#	sama5d33ek.dtb \
-#	sama5d34ek.dtb \
-#	sama5d35ek.dtb \
-#	sama5d36ek.dtb \
-#	sama5d36ek_cmp.dtb \
-#	at91-sama5d4_ma5d4evk.dtb \
-#	at91-sama5d4_xplained.dtb \
-#	at91-sama5d4ek.dtb \
-#	at91-sama5d4ek_isi.dtb \
-#	at91-vinco.dtb
+
 	
 endif
 

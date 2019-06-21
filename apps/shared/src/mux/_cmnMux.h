@@ -67,5 +67,7 @@ void cmnMuxCfgDebugData(EXT_RUNTIME_CFG *cfg);
 int cmnMuxSystemConfig(MuxMain *muxMain);
 
 
+#define	MUX_DEBUG_BROKER			EXT_DBG_ON
+
 #endif
 

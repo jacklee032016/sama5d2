@@ -20,9 +20,11 @@
 
 #include "w1_internal.h"
 
-#define	__EXT_RELEASE__
+//#define	__EXT_RELEASE__
 
 #include "mux7xxCompact.h"
+
+#define	EXT_WITH_DTS_PARAMS		1
 
 static int w1_delay_parm = 1;
 module_param_named(delay_coef, w1_delay_parm, int, 0);
@@ -89,7 +91,7 @@ static void w1_write_bit(struct w1_master *dev, int bit)
 	if(w1_disable_irqs) local_irq_save(flags);
 
 #if	(MUX_BOARD == MUX_ATMEL_XPLAINED)
-	if (bit) {
+	if (bit) {/* tSLOT == 70 ???  */
 		dev->bus_master->write_bit(dev->bus_master->data, 0);
 		w1_delay(6);
 		dev->bus_master->write_bit(dev->bus_master->data, 1);
@@ -101,19 +103,37 @@ static void w1_write_bit(struct w1_master *dev, int bit)
 		w1_delay(10);
 	}
 #else
+
 	if (bit)
 	{/* tW1L, 1~2 */
 		dev->bus_master->write_bit(dev->bus_master->data, 0);
+#if EXT_WITH_DTS_PARAMS
+		w1_delay(dev->bus_master->rwParams.tW1L);
+#else
 		w1_delay(1);
+#endif
 		dev->bus_master->write_bit(dev->bus_master->data, 1);
+#if EXT_WITH_DTS_PARAMS
+		w1_delay(dev->bus_master->rwParams.tSlot - dev->bus_master->rwParams.tW1L);
+#else
 		w1_delay(11);
+#endif
 	}
 	else
 	{/* tW0L, 8~16, tSLOT=13  */
 		dev->bus_master->write_bit(dev->bus_master->data, 0);
+#if EXT_WITH_DTS_PARAMS
+		w1_delay(dev->bus_master->rwParams.tW0L);
+#else
 		w1_delay(9);
+#endif
 		dev->bus_master->write_bit(dev->bus_master->data, 1);
-		w1_delay(2);
+#if EXT_WITH_DTS_PARAMS
+		w1_delay(dev->bus_master->rwParams.tSlot - dev->bus_master->rwParams.tW0L);
+#else
+		w1_delay(3);
+#endif
+
 	}
 #endif
 
@@ -202,17 +222,26 @@ static u8 w1_read_bit(struct w1_master *dev)
 	result = dev->bus_master->read_bit(dev->bus_master->data);
 	local_irq_restore(flags);
 
-	w1_delay(55);
+	w1_delay(55); /* tSLOT=70, */
 #else
 	dev->bus_master->write_bit(dev->bus_master->data, 0);/* for Not Open Drain, this is output 0 on this pin */
-	w1_delay(1);
+	w1_delay(1);/* tRL */
 	dev->bus_master->write_bit(dev->bus_master->data, 1); /* for Not Open Drain, this is set as input pin */
+#if EXT_WITH_DTS_PARAMS
+	ndelay(dev->bus_master->rwParams.tRdDelta);
+#else
 	ndelay(500);
+#endif
 
 	result = dev->bus_master->read_bit(dev->bus_master->data);
 	local_irq_restore(flags);
 
+#if EXT_WITH_DTS_PARAMS
+	w1_delay(dev->bus_master->rwParams.tSlot -1 -1); /* minus tRL and delta (delta always as 1us )*/
+#else
 	w1_delay(10);
+#endif
+
 #endif
 
 	return result & 0x1;
@@ -361,7 +390,8 @@ int w1_reset_bus(struct w1_master *dev)
 	int result;
 	unsigned long flags = 0;
 
-//	EXT_DEBUGF(MUX_W1_DEBUG, "W1 reset bus...");
+	EXT_DEBUGF(MUX_W1_DEBUG, "W1 reset bus(tSlot:%d; tW1L:%d; tW0L:%d; tRdDelta:%d)...", 
+		dev->bus_master->rwParams.tSlot, dev->bus_master->rwParams.tW1L, dev->bus_master->rwParams.tW0L, dev->bus_master->rwParams.tRdDelta );
 
 	if(w1_disable_irqs) local_irq_save(flags);
 

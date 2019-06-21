@@ -91,7 +91,7 @@
                                    ((debug) & EXT_DBG_ON) && \
                                    ((debug) & EXT_DBG_TYPES_ON) && \
                                    ((short)((debug) & EXT_DBG_MASK_LEVEL) >= EXT_DBG_MIN_LEVEL)) { \
-                                 _TRACE_OUT(format, message);SYS_PRINT(EXT_NEW_LINE); \
+                                 _TRACE_OUT(format, ##message);\
                                  if ((debug) & EXT_DBG_HALT) { \
                                    while(1); \
                                  } \
@@ -125,7 +125,7 @@
 #endif
 
 #define	_TRACE_OUT(format, message...)	\
-			{SYS_PRINT("%s: [%s-%u.%s()]: " format,  sysTaskName(), __FILE__, __LINE__, __FUNCTION__, ##message); }
+			{SYS_PRINT("%s: [%s-%u.%s()]: " format EXT_NEW_LINE,  sysTaskName(), __FILE__, __LINE__, __FUNCTION__, ##message); }
 
 
 

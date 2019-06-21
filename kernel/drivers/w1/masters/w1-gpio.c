@@ -12,7 +12,6 @@
 #include <linux/module.h>
 #include <linux/platform_device.h>
 #include <linux/slab.h>
-#include <linux/w1-gpio.h>
 #include <linux/gpio.h>
 #include <linux/of_platform.h>
 #include <linux/of_gpio.h>
@@ -21,6 +20,7 @@
 #include <linux/delay.h>
 
 #include <linux/w1.h>
+#include <linux/w1-gpio.h>
 
 
 #define	__EXT_RELEASE__
@@ -114,8 +114,31 @@ static int w1_gpio_probe_dt(struct platform_device *pdev)
 
 	pdev->dev.platform_data = pdata;
 
+	if(of_property_read_u8(np, "tSlot", &pdata->rwParams.tSlot))
+	{
+		EXT_ERRORF("parse tSlot failed");
+		pdata->rwParams.tSlot = 13;
+	}
+	if(of_property_read_u8(np, "tW1L", &pdata->rwParams.tW1L))
+	{
+		EXT_ERRORF("parse tW1L failed");
+		pdata->rwParams.tW1L = 1;
+	}
+	if(of_property_read_u8(np, "tW0L", &pdata->rwParams.tW0L))
+	{	
+		EXT_ERRORF("parse tW0L failed");
+		pdata->rwParams.tW0L = 9;
+	}
+	if(of_property_read_u16(np, "tRdDelta", &pdata->rwParams.tRdDelta))
+	{
+		EXT_ERRORF("parse tRdDelta failed");
+		pdata->rwParams.tRdDelta = 500;
+	}
+
+	EXT_INFOF("W1-gpio: tSlot:%d; tW1L:%d; tW0L:%d; tRdDelta:%d", pdata->rwParams.tSlot, pdata->rwParams.tW1L, pdata->rwParams.tW0L, pdata->rwParams.tRdDelta);
 	return 0;
 }
+
 
 /* it is called when master driver is loaded*/
 static int w1_gpio_probe(struct platform_device *pdev)
@@ -126,7 +149,8 @@ static int w1_gpio_probe(struct platform_device *pdev)
 
 //	EXT_INFOF("%s on %s is initialize...", pdev->name, BOARD_NAME );
 	EXT_INFOF("Master W1-GPIO on %s is initialize...", BOARD_NAME );
-	if (of_have_populated_dt()) {
+	if (of_have_populated_dt())
+	{
 		err = w1_gpio_probe_dt(pdev);
 		if (err < 0)
 			return err;
@@ -185,6 +209,9 @@ static int w1_gpio_probe(struct platform_device *pdev)
 		master->set_pullup = w1_gpio_set_pullup;
 	}
 
+	/* copy param before register into master */
+	memcpy(&master->rwParams, &pdata->rwParams, sizeof(struct w1_rw_param) );
+	EXT_INFOF("W1-master: tSlot:%d; tW1L:%d; tW0L:%d; tRdDelta:%d", master->rwParams.tSlot, master->rwParams.tW1L, master->rwParams.tW0L, master->rwParams.tRdDelta);
 	err = w1_add_master_device(master);
 	if (err) {
 		dev_err(&pdev->dev, "w1_add_master device failed\n");
