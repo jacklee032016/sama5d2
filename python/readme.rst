@@ -24,6 +24,8 @@ Installation
    . env/bin/activate
 
    pip install Flask
+   
+   pip install -r requirements
 
    python -m flask.config
 

@@ -856,7 +856,7 @@ int cmnMuxCtrlDataHandle( struct DATA_CONN *dataConn )
 			}
 			
 #if 1// MUX_OPTIONS_DEBUG_IP_COMMAND			
-			MUX_DEBUG("URI '%s' '%s' is processing.....", dataConn->cmd, CMN_MUX_FIND_METHOD_NAME(dataConn->method) );
+			MUX_DEBUG("CONN %s, URI '%s' '%s' is processing.....", dataConn->name, dataConn->cmd, CMN_MUX_FIND_METHOD_NAME(dataConn->method) );
 #endif
 
 

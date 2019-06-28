@@ -12,6 +12,15 @@ typedef	enum
 	CMN_TIMER_ITIMER,	
 }cmn_timer_mode_t;
 
+
+typedef enum
+{
+	cmn_timer_type_once = 0,
+	cmn_timer_type_reload	
+}cmn_timer_type;
+
+
+
 #define CMN_TIMESLICE						10
 
 /* This is the maximum resolution of the timer on all platforms */
@@ -69,7 +78,7 @@ extern int cmn_set_timer(int interval /* in unit of ms, round to 10 ms */, CMN_A
 
 
 /* Add a new timer to the pool of timers already running. Returns a timer ID, or NULL when an error occurs. */
-extern void *cmn_add_timer(int interval /* in unit of ms, round to 10 ms */, CMN_THREAD_TIMER_CALLBACK callback, void *param, const char *name);
+extern void *cmn_add_timer(int interval /* in unit of ms, round to 10 ms */, CMN_THREAD_TIMER_CALLBACK callback, void *param, cmn_timer_type type, const char *name);
 
 
 /* Remove one of the multiple timers knowing its ID.  Returns a boolean value indicating success. */

@@ -27,7 +27,7 @@
 //MUX_DEBUG_JSON_OBJ((dataConn)->resultObject); 
 		
 
-int cmnMuxControllerAddEvent(char *cmd, 	int method, void *dataConn);
+int cmnMuxManagerAddEvent(char *cmd, 	int method, void *dataConn);
 
 
 int cmnMuxCtrlDataHandle( struct DATA_CONN *dataConn );

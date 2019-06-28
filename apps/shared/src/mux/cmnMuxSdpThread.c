@@ -6,7 +6,7 @@
 
 #include "_cmnMux.h"
 
-struct	CMN_FTP_CONTROLLER
+struct	CMN_SDP_CONTROLLER
 {
 	char			localPath[CMN_NAME_LENGTH];
 	int			freeSpace;	/* used to extended */
@@ -18,60 +18,19 @@ struct	CMN_FTP_CONTROLLER
 	int				totalSuccess;
 	int				totalFailed;
 
+	void				*timer;
+	MuxMain			*muxMain;
+
 	void				*priv;	/*save MuxPlayerConfig **/
 };
 
-int _checkAndMakeDirectory(char *localPath)
+typedef	struct _SDP_REQ
 {
-	int res = EXIT_SUCCESS;
-	struct	stat info;
+	HttpClientReq		req;
+	int				index;
 	
-	res = stat(localPath, &info);
-	if( res == -1)
-	{
-        	if(1)//errno == ENOTDIR )
-        	{
-	        	res = mkdir(localPath, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
- 			res = stat(localPath, &info);
-       	}
-			
-		if(res == -1)	
-		{
-			MUX_ERROR("local path '%s' failed: %s", localPath, strerror(errno));
-			return EXIT_FAILURE;
-		}
-	}
-		
-	if(!S_ISDIR(info.st_mode))
-	{
-		MUX_ERROR("local path '%s' is not a directory", localPath );
-		return EXIT_FAILURE;
-	}
-
-	return res;
-}
-
-void cmnFtpClientInitDefault(CMN_FTP_CLIENT *client)
-{
-	if (client == NULL)
-		return;
-	memset(client, 0, sizeof(CMN_FTP_CLIENT));
-
-	snprintf(client->username, CMN_NAME_LENGTH, "%s", "root");
-//	snprintf(client->username, CMN_NAME_LENGTH, "%s", "anonymous");
-
-	client->port = 21;
-
-#if ARCH_X86
-	snprintf(client->host, CMN_NAME_LENGTH, "%s", "192.168.168.102");
-//	snprintf(client->localPath, CMN_NAME_LENGTH, "%s", "/media/sf_mux");
-#else
-//	snprintf(client->host, CMN_NAME_LENGTH, "%s", "192.168.168.50");
-	snprintf(client->host, CMN_NAME_LENGTH, "%s", "192.168.168.102");
-//	snprintf(client->localPath, CMN_NAME_LENGTH, "%s", "/media/usb");
-#endif
-
-}
+	void 		*priv;
+}CMN_FTP_CLIENT;
 
 
 static int _cmnFtpClientConnect(CMN_FTP_CLIENT *client, struct CMN_FTP_CONTROLLER *ftpAgent)
@@ -251,7 +210,7 @@ static PluginJSonHandler _jsonFtpHandlers[] =
 	}
 };
 
-static int	_ftpEventHandler(struct _CmnThread *th, void *_event)
+static int	_sdpEventHandler(struct _CmnThread *th, void *_event)
 {
 	struct	CMN_FTP_CONTROLLER *ftpAgent = (struct	CMN_FTP_CONTROLLER *)th->data;
 
@@ -271,32 +230,57 @@ static int	_ftpEventHandler(struct _CmnThread *th, void *_event)
 }
 
 
-static int _initFtpThread(CmnThread *th, void *data)
+int cmnMuxSdpAddEvent(HttpClientReq *sdpUri)
+{
+	CMN_FTP_CLIENT *client =(CMN_FTP_CLIENT *)cmn_malloc(sizeof(CMN_FTP_CLIENT));
+
+	CMN_PLAY_JSON_EVENT *jsonEvent =(CMN_PLAY_JSON_EVENT *)cmn_malloc(sizeof(CMN_PLAY_JSON_EVENT));
+	if(jsonEvent == NULL)
+	{
+		EXT_ERRORF("No memory available for SDP %s request", sdpUri->uri );
+		return EXIT_FAILURE;
+	}
+
+	snprintf(jsonEvent->action, JSON_ACTION_LENGTH, "%s", "download");
+	jsonEvent->object = (cJSON *)client;
+	jsonEvent->priv = dataConn;
+
+	return cmnThreadAddEvent(&threadSdpClient, jsonEvent);
+}
+
+int cmnMuxSdpTimerCallback(int interval, void *param)
+{
+	CMN_SDP_CONTROLLER *sdpCtx = (CMN_SDP_CONTROLLER *)param;
+	EXT_ASSERT((sdpCtx != NULL), "Params fault in SDP timer callback");
+
+	sdpCtx->totalReqs++;
+	
+	EXT_INFOF("SDP Timer is called, total %d requests", sdpCtx->totalReqs);
+}
+
+static int _initSdpThread(CmnThread *th, void *data)
 {
 	int res = EXIT_SUCCESS;
-//	MuxPlayerConfig *cfg = (MuxPlayerConfig *)data;
-	char *localPath = (char *)data ;
 
-	struct CMN_FTP_CONTROLLER *ftpAgent = (struct CMN_FTP_CONTROLLER *)cmn_malloc(sizeof(struct CMN_FTP_CONTROLLER));
-
-//	localPath = cfg->usbHome;
-#if 0
-	res = _checkAndMakeDirectory(localPath);
-	if(res != EXIT_SUCCESS)
-		return res;
-#endif
-
-	FtpInit();
-
-	snprintf(ftpAgent->localPath, CMN_NAME_LENGTH, "%s", localPath);
-	ftpAgent->priv = data;
-	cmnThreadMask(th->name);
-	th->data = ftpAgent;
+	CMN_SDP_CONTROLLER *sdpCtx = cmn_malloc(sizeof(CMN_SDP_CONTROLLER));
+	EXT_ASSERT( (sdpCtx != NULL), "SDP context can not be null");
 	
+	sdpCtx->muxMain = (MuxMain *)data;
+	EXT_ASSERT((sdpCtx->muxMain != NULL), ("MuxMain in SDP Context can not be null"));
+	
+	sdpCtx->timer = cmn_add_timer(sdpCtx->muxMain->pollTime, cmnMuxSdpTimerCallback, sdpCtx, cmn_timer_type_reload, "sdpTimer");
+	if(sdpCtx->timer == NULL)
+	{
+		EXT_ERRORF("Timer is not created for SDP client in RX");
+	}
+
+	cmnThreadMask(th->name);
+	th->data = sdpCtx;
+
 	return EXIT_SUCCESS;
 }
 
-static void _destoryFtpThread(struct _CmnThread *th)
+static void _destorySdpThread(struct _CmnThread *th)
 {
 	struct	CMN_FTP_CONTROLLER *ftpAgent = (struct	CMN_FTP_CONTROLLER *)th->data;
 
@@ -308,40 +292,12 @@ static void _destoryFtpThread(struct _CmnThread *th)
 CmnThread  threadSdpClient =
 {
 	name		:	"SDP",
-	flags		:	SET_BIT(1, CMN_THREAD_FLAG_WAIT),
+	flags			:	SET_BIT(1, CMN_THREAD_FLAG_WAIT),
 	
-	init			:	_initFtpThread,
+	init			:	_initSdpThread,
 	mainLoop		:	NULL,
-	eventHandler	:	_ftpEventHandler,
-	destory		:	_destoryFtpThread,
+	eventHandler	:	_sdpEventHandler,
+	destory		:	_destorySdpThread,
 	data			:	NULL,
 };
-
-
-int cmnMuxFtpAddEvent(char *server, 	char *username, char *password, char *path, cmn_list_t *list, void *dataConn)
-{
-	CMN_FTP_CLIENT *client =(CMN_FTP_CLIENT *)cmn_malloc(sizeof(CMN_FTP_CLIENT));
-
-	CMN_PLAY_JSON_EVENT *jsonEvent =(CMN_PLAY_JSON_EVENT *)cmn_malloc(sizeof(CMN_PLAY_JSON_EVENT));
-
-	cmnFtpClientInitDefault(client);
-
-	snprintf(client->username, CMN_NAME_LENGTH, "%s", username);
-	snprintf(client->password, CMN_NAME_LENGTH, "%s", password);
-	
-	snprintf(client->host, CMN_NAME_LENGTH, "%s", server);
-	
-	snprintf(client->remotePath, CMN_NAME_LENGTH, "%s", path);
-//	snprintf(client->filename, CMN_NAME_LENGTH, "%s", file);
-
-	client->downloadFileList = list;
-	client->priv = dataConn;
-	cmn_list_init( &client->downloadResults);
-
-	snprintf(jsonEvent->action, JSON_ACTION_LENGTH, "%s", "download");
-	jsonEvent->object = (cJSON *)client;
-	jsonEvent->priv = dataConn;
-
-	return cmnThreadAddEvent(&threadSdpClient, jsonEvent);
-}
 

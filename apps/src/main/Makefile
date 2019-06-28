@@ -33,7 +33,7 @@ SRC += \
 		muxMain.c		\
 
 
-LOCAL_ALL=muxController 
+LOCAL_ALL=muxMgr 
 
 include $(ROOT_DIR)/Makefile.post
 

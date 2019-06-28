@@ -87,7 +87,7 @@ int	cmnSysCtrlBlinkPowerLED(char	isEnable)
 
 static int _cmnSysJobDelay(const char *name, int delayMs, CMN_THREAD_TIMER_CALLBACK callback, void *data)
 {
-	void	*timer = cmn_add_timer(delayMs, callback, data, name);
+	void	*timer = cmn_add_timer(delayMs, callback, data, cmn_timer_type_once, name);
 	if (timer==NULL)
 	{
 		EXT_ERRORF("Delay Job '%s' can not be created", name);

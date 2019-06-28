@@ -1,4 +1,7 @@
 # /bin/sh
 echo "start REST API service..."
-python3 app.py > /var/log/restapi.log 2>&1 &
+LOG_DIR=/var/log
+LOG_DIR=/tmp
+
+python3 app.py > $LOG_DIR/restapi.log 2>&1 &
 

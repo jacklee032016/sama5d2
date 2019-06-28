@@ -16,17 +16,19 @@
 send JSON request from json file and parse JSON response, used in CGI and other client, such as controller 811
 */
 
+//#define	CLIENT_TIMEOUT_SECONDS		15
+#define	CLIENT_TIMEOUT_SECONDS		2
 
 static void usage(char* base, struct API_PARAMETERS *params)
 {
 	printf("%s: \n\tCommand line interface for JSON API.\n"\
-		"\t%s -c command -a ipaddress/fqdn -m MAC(FF:FF:FF:FF:FFFF) -p 0(UDP, default)|1(TCP) -b port(3600)  -d jsonData -u user(admin) -w passwd(admin)\n"\
+		"\t%s -c command -a ipaddress/fqdn -m MAC(FF:FF:FF:FF:FFFF) -p 0(UDP, default)|1(TCP) -b port(3600)  -d jsonData -u user(admin) -w passwd(admin) -t timeout(%d seconds)\n"\
 		"\t\t Current command:  " \
 		"\n\t\t\t"CLIENT_CMD_STR_FIND", "CLIENT_CMD_STR_GET", "CLIENT_CMD_STR_SET", "CLIENT_CMD_STR_RS_DATA", " \
 		"\n\t\t\t"CLIENT_CMD_STR_SECURE", " CLIENT_CMD_STR_IR", "
 		"\n\t\t\t"IPCMD_SYS_ADMIN_THREADS ", " IPCMD_SYS_ADMIN_VER_INFO", quit \n" \
 		"\t\t ipaddress/fqdn: default localhost; \n", 
-		  base, base);
+		  base, base, CLIENT_TIMEOUT_SECONDS);
 
 	exit(-1);
 }
@@ -73,7 +75,7 @@ static cJSON *_ipCmdRequest(struct API_CLIENT_CMD_HANDLER *handle, struct API_PA
 
 static int _validateIpAddress(struct API_CLIENT_CMD_HANDLER *handle, struct API_PARAMETERS *params, char *Program)
 {
-	EXT_MAC_ADDRESS macAddress;
+//	EXT_MAC_ADDRESS macAddress;
 	
 	if(cmnSystemNetIp(params->address)==INVALIDATE_VALUE_U32)
 	{
@@ -315,7 +317,7 @@ static int	_apiHandleCmd(struct API_PARAMETERS *params, char *programName)
 					fprintf(stderr, "Client connectting to %s:%d on %s protocol.....\n", params->address, params->port, (linkType == CTRL_LINK_TCP)?"TCP":(linkType == CTRL_LINK_UDP)?"UDP":"Unix");
 					
 #if 1
-					ret = cmnMuxClientInit(params->port, linkType, params->address);
+					ret = cmnMuxClientInit(params->port, linkType, params->address, params->timeoutSeconds);
 #else					
 					ret = CLIENT_INIT_IP_CMD(params->port, params->address);
 #endif
@@ -363,6 +365,7 @@ int main(int argc, char *argv[])
 
 	params.port = UDP_SERVER_PORT;
 	params.protocol = PROTOCOL_UDP;
+	params.timeoutSeconds = CLIENT_TIMEOUT_SECONDS;
 	
 	params.left = -1;
 	params.width = -1;
@@ -371,7 +374,7 @@ int main(int argc, char *argv[])
 	params.color = -1;
 
 //	while ((opt = getopt (argc, argv, "a:p:b:c:i:m:l:t:w:h:a:d:C:s:u:f:P:p:b:")) != -1)
-	while ((opt = getopt (argc, argv, "a:p:b:c:d:u:w:m:")) != -1)
+	while ((opt = getopt (argc, argv, "a:p:b:c:d:u:w:m:t:")) != -1)
 	{
 		switch (opt)
 		{
@@ -391,6 +394,10 @@ int main(int argc, char *argv[])
 
 			case 'b': /* port */
 				params.port = atoi(optarg);
+				break;
+
+			case 't': /* timeout, seconds */
+				params.timeoutSeconds = atoi(optarg);
 				break;
 
 			case 'c': /* command */

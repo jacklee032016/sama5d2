@@ -26,21 +26,25 @@ class CmdSocket(object):
         #self.debug = kwargs.get("debug", False)
         self.debug = settings.DEBUG
         self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        ColorMsg.debug_msg('connect to %s\n' % (self.server), self.debug)
-        try:
-            self.sock.connect(self.server)
-        except socket.error as msg:
-            ColorMsg.error_msg("connect failed")
-            ColorMsg.error_msg(msg)
-            sys.exit(1)
 
 
     def connect(self, *args, **kwargs):
         #self.status = self.load_data()
         self.cmd = kwargs.get("cmd", "get")
         ColorMsg.debug_msg('send "%s" to %s\n' % (self.cmd, self.server), self.debug)
+
+        ColorMsg.debug_msg('connect to %s\n' % (self.server), self.debug)
+        try:
+            self.sock.connect(self.server)
+        except socket.error as msg:
+            ColorMsg.error_msg("connect failed")
+            ColorMsg.error_msg(msg)
+            return json.loads('{"status": 500, "detail": "Can not connect to backend server"}' )
+            # sys.exit(1)  # raise SystemExit exception
         
-        self.send()
+        len = self.send()
+        if len == 0:
+            return json.loads('{"status": 500, "detail": "Command can not be sent to backend server"}' )
         data = self.receive()
         return data
 
@@ -55,7 +59,7 @@ class CmdSocket(object):
         """ change to binary buffer to send out in socket """
         cmdBuf = struct.pack( "%ds" % len(cmdStr), cmdStr )
         # self.sendPacket()
-        self.sendPacket(cmdBuf)
+        return self.sendPacket(cmdBuf)
 
 
     def sendPacket(self, data):

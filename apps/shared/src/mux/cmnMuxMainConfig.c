@@ -96,6 +96,21 @@ static int _parseGlobalConfig(const char **p, MuxMain *muxMain, int linenum)
 #endif
 	}
 
+	else if (!strcasecmp(cmd, "SdpPoll"))
+	{
+		muxMain->isClientPolling = cmnParseGetBoolValue(p);
+#if DEBUG_CONFIG_FILE
+		MUX_INFO("SdpPoll: %s", STR_BOOL_VALUE(muxMain->isClientPolling) );
+#endif
+	}
+	else if (!strcasecmp(cmd, "SdpPeriod"))
+	{
+		muxMain->pollTime = cmnParseGetIntValue(p);
+#if DEBUG_CONFIG_FILE
+		MUX_INFO("SdpPeriod: %d", muxMain->pollTime );
+#endif
+	}
+
 	else
 	{
 		MUX_ERROR("Invalidate configuration item: %s on line %d", cmd, linenum);
@@ -121,7 +136,7 @@ static int _parsePlugin(MuxPlugIn *plugin, const char **p, int linenum)
 	{
 		plugin->enable = cmnParseGetBoolValue(p);
 #if DEBUG_CONFIG_FILE
-		MUX_INFO("\tPlugin Enable: %s", (plugin->enable==FALSE)?"NO":"YES");
+		MUX_INFO("\tPlugin Enable: %s", STR_BOOL_VALUE(plugin->enable) );
 #endif
 	}
 	else if (!strcasecmp(cmd, "Lib"))

@@ -47,21 +47,24 @@ static int _getRequestMethod(cJSON *reqObj)
 
 void cmnMuxDataConnClose(struct DATA_CONN *dataConn)
 {
-	if( (dataConn)->cmdObjs)
+	if( dataConn->cmdObjs)
 	{
 #if MUX_OPTIONS_DEBUG_IP_COMMAND			
 		MUX_DEBUG("cJSON_Delete cmdObjs:%p", dataConn->cmdObjs);	
 #endif
-		cJSON_Delete( (dataConn)->cmdObjs);
+		cJSON_Delete( dataConn->cmdObjs);
 	}
-	
-	if( (dataConn)->resultObject)
+
+	/* resultObj always refers to dataObj in cmdObj or object in SystemObj */
+#if 0	
+	if( dataConn->resultObject)
 	{/* when is it been freed?? */
 #if MUX_OPTIONS_DEBUG_IP_COMMAND			
-		MUX_DEBUG("cJSON_Delete cmdObjs:%p", dataConn->resultObject);	
+		MUX_DEBUG("cJSON_Delete resultObject:%p", dataConn->resultObject);	
 #endif
-//		cJSON_Delete( (dataConn)->resultObject);
+//		cJSON_Delete( dataConn->resultObject);
 	}
+#endif
 
 	if(dataConn->sock > 0) //dataConn->ctrlConn->type != CTRL_LINK_UDP)
 	{
@@ -71,12 +74,9 @@ void cmnMuxDataConnClose(struct DATA_CONN *dataConn)
 	close(dataConn->timeFd);
 	cmn_mutex_destroy(dataConn->mutexLock);
 
-	LIST_REMOVE(dataConn, list);
-	dataConn->ctrlConn->connCount--;
-	
-	EXT_DEBUGF(MUX_DEBUG_BROKER, "free dataConn:%p", dataConn);	
+	EXT_DEBUGF(MUX_DEBUG_BROKER, "free DATA CONN:%s:%p", dataConn->name, dataConn);	
 
-	cmn_free((dataConn));
+	cmn_free(dataConn);
 }
 
 
@@ -85,13 +85,10 @@ static int _dataConnOutput(struct DATA_CONN *dataConn, void *buf, int size)
 {
 	int len = 0;
 
-	TRACE();
-#if 1//MUX_OPTIONS_DEBUG_IP_COMMAND			
-	MUX_DEBUG("Reply %d bytes packet to %s:%d", size, 
-		DATA_CONN_IS_IPCMD(dataConn)? inet_ntoa(dataConn->peerAddr.sin_addr):"Unix", DATA_CONN_IS_IPCMD(dataConn)?ntohs(dataConn->peerAddr.sin_port):0);
+#if 0//MUX_OPTIONS_DEBUG_IP_COMMAND			
+	MUX_DEBUG("Reply %d bytes packet to %s", size, dataConn->name);
 	CMN_HEX_DUMP((const uint8_t *)buf, size, "send out data in data connection" );
 #endif
-	TRACE();
 
 	if(dataConn->ctrlConn->type == CTRL_LINK_TCP || dataConn->ctrlConn->type == CTRL_LINK_UNIX)
 	{
@@ -113,7 +110,7 @@ static int _dataConnOutput(struct DATA_CONN *dataConn, void *buf, int size)
 	{
 		MUX_ERROR("ERROR writing to socket only %d bytes: '%s'", len, strerror(errno));
 	}
-	MUX_DEBUG("Replied %d bytes packet", len);
+	MUX_DEBUG("CONN %s replied %d bytes packet", dataConn->name, len);
 
 	return len;
 }
@@ -147,10 +144,11 @@ static int _dataConnIpCmdOutput(struct DATA_CONN *dataConn, void *buf, int size)
 int	cmnMuxDataConnIpCmdOutput(struct DATA_CONN *dataConn)
 {
 	int len = 0;
-	cJSON *dataArray = NULL, *dataItem = NULL;
-	cJSON *responseObj;
+	cJSON *dataArray = NULL;
+	cJSON *responseObj = NULL;
 	char *msg = NULL;
 
+TRACE();
 	if(! DATA_CONN_IS_IPCMD(dataConn) )
 	{
 		DATA_CONN_ERR(dataConn, IPCMD_ERR_JSON_CORRUPTED, "Output interface of IP command can not be used by REST API");
@@ -168,41 +166,28 @@ int	cmnMuxDataConnIpCmdOutput(struct DATA_CONN *dataConn)
 		goto sendout;
 	}
 	
-
-	dataArray = cJSON_GetObjectItem(dataConn->cmdObjs, IPCMD_NAME_KEYWORD_DATA);
-	if(!cJSON_IsArray(dataArray))
-	{
-		MUX_ERROR("'%s' is not array object", IPCMD_NAME_KEYWORD_DATA );
-	}
-	
-#if 0
-	dataItem = cJSON_GetArrayItem(dataArray, 0);
-#else
-	dataItem = dataConn->resultObject;
-#endif
-	if(dataItem == NULL)
-	{
-//		DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "No data item is in reply object");
-	}
-	
-TRACE();
 	if(dataConn->errCode == IPCMD_ERR_NOERROR)
 	{
 		cJSON_ReplaceItemInObject(dataConn->cmdObjs, IPCMD_NAME_KEYWORD_LOGIN_ACK, cJSON_CreateString(EXT_IPCMD_STATUS_OK));
 		cJSON_ReplaceItemInObject(dataConn->cmdObjs, IPCMD_NAME_KEYWORD_PWD_MSG, cJSON_CreateString(EXT_IPCMD_STATUS_OK));
 		
+TRACE();
 		if( (dataConn->errCode == IPCMD_ERR_NOERROR ||dataConn->errCode == IPCMD_ERR_FTP_PARTLY_FAILED) && dataConn->resultObject != NULL )
 		{
-			if(cJSON_GetArraySize(dataArray) > 0)
-			{
-				cJSON_ReplaceItemInArray(dataArray, 0, dataConn->resultObject);
+			/* if DATA exists, then remove it */
+//			if(dataConn->dataObj && dataConn->dataObj != dataConn->resultObject )
+			if(dataConn->dataObj != dataConn->resultObject )
+			{/* if resultObject is not dataObj, replace dataObj in CmdObj with resultObj */
+				cJSON_DeleteItemFromObject(dataConn->cmdObjs, IPCMD_NAME_KEYWORD_DATA);
+				
+				dataArray = cJSON_Duplicate(dataConn->resultObject, 1);
+	TRACE();
+				cJSON_AddItemToObject(dataConn->cmdObjs, IPCMD_NAME_KEYWORD_DATA, dataArray );
 			}
-			else
-			{	
-				cJSON_AddItemToArray(dataArray, dataConn->resultObject);
-			}
-	//		cJSON_ReplaceItemInObjectCaseSensitive(dataItem, MEDIA_CTRL_OBJECTS, dataConn->resultObject);
+			/* default, resultObj is alias of dataObj in CmdObj */
+TRACE();
 		}
+
 	}
 	else
 	{
@@ -211,15 +196,12 @@ TRACE();
 		cJSON_ReplaceItemInObject(dataConn->cmdObjs, IPCMD_NAME_KEYWORD_PWD_MSG, cJSON_CreateString(errMsg));
 		cJSON_AddStringToObject(dataConn->cmdObjs, IPCMD_NAME_KEYWORD_MSG_DETAIL, IS_STRING_NULL_OR_ZERO(dataConn->detailedMsg)?"Command is not validate format": dataConn->detailedMsg );
 
-		/* remove raw data from response when something is wrong */
-		if(dataArray)
-		{
+		if(dataConn->dataObj != NULL )
+		{/* dataObj is data obj in CmdObj */
 			cJSON_DeleteItemFromObject(dataConn->cmdObjs, IPCMD_NAME_KEYWORD_DATA);
 		}
 	}
 	
-TRACE();
-
 #if 0	
 	cJSON_AddItemToObject(dataItem, MEDIA_CTRL_STATUS, cJSON_CreateNumber((double) dataConn->errCode));
 	if(!IS_STRING_NULL_OR_ZERO(dataConn->detailedMsg) )
@@ -231,24 +213,40 @@ TRACE();
 	responseObj = dataConn->cmdObjs;
 
 sendout:
+	EXT_ASSERT((responseObj), "DataConnect response object is null ");
+	if(responseObj == NULL)
+	{
+		EXT_ERRORF("DataConnect response object is null ");
+	}
+	EXT_DEBUGF(MUX_DEBUG_BROKER, "CONN %s output obj#%p", dataConn->name, responseObj);
 
-TRACE();
 	msg = cJSON_PrintUnformatted(responseObj);
+//	EXT_DEBUGF(MUX_DEBUG_BROKER, "CONN %s output msg:'%s'", dataConn->name, msg);
 	if(msg == NULL)
 	{
-		msg = "Unknown";
+		msg = cmn_malloc(128);
+		snprintf(msg, 128, "%s", "Unknown");
 	}
 
-TRACE();
-	len = _dataConnIpCmdOutput(dataConn, msg, strlen(msg));
-
-TRACE();
-	cmn_free(msg);
-
-TRACE();
-	dataConn->isFinished = TRUE;
+	cmn_mutex_lock(dataConn->mutexLock);
+	if(dataConn->status == DATA_CONN_STATUS_INIT || dataConn->status == DATA_CONN_STATUS_WAITING)
+	{/* called by Broker and Manager */
+		len = _dataConnIpCmdOutput(dataConn, msg, strlen(msg));
+	}
+	else
+	{
+		len = strlen(msg);
+	}
+	dataConn->status = DATA_CONN_STATUS_FINISHED;
+	cmn_mutex_unlock(dataConn->mutexLock);
 	
-TRACE();
+	
+	cmn_free(msg);
+	if(responseObj != dataConn->cmdObjs && responseObj != NULL)
+	{
+		cJSON_Delete(responseObj);
+	}
+	
 	return len;
 }
 
@@ -258,7 +256,7 @@ int cmnMuxDataConnRestOutput(struct DATA_CONN *dataConn)
 	int len = 0;
 
 	if(DATA_CONN_IS_IPCMD(dataConn) )
-	{
+	{/* ???, can not reply here */
 		DATA_CONN_ERR(dataConn, IPCMD_ERR_JSON_CORRUPTED, "Output interface of REST API can not be used by IP Command");
 		return -EXIT_FAILURE;
 	}
@@ -278,16 +276,29 @@ int cmnMuxDataConnRestOutput(struct DATA_CONN *dataConn)
 		cJSON_AddItemToObjectCS(resultObj, MUX_REST_STATUS_DEBUG, cJSON_CreateString(dataConn->detailedMsg) );
 		
 		msg = cJSON_PrintUnformatted(resultObj);
+
+		cJSON_Delete(resultObj);
 	}
+
+	cmn_mutex_lock(dataConn->mutexLock);
 
 	if(msg)
 	{
 		MUX_DEBUG("REST output :'%s'", msg);
-		len = _dataConnOutput(dataConn, msg, strlen(msg));
+		if(dataConn->status == DATA_CONN_STATUS_INIT || dataConn->status == DATA_CONN_STATUS_WAITING)
+		{/* called by Broker and Manager both */
+			len = _dataConnOutput(dataConn, msg, strlen(msg));
+		}
+		else
+		{
+			len = strlen(msg);
+		}
 		cmn_free(msg);
 	}
+	
 
-	dataConn->isFinished = TRUE;
+	dataConn->status = DATA_CONN_STATUS_FINISHED;
+	cmn_mutex_unlock(dataConn->mutexLock);
 	
 	return len;
 }
@@ -320,9 +331,17 @@ static int _ipCmdIsLocal(struct DATA_CONN *dataConn)
 		return EXIT_FAILURE;
 	}
 
+	if(MAC_ADDR_IS_BOARDCAST(&macAddress))
+	{
+		return EXIT_SUCCESS;
+	}
+
 	if(!MAC_ADDR_IS_EQUAL(&macAddress, &muxMain->runCfg.local.mac) )
 	{
 		DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s' : '%s' is not my MAC address", IPCMD_NAME_KEYWORD_TARG, target);
+		EXT_ERRORF("My MAC address:%02x:%02x:%02x:%02x:%02x:%02x", 
+			muxMain->runCfg.local.mac.address[0], muxMain->runCfg.local.mac.address[1], muxMain->runCfg.local.mac.address[2], 
+			muxMain->runCfg.local.mac.address[3], muxMain->runCfg.local.mac.address[4], muxMain->runCfg.local.mac.address[5]);
 		return EXIT_FAILURE;
 	}
 
@@ -396,23 +415,22 @@ static int _dataConnIpCmdAdapt(struct DATA_CONN *dataConn, cJSON *cmdObj)
 	{
 		dataConn->dataObj = _dataArrayObj;
 	}
-	
-	if(isGetParams == FALSE )
+
+	/* check even if get_params command is used */
+//	if(isGetParams == FALSE )
 	{
 		if( _ipCmdIsLocal(dataConn)== EXIT_FAILURE)
 		{
 			return EXIT_FAILURE;
 		}
 
-		if(dataConn->dataObj == NULL)
+		if(dataConn->dataObj == NULL && isGetParams == FALSE )
 		{
 			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "No validate data for IP Command '%s'", cmdName );
 			return EXIT_FAILURE;
 		}
 	}
 	
-//	cJSON_AddStringToObject(cJSON * const object, const char * const name, const char * const string);
-
 	return EXIT_SUCCESS;
 }
 
@@ -433,7 +451,6 @@ int cmnMuxDataConnIpCmdInput(struct DATA_CONN *dataConn)
 	
 	cmdBuffer = (CMN_IP_COMMAND *)dataConn->buffer;
 
-	TRACE();
 	cmdBuffer->length = ntohs(cmdBuffer->length);
 #if MUX_OPTIONS_DEBUG_IP_COMMAND			
 	MUX_DEBUG("received length: %d, length field: %d", dataConn->length, cmdBuffer->length);
@@ -451,7 +468,6 @@ int cmnMuxDataConnIpCmdInput(struct DATA_CONN *dataConn)
 		return EXIT_FAILURE;
 	}
 
-	TRACE();
 	crcReceived = *(unsigned int *)(dataConn->buffer + cmdBuffer->length /*-4*/);	/* the first 4 bytes are header of command, so here is the position of CRC */
 	crcDecoded = htonl(cmnMuxCRC32b(dataConn->buffer+4, cmdBuffer->length-4 /*-4*/));
 	if (crcReceived != crcDecoded)
@@ -460,7 +476,8 @@ int cmnMuxDataConnIpCmdInput(struct DATA_CONN *dataConn)
 		DATA_CONN_ERR(dataConn, IPCMD_ERR_CRC_FAIL,"CRC of command is wrong:received CRC: 0x%x, Decoded CRC:0x%x", crcReceived, crcDecoded) ;
 		return EXIT_FAILURE;
 	}
-#if MUX_OPTIONS_DEBUG_IP_COMMAND			
+	
+#if 0//MUX_OPTIONS_DEBUG_IP_COMMAND			
 	MUX_DEBUG( "received CRC: 0x%x, Decoded CRC:0x%x", crcReceived, crcDecoded);
 #endif
 
@@ -472,7 +489,6 @@ int cmnMuxDataConnIpCmdInput(struct DATA_CONN *dataConn)
 
 	dataConn->cmdObjs = reqObj;
 	
-	TRACE();
 	if(muxMain->isAuthen)
 	{
 		username = cmnGetStrFromJsonObject(reqObj, IPCMD_NAME_KEYWORD_LOGIN_ACK);
@@ -517,6 +533,7 @@ int cmnMuxDataConnRestInput(struct DATA_CONN *dataConn)
 	{
 		return EXIT_FAILURE;
 	}
+	dataConn->cmdObjs = reqObj;
 
 	if(muxMain->isAuthen)
 	{
@@ -567,7 +584,6 @@ int cmnMuxDataConnRestInput(struct DATA_CONN *dataConn)
 	{
 		dataConn->dataObj = _dataArrayObj;
 	}
-	dataConn->cmdObjs = reqObj;
 	return EXIT_SUCCESS;
 }
 

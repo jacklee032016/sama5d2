@@ -35,7 +35,7 @@
 
 
 #define	MUX_OPTIONS_DEBUG_CAPTURE			0
-#define	MUX_OPTIONS_DEBUG_IP_COMMAND		0
+#define	MUX_OPTIONS_DEBUG_IP_COMMAND		1
 
 #define	DEBUG_FFMPEG							0
 
@@ -493,9 +493,6 @@ typedef	struct CMN_FTP_CLIENT
 
 	void 		*priv;
 }CMN_FTP_CLIENT;
-
-
-int cmnMuxFtpAddEvent(char *server, 	char *username, char *password, char *path, cmn_list_t *list, void *dataConn);
 
 
 void cmnForkCommand(const char *cmd);

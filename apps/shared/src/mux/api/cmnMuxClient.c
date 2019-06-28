@@ -19,9 +19,6 @@
 
 #include "_cmnMux.h"
 
-/* some operation in player is slow, such as play or forward */
-//#define	CLIENT_TIMEOUT_SECONDS		15
-#define	CLIENT_TIMEOUT_SECONDS		30
 
 void cmnMuxClientConnDestroy(struct CLIENT_CONN *clientConn)
 {
@@ -29,7 +26,7 @@ void cmnMuxClientConnDestroy(struct CLIENT_CONN *clientConn)
 	cmn_free(clientConn);
 }
 
-struct CLIENT_CONN *cmnMuxClientConnCreate(CTRL_LINK_TYPE type, int port, char *address)
+struct CLIENT_CONN *cmnMuxClientConnCreate(CTRL_LINK_TYPE type, int port, char *address, int timeoutSecond)
 {
 	int res = EXIT_SUCCESS;
 	struct	CLIENT_CONN *clientConn = NULL;
@@ -63,7 +60,7 @@ struct CLIENT_CONN *cmnMuxClientConnCreate(CTRL_LINK_TYPE type, int port, char *
 	if(CLIENT_TYPE_IS_IPCMD(type) )
 	{
 		struct timeval timeout;      
-		timeout.tv_sec = CLIENT_TIMEOUT_SECONDS;
+		timeout.tv_sec = timeoutSecond;
 		timeout.tv_usec = 0;
 
 		if (setsockopt (sock, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)) < 0)
@@ -371,14 +368,14 @@ static int _getJSonHandlerFromFile(char *jsonFilename, cJSON **handler)
 }
 #endif
 
-int cmnMuxClientInit(int port, CTRL_LINK_TYPE type, char *serverAddress)
+int cmnMuxClientInit(int port, CTRL_LINK_TYPE type, char *serverAddress, int timeoutSecond)
 {
 	CLIENT_CTRL	*clientCtrl = &_clientCtrl;
 	struct CLIENT_CONN *clientConn;
 
 	memset(clientCtrl, 0, sizeof(CLIENT_CTRL));
 
-	clientConn = cmnMuxClientConnCreate(type, port, serverAddress);
+	clientConn = cmnMuxClientConnCreate(type, port, serverAddress, timeoutSecond);
 	if(clientConn == NULL)
 	{
 		MUX_ERROR("Connect to '%s:%d' failed", serverAddress, port);

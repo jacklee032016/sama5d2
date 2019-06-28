@@ -514,6 +514,7 @@ static int _cmnSysConfigCtrl(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 		_sendRsData(runCfg);
 	}
 
+	cmnSysJsonUpdate(runCfg->mMain);
 
 	return EXIT_SUCCESS;
 }

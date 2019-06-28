@@ -762,6 +762,7 @@ struct	CTRL_CONN
 
 	int						port;
 	CTRL_LINK_TYPE			type;
+	char						name[CMN_NAME_LENGTH];	/* add to simplify debugging */
 	
 	int						sockCtrl;
 
@@ -775,10 +776,19 @@ struct	CTRL_CONN
 
 	LIST_HEAD(D_CON_HEAD, DATA_CONN)	dataConns;	/* D_CON_HEAD is name of new struct, DATA_CONN is `struct DATA_CONN`; dataConns is field name in D_CON_HEAD */
 	int									connCount;
+	int									total;
 
 	CMN_MUX_BROKER 		*broker;
 };
 
+enum	DATA_CONN_STATUS
+{
+	DATA_CONN_STATUS_INIT = 0,			/* after created*/
+	DATA_CONN_STATUS_WAITING,		/* submit to manager, and waiting manager reply */
+	DATA_CONN_STATUS_CLOSING,		/* timeout or closed by peer, but has been submit to manager */
+	DATA_CONN_STATUS_FINISHED,		/* has been submit to manager, and reply data or abort reply by manager; then can be freee */
+	DATA_CONN_STATUS_UNKNOWN
+};
 
 /* one client connection in socket interface */
 struct	DATA_CONN
@@ -792,6 +802,7 @@ struct	DATA_CONN
 	struct sockaddr_in				peerAddr;	/* for UDP socket */
 	socklen_t						addrlen;
 
+	char							name[CMN_NAME_LENGTH];
 	char							cmd[CMN_NAME_LENGTH];
 	int							method;		
 
@@ -799,14 +810,14 @@ struct	DATA_CONN
 	int							length;
 	
 	cJSON						*cmdObjs;
-	cJSON						*dataObj;	/* refer to first item of DATA array in cmdObjs */
-	cJSON						*resultObject;
+	cJSON						*dataObj;	/* refer to first item of DATA array in cmdObjs; can be null when IP Cmd get_params */
+	cJSON						*resultObject;	/* refer to data obj in cmdObjs or particular obj in systemObject  */
 	
 	int							errCode;
 	char							detailedMsg[CMN_NAME_LENGTH];
 	cmn_mutex_t					*mutexLock;  /* lock between controller and other threads (plugins, FTP) */
 
-	int							isFinished;
+	int							status;
 
 	DataConnAuthen				handleAuthen;
 	DataConnInput				handleInput;
@@ -1034,6 +1045,9 @@ typedef	struct _MuxMain
 	char						unixPort[CMN_NAME_LENGTH];
 
 	int						isAuthen;
+
+	int						isClientPolling;		/* polling for SDP client in RX */
+	int						pollTime;			/* seconds */
 	
 //	CTRL_LINK_TYPE			ctrlProtocol;
 
@@ -1278,7 +1292,7 @@ int cmnMuxJsonReplyError( struct DATA_CONN *dataConn, const char *fmt, ... );
 cJSON *cmnMuxClientRequest(cJSON *ipCmd);
 
 extern	CmnThread  threadBroker;
-extern	CmnThread  threadController;
+extern	CmnThread  threadManager;
 extern	CmnThread  threadSdpClient;
 
 

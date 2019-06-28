@@ -290,11 +290,14 @@ int main(int argc, char **argv)
 
 //	usleep(10*1000);
 
-	res = muxMain->initThread(muxMain, &threadSdpClient, NULL);// muxMain->mediaCaptureConfig.usbHome);
-	if(res < 0 )
+	if(muxMain->isClientPolling && !EXT_IS_TX(muxMain->runCfg) )
 	{
-		MUX_ERROR("failed when '%s' initializing", threadSdpClient.name);
-		exit(1);
+		res = muxMain->initThread(muxMain, &threadSdpClient, muxMain);
+		if(res < 0 )
+		{
+			MUX_ERROR("failed when '%s' initializing", threadSdpClient.name);
+			exit(1);
+		}
 	}
 
 	res =  muxMain->initThread(muxMain, &threadBroker, muxMain);
@@ -304,11 +307,17 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	res =  muxMain->initThread(muxMain, &threadController, muxMain);
+	res =  muxMain->initThread(muxMain, &threadManager, muxMain);
 	if(res < 0)
 	{
-		MUX_ERROR("failed when '%s' initializing", threadController.name );
+		MUX_ERROR("failed when '%s' initializing", threadManager.name );
 		exit(1);
+	}
+
+	/* add polling timer */
+	if(muxMain->isClientPolling)
+	{
+	
 	}
 
 	muxThread = muxMain->threads;

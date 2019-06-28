@@ -1,5 +1,6 @@
 
-from termcolor import cprint
+# from termcolor import cprint
+from utils.termcolor import cprint
 
 def test_msg(msg):
     cprint(msg, None, attrs=['bold'])

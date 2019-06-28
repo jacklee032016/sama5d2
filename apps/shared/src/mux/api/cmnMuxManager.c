@@ -34,6 +34,10 @@ static int	_ctrlEventHandler(struct _CmnThread *th, void *_event)
 		return -EXIT_FAILURE;
 	}
 #endif
+
+	/*add free json_event*/
+	cmn_free(jsonEvent);
+
 	return res;
 }
 
@@ -55,7 +59,7 @@ static void _destoryCtrlThread(struct _CmnThread *th)
 }
 
 
-CmnThread  threadController =
+CmnThread  threadManager =
 {
 	name		:	"Manager",
 	flags			:	SET_BIT(1, CMN_THREAD_FLAG_WAIT),
@@ -69,7 +73,7 @@ CmnThread  threadController =
 
 
 
-int cmnMuxControllerAddEvent(char *cmd, 	int method, void *dataConn)
+int cmnMuxManagerAddEvent(char *cmd, 	int method, void *dataConn)
 {
 	CMN_JSON_EVENT *jsonEvent =(CMN_JSON_EVENT *)cmn_malloc(sizeof(CMN_JSON_EVENT));
 	if(jsonEvent == NULL )
@@ -83,7 +87,7 @@ int cmnMuxControllerAddEvent(char *cmd, 	int method, void *dataConn)
 	
 	jsonEvent->dataConn = (struct DATA_CONN *)dataConn;
 
-	return cmnThreadAddEvent(&threadController, jsonEvent);
+	return cmnThreadAddEvent(&threadManager, jsonEvent);
 }
 
 

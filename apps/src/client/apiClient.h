@@ -118,6 +118,7 @@ struct API_PARAMETERS
 	char 	address[CMN_NAME_LENGTH];
 	enum _PROTOCOL		protocol;
 	int		port;
+	int		timeoutSeconds;
 
 	char		cmd[CMN_NAME_LENGTH];
 	int		cmdType;
