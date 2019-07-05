@@ -534,3 +534,78 @@ char *cmnTimestampStr(void)
 }
 
 
+char cmnUtilsParseIp(char *strIpAddress, uint32_t  *ip)
+{
+//	*ip = ipaddr_addr(strIpAddress);
+	*ip = inet_addr(strIpAddress);	
+	
+	if(*ip == IPADDR_NONE)
+	{
+		printf("Token '%s' was not IP address.", strIpAddress);
+		return EXIT_FAILURE;
+	}
+	else
+	{
+		return EXIT_SUCCESS;
+	}
+}
+
+char cmnUtilsParseInt32(char *strValue, uint32_t  *value)
+{
+	uint32_t _val;
+	if (1 != sscanf(strValue, "%"PRIu32, value))
+//	if (1 != sscanf(strValue, "%"U32_F, &_val))
+	{
+		printf("Token '%s' was not an 32-bit int.", strValue );
+		*value = 0xFFFFFFFF;
+		return EXIT_FAILURE;
+	}
+	else
+	{
+		*value = _val;
+		return EXIT_SUCCESS;
+	}
+}
+
+char cmnUtilsParseInt16(char *strValue, uint16_t  *value)
+{
+	uint16_t _val;
+#ifdef	ARM
+	if (1 != sscanf(strValue, "%"PRIu16, &_val))
+#else
+	if (1 != sscanf(strValue, "%hu", &_val))
+#endif		
+	{
+		printf("Token '%s' was not an short int.", strValue);
+		*value = 0xFFFF;
+		return EXIT_FAILURE;
+	}
+	else
+	{
+		*value = _val;
+		return EXIT_SUCCESS;
+	}
+}
+
+char cmnUtilsParseInt8(char *strValue, uint8_t  *value)
+{
+	uint8_t _val;
+#ifdef	ARM
+	if (1 != sscanf(strValue, "%"PRIu8, &_val))
+#else
+	if (1 != sscanf(strValue, "%hhu", &_val))
+#endif		
+	{
+		printf("Token '%s' was not an 8-bit int.", strValue );
+		*value = 0xFF;
+		return EXIT_FAILURE;
+	}
+	else
+	{
+		*value = _val;
+		return EXIT_SUCCESS;
+	}
+}
+
+
+

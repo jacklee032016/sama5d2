@@ -225,6 +225,7 @@ void cmnSysCfgFromFactory( EXT_RUNTIME_CFG *cfg )
 	cfg->runtime.rtpTypeVideo = SDP_P_MEDIA_FORMAT_VIDEO;
 	cfg->runtime.rtpTypeAudio = SDP_P_MEDIA_FORMAT_AUDIO;
 	cfg->runtime.rtpTypeAnc = SDP_P_MEDIA_FORMAT_ANC;
+	cfg->runtime.vpid = SDP_P_MEDIA_VP_ID;
 	
 //	memcpy(&cfg->videoMacLocal, &cfg->macAddress, EXT_MAC_ADDRESS_LENGTH);
 //	cfg->videoIpLocal = cfg->ipAddress;

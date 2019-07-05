@@ -6,6 +6,7 @@
 				"product": "SdiOverIP-774",
 				"name": "774-TX01",
 				"ver": "01.01-001",
+				"isTx":1,
 
       			"ip": "192.168.168.181",
       			"mask": "255.255.255.0",
@@ -30,6 +31,7 @@
 					"fps": "59.94",
 					"colorSpace": "YCbCr-4:2:2",
 					"depth": 16,
+					"payloadType":96,
 					"intlce": 1
 				}
 			],
@@ -43,6 +45,7 @@
 					"sample": "48000",
 					"channels": 16,
 					"depth": 24,
+					"payloadType":97,
 					"pktSize": "1ms"
 				}
 			],
@@ -52,7 +55,9 @@
 				{
 					"ip": "239.0.0.101",
 					"port": 36020,
-					"sdp":"sdp"
+					"sdp":"sdp",
+					"payloadType":100,
+					"vpId":132
 				}
 			],
 

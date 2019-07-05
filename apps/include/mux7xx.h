@@ -203,8 +203,9 @@ typedef	struct _Rs232Ctrl
 
 #define	MUX_PCT2075_TOS_DEFAULT		0x5000
 
-#define	DEBUG_SYS_NET		EXT_DBG_ON
+#define	DEBUG_SYS_NET					EXT_DBG_ON
 
+#define	DEBUG_SYS_CTRL				EXT_DBG_ON
 
 #endif
 

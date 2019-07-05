@@ -139,6 +139,8 @@ static int _cmnSysJsonUpdateAnc(EXT_RUNTIME_CFG *runCfg, cJSON *obj)
 	CJSON_REPLACE_STRING(obj, FIELD_ANC_IP, cmnSysNetAddress(runCfg->dest.ancIp) );
 	CJSON_REPLACE_INTEGRE(obj, FIELD_ANC_PORT, runCfg->dest.dport );
 	CJSON_REPLACE_STRING(obj, FIELD_ANC_SDP, runCfg->sdpUriAnc.uri );
+	CJSON_REPLACE_INTEGRE(obj, FIELD_SDP_PAYLOAD_TYPE, runCfg->runtime.vpid );
+	CJSON_REPLACE_INTEGRE(obj, FIELD_ANC_VP_ID, runCfg->runtime.rtpTypeAnc );
 	
 	return EXIT_SUCCESS;
 }
@@ -157,6 +159,8 @@ static int _cmnSysJsonUpdateAudio(EXT_RUNTIME_CFG *runCfg, cJSON *obj)
 	CJSON_REPLACE_STRING(obj, FIELD_AUDIO_SAMPLE, CMN_FIND_A_RATE(runCfg->runtime.aSampleRate) );
 	CJSON_REPLACE_STRING(obj, FIELD_AUDIO_PKT_SIZE, CMN_FIND_A_PKTSIZE(runCfg->runtime.aPktSize) );
 
+	CJSON_REPLACE_INTEGRE(obj, FIELD_ANC_VP_ID, runCfg->runtime.rtpTypeAudio);
+	
 	return EXIT_SUCCESS;
 }
 
@@ -178,6 +182,7 @@ static int _cmnSysJsonUpdateVideo(EXT_RUNTIME_CFG *runCfg, cJSON *obj)
 	CJSON_REPLACE_INTEGRE(obj, FIELD_VIDEO_DEPTH, runCfg->runtime.vDepth);
 	CJSON_REPLACE_INTEGRE(obj, FIELD_VIDEO_INTERLACE, runCfg->runtime.vIsInterlaced );
 
+	CJSON_REPLACE_INTEGRE(obj, FIELD_ANC_VP_ID, runCfg->runtime.rtpTypeVideo);
 	return EXIT_SUCCESS;
 }
 
@@ -192,6 +197,7 @@ static int _cmnSysJsonUpdateSystem(EXT_RUNTIME_CFG *runCfg, cJSON *systemObj)
 	CJSON_REPLACE_STRING(systemObj, FIELD_SYS_CFG_MODEL, runCfg->model);
 	snprintf(macAddress, sizeof(macAddress), "%.2X.%.2X-%.3X",  runCfg->version.major, runCfg->version.minor, runCfg->version.revision);
 	CJSON_REPLACE_STRING(systemObj, FIELD_SYS_CFG_VERSION, macAddress);
+	CJSON_REPLACE_INTEGRE(systemObj, FIELD_SYS_CFG_IS_TX, (runCfg->isTx==0)?0:1 );
 
 	/* network */
 	newObj = cJSON_CreateString(cmnSysNetAddress(runCfg->local.ip) );
@@ -213,6 +219,9 @@ static int _cmnSysJsonUpdateSystem(EXT_RUNTIME_CFG *runCfg, cJSON *systemObj)
 	CJSON_REPLACE_INTEGRE(systemObj, FIELD_SYS_CFG_DIP, (runCfg->isDipOn==0)?0:1 );
 
 	/* reboot, reset, blinkLed are not needed to update*/	
+	CJSON_REPLACE_INTEGRE(systemObj, FIELD_SYS_CFG_RESET, (runCfg->runtime.reset==0)?0:1 );
+	CJSON_REPLACE_INTEGRE(systemObj, FIELD_SYS_CFG_REBOOT, (runCfg->runtime.reboot==0)?0:1 );
+	CJSON_REPLACE_INTEGRE(systemObj, FIELD_SYS_CFG_BLINK, (runCfg->runtime.blink==0)?0:1 );
 
 	return EXIT_SUCCESS;
 }

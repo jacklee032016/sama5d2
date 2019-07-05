@@ -103,7 +103,7 @@ static char _compareSystemCfg(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 	{
 		if(! MAC_ADDR_IS_EQUAL(&runCfg->local.mac, &rxCfg->local.mac) )
 		{
-			EXT_DEBUGF(EXT_DBG_ON, "MAC address is not same:%.2x:%.2x:%.2x:%.2x:%.2x:%.2x=%.2x:%.2x:%.2x:%.2x:%.2x:%.2x"EXT_NEW_LINE, 
+			EXT_DEBUGF(EXT_DBG_ON, "MAC address is not same:%.2x:%.2x:%.2x:%.2x:%.2x:%.2x!=%.2x:%.2x:%.2x:%.2x:%.2x:%.2x", 
 				runCfg->local.mac.address[0], runCfg->local.mac.address[1], runCfg->local.mac.address[2], 
 				runCfg->local.mac.address[3], runCfg->local.mac.address[4], runCfg->local.mac.address[5], 
 				rxCfg->local.mac.address[0], rxCfg->local.mac.address[1], rxCfg->local.mac.address[2],
@@ -346,54 +346,53 @@ char extSysCompareParams(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 
 	if(_compareSystemCfg(runCfg, rxCfg) == EXT_TRUE)
 	{
-		EXT_DEBUGF(EXT_DBG_OFF, "System params changing" );
+		EXT_DEBUGF(DEBUG_SYS_CTRL, "System params changing" );
 		SETUP_SET_TYPE(_SETUP_TYPE_SYSTEM);
 	}
 
 	if(_compareProtocolConfig(runCfg, rxCfg) == EXT_TRUE)
 	{
-		EXT_DEBUGF(EXT_DBG_OFF, "Protocol params changing" );
+		EXT_DEBUGF(DEBUG_SYS_CTRL, "Protocol params changing" );
 		SETUP_SET_TYPE(_SETUP_TYPE_PROTOCOL);
 	}
 	
 	if(_compareMediaCfg(runCfg, rxCfg) == EXT_TRUE)
 	{
-		EXT_DEBUGF(EXT_DBG_OFF, "Media params changing" );
+		EXT_DEBUGF(DEBUG_SYS_CTRL, "Media params changing" );
 		SETUP_SET_TYPE(_SETUP_TYPE_MEDIA);
 	}
 
 
 	if(_compareSdpConfig(runCfg, rxCfg) == EXT_TRUE)
 	{
-		EXT_DEBUGF(EXT_DBG_OFF, "SDP params changing" );
+		EXT_DEBUGF(DEBUG_SYS_CTRL, "SDP params changing" );
 		SETUP_SET_TYPE(_SETUP_TYPE_SDP);
 	}
 
 	if(_compareRs232Config(runCfg, rxCfg) == EXT_TRUE)
 	{
-		EXT_DEBUGF(EXT_DBG_OFF, "RS232 params changing" );
+		EXT_DEBUGF(DEBUG_SYS_CTRL, "RS232 params changing" );
 		SETUP_SET_TYPE(_SETUP_TYPE_RS232);
 	}
 
 	if(FIELD_IS_CHANGED_U8(rxCfg->runtime.blink) && (rxCfg->runtime.blink != runCfg->runtime.blink) ) 
 	{
-		 runCfg->runtime.blink = rxCfg->runtime.blink;
-
+		EXT_DEBUGF(DEBUG_SYS_CTRL, "POWER LED %s", (rxCfg->runtime.blink)?"Blink":"Off" );
+		runCfg->runtime.blink = rxCfg->runtime.blink;
 		cmnSysCtrlBlinkPowerLED(runCfg->runtime.blink);
-
 	}
 
 	if(FIELD_IS_CHANGED_U8(rxCfg->runtime.reset) && (rxCfg->runtime.reset != runCfg->runtime.reset) ) 
 	{
+		EXT_DEBUGF(DEBUG_SYS_CTRL, "Reset %d", rxCfg->runtime.reset);
 		runCfg->runtime.reset = rxCfg->runtime.reset;
-
 		cmnSysCtrlDelayReset(3000, &runCfg->runtime);
 	}
 
 	if(FIELD_IS_CHANGED_U8(rxCfg->runtime.reboot) && (rxCfg->runtime.reboot != runCfg->runtime.reboot) ) 
 	{
-		 runCfg->runtime.reboot = rxCfg->runtime.reboot;
-
+		EXT_DEBUGF(DEBUG_SYS_CTRL, "Reboot %d", rxCfg->runtime.reboot );
+		runCfg->runtime.reboot = rxCfg->runtime.reboot;
 		cmnSysCtrlDelayReboot(2800, &runCfg->runtime);
 	}
 
@@ -407,6 +406,8 @@ char extSysCompareParams(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 		printf(EXT_NEW_LINE"After configured, Runtime Configuration:"EXT_NEW_LINE);
 		cmnMuxCfgDebugData(runCfg);
 	}
+
+TRACE();	
 	return EXIT_SUCCESS;
 }
 

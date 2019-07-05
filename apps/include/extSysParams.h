@@ -150,7 +150,7 @@
 #if 1//EXTLAB_BOARD
 #define ETHERNET_CONF_IPADDR2_TX				168
 #define ETHERNET_CONF_IPADDR2_RX				168
-#define ETHERNET_CONF_IPADDR3_TX				64
+#define ETHERNET_CONF_IPADDR3_TX				101
 #else
 #define ETHERNET_CONF_IPADDR2_TX				169
 #define ETHERNET_CONF_IPADDR2_RX				169
@@ -201,7 +201,11 @@
 
 #define	EXT_HTTP_SVR_PORT						80
 
+#if ARCH_ARM
 #define	EXT_SDP_SVR_PORT						80
+#else
+#define	EXT_SDP_SVR_PORT						5000
+#endif
 
 #define	EXT_MEDIA_PORT_RANGE					10		/* range of RTP port */
 
@@ -422,7 +426,7 @@
 #define ANSI_COLOR_RESET			"\x1b[0m"	/* for all colors, other than red, this must be used. April,15,2018. JL*/
 
 
-#define	EXT_ERROR_TEXT_BEGIN			"\t\e[31m ERR:"
+#define	EXT_ERROR_TEXT_BEGIN			"\t\e[31m"
 #define	EXT_ERROR_TEXT_END			"\e[0m"
 
 
@@ -449,9 +453,9 @@
                              } while(0)
 
                              
-	#define	EXT_INFOF(format, message...)		{SYS_PRINT(ANSI_COLOR_CYAN "%s %s:[%s-%u]:" format ANSI_COLOR_RESET EXT_NEW_LINE, sysTimestamp(), sysTaskName(), __FILE__, __LINE__, ##message);}
+	#define	EXT_INFOF(format, message...)		{SYS_PRINT(ANSI_COLOR_CYAN "%s [INFO,%s]: [%s-%u]:" format ANSI_COLOR_RESET EXT_NEW_LINE, sysTimestamp(), sysTaskName(), __FILE__, __LINE__, ##message);}
 	
-	#define	EXT_ERRORF(format, message...)		{SYS_PRINT(EXT_ERROR_TEXT_BEGIN "%s %s: ERROR:[%s-%u]:" format EXT_ERROR_TEXT_END  EXT_NEW_LINE, sysTimestamp(), sysTaskName(), __FILE__, __LINE__, ##message);}
+	#define	EXT_ERRORF(format, message...)		{SYS_PRINT(EXT_ERROR_TEXT_BEGIN "%s [ERR, %s]: [%s-%u]:" format EXT_ERROR_TEXT_END  EXT_NEW_LINE, sysTimestamp(), sysTaskName(), __FILE__, __LINE__, ##message);}
 
 //	#define	EXT_ASSERT(x)						{printf("Assertion \"%s\" failed at line %d in %s\n", x, __LINE__, __FILE__); while(1);}
 	#define	EXT_ASSERT(x, format, msg...)		{if((x)==0) {SYS_PRINT(EXT_ERROR_TEXT_BEGIN"%s %s: ASSERT: [%s-%u]:" format EXT_ERROR_TEXT_END EXT_NEW_LINE, sysTimestamp(),  sysTaskName(), __FILE__, __LINE__ , ##msg);while(0){};}}
@@ -463,9 +467,9 @@
 
 	#define	EXT_DEBUGF(debug, format, message...)		{}
 
-	#define	EXT_INFOF(format, message...)				{SYS_PRINT(ANSI_COLOR_CYAN "%s "format ANSI_COLOR_RESET, sysTimestamp(), ##message );}
+	#define	EXT_INFOF(format, message...)				{SYS_PRINT(ANSI_COLOR_CYAN "%s [INFO, %s] "format ANSI_COLOR_RESET, sysTimestamp(), sysTaskName(), ##message );}
 
-	#define	EXT_ERRORF(format, message...)				{SYS_PRINT(ERROR_TEXT_BEGIN "%s "format ERROR_TEXT_END, sysTimestamp(), ##message);}
+	#define	EXT_ERRORF(format, message...)				{SYS_PRINT(EXT_ERROR_TEXT_BEGIN "%s [ERR, %s] "format ERROR_TEXT_END, sysTimestamp(), sysTaskName(), ##message);}
 	
 //	#define	EXT_ASSERT(x)				{while (1);}
 	#define	EXT_ASSERT(x, format, msg...)				{}
@@ -1402,6 +1406,7 @@ char extCmnVideoParamPopulate(EXT_RUNTIME_CFG *runCfg, uint8_t index);
 #define	SDP_P_MEDIA_FORMAT_AUDIO				97
 #define	SDP_P_MEDIA_FORMAT_ANC					100
 
+#define	SDP_P_MEDIA_VP_ID							132	/* video payload ID for ANC data packet */
 
 unsigned char rs232SendHexStr(char *str );
 

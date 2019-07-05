@@ -331,6 +331,7 @@ typedef	enum _CMD_TYPE
 #define	FIELD_SYS_CFG_PRODUCT					"product"
 #define	FIELD_SYS_CFG_NAME						"name"
 #define	FIELD_SYS_CFG_VERSION						"ver"
+#define	FIELD_SYS_CFG_IS_TX						"isTx"
 
 #define	FIELD_SYS_CFG_ADDRESS					"ip"
 #define	FIELD_SYS_CFG_NETMASK					"mask"
@@ -399,10 +400,11 @@ typedef	enum _CMD_TYPE
 #define	FIELD_AUDIO_DEPTH							"depth"
 #define	FIELD_AUDIO_PKT_SIZE						"pktSize"
 
-/* audio fields */
+/* ANC fields */
 #define	FIELD_ANC_IP								"ip"
 #define	FIELD_ANC_PORT								"port"
 #define	FIELD_ANC_SDP								"sdp"
+#define	FIELD_ANC_VP_ID							"vpId"	/* Video Payload ID (VPID) for ANC data packet. https://www.iana.org/assignments/media-types/video/smpte291 */
 
 /* SDP fields */
 #define	FIELD_SDP_MEDIA							"media"
@@ -410,6 +412,7 @@ typedef	enum _CMD_TYPE
 #define	FIELD_SDP_PORT								"port"
 #define	FIELD_SDP_URI								"uri"
 
+#define	FIELD_SDP_PAYLOAD_TYPE					"payloadType"
 
 /* RS232 fields */
 #define	FIELD_RS232_BAUDRATE						"baudrate"

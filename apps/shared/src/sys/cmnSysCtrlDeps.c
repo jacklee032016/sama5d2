@@ -47,6 +47,9 @@ int cmnSysCfgRead(EXT_RUNTIME_CFG *cfg, EXT_CFG_TYPE cfgType)
 	}
 
 	memcpy(cfg, data, (size>sizeof(EXT_RUNTIME_CFG))?sizeof(EXT_RUNTIME_CFG):size);
+	cfg->runtime.reset = 0;
+	cfg->runtime.reboot = 0;
+	cfg->runtime.blink = 0;
 	free(data);
 	
 	return EXIT_SUCCESS;
@@ -70,17 +73,8 @@ int cmnSysCfgSave( EXT_RUNTIME_CFG *cfg, EXT_CFG_TYPE cfgType )
 
 int	cmnSysCtrlBlinkPowerLED(char	isEnable)
 {
-#if 0//def	0
-	unsigned char		data = 0x01;
-	if(isEnable == 0)
-	{
-		data = 0;
-	}
+	cmnSysLedCtrl(LED_TYPE_POWER, (isEnable)?LED_MODE_BLINK:LED_MODE_OFF);
 
-	_extFpgaWriteByte(EXT_FPGA_REG_POWER_LED, &data);
-#else
-
-#endif
 	return EXIT_SUCCESS;
 }
 
@@ -93,6 +87,7 @@ static int _cmnSysJobDelay(const char *name, int delayMs, CMN_THREAD_TIMER_CALLB
 		EXT_ERRORF("Delay Job '%s' can not be created", name);
 		return EXIT_FAILURE;
 	}
+	EXT_DEBUGF(EXT_DBG_ON, "Delay Job '%s' has been created", name);
 
 	return EXIT_SUCCESS;
 }
@@ -116,10 +111,8 @@ void extCfgFactoryKeepMac( EXT_RUNTIME_CFG *cfg )
 	memcpy(&cfg->local.mac, &macAddress, sizeof(EXT_MAC_ADDRESS));
 	cfg->isMacConfiged = isMacConfiged;
 
-//	cmnSysCfgSave(cfg, EXT_CFG_MAIN);
-
+	cmnSysCfgSave(cfg, EXT_CFG_MAIN);
 }
-
 
 
 int cmnSysCtrlDelayReboot(unsigned short delayMs, void *data)

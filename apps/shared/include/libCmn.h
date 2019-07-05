@@ -207,7 +207,7 @@ typedef	enum _MUX_MEDIA_TYPE
 #define ANSI_COLOR_RESET			"\x1b[0m"
 
 
-#define	ERROR_TEXT_BEGIN			"\t\e[31m ERR:"
+#define	ERROR_TEXT_BEGIN			"\t\e[31m"
 #define	ERROR_TEXT_END			"\e[0m"
 
 

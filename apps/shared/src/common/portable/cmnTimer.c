@@ -4,6 +4,8 @@
 
 #include <cmnOsPort.h>
 
+#include "extSysParams.h"
+
 typedef	enum _timer_state
 {
 	CMN_TIMER_STATE_UNINIT = 0,
@@ -149,7 +151,7 @@ static void __timer_remove(cmn_timer_t *timers, cmn_timer_id_t *prev, cmn_timer_
 
 	-- timers->numOfTimers;
 
-	MUX_DEBUG( "Removed Timer %s:%p, num_timers = %d ", t->name, t, timers.numOfTimers );
+	MUX_DEBUG( "Removed Timer %s:%p, num_timers = %d ", t->name, t, timers->numOfTimers );
 
 	cmn_free(t);
 }
@@ -238,7 +240,11 @@ static void __threaded_timer_check(cmn_timer_t *timers)
 #else
 	for ( t = timers->timers; t; t = next )
 	{
+#if 0
 		ms = t->interval - CMN_TIMESLICE;
+#else
+		ms = t->interval;
+#endif
 		next = t->next;
 		
 		if ( (t->lastAlarm < now) && ((now - t->lastAlarm) > ms) )
@@ -252,14 +258,14 @@ static void __threaded_timer_check(cmn_timer_t *timers)
 				t->lastAlarm = now;
 			}
 
-			timers->timersChanged = EXT_FALSE;
+			timers->timersChanged = FALSE;
 			t->state = cmn_timer_id_state_servicing;
 
 
 			MUX_DEBUG("Executing timer %s(%p) ", t->name, t );
 			cmn_mutex_unlock(timers->mutex );
 
-			t->callback(t->param);
+			t->cb(t->interval, t->param);
 			
 			cmn_mutex_lock(timers->mutex);
 			
@@ -275,7 +281,11 @@ static void __threaded_timer_check(cmn_timer_t *timers)
 	for ( prev = NULL, t = timers->timers; t; t = next )
 	{
 		removed = 0;
+#if 0		
 		ms = t->interval - CMN_TIMESLICE;
+#else
+		ms = t->interval;
+#endif
 		next = t->next;
 
 		if( t->state == cmn_timer_id_state_wait_stop || 
@@ -287,9 +297,13 @@ static void __threaded_timer_check(cmn_timer_t *timers)
 		else if(t->state== cmn_timer_id_state_servicing)
 		{
 			t->state = cmn_timer_id_state_waiting;
+#if 0
 			t->interval = ROUND_RESOLUTION(ms);
-
+#else
+			t->interval = ms;
+#endif
 			MUX_DEBUG("Reload timer %s(%p) with interval of %d", t->name, t, t->interval);
+			EXT_ASSERT((t->interval > 0), "timer %s(%p) with interval of %d", t->name, t, t->interval);
 		}
 		
 		/* Don't update prev if the timer has disappeared */
@@ -314,7 +328,7 @@ static int __run_thread_timers(CmnThread *th)
 		if ( timers->state == CMN_TIMER_STATE_RUNNING)
 		{
 		//	MUX_DEBUG( "wakeup to check timers...");
-			__threaded_timer_check();
+			__threaded_timer_check(timers);
 		}
 		
 		cmn_delay(1);
@@ -442,7 +456,7 @@ int cmn_remove_timer(void *_tid)
 void sys_timer_stop(void *td)
 {
 	cmn_timer_id_t *t, *prev = NULL;
-	int removed = EXT_FALSE;
+//	int removed = FALSE;
 	
 	cmn_timer_id_t *id = (cmn_timer_id_t *)td;
 	if(id == NULL)
@@ -450,7 +464,7 @@ void sys_timer_stop(void *td)
 		return;
 	}
 
-	cmn_mutex_lock(&_timers.mutex);
+	cmn_mutex_lock(_timers.mutex);
 	/* Look for id in the linked list of timers */
 	for (t = _timers.timers; t; prev=t, t = t->next )
 	{
@@ -459,7 +473,7 @@ void sys_timer_stop(void *td)
 			if(t->state == cmn_timer_id_state_servicing)
 			{/* if this timer is working now, it must be waiting and removed(freed) in timer thread */
 				t->state = cmn_timer_id_state_wait_stop;
-				_timers.timersChanged = EXT_TRUE;
+				_timers.timersChanged = TRUE;
 				break;
 			}
 
@@ -480,13 +494,13 @@ void sys_timer_stop(void *td)
 #else
 			__timer_remove(&_timers, prev, t);
 #endif
-			removed = EXT_TRUE;
-			_timers.timersChanged = EXT_TRUE;
+//			removed = TRUE;
+			_timers.timersChanged = TRUE;
 			break;
 		}
 	}
 
-	cmn_mutex_unlock(&_timers.mutex);
+	cmn_mutex_unlock(_timers.mutex);
 	return;
 }
 

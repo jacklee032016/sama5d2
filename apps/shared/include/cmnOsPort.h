@@ -93,6 +93,11 @@ void min_timercmp (struct timeval *tv1, struct timeval *tv2);
 
 void cmn_usleep (int useconds);
 
+#ifndef	IPADDR_NONE
+#define IPADDR_NONE         ((uint32_t)0xffffffffUL)
+#endif
+
+
 #ifdef __cplusplus
 }
 #endif

@@ -195,7 +195,7 @@ TYPE_NAME_T cmnMuxPluginTypes[] =
 		.value = NULL,
 	},
 	{
-		.type = MUX_PLUGIN_TYPE_UNKNOWN,
+		.type = -1,
 		.name = NULL,	
 		.value = NULL,
 	}
@@ -229,7 +229,8 @@ TYPE_NAME_T cmnMuxRequestMethods[] =
 		.value = NULL,
 	},
 	{
-		.type = CMN_JSON_METHOD_INVALIDATE,
+//		.type = CMN_JSON_METHOD_INVALIDATE,
+		.type = -1,
 		.name = NULL,	
 		.value = NULL,
 	}
@@ -254,7 +255,7 @@ const	TYPE_NAME_T	_ipcmdStringRsParities[] =
 		value : NULL,
 	},
 	{
-		type	: EXT_INVALIDATE_STRING_TYPE,
+		type	: -1,
 		name : NULL,
 		value : NULL,
 	}
@@ -280,7 +281,7 @@ const	TYPE_NAME_T	_ipcmdStringRsStopbits[] =
 	},
 #endif	
 	{
-		type	: EXT_INVALIDATE_STRING_TYPE,
+		type	: -1,
 		name : NULL,
 		value : NULL,
 	}
@@ -305,7 +306,7 @@ const	TYPE_NAME_T	_videoFormats[] =
 		value : NULL,
 	},
 	{
-		type	: EXT_INVALIDATE_STRING_TYPE,
+		type	: -1,
 		name	: NULL,
 		value : NULL,
 	}
@@ -365,7 +366,7 @@ const	TYPE_NAME_T	_videoColorSpaces[] =
 	},
 #endif		
 	{
-		type	: EXT_INVALIDATE_STRING_TYPE,
+		type	: -1,
 		name	: NULL,
 		value : NULL,
 	}
@@ -421,7 +422,7 @@ const	TYPE_NAME_T	_videoFramerates[] =
 	},
 	
 	{
-		type	: EXT_INVALIDATE_STRING_TYPE,
+		type	: -1,
 		name	: NULL,
 		value : NULL,
 	}
@@ -478,7 +479,7 @@ const	TYPE_NAME_T	_videoFps4Rest[] =
 	},
 	
 	{
-		type	: EXT_INVALIDATE_STRING_TYPE,
+		type	: -1,
 		name	: NULL,
 		value : NULL,
 	}
@@ -498,7 +499,7 @@ const	TYPE_NAME_T	_audioPktSizes[] =
 		value : NULL,
 	},
 	{
-		type	: EXT_INVALIDATE_STRING_TYPE,
+		type	: -1,
 		name	: NULL,
 		value : NULL,
 	}
@@ -523,7 +524,7 @@ const	TYPE_NAME_T	_audioRates[] =
 		value : NULL,
 	},
 	{
-		type	: EXT_INVALIDATE_STRING_TYPE,
+		type	: -1,
 		name	: NULL,
 		value : NULL,
 	}
@@ -579,7 +580,7 @@ const TYPE_NAME_T _strTypes[] =
 	},
 
 	{
-		type	: EXT_INVALIDATE_STRING_TYPE,
+		type	: -1,
 		name	: NULL,
 		value : NULL,
 	}
@@ -665,7 +666,7 @@ int	cmnMuxTypeFindType(const TYPE_NAME_T *types, char *name)
 {
 	const TYPE_NAME_T *tmp = types;
 
-	while(tmp->type != -1 || tmp->name != NULL ) 
+	while(tmp->type != -1 && tmp->name != NULL ) 
 	{
 		//if( !strcasecmp(tmp->name, name) )
 		if( strcasestr(tmp->name, name) )
@@ -686,7 +687,7 @@ char *cmnMuxTypeFindName(const TYPE_NAME_T *types, int type)
 {
 	const TYPE_NAME_T *tmp = types;
 
-	while(tmp->type != -1 || tmp->name != NULL ) 
+	while(tmp->type != -1 && tmp->name != NULL ) 
 	{
 		if( tmp->type == type )
 		{		
