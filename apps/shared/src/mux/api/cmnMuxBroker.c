@@ -6,51 +6,8 @@
 *   3. or send to commands to correspoding threads, such as Play/Stop
 */
 
-/* for timer fd */
-#define _GNU_SOURCE
-#include <sys/syscall.h>
-#include <sys/types.h>
-#include <sys/signal.h>
-#include <sys/time.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <signal.h>
+#define _GNU_SOURCE         /* See feature_test_macros(7) */
 #include <poll.h>
-#include <fcntl.h>
-#include <time.h>
-#include <errno.h>
-
-/* Definitions from include/linux/timerfd.h */
-#define TFD_TIMER_ABSTIME	(1 << 0)
-
-//#define	EXT_CLOCK_ID				CLOCK_MONOTONIC
-#define	EXT_CLOCK_ID				CLOCK_REALTIME
-
-
-
-int timerfd_create(int clockid, int flags)
-{
-	return syscall(__NR_timerfd_create, clockid, flags);
-}
-
-int timerfd_settime(int ufc, int flags, const struct itimerspec *utmr, struct itimerspec *otmr)
-{
-	return syscall(__NR_timerfd_settime, ufc, flags, utmr, otmr);
-}
-
-int timerfd_gettime(int ufc, struct itimerspec *otmr)
-{
-	return syscall(__NR_timerfd_gettime, ufc, otmr);
-}
-
-void set_timespec(struct timespec *tmr, unsigned long long ustime)
-{
-	tmr->tv_sec = (time_t) (ustime / 1000000ULL);
-	tmr->tv_nsec = (long) (1000ULL * (ustime % 1000000ULL));
-}
-
 
 #include <stdio.h>
 #include <unistd.h>
@@ -66,22 +23,6 @@ void set_timespec(struct timespec *tmr, unsigned long long ustime)
 #include "_cmnMux.h"
 
 
-int extSetTimer(int fd, long mstime)
-{
-	struct itimerspec tmr;
-	
-	set_timespec(&tmr.it_value, mstime*1000); /* ustime*/
-	set_timespec(&tmr.it_interval, 0);
-
-	if (timerfd_settime(fd, 0, &tmr, NULL))
-	{
-		EXT_ERRORF("timerfd_settime to %ld ms on fd %d: %m", mstime, fd);
-		return EXIT_FAILURE;
-	}
-
-	return EXIT_SUCCESS;
-}
-	
 /*#define	BROKER_ADD_CTRL_CONN(broker, ctrlConn) \
 //	{ if((ctrlConn)==NULL){exit(1);} (ctrlConn)->broker =(broker); if((broker)->ctrlConns==NULL) {(broker)->ctrlConns=(ctrlConn);} \
 //	else{(ctrlConn)->next=(broker)->ctrlConns; (broker)->ctrlConns = (ctrlConn);} }
@@ -533,7 +474,7 @@ static int _cmnMuxBrokerReceive(CMN_MUX_BROKER *broker)
 			}
 			
 			/* timer */
-			extSetTimer(dataConn->timeFd, TIMER_FD_TIMEOUT);
+			timerfd_set_time(dataConn->timeFd, TIMER_FD_TIMEOUT);
 			pfd->fd = dataConn->timeFd;
 			pfd->events = POLLIN;
 			pfd++;
@@ -780,7 +721,7 @@ static void _destoryBrokerThread(struct _CmnThread *th)
 
 CmnThread  threadBroker =
 {
-	name		:	"Broker",
+	name		:	CMN_THREAD_NAME_COMM,
 	init			:	_initBrokerThread,
 	mainLoop		:	_muxBrokerMainLoop,
 	eventHandler	:	NULL,

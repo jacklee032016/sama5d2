@@ -342,12 +342,12 @@ static int __run_thread_timers(CmnThread *th)
 
 
 /* This is only called if the event thread is not running */
-static int _sys_timer_init(void)
+static int _sys_timer_init(char *name)
 {
 #if 0
 	if( pthread_create(&_timers.tId, NULL, __run_thread_timers, NULL ) != 0)
 #else
-	_timers.tId = cmnThreadCreateThread(__run_thread_timers, &_timers, "CmnTimer");
+	_timers.tId = cmnThreadCreateThread(__run_thread_timers, &_timers, name);
 	if(!_timers.tId )
 #endif
 	{
@@ -561,7 +561,7 @@ int cmn_set_timer(int ms, CMN_ALARM_TIMER_CALLBACK callback)
 }
 
 
-int cmn_timer_init(void)
+int cmn_timer_init(char *name)
 {
 	int ret1 = 0, ret2 = 0;
 
@@ -576,7 +576,7 @@ int cmn_timer_init(void)
 	gettimeofday(&_timers.startTimeStamp, NULL);
 	_timers.state = CMN_TIMER_STATE_INITED;
 
-	ret1 = _sys_timer_init();
+	ret1 = _sys_timer_init(name);
 	ret2 = _sys_timer_init_alarm();
 	if(ret1 <0 || ret2 < 0)
 		return EXIT_FAILURE;

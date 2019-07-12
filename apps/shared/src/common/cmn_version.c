@@ -107,7 +107,7 @@ int	cmnLibInit(int	options)
 #if CMN_TIMER_DEBUG
 	fprintf(stderr,"Timer inited");
 #endif
-	res = cmn_timer_init();
+	res = cmn_timer_init("CmnTimer");
 	if(res != EXIT_SUCCESS)
 	{
 		MUX_ERROR("timer initialization failed");

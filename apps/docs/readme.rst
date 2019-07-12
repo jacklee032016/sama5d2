@@ -3,6 +3,10 @@ readme for Application in Mux7XX
 Jack Lee, April 3rd, 2019
 
 
+
+ps -eL: display thread name in x86
+ps -T: display thread name in ARM
+
 Installation
 =====================
 ::

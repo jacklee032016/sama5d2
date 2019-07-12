@@ -74,6 +74,8 @@ class VideoSdp(SdpResource):
 
     def mediaInfo(self, *args, **kwargs):
         medias = Video(**kwargs).get(*args, **kwargs)
+        if medias is None:
+            return ''
         """ when something is wrong, only json object with status is returned cmdIf interface """
         if "status" in medias: # when connection broken, the return is dict
             self.error = 1
@@ -176,6 +178,8 @@ class AncSdp(SdpResource):
     def mediaInfo(self, *args, **kwargs):
         medias = Anc(**kwargs).get(*args, **kwargs)
         """ when something is wrong, only json object with status is returned cmdIf interface """
+        if medias is None:
+            return ''
         if "status" in medias: #["ip"] is None:
             self.error = 1
             return  #'{"status": 500, "detail": "Media parameter (ANC) is not array"}'  

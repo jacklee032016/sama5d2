@@ -63,7 +63,11 @@ int cmnMuxObjectParseOthers(struct DATA_CONN *dataConn, cJSON *dataObj);
 
 
 void cmnMuxCfgDebugData(EXT_RUNTIME_CFG *cfg);
-int cmnMuxSystemConfig(MuxMain *muxMain);
+int cmnMuxSystemConfig(EXT_RUNTIME_CFG *runCfg, 	EXT_RUNTIME_CFG	 *rxCfg);
+
+
+#define	MAIN_SYS_CONFIG(muxMain)		\
+			cmnMuxSystemConfig(&(muxMain)->runCfg, &(muxMain)->rxCfg);
 
 
 #define	MUX_DEBUG_BROKER			EXT_DBG_ON

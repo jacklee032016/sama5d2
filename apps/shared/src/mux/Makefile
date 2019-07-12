@@ -20,7 +20,10 @@ endif
 
 
 MUX_SRC += \
-		cmnMuxSdpThread.c \
+		sdpMain.c \
+		sdpReceiver.c \
+		sdpFsm.c \
+		sdpParse.c \
 		cmnMuxUtils.c \
 		cmnMuxMainConfig.c	\
 		cmnMuxSaveConfig.c \

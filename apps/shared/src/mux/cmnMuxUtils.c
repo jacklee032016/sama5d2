@@ -166,6 +166,79 @@ typedef	struct	_CfgTypes
 	char		*name;
 }CfgType;
 
+const TYPE_NAME_T _sdpcStateTypes[] =
+{
+	{
+		.type = SDPC_STATE_WAIT,
+		.name = "WAIT",	
+		.value = NULL,
+	},
+	{
+		.type = SDPC_STATE_CONNECTED,
+		.name = "CONNECTED",	
+		.value = NULL,
+	},
+	{
+		.type = SDPC_STATE_DATA,
+		.name = "DATA",	
+		.value = NULL,
+	},
+	{
+		.type = SDPC_STATE_ERROR,
+		.name = "ERROR",	
+		.value = NULL,
+	},
+	{
+		.type = -1,
+		.name = NULL,	
+		.value = NULL,
+	}
+};
+
+const TYPE_NAME_T _sdpcEventTypes[] =
+{
+	{
+		.type = SDPC_EVENT_NEW,
+		.name = "New",	
+		.value = NULL,
+	},
+	{
+		.type = SDPC_EVENT_CONNECTED,
+		.name = "Connected",	
+		.value = NULL,
+	},
+	{
+		.type = SDPC_EVENT_RECV,
+		.name = "Recv",	
+		.value = NULL,
+	},
+	{
+		.type = SDPC_EVENT_SENT,
+		.name = "Sent",	
+		.value = NULL,
+	},
+	{
+		.type = SDPC_EVENT_CLOSE,
+		.name = "Closed",	
+		.value = NULL,
+	},
+	{
+		.type = SDPC_EVENT_TIMEOUT,
+		.name = "Timeout",	
+		.value = NULL,
+	},
+	{
+		.type = SDPC_EVENT_ERROR,
+		.name = "Error",	
+		.value = NULL,
+	},
+	{
+		.type = -1,
+		.name = NULL,	
+		.value = NULL,
+	}
+};
+
 
 TYPE_NAME_T cmnMuxPluginTypes[] =
 {

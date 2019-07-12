@@ -7,51 +7,7 @@
 #include "_cmnMux.h"
 #include "libCmnSys.h"
 
-#include <string.h>
-
 #include "_sdp.h"
-
-#if 0
-char *strnstr(const char *haystack, const char *needle, size_t len)
-{
-        int i;
-        size_t needle_len;
-
-        if (0 == (needle_len = strnlen(needle, len)))
-                return (char *)haystack;
-
-        for (i=0; i<=(int)(len-needle_len); i++)
-        {
-                if ((haystack[0] == needle[0]) &&
-                        (0 == strncmp(haystack, needle, needle_len)))
-                        return (char *)haystack;
-
-                haystack++;
-        }
-        return NULL;
-}
-#else
-char	*strnstr(const char* buffer, const char* token, size_t n)
-{
-	const char* p;
-	size_t tokenlen = strlen(token);
-	if (tokenlen == 0)
-	{
-		return (char *)buffer;
-	}
-	
-	for (p = buffer; *p && (p + tokenlen <= buffer + n); p++)
-	{
-//		if ((*p == *token) && (qqstrncmp(p, token, tokenlen) == 0))
-		if ((*p == *token) && (strncasecmp(p, token, tokenlen) == 0))
-		{
-			return (char *)p;
-		}
-	}
-	return NULL;
-}
-
-#endif
 
 
 /* first field for this media stream */
@@ -121,8 +77,7 @@ static int _sdpParseIp(char *data, uint32_t size, uint32_t *ip)
 }
 
 
-
-static int _sdpParseAudioStream(struct SDP_CLIENT_CTX *sdpCtx, EXT_RUNTIME_CFG	*rxCfg, char *data, uint32_t size)
+static int _sdpParseAudioStream(struct SDP_CLIENT *sdpClient, EXT_RUNTIME_CFG *rxCfg, char *data, uint32_t size)
 {
 	uint32_t  index = 0;
 	uint16_t _shVal;
@@ -372,7 +327,7 @@ static uint32_t __parseSdpKeyValue(EXT_RUNTIME_CFG *rxCfg, char *data, uint32_t 
 	return size - left;
 }
 
-static int _sdpParseVideoStream(struct SDP_CLIENT_CTX *sdpCtx, EXT_RUNTIME_CFG	*rxCfg, char *data, uint32_t size)
+static int _sdpParseVideoStream(struct SDP_CLIENT *sdpClient, EXT_RUNTIME_CFG	*rxCfg, char *data, uint32_t size)
 {
 	uint16_t  index = 0;
 	uint16_t length = 0, left;
@@ -381,7 +336,7 @@ static int _sdpParseVideoStream(struct SDP_CLIENT_CTX *sdpCtx, EXT_RUNTIME_CFG	*
 	p = strnstr(data+index, SDP_MEDIA_FORMAP_PARAMS, size - index);
 	if(p== NULL)
 	{
-		EXT_ERRORF("Invalidate format for SDP stream");
+		SDPC_MSG(sdpClient, "Invalidate format for SDP stream");
 		return EXIT_FAILURE;
 	}
 
@@ -389,7 +344,7 @@ static int _sdpParseVideoStream(struct SDP_CLIENT_CTX *sdpCtx, EXT_RUNTIME_CFG	*
 	
 	if(cmnUtilsParseInt8(p, &rxCfg->runtime.rtpTypeVideo) == EXIT_FAILURE)
 	{
-		EXT_ERRORF("No rtpmap for SDP video stream: '%s'", p);
+		SDPC_MSG(sdpClient, "No rtpmap for SDP video stream: '%s'", p);
 		rxCfg->runtime.rtpTypeVideo = SDP_P_MEDIA_FORMAT_VIDEO;
 		return EXIT_FAILURE;
 	}
@@ -448,19 +403,19 @@ static int _sdpParseVideoStream(struct SDP_CLIENT_CTX *sdpCtx, EXT_RUNTIME_CFG	*
 }
 
 
-static int _sdpParseAncStream(struct SDP_CLIENT_CTX *sdpCtx, EXT_RUNTIME_CFG	*rxCfg, char *data, uint32_t size)
+static int _sdpParseAncStream(struct SDP_CLIENT *sdpClient, EXT_RUNTIME_CFG	*rxCfg, char *data, uint32_t size)
 {
 	char *p;
 	
 	p = strnstr(data, SDP_2110_ANC_VPID_CODE, size );
 	if(p== NULL)
 	{
-		EXT_ERRORF("Invalidate format '"SDP_2110_ANC_VPID_CODE"' for SDP ANC stream");
+		SDPC_MSG(sdpClient, "Invalidate format '"SDP_2110_ANC_VPID_CODE"' for SDP ANC stream");
 		return EXIT_FAILURE;
 	}
 	if(cmnUtilsParseInt8(p+ strlen(SDP_2110_ANC_VPID_CODE)+1, &rxCfg->runtime.vpid) == EXIT_FAILURE)
 	{
-		EXT_ERRORF("No VPID_CODE for SDP audio stream");
+		SDPC_MSG(sdpClient, "No VPID_CODE for SDP audio stream");
 		rxCfg->runtime.vpid = SDP_P_MEDIA_VP_ID;
 		return EXIT_FAILURE;
 	}
@@ -476,17 +431,17 @@ static int _sdpParseAncStream(struct SDP_CLIENT_CTX *sdpCtx, EXT_RUNTIME_CFG	*rx
 }
 
 
-int sdpResponseParse(struct SDP_REQ *req)
+int sdpResponseParse(struct SDP_CLIENT *sdpClient)
 {
 #define	_SDP_TYPE_UNKNOWN		0
 #define	_SDP_TYPE_VIDEO			1
 #define	_SDP_TYPE_AUDIO			2
 #define	_SDP_TYPE_ANC				3
 
-	char *data = req->buffer;
-	uint32_t size = req->length;
-	struct SDP_CLIENT_CTX *sdpCtx = req->sdpCtx;
-	EXT_RUNTIME_CFG	*rxCfg = &req->sdpCtx->muxMain->rxCfg;
+	char *data = sdpClient->data;
+	uint32_t size = sdpClient->contentLength;
+//	struct SDP_CLIENT_CTX *sdpCtx = sdpClient->sdpCtx;
+	EXT_RUNTIME_CFG	*rxCfg = &sdpClient->sdpCtx->rxCfg;
 
 	int index = 0;
 	uint16_t 	port;
@@ -494,6 +449,10 @@ int sdpResponseParse(struct SDP_REQ *req)
 	char type = _SDP_TYPE_UNKNOWN;
 	int err = EXIT_SUCCESS;
 	char* p;
+
+	SDPC_DEBUG_MSG(sdpClient, "parsing %d byte SDP data "EXT_NEW_LINE"'%.*s'", size, size, data);
+	
+	extSysClearConfig(rxCfg);
 	
 	index = _sdpParsePort(data, size, SDP_MEDIA_VIDEO, &port);
 	if(index == 0 || port == -1)
@@ -516,14 +475,14 @@ int sdpResponseParse(struct SDP_REQ *req)
 	
 	if(type == _SDP_TYPE_UNKNOWN )
 	{
-		SDP_ERR_MSG(sdpCtx, "SDPC: No media stream is found %s", "");
+		SDPC_MSG(sdpClient, "SDPC %s#%d: No media stream is found", (sdpClient)->name,  (sdpClient)->reqs);
 		return EXIT_FAILURE;
 	}
 
 	index += _sdpParseIp(data+index, size-index, &ip);
 	if(ip == IPADDR_NONE)
 	{
-		SDP_ERR_MSG(sdpCtx, "SDPC: No IP address for SDP %s stream", (type==_SDP_TYPE_AUDIO)?"audio":"video");
+		SDPC_MSG(sdpClient, "SDPC %s#%d: No IP address for SDP %s stream", (sdpClient)->name,  (sdpClient)->reqs, (type==_SDP_TYPE_AUDIO)?"audio":"video");
 		return EXIT_FAILURE;
 	}
 
@@ -531,19 +490,19 @@ int sdpResponseParse(struct SDP_REQ *req)
 	{
 		rxCfg->dest.audioIp = ip;
 		rxCfg->dest.aport = port;
-		err = _sdpParseAudioStream(sdpCtx, rxCfg, data+index, size-index);
+		err = _sdpParseAudioStream(sdpClient, rxCfg, data+index, size-index);
 	}
 	else if(type == _SDP_TYPE_VIDEO)
 	{
 		rxCfg->dest.ip = ip;
 		rxCfg->dest.vport = port;
-		err = _sdpParseVideoStream(sdpCtx, rxCfg, data+index, size-index);
+		err = _sdpParseVideoStream(sdpClient, rxCfg, data+index, size-index);
 	}
 	else
 	{
 		rxCfg->dest.ancIp = ip;
 		rxCfg->dest.dport = port;
-		err = _sdpParseAncStream(sdpCtx, rxCfg, data+index, size-index);
+		err = _sdpParseAncStream(sdpClient, rxCfg, data+index, size-index);
 	}
 
 	return err;

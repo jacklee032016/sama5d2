@@ -231,56 +231,56 @@ int cmnSysJsonUpdate(MuxMain *muxMain)
 {
 	cJSON *itemObj = NULL;
 	
-	itemObj = cmnJsobSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_SYSTEM, INVALIDATE_VALUE_U32);
+	itemObj = cmnJsonSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_SYSTEM, INVALIDATE_VALUE_U32);
 	if(_cmnSysJsonUpdateSystem(&muxMain->runCfg, itemObj))
 	{
 		MUX_ERROR("Update '%s' JSON failed", MUX_REST_URI_SYSTEM);
 	}
 
 
-	itemObj = cmnJsobSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_VIDEO, INVALIDATE_VALUE_U32);
+	itemObj = cmnJsonSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_VIDEO, INVALIDATE_VALUE_U32);
 	if(_cmnSysJsonUpdateVideo(&muxMain->runCfg, itemObj))
 	{
 		MUX_ERROR("Update '%s' JSON failed", MUX_REST_URI_VIDEO);
 	}
 
-	itemObj = cmnJsobSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_AUDIO, INVALIDATE_VALUE_U32);
+	itemObj = cmnJsonSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_AUDIO, INVALIDATE_VALUE_U32);
 	if(_cmnSysJsonUpdateAudio(&muxMain->runCfg, itemObj))
 	{
 		MUX_ERROR("Update '%s' JSON failed", MUX_REST_URI_AUDIO);
 	}
 
-	itemObj = cmnJsobSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_ANC, INVALIDATE_VALUE_U32);
+	itemObj = cmnJsonSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_ANC, INVALIDATE_VALUE_U32);
 	if(_cmnSysJsonUpdateAnc(&muxMain->runCfg, itemObj))
 	{
 		MUX_ERROR("Update '%s' JSON failed", MUX_REST_URI_ANC);
 	}
 	
-	itemObj = cmnJsobSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_SDP, INVALIDATE_VALUE_U32);
+	itemObj = cmnJsonSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_SDP, INVALIDATE_VALUE_U32);
 	if(_cmnSysJsonUpdateSdp(&muxMain->runCfg, itemObj))
 	{
 		MUX_ERROR("Update '%s' JSON failed", MUX_REST_URI_SDP);
 	}
 
-	itemObj = cmnJsobSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_RS232, INVALIDATE_VALUE_U32);
+	itemObj = cmnJsonSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_RS232, INVALIDATE_VALUE_U32);
 	if(_cmnSysJsonUpdateRs232(&muxMain->runCfg, itemObj))
 	{
 		MUX_ERROR("Update '%s' JSON failed", MUX_REST_URI_RS232);
 	}
 
-	itemObj = cmnJsobSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_SECURITY, INVALIDATE_VALUE_U32);
+	itemObj = cmnJsonSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_SECURITY, INVALIDATE_VALUE_U32);
 	if(_cmnSysJsonUpdateSecurity(&muxMain->runCfg, itemObj))
 	{
 		MUX_ERROR("Update '%s' JSON failed", MUX_REST_URI_SECURITY);
 	}
 
-	itemObj = cmnJsobSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_IR, INVALIDATE_VALUE_U32);
+	itemObj = cmnJsonSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_IR, INVALIDATE_VALUE_U32);
 	if(_cmnSysJsonUpdateIR(&muxMain->runCfg, itemObj))
 	{
 		MUX_ERROR("Update '%s' JSON failed", MUX_REST_URI_IR);
 	}
 
-	itemObj = cmnJsobSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_OTHERS, INVALIDATE_VALUE_U32);
+	itemObj = cmnJsonSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_OTHERS, INVALIDATE_VALUE_U32);
 	if(_cmnSysJsonUpdateOthers(&muxMain->runCfg, itemObj))
 	{
 		MUX_ERROR("Update '%s' JSON failed", MUX_REST_URI_OTHERS);

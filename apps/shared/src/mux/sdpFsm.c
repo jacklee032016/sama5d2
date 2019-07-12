@@ -1,623 +1,317 @@
 
-static unsigned char _hcEventNewReq(void *arg)
+#include "libCmn.h"
+#include "libMux.h"
+
+#include <sys/stat.h>
+
+#include "_cmnMux.h"
+#include "libCmnSys.h"
+
+#include <string.h>
+
+#include "_sdp.h"
+
+#define	_SFM_DEBUG(sdpClient)	\
+	EXT_DEBUGF(SDP_CLIENT_DEBUG, "%s#%d process %s event in state of %s'", (sdpClient)->name,  (sdpClient)->reqs, CMN_FIND_SDPC_EVENT( (sdpClient)->event), CMN_FIND_SDPC_STATE( (sdpClient)->state) )
+
+
+static int _sdpcClearRequest(struct SDP_CLIENT *sdpClient)
 {
-	HttpClient *hc = (HttpClient *)arg;
-	HttpClientStatus *hcs = NULL;
-	
-	err_t err;
-	ip4_addr_t destIp;
-
-	HcEvent *he = hc->evt;
-	HttpClientReq *req = he->data;/* this pointer to RunCfg */
-	
-	EXT_ASSERT(("Req is null for HTTP client"), req!= NULL);
-	hcs = (HttpClientStatus *)req;
-	EXT_ASSERT(("ReqStatus is null for HTTP client"), hcs!= NULL);
-
-	destIp.addr = req->ip;
-	hcs->total++;
-
-	struct tcp_pcb *pcb;
-	static u16_t localport= EXT_HTTP_CLIENT_PORT; //65530; 
-
-	pcb = tcp_new_ip_type(IPADDR_TYPE_ANY);
-	EXT_ASSERT(( "failed"), pcb != NULL);
-	
-	tcp_setprio(pcb, MHTTPD_TCP_PRIO);
-
-	while(tcp_bind(pcb, IP_ADDR_ANY, localport) != ERR_OK)
-	{// Local port in use, use port+1
-		localport++;
+	if(sdpClient->socket > 0)
+	{
+		close(sdpClient->socket);
 	}
 	
-	if(EXT_DEBUG_HC_IS_ENABLE())
-	{
-		printf("\tsent #%"U32_F" new TCP request to %s:%d/%s from local port %d"EXT_NEW_LINE, hc->reqs, ip4addr_ntoa(&destIp), req->port, req->uri, localport);
-	}
-	localport++;
+	sdpClient->length = 0;
+	sdpClient->data = NULL;
+	sdpClient->responseType = HC_REQ_UNKNOWN;
+	sdpClient->contentLength = 0;
 	
-	tcp_arg(pcb, hc);
+	return EXIT_SUCCESS;
+}
 
-#if 1
-	HTTP_CLIENT_SET_PCB(hc, pcb);
-#else
-	hc->pcb = pcb;
-#endif
-
-	err = tcp_connect(hc->pcb, &destIp, req->port,  httpClientConnected);
-	if(err != ERR_OK)
+static int _sdpcConnect(struct SDP_CLIENT *sdpClient, int timeoutSeconds)
+{
+	struct sockaddr_in servaddr;
+	struct timeval timeout;
+	int sock;
+	int index = 0;
+	uint32_t len = 0;
+	
+	if(IS_STRING_NULL_OR_ZERO(sdpClient->url.uri) )
 	{
-		EXT_ERRORF(("send TCP req failed: '%s': %d", lwip_strerr(err), hc->pcb->state));
-		hcs->httpFails++;
-		snprintf(hcs->msg, sizeof(hcs->msg), "Connect to %s:%d failed", ip4addr_ntoa(&destIp), req->port );
+		SDPC_MSG(sdpClient, "SDPC request URI is not defined");
+		return IPCMD_ERR_FTP_SERVER_ERROR;
+	}
 
-		extHttpClientClearCurrentRequest(hc);
+	sock = socket(AF_INET, SOCK_STREAM, 0);
+	if(sock <0 )
+	{ 
+		SDPC_MSG(sdpClient, "socket creation failed: %m" );
+		sdpClient->fails++;
+		return EXIT_FAILURE;
+	}
+
+	timeout.tv_sec = timeoutSeconds;
+	timeout.tv_usec = 0;
+	if (setsockopt (sock, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)) < 0)
+	{
+		MUX_ERROR("Set socket REV timeout error:%s", strerror(errno));
+	}
+
+	if (setsockopt (sock, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout, sizeof(timeout)) < 0)
+	{
+		MUX_ERROR("Set socket SEND timeout error:%s", strerror(errno));
+	}
+
+	bzero(&servaddr, sizeof(servaddr));
+
+	// assign IP, PORT 
+	servaddr.sin_family = AF_INET;
+	servaddr.sin_addr.s_addr = sdpClient->url.ip;//  inet_addr("127.0.0.1");
+	servaddr.sin_port = htons(sdpClient->url.port);
+
+	if(connect(sock, (struct sockaddr *)&servaddr, sizeof(servaddr)) < 0)
+	{
+		SDPC_MSG(sdpClient, "connection with the server %s:%d failed...",  cmnSysNetAddress(sdpClient->url.ip), sdpClient->url.port);
+		sdpClient->fails++;
+		close(sock);
+		return EXIT_FAILURE;
+	} 
+
+	index += snprintf(sdpClient->buffer, sizeof(sdpClient->buffer), "GET /%s HTTP/1.0"EXT_NEW_LINE EXT_NEW_LINE, sdpClient->url.uri);
+	len = write(sock, (unsigned char *)sdpClient->buffer, index);
+	if (len < 0)
+	{
+		SDPC_MSG(sdpClient, "writing to socket: '%s'", strerror(errno) );
+		sdpClient->fails++;
+		close(sock);
+		return EXIT_FAILURE;
+	}
+
+	sdpClient->socket = sock;
+	/* initial receiving buffer */
+	sdpClient->length = 0;
+	sdpClient->data = NULL;
+	sdpClient->contentLength = 0;
+	sdpClient->headerLength = 0;
+	sdpClient->responseType = HC_REQ_UNKNOWN;
+	sdpClient->msgLength = 0;
+
+	SDPC_DEBUG_MSG(sdpClient, "ready on socket=%d", sdpClient->socket );
+	return EXIT_SUCCESS;
+}
+
+
+static int _sdpcEventNewReq(void *arg, EVENT *event)
+{
+	struct SDP_CLIENT *sdpClient = (struct SDP_CLIENT *)arg;
+	struct SDP_EVENT *sdpEvent = (struct SDP_EVENT *)event;
+	EXT_ASSERT((sdpClient != NULL), "SDP Client can't be null");
+	EXT_ASSERT((sdpEvent != NULL), "SDP Event can't be null");
+	int timeoutSeconds = 3; /* Poll in 15 seconds or so */
+	HttpClientReq *reqUri;
+	
+	reqUri = (HttpClientReq *)sdpEvent->data;
+
+	if(! SDPC_CHECK_STATE(sdpClient, SDPC_STATE_WAIT) )
+	{
+		SDPC_MSG(sdpClient, "is in state of '%s', new request is ignored", CMN_FIND_SDPC_STATE(sdpClient->state));
+		cmn_free(reqUri);
+TRACE();
 		return EXT_STATE_CONTINUE;
 	}
 
- 	sys_timer_start(&_hcTimer, EXT_HTTP_CLIENT_TIMEOUT_NEW_CONN);
-//	hc->reqs++;
+	memcpy(&sdpClient->url, reqUri, sizeof(HttpClientReq));
+	sdpClient->reqs++;
+	cmn_free(reqUri);
 
-	return HC_STATE_INIT;
-}
-
-static unsigned char _hcEventNewReqInOtherStates(void *arg)
-{
-	HttpClient *hc = (HttpClient *)arg;
-
-	HcEvent *he = hc->evt;
-	HttpClientReq *req = he->data;/* this pointer to RunCfg */
-	EXT_ASSERT(("Req is not null for HTTP client"), req!= NULL);
-
-//	EXT_DEBUGF(HTTP_CLIENT_DEBUG, (HTTP_CLIENT_NAME"New REQ when current req is working")) ;
-//	EXT_INFOF( ("New REQ when current req is in %s: current: %s; new: %s", CMN_FIND_HC_STATE(hc->state), (hc->reqList)?hc->reqList->uri:"NULL", req->uri)) ;
-
-//	extHttpClientNewRequest(req);
-	extHttpClientBeginRequest(req);
-//	if(hc->state != HC_STATE_WAIT)
-//	return EXT_STATE_CONTINUE;
-
-	return HC_STATE_WAIT;
-}
-
-
-
-static unsigned char _hcEventTimeout(void *arg)
-{
-	HttpClient *hc = (HttpClient *)arg;
-	HttpClientStatus *hcs;
-
-	HttpClientReq *req = hc->reqList;/* this pointer to RunCfg */
+	_SFM_DEBUG(sdpClient);
 	
-	EXT_ASSERT(("Req is null for HTTP client"), req!= NULL);
-	hcs = (HttpClientStatus *)req;
-	EXT_ASSERT(("ReqStatus is null for HTTP client"), hcs!= NULL);
-
-	extHttpClientClosePcb(hc, NULL);
-
-#if 0
-//	if(hc->state != HC_STATE_WAIT)
-	{
-		tcp_close(hc->pcb);
-	}
-#endif
-
-//	snprintf(hc->msg, sizeof(hc->msg), "Timeout in state of %s", CMN_FIND_HC_STATE(hc->state) );
-//	EXT_DEBUGF(EXT_DBG_OFF, ( "Timeout in state of %s for request '%s'", CMN_FIND_HC_STATE(hc->state), hcs->req.uri));
-	if(req)
-	{
-		if(hc->state == HC_STATE_INIT)
-		{
-			hc->fails++;
-			hcs->httpFails++;
-			snprintf(hcs->msg, sizeof(hcs->msg), "Timeout when try to connect");//, ip4addr_ntoa(&destIp), req->port );
-			if(EXT_DEBUG_HC_IS_ENABLE())
-			{
-				EXT_ERRORF(("#%"U32_F": Timeout when try to connect %s", hc->reqs, hcs->req.uri) );
-			}
-		}
-	}
-
-	return HC_STATE_WAIT;
-}
-
-static unsigned char _hcEventPoll(void *arg)
-{
-	HttpClient *hc = (HttpClient *)arg;
-
-	if(hc->state == HC_STATE_WAIT)
+	if(_sdpcConnect(sdpClient, timeoutSeconds) == EXIT_FAILURE)
 	{
 		return EXT_STATE_CONTINUE;
 	}
 	
-	hc->retryCount ++;
-	if (hc->retryCount >= HTTPC_MAX_RETRIES)
-	{
-		HttpClientStatus *hcs;
-		HttpClientReq *req = hc->reqList;/* this pointer to RunCfg */
-		
-		EXT_ASSERT(("Req is null for HTTP client"), req!= NULL);
-		hcs = (HttpClientStatus *)req;
-		EXT_ASSERT(("ReqStatus is null for HTTP client"), hcs!= NULL);
+	return SDPC_STATE_CONNECTED;
+}
 
-//		EXT_DEBUGF(EXT_DBG_OFF, ( "TCP Timer Timeout in state of %s for request '%s'", CMN_FIND_HC_STATE(hc->state), hcs->req.uri));
-
-#if 0
-		if(hc->state != HC_STATE_DATA  && hc->state != HC_STATE_WAIT)
-#else		
-		/* in INIT state, use timer; TCP timer only be used in state of CONN. JL. 02,18, 2019*/
-//		if(hc->state == HC_STATE_INIT  || hc->state == HC_STATE_CONN)
-		if( hc->state == HC_STATE_CONN)
-#endif			
-		{
-			hcs->httpFails++;
-			snprintf(hcs->msg, sizeof(hcs->msg), "Connection timeout by TCP timer");
-			if(EXT_DEBUG_HC_IS_ENABLE())
-			{
-				EXT_ERRORF(("#%"U32_F": Timeout when request %s by TCP timer", hc->reqs, hcs->req.uri) );
-			}
-			/* when happens in state of DATA, pbuf has been freed. when TCP timeout in CONN state, pcb and its pbuf must be freed here. JL. 02.18, 2019 */
-			extHttpClientClosePcb(hc, NULL);
-		}
-		
-		return HC_STATE_WAIT;
-	}
+static int _sdpcEventTimeout(void *arg, EVENT *event)
+{
+	struct SDP_CLIENT *sdpClient = (struct SDP_CLIENT *)arg;
+	EXT_ASSERT((sdpClient != NULL), "SDP Client can't be null");
 	
-	return EXT_STATE_CONTINUE;
+	_SFM_DEBUG(sdpClient);
+	_sdpcClearRequest(sdpClient);
+
+	return SDPC_STATE_WAIT;
 }
 
 /* tcp err callback or err in TCP recv callback */
-static unsigned char _hcEventError(void *arg)
+static int _sdpcEventError(void *arg, EVENT *event)
 {
-	HttpClient *hc = (HttpClient *)arg;
-
-	EXT_DEBUGF(EXT_DBG_ON, ( "ERROR in state of %s for request '%s'", CMN_FIND_HC_STATE(hc->state), (hc->reqList)?hc->reqList->uri:"NULl"));
-
-	extHttpClientClearCurrentRequest(hc);
-
-	return HC_STATE_ERROR;
-}
-
-static char _findResponseType(char *response, uint32_t size)
-{
-	if(lwip_strnstr(response, HTTP_HDR_SDP, size) != NULL )
-	{
-		return HC_REQ_SDP_VIDEO;
-	}
-	else if(lwip_strnstr(response, HTTP_HDR_SDP_EXT, size) != NULL )
-	{
-		return HC_REQ_SDP_VIDEO;
-	}
-	else if(lwip_strnstr(response, HTTP_HDR_JSON, size) != NULL )
-	{
-		return HC_REQ_JSON;
-	}
-
-	return HC_REQ_UNKNOWN;
-
-}
-
-static unsigned char _hcEventRecv(void *arg)
-{
-	HttpClient *hc = (HttpClient *)arg;
-	struct pbuf *p, *tmp;
-//	char *data;
-	u16_t reqLen;
-	u16_t copied;
-	uint32_t ret;
-
-		HttpClientStatus *hcs;
-		HttpClientReq *req = hc->reqList;/* this pointer to RunCfg */
-		
-		EXT_ASSERT(("Req is null for HTTP client"), req!= NULL);
-		hcs = (HttpClientStatus *)req;
-		EXT_ASSERT(("ReqStatus is null for HTTP client"), hcs!= NULL);
-
-	EXT_ASSERT(("Event or pbuf is not found "), hc->evt!= NULL && hc->evt->data != NULL );
-	p = (struct pbuf *)hc->evt->data;
-
-	/* step 1: copy data from pbuf */	
-//	if(p->next != NULL)
-	{
-		reqLen = LWIP_MIN(p->tot_len, sizeof(hc->buf));
-		copied = pbuf_copy_partial(p, hc->buf, reqLen, 0);
-//		EXT_DEBUGF(HTTP_CLIENT_DEBUG, (": recv %d bytes, copied %d byte", reqLen, copied));
-		hc->length = reqLen;
-//		data = hc->buf;
-
-//		EXT_DEBUGF(EXT_HTTPD_DEBUG, ("recv:'%.*s'" , copied, hc->buf) );
-		if(EXT_DEBUG_HC_IS_ENABLE())
-		{
-			printf("\trecv %d bytes data:"EXT_NEW_LINE"'%.*s'"EXT_NEW_LINE, copied, copied, hc->buf);
-//			CONSOLE_DEBUG_MEM((unsigned char *)hc->buf, copied, 0, "RECV HTTP RES Data");
-		}
-	}
-
-	while(p != NULL)
-	{
-		tmp = p->next;
-		pbuf_free(p);
-		p = tmp;
-	}
-
-#if 0
-	else
-	{
-		data = p->payload;
-		reqLen = p->len;
-		if (p->len != p->tot_len)
-		{
-			EXT_DEBUGF(EXT_HTTPD_DEBUG, ("Warning: incomplete header due to chained pbufs"));
-		}
-	}
-#endif
-
+	struct SDP_CLIENT *sdpClient = (struct SDP_CLIENT *)arg;
+	EXT_ASSERT((sdpClient != NULL), "SDP Client can't be null");
 	
+	_SFM_DEBUG(sdpClient);
+	_sdpcClearRequest(sdpClient);
 
-	/* step 2: parse response type(SDP/REST), and content length */
-	if(hc->contentLength == 0)
-	{/* this is first packet replied from server*/
-		hc->reqType = _findResponseType(hc->buf, (uint32_t)hc->length);
-
-		ret = cmnHttpParseHeaderContentLength(hc->buf, (uint32_t)hc->length);
-		if(ret <= ERR_OK )
-		{
-///			EXT_ERRORF( ("Error when parsing number in Content-Length: '%.*s'", hc->length, hc->buf) );
-			
-			hcs->dataErrors++;
-			snprintf(hcs->msg, sizeof(hcs->msg), "Error when parsing number in Content-Length: '%.*s'", hc->length, hc->buf);
-			EXT_ERRORF(("Data error for %s: parsing number in Content-Length: '%.*s'", hcs->req.uri, hc->length, hc->buf) );
-		}
-		else
-		{
-			char *data;
-			uint32_t _dataLen = 0;
-			
-			hc->contentLength = ret;
-			
-			data = lwip_strnstr(hc->buf, MHTTP_CRLF MHTTP_CRLF, hc->length);
-			if( data != NULL )
-			{
-				_dataLen = hc->length - (data - hc->buf) - __HTTP_CRLF_SIZE;
-				if(_dataLen == ret )
-				{
-					hc->contentLength = ret;
-					hc->data = hc->buf + (hc->length - hc->contentLength);
-				}
-				else if(_dataLen == 0)
-				{/* maybe data is in the next packet, so wait DATA or CLOSE event in state of CONN . Dec.18, 2018 JL. */
-					return EXT_STATE_CONTINUE;
-				}
-				else
-				{
-//					EXT_ERRORF(("Content Length %"FOR_U32" is not same as data length:%"FOR_U32,ret, _dataLen) );
-					
-			hcs->dataErrors++;
-			snprintf(hcs->msg, sizeof(hcs->msg), "Content Length %"FOR_U32" is not same as data length:%"FOR_U32,ret, _dataLen);
-			
-			EXT_ERRORF(("Data error for %s: Content Length %"FOR_U32" is not same as data length:%"FOR_U32, hcs->req.uri, ret, _dataLen) );
-			
-					return HC_STATE_ERROR;
-				}
-			}
-		}
-	}
-	else
-	{
-		if(hc->contentLength == hc->length)
-		{
-			hc->data = hc->buf;
-		}
-		else
-		{
-//			EXT_ERRORF(("Recv second packet, length %d is not same as Content Length %d", hc->length, hc->contentLength) );
-			
-			hcs->dataErrors++;
-			snprintf(hcs->msg, sizeof(hcs->msg), "Recv second packet, length %d is not same as Content Length %d", hc->length, hc->contentLength);
-			
-			EXT_ERRORF(("Data error for %s: Recv second packet, length %d is not same as Content Length %d", hcs->req.uri, hc->length, hc->contentLength) );
-			return HC_STATE_ERROR;
-		}
-	}
-
-	if(hc->reqType == HC_REQ_UNKNOWN)
-	{
-//		EXT_ERRORF(("Response is not supported type of JSON or SDP"));
-		
-			hcs->dataErrors++;
-			snprintf(hcs->msg, sizeof(hcs->msg), "Response is not supported type of JSON or SDP");
-			EXT_ERRORF(("Data error for %s: Response is not supported type of JSON or SDP", hcs->req.uri) );
-			
-		return HC_STATE_ERROR;
-	}
+	return SDPC_STATE_WAIT;
+}
 
 
-	if(hc->contentLength > 0)
+static int _sdpcEventRecv(void *arg, EVENT *event)
+{
+	struct SDP_CLIENT *sdpClient = (struct SDP_CLIENT *)arg;
+	struct SDP_EVENT *sdpEvent = (struct SDP_EVENT *)event;
+	int _ret = EXIT_SUCCESS;
+	
+	EXT_ASSERT((sdpClient != NULL), "SDP Client can't be null");
+	EXT_ASSERT((sdpEvent != NULL), "SDP Event can't be null");
+
+	_SFM_DEBUG(sdpClient);
+	if(sdpClient->contentLength > 0)
 	{/* contentLength has been parsed, media description may be in the same packet or the next packet */
-		EXT_RUNTIME_CFG *rxCfg = &tmpRuntime;
-		err_t _ret = ERR_OK;
-
-		extSysClearConfig(rxCfg);
-		if(req->type == HC_REQ_SDP_VIDEO)
+		if(sdpClient->responseType == HC_REQ_SDP_VIDEO)
 		{
-			_ret = extHttpSdpParse(hc, rxCfg, hc->data, hc->contentLength);
+			_ret = sdpResponseParse(sdpClient);
 		}
-		else if(req->type == HC_REQ_JSON )
+		else if(sdpClient->responseType == HC_REQ_JSON )
 		{
-			_ret = cmnHttpParseRestJson(rxCfg, hc->data, hc->contentLength);
+//			_ret = cmnHttpParseRestJson(rxCfg, hc->data, hc->contentLength);
+			SDPC_INFO_MSG(sdpClient, "JSON response for SDP is not support");
 		}
 		else
 		{
 		
 		}
 		
-		if(_ret != ERR_OK)
+		if(_ret == EXIT_FAILURE)
 		{
 //			EXT_ERRORF(("Response is not supported type of JSON or SDP"));
 			
-			hcs->dataErrors++;
-			snprintf(hcs->msg, sizeof(hcs->msg), "Error when parsing data");
-			EXT_ERRORF(("Data error for %s: Error when parsing data", hcs->req.uri) );
+			sdpClient->dataErrors++;
+			SDPC_MSG(sdpClient, "Data error for %s: Error when parsing data", sdpClient->url.uri);
 		}
 		else
 		{
-			rxCfg->fpgaAuto = FPGA_CFG_SDP;	/* SDP parameter write to flash, and configure into registers, so it is manual mode for FPGA. Jan.2nd, 2019 JL */
-			extSysCompareParams(hc->runCfg, rxCfg);
-			extSysConfigCtrl(hc->runCfg, rxCfg);
-			snprintf(hcs->msg, sizeof(hcs->msg), "OK");
+			
+//			rxCfg->fpgaAuto = FPGA_CFG_SDP;	/* SDP parameter write to flash, and configure into registers, so it is manual mode for FPGA. Jan.2nd, 2019 JL */
+			cmnMuxSystemConfig(&sdpClient->sdpCtx->muxMain->runCfg, &sdpClient->sdpCtx->rxCfg);
+			
+			SDPC_DEBUG_MSG(sdpClient, "OK in state of %s for request '%s'", CMN_FIND_SDPC_STATE(sdpClient->state), sdpClient->url.uri );
+			snprintf(sdpClient->msg, sizeof(sdpClient->msg), "OK");
 		}
-
 	}
-
-
-#if 0	
-	if(hc->contentLength <= 0)
-	{
-		return HC_STATE_ERROR;
-	}
-#endif	
 	
-	return HC_STATE_DATA;
-}
-
-static unsigned char _hcEventSent(void *arg)
-{
-	HttpClient *hc = (HttpClient*)arg;
-
-	hc->retryCount = 0;
-	return EXT_STATE_CONTINUE;
+	sdpClient->statusCode = 200;//WEB_RES_REQUEST_OK;
+	
+	return SDPC_STATE_WAIT;
 }
 
 /* in RECV callback, when pbuf is NULL: means closed by peer */
-static unsigned char _hcEventClose(void *arg)
+static int _sdpcEventClose(void *arg, EVENT *event)
 {
-//	HttpClient *hc = (HttpClient *)arg;
+	struct SDP_CLIENT *sdpClient = (struct SDP_CLIENT *)arg;
+	EXT_ASSERT((sdpClient != NULL), "SDP Client can't be null");
 	
- 	sys_timer_stop(&_hcTimer);
-	/* all resource of TCP is freed in TCP task, eg. callback of close */
-	//tcp_close(hc->pcb);
-	
-	return HC_STATE_WAIT;
+	_SFM_DEBUG(sdpClient);
+	_sdpcClearRequest(sdpClient);
+	return SDPC_STATE_WAIT;
 }
 
 
 /* 
 *  Enter handlers of every state
 */
-/* clear all data */
-static void _hcEnterStateWait(void *arg)
+static void _sdpcEnterStateWait(void *arg)
 {
-	HttpClient *hc = (HttpClient *)arg;
-
-	/* stop timer which is started by entering state of DATA or ERROR */
- 	sys_timer_stop(&_hcTimer);
+	struct SDP_CLIENT *sdpClient = (struct SDP_CLIENT *)arg;
+	EXT_ASSERT((sdpClient != NULL), "SDP Client can't be null");
 	
-	extHttpClientClearCurrentRequest(hc);
+	_sdpcClearRequest(sdpClient);
+	
+	SDPC_DEBUG_MSG(sdpClient, "enter WAIT state" );
 }
 
-
-/* parse data and configure to hw */
-static void _hcEnterStateData(void *arg)
-{
-	HttpClient *hc = (HttpClient *)arg;
-	
- 	sys_timer_start(&_hcTimer, EXT_HTTP_CLIENT_TIMEOUT_2_WAIT);
-	
-	hc->statusCode = WEB_RES_REQUEST_OK;
-}
-
-/* TCP err callback or err_t is not ERR_OK in TCP recv callback  */
-static void _hcEnterStateError(void *arg)
-{
-#if 0
-	HttpEvent *he = (HttpEvent *)arg;
-#endif	
-	EXT_DEBUGF(HTTP_CLIENT_DEBUG, (": enter ERROR state"));
-
- 	sys_timer_start(&_hcTimer, EXT_HTTP_CLIENT_TIMEOUT_2_WAIT);
-}
 
 /* wait for request */
-const transition_t	_hcStateWait[] =
+const transition_t	_sdpcStateWait[] =
 {
 	{
-		HC_EVENT_NEW,
-		_hcEventNewReq,
+		.event = SDPC_EVENT_NEW,
+		.name = "New",	
+		.handle = _sdpcEventNewReq,
 	},
 	{
-		HC_EVENT_CLOSE,
-		_hcEventClose,
+		.event = SDPC_EVENT_CLOSE,
+		.name = "Close",	
+		.handle = _sdpcEventClose,
 	}
 };
 
 
-/* RX data for POST request */
-const transition_t	_hcStateInit[] =
+const transition_t	_sdpcStateConnected[] =
 {
 	{
-		HC_EVENT_NEW,
-		_hcEventNewReqInOtherStates,
+		.event = SDPC_EVENT_NEW,
+		.name = "New",	
+		.handle = _sdpcEventNewReq,
 	},
 	{
-		HC_EVENT_TIMEOUT,
-		_hcEventTimeout,
-	},
-	{
-		HC_EVENT_CONNECTED,
-		httpClientEventConnected,
-	},
-	{
-		HC_EVENT_POLL,
-		_hcEventPoll,
-	},
-	{
-		HC_EVENT_SENT,
-		_hcEventSent,
-	},
-	{
-		HC_EVENT_CLOSE,
-		_hcEventClose,
-	},
-	{
-		HC_EVENT_ERROR,
-		_hcEventError,
-	}
-};
-
-
-const transition_t	_hcStateConn[] =
-{
-	{
-		HC_EVENT_NEW,
-		_hcEventNewReqInOtherStates,
-	},
-	{
-		HC_EVENT_RECV,
-		_hcEventRecv,
+		.event = SDPC_EVENT_RECV,	/* parse http OK, begin to SDP parse */
+		.name = "Recv",	
+		.handle = _sdpcEventRecv,
 	},
 	
 	{
-		HC_EVENT_POLL,
-		_hcEventPoll,
+		.event = SDPC_EVENT_TIMEOUT,
+		.name = "Timeout",	
+		.handle = _sdpcEventTimeout,
 	},
 	{
-		HC_EVENT_SENT,
-		_hcEventSent,
+		.event = SDPC_EVENT_CLOSE,	/* closed by peer */
+		.name = "Close",	
+		.handle = _sdpcEventClose,
 	},
 	{
-		HC_EVENT_CLOSE,
-		_hcEventClose,
-	},
-	{
-		HC_EVENT_ERROR,
-		_hcEventError,
+		.event = SDPC_EVENT_ERROR,	/* parse error, or protocol error */
+		.name = "Error",	
+		.handle = _sdpcEventError,
 	}
 };
 
-
-const transition_t	_hcStateData[] =
-{
-	{
-		HC_EVENT_NEW,
-		_hcEventNewReqInOtherStates,
-	},
-	{
-		HC_EVENT_TIMEOUT,
-		_hcEventTimeout,
-	},
-	{
-		HC_EVENT_POLL,
-		_hcEventPoll,
-	},
-	{
-		HC_EVENT_SENT,
-		_hcEventSent,
-	},
-	{
-		HC_EVENT_CLOSE,
-		_hcEventClose,
-	},
-	{
-		HC_EVENT_ERROR,
-		_hcEventError,
-	}
-};
-
-
-const transition_t	_hcStateError[] =
-{
-	{
-		HC_EVENT_NEW,
-		_hcEventNewReqInOtherStates,
-	},
-	{
-		HC_EVENT_TIMEOUT,
-		_hcEventTimeout,
-	},
-	{
-		HC_EVENT_POLL,
-		_hcEventPoll,
-	},
-	{
-		HC_EVENT_SENT,
-		_hcEventSent,
-	},
-	{
-		HC_EVENT_CLOSE,
-		_hcEventClose,
-	},
-	{
-		HC_EVENT_ERROR,
-		_hcEventError,
-	}
-};
 
 
 const statemachine_t	_sdpStateMachine[] =
 {
 	{
-		SDPC_STATE_WAIT,
-		sizeof(_hcStateWait)/sizeof(transition_t),
-		_hcStateWait,
-		_hcEnterStateWait
+		.state = SDPC_STATE_WAIT,
+		.name = "WAIT",	
+		.size = sizeof(_sdpcStateWait)/sizeof(transition_t),
+		.eventHandlers = (transition_t	*)_sdpcStateWait,
+		.enter_handle = _sdpcEnterStateWait
 	},
 	
 	{
-		SDPC_STATE_INIT,
-		sizeof(_hcStateInit)/sizeof(transition_t),
-		_hcStateInit,
-		NULL
-	},
-	{
-		SDPC_STATE_CONN,
-		sizeof(_hcStateConn)/sizeof(transition_t),
-		_hcStateConn,
-		NULL
+		.state = SDPC_STATE_CONNECTED,
+		.name = "CONNECTED",	
+		.size = sizeof(_sdpcStateConnected)/sizeof(transition_t),
+		.eventHandlers = (transition_t	*)_sdpcStateConnected,
+		.enter_handle = NULL
 	},
 
 	{
-		SDPC_STATE_DATA,
-		sizeof(_hcStateData)/sizeof(transition_t),
-		_hcStateData,
-		_hcEnterStateData
-	},
-
-	{
-		SDPC_STATE_ERROR,
-		sizeof(_hcStateError)/sizeof(transition_t),
-		_hcStateError,
-		_hcEnterStateError
-	},
-	{
-		EXT_STATE_CONTINUE,
-		0,
-		NULL,
-		NULL
+		.state = EXT_STATE_CONTINUE,
+		.name = NULL,	
+		.size = 0,
+		.eventHandlers = NULL,
+		.enter_handle = NULL
 	}
 };
 
 
-static const statemachine_t *_hcFsmFindState(const statemachine_t *fsm, unsigned char state)
+static const statemachine_t *_sdpcFsmFindState(const statemachine_t *fsm, int state)
 {
 	const statemachine_t *_states = fsm;
 	
@@ -630,76 +324,77 @@ static const statemachine_t *_hcFsmFindState(const statemachine_t *fsm, unsigned
 		_states++;
 	}
 
-	EXT_ASSERT(("State %d is not found", state), 0);
+	EXT_ASSERT(0, "State %d is not found", state);
+
 	return NULL;
+
 }
 
-void	httpClientFsmHandle(HcEvent *hce)
+
+void	sdpClientFsmHandle(struct SDP_CLIENT *sdpClient, struct SDP_EVENT *sdpEvent)
 {
 	unsigned char	i;
-	unsigned char newState = EXT_STATE_CONTINUE;
-	const statemachine_t *_fsm = _hcStateMachine;
+	unsigned int newState = EXT_STATE_CONTINUE;
+
+	const statemachine_t *_fsm;
 	const statemachine_t *_state = NULL;
-	
-	HttpClient *hc = &_httpClient;
 
-	EXT_ASSERT(("HcEvent is null"), hce != NULL);
+	_fsm = sdpClient->fsm;
+	EXT_ASSERT((_fsm != NULL), "SDP FSM can't be null in event handler");
 
-	if(hce->event == EXT_EVENT_NONE || _fsm == NULL)
+	if(sdpEvent->event == EXT_EVENT_NONE || _fsm == NULL)
 	{
-		EXT_ERRORF(("Invalidate params in state Machine"));
+		SDPC_ERR_MSG(sdpClient, "Invalidate params in state Machine");
 		return;
 	}
 
+	_state = _sdpcFsmFindState(_fsm, sdpClient->state);
 
-	_state = _hcFsmFindState(_fsm, hc->state);
-	
 	const transition_t *handle = _state->eventHandlers;
-
 	for(i=0; i < _state->size; i++)
 	{
-		if(hce->event == handle->event )
+		if(sdpEvent->event == handle->event )
 		{
-#if HTTP_CLIENT_DEBUG		
+#if SDP_CLIENT_DEBUG		
 			if(EXT_DEBUG_HC_IS_ENABLE())
 			{
-				printf("\t#%d handle event '%s' in state '%s'"EXT_NEW_LINE,hc->reqs, CMN_FIND_HC_EVENT(hce->event), CMN_FIND_HC_STATE(hc->state));
+				SDPC_INFO_MSG(sdpClient, " handle event '%s' in state '%s'", 
+					CMN_FIND_SDPC_EVENT(sdpEvent->event), CMN_FIND_SDPC_STATE(sdpClient->state));
 			}
 #endif			
-			hc->evt = hce;
 
-			newState = (handle->handle)(hc);
+			sdpClient->event = sdpEvent->event;
+			newState = (handle->handle)(sdpClient, (EVENT *)sdpEvent );
 			//fsm->currentEvent = EXT_EVENT_NONE;
-			
-			if(newState!= EXT_STATE_CONTINUE && newState != hc->state )
+
+			if(newState!= EXT_STATE_CONTINUE && newState != sdpClient->state )
 			{
-#if HTTP_CLIENT_DEBUG		
+#if SDP_CLIENT_DEBUG		
 				if(EXT_DEBUG_HC_IS_ENABLE())
 				{
-					printf("\t#%d request from state '%s' enter into state '%s'"EXT_NEW_LINE, hc->reqs, CMN_FIND_HC_STATE(hc->state), CMN_FIND_HC_STATE(newState));
+					SDPC_INFO_MSG(sdpClient, "request from state '%s' enter into state '%s'",
+						CMN_FIND_SDPC_STATE(sdpClient->state), CMN_FIND_SDPC_STATE(newState));
 				}
 #endif
 
-				_state = _hcFsmFindState(_fsm, newState);
+				_state = _sdpcFsmFindState(_fsm, newState);
 				if(_state->enter_handle )
 				{
-					(_state->enter_handle)(hc);
+					(_state->enter_handle)(sdpClient);
 				}
-				
-				hc->state = newState;
+
+				sdpClient->state = newState;
 			}
-			
+
 			return;
 		}
 
 		handle++;
-		
 	}
 	
 #if EXT_HTTPC_DEBUG
-	EXT_INFOF(("State Machine no handle for event %s in state %s", CMN_FIND_HC_EVENT(hce->event), CMN_FIND_HC_STATE(hc->state)));
+	SDPC_INFO_MSG(sdpClient, "State Machine no handle for event %s in state %s", CMN_FIND_SDPC_EVENT(sdpEvent->event), CMN_FIND_SDPC_STATE(sdpClient->state));
 #endif
-
 	return;
 }
 

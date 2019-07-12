@@ -284,9 +284,9 @@
 #define	EXT_WEBPAGE_UPDATE_HTML				"upgrade.html"
 #define	EXT_WEBPAGE_SETTINGS_HTML			"settings.html"
 
-#define	EXT_WEBPAGE_SDP_VIDEO				"video.sdp"
-#define	EXT_WEBPAGE_SDP_AUDIO				"audio.sdp"
-#define	EXT_WEBPAGE_SDP_ANC					"anc.sdp"
+#define	EXT_WEBPAGE_SDP_VIDEO				"video/sdp"
+#define	EXT_WEBPAGE_SDP_AUDIO				"audio/sdp"
+#define	EXT_WEBPAGE_SDP_ANC					"anc/sdp"
 
 #define	EXT_WEBPAGE_API_SERVICE				"service"
 
@@ -445,7 +445,7 @@
                                    ((debug) & EXT_DBG_ON) && \
                                    ((debug) & EXT_DBG_TYPES_ON) && \
                                    ((int16_t)((debug) & EXT_DBG_MASK_LEVEL) >= EXT_DBG_MIN_LEVEL)) { \
-                                 SYS_PRINT("%s %s: [%s-%u.%s()]: " format EXT_NEW_LINE, sysTimestamp(),  sysTaskName(), __FILE__, __LINE__, __FUNCTION__, ##message); \
+                                 SYS_PRINT("%s [DBUG,%s]: [%s-%u.%s()]: " format EXT_NEW_LINE, sysTimestamp(),  sysTaskName(), __FILE__, __LINE__, __FUNCTION__, ##message); \
                                  if ((debug) & EXT_DBG_HALT) { \
                                    while(1); \
                                  } \
@@ -1006,12 +1006,13 @@ typedef	enum
 
 typedef	enum
 {
+	HC_REQ_UNKNOWN = 0,
 	HC_REQ_SDP_VIDEO,
 	HC_REQ_SDP_AUDIO,
 	HC_REQ_SDP_ANC,
 	HC_REQ_JSON,
 	HC_REQ_HTML,
-	HC_REQ_UNKNOWN
+	HC_REQ_ERROR
 }HC_REQ_T;
 
 

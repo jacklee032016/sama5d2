@@ -1118,17 +1118,21 @@ extern	const	EXT_CONST_INT	intVideoColorDepthList[];
 extern	const	EXT_CONST_INT	intVideoFpsList[];
 
 
-#define	CMN_FIND_HC_STATE(type)		\
-	cmnMuxTypeFindName(CMN_STR_T_HC_STATES, (type) )
+extern	const	TYPE_NAME_T _sdpcEventTypes[];
+extern	const 	TYPE_NAME_T _sdpcStateTypes[];
 
-#define	CMN_FIND_HC_EVENT(type)		\
-	cmnMuxTypeFindName(CMN_STR_T_HC_EVENTS, (type) )
 
-#define	CMN_FIND_STR_HC_STATE(str)		\
-	cmnMuxTypeFindType(CMN_STR_T_HC_STATES, (str) )
+#define	CMN_FIND_SDPC_STATE(type)		\
+	cmnMuxTypeFindName(_sdpcStateTypes, (type) )
 
-#define	CMN_FIND_STR_HC_EVENT(str)		\
-	cmnMuxTypeFindType(CMN_STR_T_HC_EVENTS, (str) )
+#define	CMN_FIND_SDPC_EVENT(type)		\
+	cmnMuxTypeFindName(_sdpcEventTypes, (type) )
+
+#define	CMN_FIND_STR_SDPC_STATE(str)		\
+	cmnMuxTypeFindType(_sdpcStateTypes, (str) )
+
+#define	CMN_FIND_STR_SDPC_EVENT(str)		\
+	cmnMuxTypeFindType(_sdpcEventTypes, (str) )
 
 
 
@@ -1297,6 +1301,7 @@ cJSON *cmnMuxClientRequest(cJSON *ipCmd);
 extern	CmnThread  threadBroker;
 extern	CmnThread  threadManager;
 extern	CmnThread  threadSdpClient;
+extern	CmnThread  threadSdpReceiver;
 
 
 MuxPlugIn *cmnMuxPluginFind(MuxMain *muxMain, MUX_PLUGIN_TYPE type);
@@ -1340,10 +1345,40 @@ int cmnMuxDsValidate(void);
 
 cJSON *cmnMuxSystemJSon2Flat(cJSON *systemJson);
 
-cJSON *cmnJsobSystemGetSubItem(cJSON *sysObj, char *item, int index);
+cJSON *cmnJsonSystemGetSubItem(cJSON *sysObj, char *item, int index);
 cJSON *cmnJsonSystemFindObject(MuxMain *muxMain, const char*objName );
 
 cJSON *cmnMuxJsonLoadConfiguration(char *cfgFileName);
+
+
+typedef	enum
+{
+	SDPC_EVENT_NEW = EXT_EVENT_NONE +1,	/* new req */
+	SDPC_EVENT_CONNECTED,				/* send URI request */
+	SDPC_EVENT_RECV,						/* recv HTTP header and HTTP data */
+	SDPC_EVENT_SENT,						/* send command for Manager thread */
+
+	SDPC_EVENT_CLOSE,						/* closed by peer */
+	SDPC_EVENT_TIMEOUT,					/* no response */
+
+	SDPC_EVENT_ERROR,						/* error in parse header, SDP elements, etc. */
+	
+	SDPC_EVENT_MAX,
+}SDPC_EVENT_T;
+
+
+typedef enum
+{
+	SDPC_STATE_WAIT = EXT_STATE_CONTINUE +1,
+	SDPC_STATE_INIT,	
+	SDPC_STATE_CONNECTED,	/* wait data and parse http header */
+	SDPC_STATE_DATA, 			/* parse SDP elements */
+	SDPC_STATE_ERROR,			/* error event from TCP stack implementation  */
+	SDPC_STATE_MAX
+}SDPC_STATE_T;
+
+cJSON *cmnMuxSdpStatus(void);
+
 
 #endif
 

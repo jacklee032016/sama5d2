@@ -133,6 +133,7 @@ static int _ledCtrlCheck(char *filename)
 static int _ledBlinkCtrl(char *filename, int isOn)
 {
 	int fd;
+	int res = EXIT_SUCCESS;
 	char *trigger = LED_TRIGGER_NONE;
 	
 	fd = open(filename, O_WRONLY);
@@ -147,11 +148,14 @@ static int _ledBlinkCtrl(char *filename, int isOn)
 		trigger = LED_TRIGGER_TIMER;
 	}
 
-	write(fd, trigger, strlen(trigger) );
+	if(write(fd, trigger, strlen(trigger) )< 0)
+	{
+		EXT_ERRORF("Make '%s' to %s failed", filename, (isOn)?"On":"Off");
+		res =  EXIT_FAILURE;
+	}
 
 	close(fd);
-
-	return EXIT_SUCCESS;
+	return res;
 }
 
 

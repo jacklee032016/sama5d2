@@ -554,16 +554,16 @@ void cmnMuxCfgDebugData(EXT_RUNTIME_CFG *cfg)
 
 }
 
-int cmnMuxSystemConfig(MuxMain *muxMain)
+int cmnMuxSystemConfig(EXT_RUNTIME_CFG *runCfg, 	EXT_RUNTIME_CFG	 *rxCfg)
 {
 	EXT_INFOF("Existed data:");
-	cmnMuxCfgDebugData(&muxMain->runCfg);
+	cmnMuxCfgDebugData(runCfg);
 
 	EXT_INFOF("Received/parsed data:");
-	cmnMuxCfgDebugData(&muxMain->rxCfg);
+	cmnMuxCfgDebugData(rxCfg);
 
-	extSysCompareParams(&muxMain->runCfg, &muxMain->rxCfg);
+	extSysCompareParams(runCfg, rxCfg);
 
-	return _cmnSysConfigCtrl(&muxMain->runCfg, &muxMain->rxCfg);
+	return _cmnSysConfigCtrl(runCfg, rxCfg);
 }
 

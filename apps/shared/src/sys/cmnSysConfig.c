@@ -326,3 +326,78 @@ void	extNmosIdGenerate(MuxNmosID *nmosId, EXT_RUNTIME_CFG *runCfg)
 }
 
 
+
+void extSysClearConfig(EXT_RUNTIME_CFG *rxCfg)
+{
+#ifndef	IPADDR_NONE
+#define IPADDR_NONE         ((uint32_t)0xffffffffUL)
+#endif
+
+	memset(rxCfg, 0, sizeof(EXT_RUNTIME_CFG));
+
+	FIELD_INVALIDATE_U8(rxCfg->isMCast);
+	FIELD_INVALIDATE_U8(rxCfg->netMode);
+	FIELD_INVALIDATE_U8(rxCfg->fpgaAuto);
+
+
+#if EXT_DIP_SWITCH_ON
+	FIELD_INVALIDATE_U8(rxCfg->isDipOn);
+#endif
+	FIELD_INVALIDATE_U32(rxCfg->rs232Cfg.baudRate);
+	FIELD_INVALIDATE_U8(rxCfg->rs232Cfg.charLength);
+	FIELD_INVALIDATE_U8(rxCfg->rs232Cfg.parityType);
+	FIELD_INVALIDATE_U8(rxCfg->rs232Cfg.stopbits);
+
+	FIELD_INVALIDATE_U16(rxCfg->runtime.vWidth);
+	FIELD_INVALIDATE_U16(rxCfg->runtime.vHeight);
+	FIELD_INVALIDATE_U8(rxCfg->runtime.vFrameRate);
+	FIELD_INVALIDATE_U8(rxCfg->runtime.vColorSpace);
+	FIELD_INVALIDATE_U8(rxCfg->runtime.vDepth);
+	FIELD_INVALIDATE_U8(rxCfg->runtime.vIsInterlaced);
+//	FIELD_INVALIDATE_U8(rxCfg->runtime.vIsSegmented);
+
+	FIELD_INVALIDATE_U8(rxCfg->runtime.aChannels);
+	FIELD_INVALIDATE_U8(rxCfg->runtime.aSampleRate);
+	FIELD_INVALIDATE_U8(rxCfg->runtime.aDepth);
+	FIELD_INVALIDATE_U8(rxCfg->runtime.aPktSize);
+
+	FIELD_INVALIDATE_U8(rxCfg->runtime.isConnect);
+
+	FIELD_INVALIDATE_U8(rxCfg->runtime.reset);
+	FIELD_INVALIDATE_U8(rxCfg->runtime.reboot);
+	FIELD_INVALIDATE_U8(rxCfg->runtime.blink);
+
+
+	FIELD_INVALIDATE_U8(rxCfg->runtime.rtpTypeVideo);
+	FIELD_INVALIDATE_U8(rxCfg->runtime.rtpTypeAudio);
+	FIELD_INVALIDATE_U8(rxCfg->runtime.rtpTypeAnc);
+	
+	rxCfg->sdpUriVideo.ip = IPADDR_NONE;
+	FIELD_INVALIDATE_U16(rxCfg->sdpUriVideo.port);
+
+	rxCfg->sdpUriAudio.ip = IPADDR_NONE;
+	FIELD_INVALIDATE_U16(rxCfg->sdpUriAudio.port);
+
+	rxCfg->sdpUriAnc.ip = IPADDR_NONE;
+	FIELD_INVALIDATE_U16(rxCfg->sdpUriAnc.port);
+	
+	rxCfg->local.ip = IPADDR_NONE;
+
+	rxCfg->ipGateway = IPADDR_NONE;
+	rxCfg->ipMask = IPADDR_NONE;
+	rxCfg->dest.ip = IPADDR_NONE;
+	
+	rxCfg->dest.audioIp = IPADDR_NONE;
+	rxCfg->dest.ancIp = IPADDR_NONE;
+#if EXT_FPGA_AUX_ON	
+	rxCfg->dest.auxIp = IPADDR_NONE;
+	FIELD_INVALIDATE_U16(rxCfg->dest.sport);
+#endif
+
+	FIELD_INVALIDATE_U16(rxCfg->dest.vport);
+	FIELD_INVALIDATE_U16(rxCfg->dest.aport);
+	FIELD_INVALIDATE_U16(rxCfg->dest.dport);
+
+//	_setupType = 0;
+}
+

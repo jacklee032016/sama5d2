@@ -245,7 +245,7 @@ static int _savePluginConfig(int index, void *ele,  void *data)
 static int _saveGlobalConfig(FILE *f, MuxMain *muxMain)
 {
 	int res = 0;
-	char		*name;
+//	char		*name;
 
 	res = fprintf(f, "### Global configuration items## \n");
 	res = fprintf(f, "MuxBoard\t\t%s\n\n", (muxMain->boardType==MUX_BOARD_TYPE_RX769)?"RX769":"RX762");

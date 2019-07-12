@@ -154,7 +154,7 @@ cJSON *cmnMuxSystemJSon2Flat(cJSON *systemJson)
 }
 
 /* only called by process of IP command */
-cJSON *cmnJsobSystemGetSubItem(cJSON *sysObj, char *item, int index)
+cJSON *cmnJsonSystemGetSubItem(cJSON *sysObj, char *item, int index)
 {
 	cJSON *itemObj;
 

@@ -26,8 +26,7 @@ PORTABL_SRC += \
 		portable/cmnFsm.c \
 		portable/cmnFtpLib.c \
 		portable/cmnLogUtils.c \
-
-
+		portable/cmnSysTimer.c \
 
 
 SRC += \

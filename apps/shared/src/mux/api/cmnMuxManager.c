@@ -61,7 +61,7 @@ static void _destoryCtrlThread(struct _CmnThread *th)
 
 CmnThread  threadManager =
 {
-	name		:	"Manager",
+	name		:	CMN_THREAD_NAME_MANAGER,
 	flags			:	SET_BIT(1, CMN_THREAD_FLAG_WAIT),
 	
 	init			:	_initCtrlThread,

@@ -84,7 +84,7 @@ extern void *cmn_add_timer(int interval /* in unit of ms, round to 10 ms */, CMN
 /* Remove one of the multiple timers knowing its ID.  Returns a boolean value indicating success. */
 extern  int cmn_remove_timer(void *_tid);
 
-extern	int cmn_timer_init(void);
+extern	int cmn_timer_init(char *name);
 
 extern	void cmn_timer_quit(void);
 

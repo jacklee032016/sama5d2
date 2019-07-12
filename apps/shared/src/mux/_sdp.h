@@ -2,6 +2,8 @@
 #ifndef	___SDP_H__
 #define	___SDP_H__
 
+#include "cmnFsm.h"
+
 /* section 5 of RFC4566*/
 #define	SDP_VERSION		"0"
 
@@ -75,76 +77,56 @@
 #define	_CHAR_SEPERATE			"&"
 #define	_CHAR_EQUAL				"="
 
-typedef	enum
-{
-	SDPC_EVENT_NEW = EXT_EVENT_NONE +1,		/* new req */
-	SDPC_EVENT_CONNECTED,	/* TCP callback: connected */
-	SDPC_EVENT_RECV,		/* TCP callback: recv */
-	SDPC_EVENT_POLL,			/* TCP callback: POLL */
-	SDPC_EVENT_SENT,			/* TCP callback: SENT */
-
-	SDPC_EVENT_CLOSE,
-	SDPC_EVENT_TIMEOUT,
-
-	SDPC_EVENT_ERROR,
-	
-	SDPC_EVENT_MAX,
-}SDPC_EVENT_T;
-
-
-typedef enum
-{
-	SDPC_STATE_WAIT = EXT_STATE_CONTINUE +1,
-	SDPC_STATE_INIT,	
-	SDPC_STATE_CONN,
-	SDPC_STATE_DATA, 
-	SDPC_STATE_ERROR,		/* error event from TCP stack implementation  */
-	SDPC_STATE_MAX
-}SDPC_STATE_T;
-
-
 
 #define	SDP_BUFFER					2048
 #define	SDP_CLIENT_NUMBER			3
 
 
-#define	SDP_RECV_TIMER_TIMEOUT		500 /* ms, must be less than POLL_TIMEOUT */
+#define	SDP_RECV_TIMER_TIMEOUT		500 /* ms, must be less than SDPC_POLL_TIMEOUT */
+#define	SDPC_POLL_TIMEOUT				1000 /* ms */
 
 
-struct	SDP_REQ;
+struct	SDP_CLIENT;
 struct	SDP_CLIENT_CTX;
 
-struct SDP_REQ
+
+struct SDP_CLIENT
 {
-	LIST_ENTRY(_SDP_REQ)		list;
+	LIST_ENTRY(SDP_CLIENT)		list;
 
 	char							name[CMN_NAME_LENGTH];
 	char							type;
 	
 	HttpClientReq					url;
 
-	ext_fsm_t					fsm;
+	int							event;
+	int							state;
+	const statemachine_t			*fsm;
 	
 
 	cmn_mutex_t					*lock;
 
-	int							event;
-	int							state;
-
 	int							socket;
 	int							timerFd;
 
-	char							buffer[SDP_BUFFER];
-	int							length;
+	char							buffer[SDP_BUFFER];	/* contains all package for header+data */
+	int							length;	/* total length of data received */
+	char							*data;	/* pointer to the data part of response buffer */
+	int							contentLength;	/* data length, parsed from header */
+	int							headerLength;
 
-	int							contentLength;
+	int							responseType;							
 
 	int							statusCode;
-	char							msg[128];
+	char							msg[1024];
+	int							msgLength;
 
 	/* statistics*/
 	int							reqs;
-	int							fails;
+	int							fails;			/* wrong before http response */
+	int							headerErrors;	/* HTTP header wrong */
+	int							dataErrors;		/* data in HTTP wrong */
+	int							pkts;	/* number of independent paavkets */
 
 	struct	SDP_CLIENT_CTX		*sdpCtx;
 
@@ -154,45 +136,89 @@ struct SDP_REQ
 
 struct	SDP_CLIENT_CTX
 {
-//	SDP_REQ			sdpClients[SDP_CLIENT_NUMBER];
-
-//	SDP_REQ			*currentReq;
-	LIST_HEAD(D_SDP_REQ, _SDP_REQ)		reqs;
+	LIST_HEAD(D_SDP_REQ, SDP_CLIENT)		clients;
 	
-	int				socket;
-	char				buffer[2048];
-	int				length;
+	int										socket;
+	char										buffer[2048];
+	int										length;
 
-	int				totalReqs;
-	int				totalSuccess;
-	int				totalFailed;
+	int										totalReqs;
+	int										totalSuccess;
+	int										totalFailed;
 
-	cmn_sem_t		*semaphore;
-	cmn_mutex_t 		*lock;
-	void				*timer;
-	MuxMain			*muxMain;
+	EXT_RUNTIME_CFG							rxCfg;
 
-	char				msg[1024];
-	int				msgLength;
+	cmn_sem_t								*semaphore;
+	cmn_mutex_t 								*lock;
+	void										*timer;
+	MuxMain									*muxMain;
 
-	void				*priv;	/*save MuxPlayerConfig **/
+	char										msg[1024];
+	int										msgLength;
+
+	void										*priv;	/*save MuxPlayerConfig **/
 };
 
 
 struct SDP_EVENT
 {
-	int					event;
-	struct	SDP_REQ		*req;
+	int						event;
+	struct	SDP_CLIENT		*client;
 
-	void					*data;	/* can be different for different events */
+	void						*data;	/* can be different for different events */
 };
 
-#define	SDP_ERR_MSG(sdpCtx, frmat, message...)		\
-	{EXT_ERRORF( frmat, ##message); \
-	 _sdpErrorMsg(sdpCtx, frmat, ##message); }
+#define	SDPC_MSG(sdpClient, frmat, ...)		\
+	{EXT_ERRORF( "%s#%d "frmat, sdpClient->name, sdpClient->reqs, ##__VA_ARGS__); \
+		sdpcErrorMsg(sdpClient, frmat, ##__VA_ARGS__);  }
+
+//		 sdpcErrorMsg(sdpClient, frmat, __VA_ARGS__); }
+
+//##__VA_ARGS__
+//
+
+//	 sdpcErrorMsg(sdpClient, "%s#%d " frmat, sdpClient->name, sdpClient->reqs, ##message); }
+
+#define	SDPC_ERR_MSG(sdpClient, frmat, message...)		\
+	EXT_ERRORF( "%s#%d "frmat, sdpClient->name, sdpClient->reqs, ##message)
+
+
+#define	SDPC_DEBUG_MSG(sdpClient, frmat, message...)		\
+		EXT_DEBUGF(SDP_CLIENT_DEBUG, "%s#%d "frmat, sdpClient->name, sdpClient->reqs, ##message)
+
+
+#define	SDPC_INFO_MSG(sdpClient, frmat, message...)		\
+		EXT_INFOF("%s#%d "frmat, sdpClient->name, sdpClient->reqs, ##message)
+
 
 #define	EXT_DEBUG_HC_IS_ENABLE()			1		
 
+
+#define	SDP_CLIENT_DEBUG					EXT_DBG_ON
+
+#define	EXT_HTTP_CRLF							"\r\n"
+
+
+#define	SDPC_CHECK_STATE(sdpClient, _state)	\
+	( (sdpClient)->state == (_state) )
+
+
+#define	SDPC_SEND_EVENT(sdpClient, event)	\
+	{ 	close(sdpClient->socket); sdpClient->socket = -1; \
+		cmnMuxSdpAddEvent((sdpClient), (event), NULL ); }
+
+
+extern	const statemachine_t	_sdpStateMachine[];
+
+void	sdpClientFsmHandle(struct SDP_CLIENT *sdpClient, struct SDP_EVENT *sdpEvent);
+
+int cmnMuxSdpAddEvent(struct SDP_CLIENT *sdpClient, int eventType, void *data);
+
+int cmnMuxSdpTimerCallback(int interval, void *param);
+
+int sdpResponseParse(struct SDP_CLIENT *req);
+
+int sdpcErrorMsg(struct SDP_CLIENT *sdpClient, const char *format, ...);
 
 #endif
 

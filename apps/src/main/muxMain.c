@@ -199,7 +199,7 @@ int main(int argc, char **argv)
 	memset(muxMain, 0 , sizeof(MuxMain) );
 	muxMain->runCfg.mMain = muxMain;
 
-	cmnThreadSetName("main");
+	cmnThreadSetName(CMN_THREAD_NAME_MAIN);
 //	putenv("http_proxy");
 	unsetenv("http_proxy");/* Kill the http_proxy */
 
@@ -253,7 +253,7 @@ int main(int argc, char **argv)
 #if CMN_TIMER_DEBUG
 	fprintf(stderr,"Timer inited");
 #endif
-	res = cmn_timer_init();
+	res = cmn_timer_init(CMN_THREAD_NAME_TIMER);
 	if(res != EXIT_SUCCESS)
 	{
 		MUX_ERROR("timer initialization failed");
@@ -298,6 +298,13 @@ int main(int argc, char **argv)
 			MUX_ERROR("failed when '%s' initializing", threadSdpClient.name);
 			exit(1);
 		}
+
+		if(muxMain->initThread(muxMain, &threadSdpReceiver, threadSdpClient.data) < 0 )
+		{
+			MUX_ERROR("Thread %s can't be created, check system errors", threadSdpReceiver.name);
+			return EXIT_FAILURE;
+		}
+
 	}
 
 	res =  muxMain->initThread(muxMain, &threadBroker, muxMain);

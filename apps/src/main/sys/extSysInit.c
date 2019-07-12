@@ -24,7 +24,7 @@ cJSON *extSystemGetKey(cJSON *sysObj, char *item, int index, char *key)
 {
 	cJSON *itemObj, *destObj;
 
-	itemObj = cmnJsobSystemGetSubItem(sysObj, item, index);
+	itemObj = cmnJsonSystemGetSubItem(sysObj, item, index);
 	if(item == NULL)
 	{
 		MUX_ERROR("No data for '%s' is found", item);

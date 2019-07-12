@@ -314,7 +314,7 @@ int cmn_log_init(log_stru_t *lobj);
 
 
 #define	CMN_ABORT(format ,...)		\
-			{CMN_MSG_LOG(CMN_LOG_ERR, format, ##__VA_ARGS__); CMN_MSG_LOG(CMN_LOG_ERR,"ABORT Now!!!");abort();}
+			{CMN_MSG_LOG(CMN_LOG_ERR, format, ##__VA_ARGS__); CMN_MSG_LOG(CMN_LOG_ERR,"Program exit now!!!");exit(1);/*abort();*/}
 
 #ifndef   __CMN_RELEASE__
 #if FILE_TO_STDOUT
@@ -536,6 +536,26 @@ int cmn_write_file(const char *filename, void *data, uint32_t size);
 
 
 char *cmnTimestampStr(void);
+
+
+/* Definitions from include/linux/timerfd.h */
+#define TFD_TIMER_ABSTIME	(1 << 0)
+
+//#define	EXT_CLOCK_ID				CLOCK_MONOTONIC
+#define	EXT_CLOCK_ID				CLOCK_REALTIME
+
+int timerfd_create(int clockid, int flags);
+int timerfd_set_time(int fd, long mstime);
+
+
+char *strnstr(const char *haystack, const char *needle, size_t len);
+
+#define	CMN_THREAD_NAME_MAIN				"muxMain"
+#define	CMN_THREAD_NAME_TIMER				"muxTimer"
+#define	CMN_THREAD_NAME_COMM				"muxBroker"
+#define	CMN_THREAD_NAME_MANAGER			"muxManager"
+#define	CMN_THREAD_NAME_SDP_MANAGER		"muxSdpMngr"
+#define	CMN_THREAD_NAME_SDP_RECEIVER		"muxSdpRecv"
 
 
 #ifdef __cplusplus
