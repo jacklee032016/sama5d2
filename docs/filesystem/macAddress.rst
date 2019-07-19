@@ -32,6 +32,7 @@ Xplaind
 	{ "mx25l25635e", INFO(0xc22019, 0, 64 * 1024, 512, SPI_NOR_DUAL_READ | SPI_NOR_QUAD_READ) },
 
 
+fw_setenv ethaddr fc:c2:3d:0d:16:25
 
 Problem
 ------------------------------

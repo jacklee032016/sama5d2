@@ -72,7 +72,7 @@ Clear environment:
 ::
 
    tftpboot 0x21000000 root.jffs2.2019_06_18
-   sf probe 1:0; sf erase 0x500000 0x1600000;   # 0x05+0x1B = 0x20, 32MB
+   sf probe 1:0; sf erase 0x500000 0x1B00000;   # 0x05+0x1B = 0x20, 32MB
    sf write 0x21000000 0x500000 0xXXXX:  here XXXX is come from result of tftpboot command;
    
    

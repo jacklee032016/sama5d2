@@ -823,6 +823,7 @@
 		//linux,open-drain;
 		gpios = <&pioA PIN_PD10 GPIO_ACTIVE_HIGH>; /*  */
 		
+		
 		/* param for read/write bit. JL. 06.19, 2019 */
 		tSlot = /bits/ 8 <12>;
 		tW1L = /bits/ 8 <1>;

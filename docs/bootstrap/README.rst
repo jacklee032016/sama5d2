@@ -1,6 +1,17 @@
 README for Bootstrap
 ################################
 
+06.19 2019
+----------------
+* Configuration ``ClockGenerator pro``:
+   * Input mode: 25M, internal load: 6 pF;
+   * Spread Spectrum Clock disabled;
+   * Only one clock can be VCXO, eg. 148.5M;
+      * APR: 30ppm;
+   * Featrure: None,only one is VCXO;
+   
+   
+
 05.18, 2019
 ----------------
 * Support multiple boards: xplained, Mux774;

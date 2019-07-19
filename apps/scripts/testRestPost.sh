@@ -70,7 +70,7 @@ testAnc()
 testSdp()
 {
 	echo ""
-	echo "Testing POST of 'video' on $1$2..."
+	echo "Testing POST of 'SDP' on $1$2..."
 	curl  -H "Content-Type:application/json" -X POST -d '{"username":"xyz","passwd":"123", "data":[
 		{"media": "video", "ip":"192.168.167.55", "port":8090, "uri":"videoSdp5"},
 		{"media": "audio", "ip":"192.168.167.65", "port":8090, "uri":"audioSdp5"},
@@ -83,7 +83,7 @@ testSdp()
 testRs232()
 {
 	echo ""
-	echo "Testing POST of 'video' on $1$2..."
+	echo "Testing POST of 'RS232' on $1$2..."
 	curl  -H "Content-Type:application/json" -X POST -d '{"username":"xyz","passwd":"123", "data":{"data":"1234567980abcdef","isFeedback":1, "waitTime":1000}}' \
 		http://$1$2 -v
 	echo ""
@@ -94,7 +94,7 @@ testRs232()
 testIR()
 {
 	echo ""
-	echo "Testing POST of 'video' on $1$2..."
+	echo "Testing POST of 'IR' on $1$2..."
 	curl  -H "Content-Type:application/json" -X POST -d '{"username":"xyz","passwd":"123", "data":{"data":"1234567980abcdef","isFeedback":1, "waitTime":1000}}' \
 		http://$1$2 -v
 	echo ""
@@ -104,7 +104,7 @@ testIR()
 testSecurity()
 {
 	echo ""
-	echo "Testing POST of 'video' on $1$2..."
+	echo "Testing POST of 'Security' on $1$2..."
 	curl  -H "Content-Type:application/json" -X POST -d '{"username":"xyz","passwd":"123", "data":{"get_id": ""}}' \
 		http://$1$2 -v
 	echo ""
@@ -122,7 +122,7 @@ testSecurity()
 testSystem()
 {
 	echo ""
-	echo "Testing POST of 'video' on $1$2..."
+	echo "Testing POST of 'System' on $1$2..."
 	curl  -H "Content-Type:application/json" -X POST -d '{"username":"xyz","passwd":"123", "data":{"model":"744-TXRX", 
 				"product":"SdiOverIP-774","name":"774-TX01","ver":"01.01-001", 
       			"ip":"192.168.168.181", "mask":"255.255.255.0","gateway":"192.168.168.1", 
@@ -135,7 +135,7 @@ testSystem()
 testOthers()
 {
 	echo ""
-	echo "Testing POST of 'video' on $1$2..."
+	echo "Testing POST of 'Others' on $1$2..."
 	curl  -H "Content-Type:application/json" -X POST -d '{"username":"xyz","passwd":"123", "data":{"ip": "239.0.19.1", 
 		"port": 3343, "sdp": "videoSdp2", "height": 1920, "width":1080,
 		"fps":"29.97", "colorSpace": "YCbCr-4:4:4", "depth":12, "intlce":1}}' \
