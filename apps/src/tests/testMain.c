@@ -1,6 +1,4 @@
 
-#include "libCmn.h"
-#include "libMux.h"
 #include "libCmnSys.h"
 
 #define CMN_MODULE_TEST_NAME			"testsMux" //module name
@@ -60,8 +58,6 @@ int main(int argc, char *argv[])
 		}
 
 	}
-
-//	res = cmnMuxPlayerParseConfig(MUX_PLAYER_CONFIG_FILE, &_cfg);
 
 	printf(CMN_VERSION_INFO(CMN_MODULE_TEST_NAME) EXT_NEW_LINE );
 

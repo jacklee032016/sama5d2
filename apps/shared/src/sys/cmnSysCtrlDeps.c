@@ -6,10 +6,10 @@
 #include <linux/reboot.h>
 #include <sys/reboot.h>
 #include <stdint.h>
+#include <dirent.h>
+#include <signal.h>
 
-#include "libCmn.h"
 #include "libCmnSys.h"
-
 #include "mux7xx.h"
 
 #ifdef	X86
@@ -70,6 +70,101 @@ int cmnSysCfgSave( EXT_RUNTIME_CFG *cfg, EXT_CFG_TYPE cfgType )
 	return EXIT_SUCCESS;
 }
 
+int cmnSysEthernetConfig( EXT_RUNTIME_CFG *cfg )
+{
+#define	DHCP_CLIENT	"udhcpc"
+
+	FILE *f;
+	int res = EXIT_SUCCESS;
+	char cmd[CMN_NAME_LENGTH];
+
+	f = fopen(SYS_NET_CONFIG_FILE, "w");
+	if (!f)
+	{
+		EXT_ERRORF("Open network file "SYS_NET_CONFIG_FILE" failed: %m");
+		return EXIT_FAILURE;
+	}
+
+	if( fprintf(f, "# /etc/network/interfaces by %s\n%s\n\n", CMN_MODULE_MAIN_NAME, cmnTimestampStr() ) <= 0)
+	{
+		EXT_ERRORF("Write "SYS_NET_CONFIG_FILE" failed: %m");
+		goto writeError;
+	}
+	
+
+	/* loop back */
+	if( fprintf(f, "# The loopback interface\nauto lo\niface lo inet loopback\n\n") <= 0)
+	{
+		EXT_ERRORF("Write "SYS_NET_CONFIG_FILE" failed: %m");
+		goto writeError;
+	}
+
+	/* eth0 */
+	res = fprintf(f, "# wire interface %s\n", MUX_ETH_DEVICE);
+	if(EXT_DHCP_IS_ENABLE(cfg) )
+	{
+		res += fprintf(f, "auto %s\niface %s inet dhcp\n", MUX_ETH_DEVICE, MUX_ETH_DEVICE);
+		
+		char cmd[CMN_NAME_LENGTH];
+		sprintf(cmd, DHCP_CLIENT" -R -b -p /var/run/udhcpc.eth0.pid -i %s ", MUX_ETH_DEVICE );
+
+		cmnSysForkCmd(cmd);
+	}
+	else
+	{
+		uint32_t netAddress = cfg->local.ip & cfg->ipMask;
+		
+		res += fprintf(f, "iface %s inet static\n\taddress %s\n", MUX_ETH_DEVICE, cmnSysNetAddress(cfg->local.ip) );
+		res += fprintf(f, "\tnetmask %s\n", cmnSysNetAddress(cfg->ipMask) );
+		res += fprintf(f, "\tnetwork %s\n",  cmnSysNetAddress(netAddress) );
+		res += fprintf(f, "\tgateway %s\n", cmnSysNetAddress(cfg->ipGateway) );
+
+		/* kill process udhcpc */
+		cmnSysKillProcess(DHCP_CLIENT);
+
+		/* configure address and gateway */
+		sprintf(cmd, "/sbin/ifconfig %s %s", MUX_ETH_DEVICE , cmnSysNetAddress(cfg->local.ip) );
+		cmnSysForkCmd(cmd);
+
+		cmnSysNetSetGateway(cmnSysNetAddress(cfg->ipGateway), MUX_ETH_DEVICE);
+		
+	}
+	res += fprintf(f, "\n\n" );
+	if(res <= 0)
+	{
+		EXT_ERRORF("Write "SYS_NET_CONFIG_FILE" failed: %m");
+		goto writeError;
+	}
+	EXT_INFOF("Write IP address as %s", EXT_DHCP_IS_ENABLE(cfg)?"DHCP":"Static");
+
+writeError:
+	fclose(f);
+	
+	return EXIT_SUCCESS;
+}
+
+
+int cmnSysSaveMac2Uboot( EXT_RUNTIME_CFG *cfg )
+{
+	char cmd[CMN_NAME_LENGTH];
+
+	sprintf(cmd, "fw_setenv ethaddr %.2x:%.2x:%.2x:%.2x:%.2x:%.2x > /dev/null", 
+		cfg->local.mac.address[0], cfg->local.mac.address[1], cfg->local.mac.address[2], 
+		cfg->local.mac.address[3], cfg->local.mac.address[4], cfg->local.mac.address[5] );
+#if 0
+	if(system(cmd) <0 )
+	{
+		EXT_ERRORF("Write MAC failed with cmd:%s", cmd);
+		return EXIT_FAILURE;
+	}
+#else
+	cmnSysForkCmd(cmd);
+#endif
+	EXT_INFOF("Write MAC as:'%.*s'", 17, cmd+18 );
+	
+	return EXIT_SUCCESS;
+}
+
 
 int	cmnSysCtrlBlinkPowerLED(char	isEnable)
 {
@@ -87,7 +182,7 @@ static int _cmnSysJobDelay(const char *name, int delayMs, CMN_THREAD_TIMER_CALLB
 		EXT_ERRORF("Delay Job '%s' can not be created", name);
 		return EXIT_FAILURE;
 	}
-	EXT_DEBUGF(EXT_DBG_ON, "Delay Job '%s' has been created", name);
+	EXT_DEBUGF(EXT_DBG_ON, "Delay Job '%s' about %d ms has been created", name, delayMs);
 
 	return EXIT_SUCCESS;
 }
@@ -135,4 +230,169 @@ int cmnSysCtrlDelayReset(unsigned short delayMs, void *data)
 	return _cmnSysJobDelay("reset", delayMs, _delayReset, data);
 }
 
+
+static int _directoryFiltByNumber(const struct dirent *namelist)
+{
+	char  *c;
+	int isnum=1;
+
+	c = (char *)namelist->d_name;
+	while( *c != '\0' )
+	{
+		if((*c)<48 || (*c)>57)/*'0'=48,'9'=57*/
+		{
+			isnum=0;
+			break;
+		}
+		c++;
+	}
+	return isnum;
+}
+
+
+/* get process ID, not thread ID */
+int cmnSysGetPidByName(char *progName)
+{
+#define	_DEBUG_THREAD_LOOK		EXT_DBG_OFF
+
+	struct dirent **namelist;
+	int n;
+	char file[256];
+	FILE *fp;
+	int pid = -1;
+	
+	struct info_type
+	{
+		char waste[16];
+		char value[64];
+	}serverinfo;
+	
+	n = scandir("/proc", &namelist,  _directoryFiltByNumber, alphasort);
+	EXT_DEBUGF(_DEBUG_THREAD_LOOK, "Number: %d", n);
+	while(n--)
+	{
+		sprintf(file,"/proc/%s/status", namelist[n]->d_name);		
+		EXT_DEBUGF(_DEBUG_THREAD_LOOK, "\tOpen: %s", file);
+		
+		if((fp=fopen(file,"r"))==NULL)
+		{
+			MUX_ERROR("open status file '%s' fail: %m", file );
+			continue;
+		}
+	
+		memset(&serverinfo, 0, sizeof(struct info_type));
+			
+		/*get the server name*/
+		if(fscanf(fp, "%s %s", serverinfo.waste, serverinfo.value) != 2)
+		{
+			MUX_ERROR("Parse status of %s failed: %m", file);
+		}
+		EXT_DEBUGF(_DEBUG_THREAD_LOOK, "\twaste: '%s'; value:'%s'", serverinfo.waste, serverinfo.value);
+		
+		if(!strcmp( serverinfo.value, progName) )
+		{
+			pid = atoi( namelist[n]->d_name );
+		}
+
+		if(!strcmp(serverinfo.waste,"State:"))
+		{
+			if(strchr(serverinfo.value,'Z'))
+			{
+				MUX_ERROR("'%s' status Z", file );		
+				pid = -1;
+			}
+		}
+		
+		fclose(fp);
+		free(namelist[n]);
+	}
+		
+	free(namelist);
+	
+	return pid;
+}
+
+
+int cmnSysSigSend(pid_t pid, int sigid, int opcode)
+{
+	union sigval sval;
+
+	sval.sival_int=opcode;	/* opcode can be parsed by receiving process */
+
+	// should enhanced uClibc, lzj
+	if(sigqueue(pid, sigid, sval) )
+	{
+		MUX_ERROR("Send signal %d to process %d failed: %m", sigid, pid);
+
+		return EXIT_FAILURE;
+	}
+
+	return EXIT_SUCCESS;
+}
+
+int cmnSysKillProcess(char *name)
+{
+	pid_t pid;
+
+	pid = cmnSysGetPidByName(name);
+	if(pid < 0)
+	{
+		MUX_ERROR("Process %s is not started now", name);
+
+		return EXIT_FAILURE;
+	}
+
+	return cmnSysSigSend(pid, SIGKILL, 0);
+}
+
+#if 0
+void cgi_send_signal_to_process_by_name(int sig, char *prog_name)
+{
+	pid_t pid;
+
+	pid = (pid_t)cgi_get_pid_by_name( prog_name);
+	if( pid <0 )
+		return;
+
+	kill(pid, sig);
+
+	cgi_send_signal_to_process_by_name(SIGKILL, node->name);
+
+}
+#endif
+
+void cmnSysForkCmd(const char *cmd) 
+{
+	char command[1024];
+//	snprintf(command, sizeof(command), "%s >> /dev/null" , cmd);
+//	snprintf(command, sizeof(command), "%s 1>&2 /dev/null" , cmd);
+	/*
+	* >: truncate; >>: append, for output redirect
+	* 2:error; 1: output; 2>&1 : redirect 2 to 1 
+	*/
+	snprintf(command, sizeof(command), "%s > /dev/null 2>&1" , cmd);
+
+	EXT_INFOF("Exec '%s' ...", command);
+
+#if 	0
+	if(!fork()) 
+	/* if fork new child process to execute this command, then thread list in 'ps' will add one with name of this thread after every command. 
+	* And the new child process will execute the function which call this function, such as IP address configuration: write twice in network/interfaces
+	08.08, 2019 */	
+#else
+#endif
+	{/* child */
+		if(system(command) < 0)
+		{
+			EXT_ERRORF("Exec '%s' failed", cmd);
+			return ;//EXIT_FAILURE;
+		}
+		
+//		exit(0);
+	}
+
+	/* parent process(thread) can't wait */	
+//	sleep(1); /* one second */
+	return;
+}
 

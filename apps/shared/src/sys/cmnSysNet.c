@@ -14,14 +14,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
-
 #include <net/route.h>		/*rtentry */
-
 #include <stdint.h>
 
-#include "libCmn.h"
 #include "libCmnSys.h"
-
 #include "mux7xx.h"
 
 #define __IP_DEBUG		0

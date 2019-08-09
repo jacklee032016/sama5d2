@@ -48,31 +48,6 @@ int muxReset(MuxMain *muxMain)
 }
 
 
-unsigned int readDipSwitch()
-{
-	int fd;
-	unsigned int dipvalue =0;
-	
-	fd = open(MUX_DEV_SWITCH, O_RDWR);	
-	if (fd < 0) 
-	{
-		printf("can not open "MUX_DEV_SWITCH);
-		return MUX_INVALIDATE_INTEGER;
-	}
-	
-	if (ioctl(fd, READ_SWITCH, &dipvalue) == -1) 
-	{
-		printf("Read DIP switch ioctl error!\n");
-		dipvalue = MUX_INVALIDATE_INTEGER;
-	}
-	
-	close(fd);
-	
-	return dipvalue;
-}
-
-
-
 unsigned int ASCII_2_HEX(unsigned char * ASCIIBuffer)
 {
 	unsigned int i;

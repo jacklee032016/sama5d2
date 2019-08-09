@@ -20,8 +20,12 @@
 #define	REPLY_DATACONN_OK( dataConn, resultObj)	\
 	do{	(dataConn)->resultObject = (resultObj); 	\
 		if( (dataConn)->resultObject == NULL){DATA_CONN_ERR(dataConn, IPCMD_ERR_SERVER_INTERNEL_ERROR, "No data is found for URI: '%s'", dataConn->cmd );} \
-		else {(dataConn)->errCode = IPCMD_ERR_NOERROR; } \
+		else {(dataConn)->errCode = IPCMD_ERR_NOERROR;TRACE(); } \
 			}while(0)
+
+
+#define	REPLAY_OK_WITHOUT_PARAM_IN_IP_CMD(dataConn)	\
+			REPLY_DATACONN_OK((dataConn), (dataConn)->dataObj);
 
 
 //MUX_DEBUG_JSON_OBJ((dataConn)->resultObject); 
@@ -32,10 +36,6 @@ int cmnMuxManagerAddEvent(char *cmd, 	int method, void *dataConn);
 
 int cmnMuxCtrlDataHandle( struct DATA_CONN *dataConn );
 
-
-int	cmnMuxJsonHandle4Plugin(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataConn, cJSON *data);
-
-int	cmnMuxJsonHandle4SysAdmin(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataConn, cJSON *data);
 
 
 /* handlers for data connection */

@@ -118,8 +118,6 @@
 #define	EXT_DEBUG_INIT				EXT_DBG_ON
 
 
-#include "extSysParams.h"
-
 
 typedef	enum
 {
@@ -143,10 +141,6 @@ typedef	struct _LedCtrl
 	LED_MODE_T			ledMode;
 }HwLedCtrl;
 
-typedef	struct _ButtonCtrl
-{
-	int					fd;
-}HwButtonCtrl;
 
 typedef	struct _WatchdogCtrl
 {

@@ -830,6 +830,7 @@ static char* scan_devices(void)
 	int i, ndev, devnum;
 	char *filename;
 	int max_device = 0;
+	int ret;
 
 	ndev = scandir(DEV_INPUT_EVENT, &namelist, is_event_device, versionsort);
 	if (ndev <= 0)
@@ -860,15 +861,23 @@ static char* scan_devices(void)
 		free(namelist[i]);
 	}
 
-	fprintf(stderr, "Select the device event number [0-%d]: ", max_device);
-	scanf("%d", &devnum);
+	ret = fprintf(stderr, "Select the device event number [0-%d]: ", max_device);
+	ret += scanf("%d", &devnum);
+	if(ret <= 0)
+	{
+		printf("Input device num error: %m");
+	}
 
 	if (devnum > max_device || devnum < 0)
 		return NULL;
 
-	asprintf(&filename, "%s/%s%d",
+	ret = asprintf(&filename, "%s/%s%d",
 		 DEV_INPUT_EVENT, EVENT_DEV_NAME,
 		 devnum);
+	if(ret <= 0)
+	{
+		printf("Output filename error: %m");
+	}
 
 	return filename;
 }

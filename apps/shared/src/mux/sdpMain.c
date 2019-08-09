@@ -1,13 +1,9 @@
 
-#include "libCmn.h"
-#include "libMux.h"
-
+#include <string.h>
 #include <sys/stat.h>
 
-#include "_cmnMux.h"
 #include "libCmnSys.h"
-
-#include <string.h>
+#include "_cmnMux.h"
 
 #include "_sdp.h"
 
@@ -216,7 +212,10 @@ static int _cmnMuxSdpAddRequest(HttpClientReq *sdpUri, struct SDP_CLIENT_CTX *sd
 	
 	sdpCtx->totalReqs++;
 
-	SDPC_INFO_MSG(sdpClient, "SDPC #.%d requests http://%s:%d/%s", sdpCtx->totalReqs, cmnSysNetAddress(uri->ip), uri->port, uri->uri);
+	if(SDP_IS_DEBUG(sdpCtx) )
+	{
+		SDPC_INFO_MSG(sdpClient, "SDPC #.%d requests http://%s:%d/%s", sdpCtx->totalReqs, cmnSysNetAddress(uri->ip), uri->port, uri->uri);
+	}
 
 	return cmnMuxSdpAddEvent(sdpClient, SDPC_EVENT_NEW, uri);
 }

@@ -19,12 +19,12 @@
 
 #include "ms_version.h"
 
+#include "extSysParams.h"
+
 
 
 #define	MUX_MAIN_CONFIG_FILE				CONFIG_FILE_HOME_PROJECT"muxMain.conf"
 
-#define	MUX_PLAYER_CONFIG_FILE			CONFIG_FILE_HOME_PROJECT"muxPlayer.conf"
-#define	MUX_RECORDER_CONFIG_FILE			CONFIG_FILE_HOME_PROJECT"muxRecorder.conf"
 
 #ifdef	WIN32
 #define	DIR_SPLITTER_CHAR					'\\'
@@ -76,8 +76,7 @@
 
 
 
-#define	IPCMD_SYS_ADMIN_THREADS				"threads"
-#define	IPCMD_SYS_ADMIN_VER_INFO				"verInfo"
+#define	IPCMD_SYS_ADMIN_STATUS				"status"
 
 
 
@@ -89,29 +88,10 @@
 
 #define	IPCMD_NAME_KEYWORD_DATA			"data"
 
-#define	MEDIA_CTRL_ACTION						"action"
-#define	MEDIA_CTRL_OBJECTS					"objects"
-#define	MEDIA_CTRL_STATUS						"status"
-#define	MEDIA_CTRL_STATUS_MSG				"message"
-
-#define	MEDIA_CTRL_FTP_SERVER					"ftpServer"
-#define	MEDIA_CTRL_FTP_USERNAME				"ftpUser"
-#define	MEDIA_CTRL_FTP_PASSWORD				"ftpPwd"
-#define	MEDIA_CTRL_FTP_PATH					"ftpPath"
-#define	MEDIA_CTRL_FTP_FILES					"ftpFiles"
-
-
-#define	IPCMD_NAME_OSD_INFO					"osdInfo"
-
 
 #define	IPCMD_NAME_PLAYER_AUDIO				"audio"
 #define	IPCMD_NAME_PLAYER_MUTE				"mute"
 #define	IPCMD_NAME_PLAYER_MUTE_ALL			"muteAll"
-
-/* set display mode of one player's window */
-#define	IPCMD_NAME_ASPECT_WINDOW			"aspect"
-
-#define	MUX_JSON_NAME_ASPECT_MODE			"mode"
 
 
 #define	IPCMD_NAME_SERVER_CONFIG			"config"
@@ -128,9 +108,6 @@
 #define	EXT_IPCMD_RS232_DATA_FEEDBACK			"feedbackdata"
 
 
-
-#define	PLAYLIST_NAME_URL						"URL"
-#define	PLAYLIST_NAME_DURATION				"Duration"
 
 #define	UDP_BOARD_ADDRESS				"255.255.255.255"
 #define	UDP_SERVER_PORT					(3600)
@@ -209,90 +186,9 @@ typedef	enum _CMD_TYPE
 
 	CMD_TYPE_SET_MEDIA,	/* command sent by SetMedia thread */
 
-	CMD_TYPE_SUBTITLE,
-	CMD_TYPE_SET_HLS,
-	CMD_TYPE_DOLBY,
-	CMD_TYPE_HDR10,
-	CMD_TYPE_SDR,
-	
-	CMD_TYPE_DBG,
-
-#ifdef DRM_SUPPORT
-	CMD_TYPE_DRM,
-#endif
 	CMD_TYPE_CMD_MAX,  /* max number of command send to Command thread */
 
 
-	CMD_TYPE_REC_START,
-	CMD_TYPE_REC_STOP,
-	CMD_TYPE_REC_PAUSE,
-	CMD_TYPE_REC_RESUME,
-
-	CMD_TYPE_REC_STATUS,	/* status of recorder */
-
-	CMD_TYPE_SCREEN_SIZE,
-
-	/* CMD for SERVER */
-	CMD_TYPE_SVR_CONFIG,	/* all feeds */
-	CMD_TYPE_SVR_FEEDS,	/* all feeds */
-	CMD_TYPE_SVR_CONNS,	/* all connections */
-	CMD_TYPE_SVR_URLS,	/* all URLs */
-
-
-
-	/* CMD for WEB */
-	CMD_TYPE_WEB_INFOS,	/* all feeds */
-
-
-	/* Command send to ScanDir thread */
-	CMD_TYPE_SCAN_GET_FILES = 100,	/* web retrive media files list */
-	CMD_TYPE_SCAN_BEGIN,
-
-
-	/* command send to Player thread */
-	CMD_TYPE_PLAYER_INFO,
-	CMD_TYPE_PLAYER_MEDIA,
-
-	CMD_TYPE_SWAP_WINDOW,
-	CMD_TYPE_ROTATE_WINDOW,
-	CMD_TYPE_LOCATE_WINDOW,
-
-	CMD_TYPE_ASPECT_WINDOW,
-
-	/* OSD control */
-	CMD_TYPE_OSD_ENABLE,
-	CMD_TYPE_OSD_POSITION,
-
-	CMD_TYPE_OSD_BACKGROUND,
-
-	CMD_TYPE_OSD_TRANSPANRENCY,
-
-	CMD_TYPE_OSD_FONT_SIZE,
-	CMD_TYPE_OSD_FONT_COLOR,
-	
-	CMD_TYPE_OSD_FONT_INFO,
-	
-	CMD_TYPE_OSD_LOGO,
-
-	/* global command, with Player or Window parameter */
-
-	CMD_TYPE_MUTE_ALL,		/* mute sound card */
-	CMD_TYPE_AUDIO,			/* explicit for audio one player */
-	CMD_TYPE_MUTE,			/* toggle audio of one player */
-	CMD_TYPE_VOLUME_PLUS,
-	CMD_TYPE_VOLUME_MINUS,
-	
-	CMD_TYPE_ALERT_MESSAGE,
-
-	CMD_TYPE_CEC_STAND_BY,
-	CMD_TYPE_CEC_IMAGE_ON,
-	CMD_TYPE_CEC_VOLUME_UP,
-	CMD_TYPE_CEC_VOLUME_DOWN,
-	CMD_TYPE_CEC_MUTE,
-	CMD_TYPE_CEC_INFO,
-
-	CMD_TYPE_EDID_RESOLUTION,
-	CMD_TYPE_EDID_DEEP_COLOR,
 
 	CMD_TYPE_QUIT,
 	CMD_TYPE_UNKNOWN
@@ -331,6 +227,7 @@ typedef	enum _CMD_TYPE
 #define	FIELD_SYS_CFG_PRODUCT					"product"
 #define	FIELD_SYS_CFG_NAME						"name"
 #define	FIELD_SYS_CFG_VERSION						"ver"
+#define	FIELD_SYS_CFG_BUILT_DATA					"built"
 #define	FIELD_SYS_CFG_IS_TX						"isTx"
 
 #define	FIELD_SYS_CFG_ADDRESS					"ip"
@@ -434,6 +331,15 @@ typedef	enum _CMD_TYPE
 #define	FIELD_SECURITY_GET_STATUS					"get_status"
 
 
+#define	FIELD_OTHERS_AUTHEN						"authen"
+#define	FIELD_OTHERS_DEBUG_REST					"debugRest"
+#define	FIELD_OTHERS_DEBUG_IP_CMD				"debugCmd"
+#define	FIELD_OTHERS_DEBUG_SDP					"debugSdp"
+#define	FIELD_OTHERS_SDP_STATUS					"sdpc"
+#define	FIELD_OTHERS_THREADS						"threads"
+
+
+
 
 #define	SYS_CFG_FIELD_IP_AUDIO					"ipAudio"
 #define	SYS_CFG_FIELD_IP_ANC						"ipAnc"
@@ -460,6 +366,30 @@ typedef	enum _CMD_TYPE
 #define	SYS_CFG_FIELD_IS_CONNECT					"isConnect"	/* 811 send to TX(stop/start) or RX(connect/disconnect) */
 
 
+/* definitions for security chip */
+#define	SC_ROM_ID_SIZE				8
+#define	SC_PAGE_SIZE				32
+#define	SC_PERSONNAL_SIZE			4
+#define	SC_CHALLENGE_SIZE			32
+
+#define	SC_SECRET_SIZE				32
+
+
+typedef struct
+{
+	char				pageFile[CMN_NAME_LENGTH];	
+	char				keyFile[CMN_NAME_LENGTH];	
+	char				macFile[CMN_NAME_LENGTH];	
+
+	char				crcFile[CMN_NAME_LENGTH];	/* controll CRC enable/disable*/
+
+	SC_CTRL			sc;
+}SecurityFiles;
+
+
+#define	IS_SECURITY_CHIP_EXIST(muxMain)		\
+	( (muxMain)->scf )
+
 
 typedef	struct	_CMD_EVENT
 {
@@ -475,83 +405,12 @@ typedef	struct	_CMD_EVENT
 }CMD_EVENT_T;
 
 
-enum IPAddressAction
-{
-	ACL_DISABLE = 0,
-	IP_ALLOW,
-	IP_DENY,
-};
-
-typedef struct IPAddressACL
-{
-	struct IPAddressACL 		*next;
-	enum IPAddressAction 		action;
-	/* These are in host order */
-	struct in_addr 			first;
-	struct in_addr 			last;
-} IPAddressACL;
-
-enum	RECT_TYPE
-{
-	RECT_TYPE_MAIN = 0,	
-	RECT_TYPE_PIP,	
-	RECT_TYPE_SUBTITLE,
-	RECT_TYPE_ALERT,
-	RECT_TYPE_LOGO,
-	RECT_TYPE_UNKNOWN,
-};
-
-typedef enum
-{
-	ROTATE_TYPE_0 = 0,		/* no ratate */
-	ROTATE_TYPE_90 = 1,		/* rotate 90 degree clockwise */
-	ROTATE_TYPE_180 = 2 ,
-	ROTATE_TYPE_270 = 3,
-	ROTATE_TYPE_UNKNOWN
-}ROTATE_TYPE_T;
-
-
-typedef	enum
-{
-	MUX_DISPLAY_MODE_DEFAULT	= 0, /* fill window */
-	MUX_DISPLAY_MODE_BLACKBORDER,	/* add black border to show all content and keep ratio of video*/
-	MUX_DISPLAY_MODE_CENTRAL_PART,	/* show central part of video */
-	MUX_DISPLAY_MODE_SQEEZE_PART,	/* show sqeezed central part of video */
-	
-	MUX_DISPLAY_MODE_UNKNOWN,
-}MUX_DISPLAY_MODE_T;
-
 
 struct	CTRL_CONN;
 
 struct _MuxPlugin;
 struct _MuxMain;
 struct _MuxThread;
-
-
-typedef	struct
-{
-	char		configFile[CMN_NAME_LENGTH];
-
-	char		captureName[CMN_NAME_LENGTH];
-
-	char		format[CMN_NAME_LENGTH]; /* output format of container */
-	int		noVideo;
-	int		noAudio;
-	int		noSubtitle;
-
-	int		lineNum;
-
-}CmnMuxRecordConfig;
-
-struct _SUBTITLE_FILE_LIST;
-
-typedef struct _SUBTITLE_FILE_LIST
-{
-	char							name[CMN_NAME_LENGTH];	/* absoluted path */
-	struct _SUBTITLE_FILE_LIST	*next;
-}SUBTITLE_FILE_LIST_T;
-
 
 
 #define	JSON_ACTION_LENGTH		128
@@ -608,72 +467,6 @@ typedef	struct CLIENT_CTRL
 
 }CLIENT_CTRL;
 
-
-
-/* description of window/osd */
-struct _RECT_CONFIG
-{
-	enum RECT_TYPE		type;
-	char					name[1024];
-
-	char					url[1024];	/* url for this window */
-	
-	int					left;
-	int					top;
-	int					width;
-	int					height;
-
-	int					fontSize;
-	int					fontColor;
-	int					backgroundColor;
-	char					alpha;
-	
-	char					enable;
-
-	ROTATE_TYPE_T		rotateType;
-
-	char					audioEnable;
-
-	int					displayMode;
-	
-	IPAddressACL			*acl;
-	
-	struct _MuxPlayerConfig	*mainCfg;
-
-	void					*private;	/* its OSD */
-};
-
-
-typedef struct _RECT_CONFIG		RECT_CONFIG;
-
-
-typedef struct _PLAY_ITEM
-{
-	char		filename[CMN_NAME_LENGTH];
-	int		duration;		/* in second */
-}PLAY_ITEM;
-
-
-typedef struct _PLAY_LIST
-{
-	char					name[CMN_NAME_LENGTH];
-
-	cmn_list_t			fileList;
-	
-	int					repeat;
-	
-	int					datetime;	/* timestamp of playing */
-
-	int					hour;		/* 0~23 */
-	int					minute;		/* 0 ~59 */
-	int					dayOfWeek;	/* 0~7, both 0 and 7 are Sunday */
-
-	char					enable;
-
-	struct _MuxMain		*muxMain;
-
-	void					*private;
-} PLAY_LIST;
 
 
 /* data structures used to manage configuration */
@@ -912,7 +705,7 @@ typedef	struct _PLUGIN_JSON_HANDLER
 
 typedef	struct _MuxThread
 {
-	CmnThread 	*thread;
+	CmnThread 			*thread;
 
 	struct _MuxThread	*next;
 }MuxThread;
@@ -935,8 +728,6 @@ typedef struct _MuxPlayerConfig
 	
 	int						audioVolume;
 	char						drmCommand[CMN_NAME_LENGTH];
-	
-	SUBTITLE_FILE_LIST_T		*subtitleFiles;
 	
 	int						isHlsStartMode;
 
@@ -1041,16 +832,28 @@ typedef	struct _MuxMain
 {
 	char						configFileName[CMN_NAME_LENGTH];
 
+	/* add here, so version and built data are same from startup and APIs */
+	EXT_FM_VERSION			version;
+	char						builtDate[CMN_NAME_LENGTH];
+
 	MUX_BOARD_TYPE			boardType;
 
 	int						udpCtrlPort;
 	int						tcpCtrlPort;
 	char						unixPort[CMN_NAME_LENGTH];
 
+	/* following 3 params can be modified dynamically */
 	int						isAuthen;
+	
+	int						debugRest;
+	int						debugCmd;
+	int						debugSdp;
+
 
 	int						isClientPolling;		/* polling for SDP client in RX */
 	int						pollTime;			/* seconds */
+
+	int						resetTime;			/* time for reset when button is pressed, seconds */
 	
 //	CTRL_LINK_TYPE			ctrlProtocol;
 
@@ -1059,11 +862,11 @@ typedef	struct _MuxMain
 
 	log_stru_t				muxLog;
 
-	HwButtonCtrl				btnCtrl;
 	HwLedCtrl				ledCtrl;
 	HwWatchdogCtrl			watchdogCtrl;
 	HwRs232Ctrl				rs232Ctrl;
 
+	SecurityFiles				*scf;
 
 	cJSON					*systemJson;
 
@@ -1072,8 +875,7 @@ typedef	struct _MuxMain
 
 	/*** data structure of run-time      *******/
 
-	CMN_FTP_CLIENT			ftpClient;
-	
+
 	MuxPlugIn				*plugins;
 	MuxThread				*threads;	/* all threads */
 
@@ -1083,6 +885,24 @@ typedef	struct _MuxMain
 
 }MuxMain;
 
+
+
+#define	MUX_MAIN_IS_DEBUG_REST(muxMain)	\
+		(muxMain->debugRest != 0)
+
+#define	MUX_MAIN_IS_DEBUG_CMD(muxMain)	\
+		(muxMain->debugCmd != 0)
+
+#define	MUX_MAIN_IS_DEBUG_MSG(muxMain)	\
+		(MUX_MAIN_IS_DEBUG_REST(muxMain) || MUX_MAIN_IS_DEBUG_CMD(muxMain))
+
+
+#define	MUX_MAIN_IS_DEBUG_SDP(muxMain)	\
+		(muxMain->debugSdp != 0)
+
+
+#define	CONTROLLER_IS_DEBUG(dataConn)	\
+			MUX_MAIN_IS_DEBUG_MSG( (dataConn)->ctrlConn->broker->muxMain)
 
 
 /************ Macros like functions **********************/
@@ -1303,6 +1123,8 @@ extern	CmnThread  threadManager;
 extern	CmnThread  threadSdpClient;
 extern	CmnThread  threadSdpReceiver;
 
+extern	CmnThread  threadButton;
+
 
 MuxPlugIn *cmnMuxPluginFind(MuxMain *muxMain, MUX_PLUGIN_TYPE type);
 
@@ -1322,11 +1144,7 @@ const uint8_t extCmnIntFindType(CMN_INT_TYPE  intType, uint8_t name);
 int cmnMuxMainParse(const char *filename, MuxMain *muxMain);
 int cmnMuxPlayerParseConfig(const char *filename, MuxPlayerConfig *cfg);
 
-int cmnMuxConfigParseRecord(const char *filename, CmnMuxRecordConfig *recordConfig);
 
-
-int	cmnMuxRectsSave(FILE *f, cmn_list_t *winsOrOsds);
-int	cmnMuxPlaylistSave(FILE *f, cmn_list_t *playlists);
 int cmnMuxSavePlayerConfig( MuxPlayerConfig *cfg);
 int cmnMuxSaveAllConfig(MuxMain *muxMain);
 
@@ -1340,7 +1158,6 @@ int cmnMuxJEventReply(CMN_PLAY_JSON_EVENT *jsonEvent, int errCode, const char *f
 		do{ MUX_ERROR( __VA_ARGS__);	\
 		cmnMuxJsonControllerReply( (dataConn),  (errCode),  __VA_ARGS__ );}while(0)
 
-int cmnMuxDsValidate(void);
 
 
 cJSON *cmnMuxSystemJSon2Flat(cJSON *systemJson);

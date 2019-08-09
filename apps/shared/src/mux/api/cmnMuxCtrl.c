@@ -1,10 +1,6 @@
 
-#include "libCmn.h"
-#include "libMux.h"
-
-#include "_cmnMux.h"
-
 #include "libCmnSys.h"
+#include "_cmnMux.h"
 
 #include "mux7xx.h"
 
@@ -49,16 +45,7 @@ After update, reboot is needed, so save is also needed */
 static char _compareSystemCfg(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 {
 	char ret = EXT_FALSE;
-	if(rxCfg->netMode != 0XFF )
-	{
-		if( (runCfg->netMode) !=  (rxCfg->netMode) )
-		{
-			EXT_CFG_SET_DHCP(runCfg, (rxCfg->netMode) );
-			MUX_DEBUG("DHCP: %s", (rxCfg->netMode)? "YES":"NO");
-			ret = EXT_TRUE;
-		}
-	}
-
+	
 	if( rxCfg->local.ip != INVALIDATE_VALUE_U32 )
 	{
 		runCfg->local.ip = rxCfg->local.ip;
@@ -99,17 +86,37 @@ static char _compareSystemCfg(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 	}
 #endif
 
+
+	if(rxCfg->netMode != 0XFF )
+	{/* check DHCP mode must only be after modify IP/mask/network */
+		if( (runCfg->netMode) !=  (rxCfg->netMode) )
+		{
+			EXT_CFG_SET_DHCP(runCfg, (rxCfg->netMode) );
+			MUX_DEBUG("DHCP set as: %s", (rxCfg->netMode)? "YES":"NO");
+
+			cmnSysEthernetConfig(runCfg );
+
+			ret = EXT_TRUE;
+		}
+	}
+
+
+
 	if(!MAC_ADDR_IS_NULL(&rxCfg->local.mac) )
 	{
 		if(! MAC_ADDR_IS_EQUAL(&runCfg->local.mac, &rxCfg->local.mac) )
 		{
-			EXT_DEBUGF(EXT_DBG_ON, "MAC address is not same:%.2x:%.2x:%.2x:%.2x:%.2x:%.2x!=%.2x:%.2x:%.2x:%.2x:%.2x:%.2x", 
+			EXT_DEBUGF(EXT_DBG_ON, "MAC address is not same:%.2x:%.2x:%.2x:%.2x:%.2x:%.2x(Old)!=%.2x:%.2x:%.2x:%.2x:%.2x:%.2x(New)", 
 				runCfg->local.mac.address[0], runCfg->local.mac.address[1], runCfg->local.mac.address[2], 
 				runCfg->local.mac.address[3], runCfg->local.mac.address[4], runCfg->local.mac.address[5], 
 				rxCfg->local.mac.address[0], rxCfg->local.mac.address[1], rxCfg->local.mac.address[2],
-				rxCfg->local.mac.address[3], rxCfg->local.mac.address[4], rxCfg->local.mac.address[3]);
+				rxCfg->local.mac.address[3], rxCfg->local.mac.address[4], rxCfg->local.mac.address[5]);
 			memcpy(&runCfg->local.mac, &rxCfg->local.mac, EXT_MAC_ADDRESS_LENGTH);
 			runCfg->isMacConfiged = EXT_TRUE;
+
+			/* save MAC address into u-boot env partition */
+			cmnSysSaveMac2Uboot(runCfg);
+			
 			ret = EXT_TRUE;
 		}
 	}
@@ -377,7 +384,7 @@ char extSysCompareParams(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 
 	if(FIELD_IS_CHANGED_U8(rxCfg->runtime.blink) && (rxCfg->runtime.blink != runCfg->runtime.blink) ) 
 	{
-		EXT_DEBUGF(DEBUG_SYS_CTRL, "POWER LED %s", (rxCfg->runtime.blink)?"Blink":"Off" );
+		EXT_DEBUGF(DEBUG_SYS_CTRL, "LED POWER new state: %s", (rxCfg->runtime.blink)?"Blink":"Off" );
 		runCfg->runtime.blink = rxCfg->runtime.blink;
 		cmnSysCtrlBlinkPowerLED(runCfg->runtime.blink);
 	}
@@ -386,14 +393,14 @@ char extSysCompareParams(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 	{
 		EXT_DEBUGF(DEBUG_SYS_CTRL, "Reset %d", rxCfg->runtime.reset);
 		runCfg->runtime.reset = rxCfg->runtime.reset;
-		cmnSysCtrlDelayReset(3000, &runCfg->runtime);
+		cmnSysCtrlDelayReset(SYS_REBOOT_DELAY_MS, &runCfg->runtime);
 	}
 
 	if(FIELD_IS_CHANGED_U8(rxCfg->runtime.reboot) && (rxCfg->runtime.reboot != runCfg->runtime.reboot) ) 
 	{
 		EXT_DEBUGF(DEBUG_SYS_CTRL, "Reboot %d", rxCfg->runtime.reboot );
 		runCfg->runtime.reboot = rxCfg->runtime.reboot;
-		cmnSysCtrlDelayReboot(2800, &runCfg->runtime);
+		cmnSysCtrlDelayReboot(SYS_REBOOT_DELAY_MS, &runCfg->runtime);
 	}
 
 	if(! IS_STRING_NULL_OR_ZERO(rxCfg->hexData) )
@@ -515,7 +522,7 @@ static int _cmnSysConfigCtrl(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 		_sendRsData(runCfg);
 	}
 
-	cmnSysJsonUpdate(runCfg->mMain);
+	cmnSysJsonUpdate(runCfg->muxMain);
 
 	return EXIT_SUCCESS;
 }

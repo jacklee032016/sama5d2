@@ -160,6 +160,11 @@ struct	SDP_CLIENT_CTX
 };
 
 
+#define	SDP_IS_DEBUG(sdpCtx)	\
+			MUX_MAIN_IS_DEBUG_SDP( (sdpCtx)->muxMain)
+
+
+
 struct SDP_EVENT
 {
 	int						event;
@@ -169,7 +174,7 @@ struct SDP_EVENT
 };
 
 #define	SDPC_MSG(sdpClient, frmat, ...)		\
-	{EXT_ERRORF( "%s#%d "frmat, sdpClient->name, sdpClient->reqs, ##__VA_ARGS__); \
+	{MUX_ERROR( "%s#%d "frmat, sdpClient->name, sdpClient->reqs, ##__VA_ARGS__); \
 		sdpcErrorMsg(sdpClient, frmat, ##__VA_ARGS__);  }
 
 //		 sdpcErrorMsg(sdpClient, frmat, __VA_ARGS__); }
@@ -180,7 +185,7 @@ struct SDP_EVENT
 //	 sdpcErrorMsg(sdpClient, "%s#%d " frmat, sdpClient->name, sdpClient->reqs, ##message); }
 
 #define	SDPC_ERR_MSG(sdpClient, frmat, message...)		\
-	EXT_ERRORF( "%s#%d "frmat, sdpClient->name, sdpClient->reqs, ##message)
+	MUX_ERROR( "%s#%d "frmat, sdpClient->name, sdpClient->reqs, ##message)
 
 
 #define	SDPC_DEBUG_MSG(sdpClient, frmat, message...)		\

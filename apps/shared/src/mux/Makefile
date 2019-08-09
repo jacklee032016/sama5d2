@@ -27,17 +27,17 @@ MUX_SRC += \
 		cmnMuxUtils.c \
 		cmnMuxMainConfig.c	\
 		cmnMuxSaveConfig.c \
-		cmnMuxDs.c \
 		api/cmnMuxBroker.c \
 		api/cmnMuxManager.c \
 		api/cmnMuxDataConn.c \
 		api/cmnMuxJsonUtils.c \
 		api/cmnMuxJsonHandlers.c \
 		api/cmnMuxJsonObjectParse.c \
-		api/cmnMuxJsonMedia.c \
 		api/cmnMuxCtrl.c \
 		api/cmnMuxClient.c \
+		extThreadBtn.c \
 
+#		cmnMuxDs.c \
 #		cmnMuxConfigWeb.c	\
 #		cmnMuxPlayerConfig.c	\
 #		cmnMuxPlaylist.c \

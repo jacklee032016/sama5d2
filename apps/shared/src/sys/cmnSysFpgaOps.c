@@ -4,9 +4,7 @@
 #include <sys/reboot.h>
 #include <stdint.h>
 
-#include "libCmn.h"
 #include "libCmnSys.h"
-
 #include "mux7xx.h"
 
 #include "muxFpga.h"

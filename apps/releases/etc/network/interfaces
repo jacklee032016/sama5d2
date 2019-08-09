@@ -1,15 +1,12 @@
-# /etc/network/interfaces -- configuration file for ifup(8), ifdown(8)
- 
+# /etc/network/interfaces by muxCtrl
+2019-08-08 15:24:05
+
 # The loopback interface
 auto lo
 iface lo inet loopback
 
+# wire interface eth0
 auto eth0
-# iface eth0 inet dhcp
+iface eth0 inet dhcp
 
-iface eth0 inet static
-	address 192.168.168.102
-	netmask 255.255.255.0
-	network 192.168.168.0
-	gateway 192.168.168.1
 

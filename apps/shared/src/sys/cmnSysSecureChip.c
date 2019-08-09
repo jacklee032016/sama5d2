@@ -3,13 +3,16 @@
 #include <sys/time.h>
 #include <time.h>
 
-#include "libCmn.h"
 #include "libCmnSys.h"
 
 #include "mux7xx.h"
 
-#define	_W1_SLAVE_ROOT_PATH			"/sys/devices/w1_bus_master1/"
+#ifndef uchar
+   typedef unsigned char uchar;
+#endif
+int ComputeSHA256(uchar* message, short length, ushort skipconst, ushort reverse, uchar* digest);
 
+#define	_W1_SLAVE_ROOT_PATH			"/sys/devices/w1_bus_master1/"
 
 static void _bspScCreateSecrect(SC_CTRL *sc)
 {
@@ -157,250 +160,6 @@ char cmnSysScComputeMAC(SC_CTRL *sc)
 }
 
 
-#if 0
-/* Write the 256 bit(32 byte) data to scratchpad with CRC16 verification for DS28E15 */
-static char __bspWriteScratchPad(unsigned char *data)
-{
-	int i;
-	unsigned short read_crc;
-	unsigned short cmd = SC_CMD_READ_WRITE_SCRATCHPAD;
-
-	CRC16 = 0;
-	//CMD code
-	docrc16(cmd);
-	////PB--parameter byte bitmap, BIT3-0:0000 write, 1111 read
-	cmd = 0x0;
-	docrc16(cmd);
-	
-	_bspScReset();
-	
-	//SKIP_ROM
-	_bspScWriteByte(SC_CMD_ROM_SKIP);	
-	_bspScWriteByte(SC_CMD_READ_WRITE_SCRATCHPAD);		
-	_bspScWriteByte(0x0);	
-	
-	//first crc	
-	SC_READ_16BIT(read_crc);
-	if( CRC16 != read_crc )
-	{
-#if BSP_SC_DEBUG
-		EXT_ERRORF("SC: writeScratch CMD CRC error: %04x != %04x", CRC16,  read_crc );
-#endif
-		return EXIT_FAILURE;
-	}
-	EXT_DEBUGF(BSP_SC_DEBUG, "SC: WriteScratch CMD CRC: %04x:%04x", CRC16, read_crc);
-		
-	//data			
-	for(i = 0; i < 32; i++ )
-	{
-		_bspScWriteByte(data[i]);	
-	}
-	
-	SC_READ_16BIT(read_crc);
-	
-	CRC16 = 0;		
-	for(i = 0; i < 32; i++ )
-	{
-		docrc16(data[i]);		
-	}
-	
-	if( CRC16 != read_crc )	
-	{
-#if BSP_SC_DEBUG
-		EXT_ERRORF("SC: writeScratch Data CRC error : %04x !=%04x !", CRC16, read_crc );
-#endif
-		return EXIT_FAILURE;
-	}
-	EXT_DEBUGF(BSP_SC_DEBUG, "SC: WriteScratch Data CRC: %04x:%04x", CRC16, read_crc);
-	
-	return EXIT_SUCCESS;
-}
-
-
-/*
-* load and lock the 256 bit(32 byte) secret to chip
-* 'secret'- secret to load
-* 'lock_flag' - 1: lock , 0: no lock
-* 'magic - 0x5A, protect lock_flag
-*/
-static char _writeKeyIntoScratchAndLock(unsigned char *secret, unsigned char lock_flag, unsigned char lock_magic)
-{
-	unsigned short read_crc;	
-	unsigned short cmd = SC_CMD_LOAD_LOCK_SECRET;	
-	unsigned char PB;
-	
-	if(__bspWriteScratchPad(secret) == EXIT_FAILURE)
-	{
-		EXT_ERRORF("SC: LoadSecret error!");
-		return EXIT_FAILURE;
-	}	
-		
-	if((lock_flag == 1)&&(lock_magic == 0x5A))
-	{
-		PB = 0xE0;
-	}
-	else
-	{
-		PB = 0x00;
-	}
-
-	CRC16 = 0;
-	//CMD code
-	docrc16(cmd);
-	////PB--parameter byte bitmap, BIT3-0:0000 write, 1111 read
-	cmd = PB;
-	docrc16(cmd);
-	
-	_bspScReset();
-	//SKIP_ROM
-	_bspScWriteByte(SC_CMD_ROM_SKIP);	
-	_bspScWriteByte(SC_CMD_LOAD_LOCK_SECRET);		
-	_bspScWriteByte(PB);
-	
-	//first crc	
-	SC_READ_16BIT(read_crc);
-	if( CRC16 != read_crc)
-	{
-		EXT_ERRORF("SC: LoadSecret CMD CRC error %04x != %04x!", CRC16, read_crc );
-		return EXIT_FAILURE;
-	}		
-	EXT_DEBUGF(BSP_SC_DEBUG, "SC: LoadSecret CMD CRC: %04x:%04x", CRC16, read_crc);
-	
-	//send release
-	_bspScWriteByte(0xAA);
-	//strong pull up
-//	enable_ds_pull_up();
-	SC_STRONG_PULL_UP_ENABLE();
-	//delay tprs
-	delay_ms(SECRET_PROGRAM_DELAY);
-	SC_STRONG_PULL_UP_DISABLE();
-	
-//	disable_ds_pull_up();
-	
-	read_crc = _bspScReadByte();	
-	if(read_crc == 0xAA)
-	{
-		return EXIT_SUCCESS;
-	}
-	else if(read_crc == 0x55)
-	{
-		EXT_ERRORF("SC: LoadSecret: secret was locked before.");
-		return EXIT_FAILURE;
-	}
-	else
-	{
-		EXT_ERRORF("SC: LoadSecret fail.");
-		return EXIT_FAILURE;
-	}			
-}
-
-
-
-
-/*  Do Compute Page MAC command and return MAC. Optionally do anonymous mode (anon != 0). 
-* page_num - page number to read 0 - 16
-* challange - 32 byte buffer containing the challenge
-* mac - 32 byte buffer for page data read
-* anon - Flag to indicate Anonymous mode if (anon != 0)
-*/
-static char _writeChallengeIntoScratchAndReadMAC(SC_CTRL *sc)
-{
-	int i;
-	unsigned short read_crc;
-	unsigned short cmd = SC_CMD_COMPUTE_READ_PAGE_MAC;
-	unsigned char PB;	
-	
-	if(sc->isAnon == 1)	//anonymous 
-	{
-		PB = 0xE0;
-	}
-	else
-	{
-		PB = 0x00;	//use ROM ID
-	}
-	
-	PB |= (sc->pageNum & 0x1);
-	
-	// write the challenge 32 bytes to the scratchpad
-	if(__bspWriteScratchPad(sc->challenge) == EXIT_FAILURE)
-	{
-#if BSP_SC_DEBUG
-		EXT_ERRORF("SC: WriteScratchPad fail.");
-#endif
-		return EXIT_FAILURE;
-	}
-	
-	CRC16 = 0;
-	//CMD code
-	docrc16(cmd);
-	////PB--parameter byte bitmap, BIT3-0:0000 write, 1111 read
-	cmd = PB;
-	docrc16(cmd);
-	
-	_bspScReset();
-	//SKIP_ROM
-	_bspScWriteByte(SC_CMD_ROM_SKIP);	
-	_bspScWriteByte(SC_CMD_COMPUTE_READ_PAGE_MAC);		
-	_bspScWriteByte(PB);	
-	
-	//first crc	
-	SC_READ_16BIT(read_crc);
-		
-	if( CRC16 !=  read_crc )
-	{
-		EXT_ERRORF("SC: ReadMAC CMD CRC error %04x != %04x!", CRC16, read_crc );
-		return EXIT_FAILURE;
-	}		
-	EXT_DEBUGF(BSP_SC_DEBUG, "SC: ReadMAC CMD CRC: %04x:%04x", CRC16, read_crc);
-
-	//wait for 2*tcsha
-	delay_ms(2*SHA_COMPUTATION_DELAY);
-	
-	//read cs
-	read_crc = _bspScReadByte();
-	if(read_crc != 0xAA)
-	{
-		EXT_ERRORF("SC: ReadDMA read cs error: 0x%x", read_crc);
-		return EXIT_FAILURE;
-	}
-	
-	//read 32 byte MAC 
-	for(i = 0; i < 32; i++ )
-	{
-		sc->readMac[i] = _bspScReadByte();
-	}
-	
-	SC_READ_16BIT(read_crc);
-	
-#if BSP_SC_DEBUG
-	CONSOLE_DEBUG_MEM(sc->readMac, 32, 0, "Read MAC");
-#endif
-
-	CRC16 = 0;		
-	for(i = 0; i < 32; i++ )
-	{
-		PB = sc->readMac[i];
-		docrc16(PB);
-	}
-
-	if(CRC16 != read_crc)
-	{
-#if BSP_SC_DEBUG
-		EXT_ERRORF("SC: ReadMAC Data CRC error: %04x != %04x!", CRC16, read_crc );
-		CONSOLE_DEBUG_MEM(sc->readMac, 32, 0, "Read error MAC");
-#endif
-		return EXIT_FAILURE;
-	}
-
-#if BSP_SC_DEBUG
-	CONSOLE_DEBUG_MEM(sc->readMac, 32, 0, "Read MAC");
-	EXT_DEBUGF(BSP_SC_DEBUG, "SC: ReadMAC Data CRC: %04x:%04x", CRC16, read_crc);
-#endif
-	
-	return EXIT_SUCCESS;	
-}
-#endif
-
 /***  public interfaces of security chip ****/
 
 #define	ROM_ID_PRINT(buf, romId)	\
@@ -410,6 +169,7 @@ static SecurityFiles  _scFiles;
 /*
 * read ROM ID, initialize pageData and create secrect locally;
 * read personality from chip
+* Used to find device. If device is found, validation failed, then it is used to input key 
 */
 SecurityFiles *cmnSysScInit(void)
 {
@@ -417,13 +177,24 @@ SecurityFiles *cmnSysScInit(void)
 	/* read ROM ID */
 	unsigned char romId[SC_ROM_ID_SIZE];
 	char romStr[256];
+	unsigned char	personality_byte[SC_PAGE_SIZE];
 
+#if ARCH_ARM
 	if(cmnSysW1GetRomId(romId) )
 	{
 		EXT_ERRORF("No ROM ID of security chip is found" );
 		return NULL;
 	}
+#else
+	/*17.000000882884 */
+	memset(romId, 0, sizeof(romId));
+	romId[0]= 0x17;
 	
+	romId[5]= 0x88;
+	romId[6]= 0x28;
+	romId[7]= 0x84;
+#endif
+
 	memset(scf, 0, sizeof(SecurityFiles));
 	
 	CMN_HEX_DUMP(romId, SC_ROM_ID_SIZE, "ROM ID");
@@ -438,10 +209,23 @@ SecurityFiles *cmnSysScInit(void)
 	snprintf(scf->crcFile, sizeof(scf->crcFile), _W1_SLAVE_ROOT_PATH"%s/crc", romStr);
 
 	memcpy(scf->sc.romId, romId, sizeof(scf->sc.romId));
+	
 	_bspScInitPage(&scf->sc);
 	_bspScCreateSecrect(&scf->sc);
 
 	/* read personality */
+	EXT_INFOF(EXT_NEW_LINE"\tRead Personality...");
+#if ARCH_ARM
+	SC_KEY_READ(scf, personality_byte);
+#else
+	int	ranVal= rand();
+	memcpy( personality_byte, &ranVal, 4);
+#endif
+	CMN_HEX_DUMP(personality_byte, sizeof(personality_byte), "Personality");
+
+	scf->sc.manId[0] = personality_byte[2];
+	scf->sc.manId[1] = personality_byte[3];
+
 	return scf; 
 }
 
@@ -597,4 +381,84 @@ int	cmnSysScCheck(SC_CTRL *sc)
 }
 #endif
 
+/* after page and secret have been writen by IP command client */
+int cmnSysScValidate(SecurityFiles *scf)
+{
+	if(!scf)
+	{
+		MUX_ERROR("MAC verification failed!\n");
+		return EXIT_FAILURE;
+	}
+
+	cmnSysScChallegeInit(&scf->sc);
+	EXT_INFOF(EXT_NEW_LINE"Challenge"EXT_NEW_LINE"\tWrite ...");
+	CMN_HEX_DUMP(scf->sc.challenge, sizeof(scf->sc.challenge), "Write Challenge:");
+	if(SC_MAC_WRITE(scf, scf->sc.challenge))
+		return EXIT_FAILURE;
+
+
+	EXT_INFOF(EXT_NEW_LINE"\tRead ...");
+	if(SC_MAC_READ(scf, scf->sc.readMac))
+		return EXIT_FAILURE;
+	CMN_HEX_DUMP(scf->sc.readMac, sizeof(scf->sc.readMac), "Read Challenge:");
+//	memcpy(scf->sc.readMac, challenge, sizeof(challenge));
+
+#if ARCH_ARM
+	if(cmnSysScComputeMAC(&scf->sc) == EXIT_FAILURE)
+	{
+		EXT_ERRORF("Securety Validating result: Failed");
+		return EXIT_FAILURE;
+	}
+#endif
+
+	EXT_INFOF("Securety Validating result: Success");
+	
+	return EXIT_SUCCESS;
+}
+
+
+/* write key and page with requirement from IP command client 
+* key is secret from client, size must be SC_PAGE_SIZE
+*/
+int cmnSysScWriteKey(SecurityFiles *scf, unsigned char  *secret, int size)
+{
+	unsigned char page[SC_PAGE_SIZE];
+	
+	if(!scf)
+		return EXIT_FAILURE;
+	
+	CMN_HEX_DUMP(secret, size, "Write SECRET");
+	
+	if(size != SC_PAGE_SIZE)
+	{
+		EXT_ERRORF("\tSize of secret key must be %d: %d", SC_PAGE_SIZE, size );
+		return EXIT_FAILURE;
+	}
+
+	EXT_INFOF(EXT_NEW_LINE"PAGE"EXT_NEW_LINE"\tWrite ...");
+	CMN_HEX_DUMP(scf->sc.pageData, sizeof(scf->sc.pageData), "Write page:");
+	if(SC_PAGE_WRITE(scf, scf->sc.pageData))
+		return EXIT_FAILURE;
+
+	EXT_INFOF(EXT_NEW_LINE"\tRead ...");
+	SC_PAGE_READ(scf, page);
+	CMN_HEX_DUMP(page, sizeof(page), "Read Page");
+
+	if(memcmp(scf->sc.pageData, page, sizeof(scf->sc.pageData)))
+	{
+		EXT_ERRORF(EXT_NEW_LINE"\tPage is wrong"EXT_NEW_LINE);
+	}
+	else
+	{
+		EXT_INFOF(EXT_NEW_LINE"\tPage is OK"EXT_NEW_LINE);
+	}
+
+
+	EXT_INFOF(EXT_NEW_LINE"KEY"EXT_NEW_LINE"\tWrite ...");
+	CMN_HEX_DUMP(secret, SC_PAGE_SIZE, "Write Secret:");
+	if(SC_KEY_WRITE(scf, secret))
+		return EXIT_FAILURE;
+	
+	return EXIT_SUCCESS;
+}
 

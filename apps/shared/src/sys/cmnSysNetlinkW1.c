@@ -288,7 +288,7 @@ static int _sysW1SendCmd(struct netlink_parse *w1Master, struct w1_netlink_msg *
 
 static int _sysW1Poll(struct netlink_parse *w1Master)
 {
-	int repeat_loop = 1 ;
+//	int repeat_loop = 1 ;
 	int ret = 1;
 	
 	int select_value ;
@@ -330,7 +330,7 @@ static int _sysW1Poll(struct netlink_parse *w1Master)
 			}
 			
 			//w1_masters( &nlp );
-			repeat_loop = w1Master->cn->ack ;
+//			repeat_loop = w1Master->cn->ack ;
 		}
 
 	}
@@ -377,7 +377,7 @@ int cmnSysW1Init( struct netlink_parse *w1Master)
 	return 0 ;
 }
 
-
+#if 0
 static void _w1_masters(struct netlink_parse * nlp)
 {
 	if (nlp->w1m)
@@ -399,14 +399,12 @@ static void _w1_masters(struct netlink_parse * nlp)
 		}
 	}
 }
-
+#endif
 
 int cmnSysW1FindMaster(struct netlink_parse *w1Master)
 {
-	int repeat_loop = 1 ;
-
-	printf("Send list master command...\n");
 	struct w1_netlink_msg w1lm;
+	printf("Send list master command...\n");
 	
 	memset(&w1lm, 0, sizeof(w1lm));
 	w1lm.type = W1_LIST_MASTERS;
@@ -570,5 +568,6 @@ int testDs2815(void )
 
 	return 0;
 }
+
 
 

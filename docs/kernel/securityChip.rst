@@ -2,6 +2,47 @@ Security Chip in Kernel
 ################################
 05.30, 2019
 
+Application
+====================================
+Init
+----------------------------------------
+*. read ROM ID;
+*. create page data locally with product name, etc.
+*. create secret locally, changing ROM ID with some algorithm; this is shared with client; 
+*. read personality from chip;
+
+
+Test Process
+----------------------------------------
+*. Write page/read: 32 bytes;
+*. Write key(secret)/read key, personality: 32 bytes;
+*. Create challenge from random and write, then start caculation of MAC;
+*. Read result: 32 bytes:
+*. Caculate MAC and validate: 
+    *. Caculate MAC with page(32), secret/key(32), challenge(32) and others(manId, etc), 128 bytes; result 32 bytes
+	*. Compare 32 bytes
+
+
+IP Command Client
+----------------------------------------
+*. get_id:
+*. set_key: 
+    *. write page data;
+    *. write secrect data which is caculated by client, and lock_secret;
+*. get_status: 
+    *. write challenge; 
+	*. start computing;
+	*. read 32 bytes MAC;
+	*. caculate and validate MAC;
+
+Check when startup
+----------------------------------------
+*. init library interface;
+*. call get_status;
+
+
+Driver
+====================================
 
 * Read Challenge 
 --------------------

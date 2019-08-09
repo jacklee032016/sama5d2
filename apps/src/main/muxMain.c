@@ -191,13 +191,21 @@ int main(int argc, char **argv)
 	
 	int res = EXIT_SUCCESS;
 
-	MUX_INFO(CMN_VERSION_INFO(CMN_MODULE_MAIN_NAME));
-	fprintf(stderr, CMN_MODULE_MAIN_NAME" " CMN_VERSION_INFO(CMN_MODULE_MAIN_NAME)"\n");
-
 	CMN_SHARED_INIT();
 
 	memset(muxMain, 0 , sizeof(MuxMain) );
-	muxMain->runCfg.mMain = muxMain;
+	muxMain->runCfg.muxMain = muxMain;
+	
+	muxMain->version.major = EXT_VERSION_MAJOR;
+	muxMain->version.minor = EXT_VERSION_MINOR;
+	muxMain->version.revision = EXT_VERSION_REVISION;
+	snprintf(muxMain->builtDate, sizeof(muxMain->builtDate), "%s %s", __DATE__ , __TIME__ );
+#if 0	
+	MUX_INFO(CMN_VERSION_INFO(CMN_MODULE_MAIN_NAME));
+	fprintf(stderr, CMN_MODULE_MAIN_NAME" " CMN_VERSION_INFO(CMN_MODULE_MAIN_NAME)"\n");
+#else
+	fprintf(stderr, CMN_MODULE_MAIN_NAME", %02d.%d-%02d, %s\n", muxMain->version.major, muxMain->version.minor, muxMain->version.revision, muxMain->builtDate );
+#endif
 
 	cmnThreadSetName(CMN_THREAD_NAME_MAIN);
 //	putenv("http_proxy");
@@ -236,17 +244,23 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
+	muxMain->scf = cmnSysScInit();
+	if( muxMain->scf == NULL )
+	{
+		MUX_ERROR("No Security Chip is found on board!");
+//		return 0;
+	}
+	
+	if( cmnSysScValidate(muxMain->scf) == EXIT_FAILURE )
+	{/* enable run to configure key into security chip */
+		MUX_ERROR("Security validation failed, no authority to access!");
+//		return 0;
+	}
+
 	if(extSystemInit(muxMain) == EXIT_FAILURE)
 	{
 		return 0;
 	}
-#if 0
-	if( cmnMuxDsValidate() )
-	{
-		MUX_ERROR("Security validation failed, no authority to access!");
-		return 0;
-	}
-#endif
 
 
 #if CMN_TIMER_START_DELAY
@@ -320,6 +334,14 @@ int main(int argc, char **argv)
 		MUX_ERROR("failed when '%s' initializing", threadManager.name );
 		exit(1);
 	}
+
+	res =  muxMain->initThread(muxMain, &threadButton, muxMain);
+	if(res < 0)
+	{
+		MUX_ERROR("failed when '%s' initializing", threadButton.name );
+		exit(1);
+	}
+
 
 	/* add polling timer */
 	if(muxMain->isClientPolling)

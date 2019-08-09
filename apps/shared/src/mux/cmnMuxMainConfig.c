@@ -111,6 +111,36 @@ static int _parseGlobalConfig(const char **p, MuxMain *muxMain, int linenum)
 #endif
 	}
 
+	else if (!strcasecmp(cmd, "ButtonResetTime"))
+	{
+		muxMain->resetTime = cmnParseGetIntValue(p);
+#if DEBUG_CONFIG_FILE
+		MUX_INFO("ButtonResetTime: %d", muxMain->resetTime );
+#endif
+	}
+
+	else if (!strcasecmp(cmd, "DebugRest"))
+	{
+		muxMain->debugRest = cmnParseGetBoolValue(p);
+#if DEBUG_CONFIG_FILE
+		fprintf(stderr, "DebugRest: %s\n", (muxMain->debugRest)?"YES":"NO");
+#endif
+	}
+	else if (!strcasecmp(cmd, "DebugCmd"))
+	{
+		muxMain->debugCmd = cmnParseGetBoolValue(p);
+#if DEBUG_CONFIG_FILE
+		fprintf(stderr, "DebugCmd: %s\n", (muxMain->debugCmd)?"YES":"NO");
+#endif
+	}
+	else if (!strcasecmp(cmd, "DebugSdp"))
+	{
+		muxMain->debugSdp = cmnParseGetBoolValue(p);
+#if DEBUG_CONFIG_FILE
+		fprintf(stderr, "debugSdp: %s\n", (muxMain->debugSdp)?"YES":"NO");
+#endif
+	}
+
 	else
 	{
 		MUX_ERROR("Invalidate configuration item: %s on line %d", cmd, linenum);

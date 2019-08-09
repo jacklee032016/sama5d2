@@ -26,7 +26,7 @@ static void usage(char* base, struct API_PARAMETERS *params)
 		"\t\t Current command:  " \
 		"\n\t\t\t"CLIENT_CMD_STR_FIND", "CLIENT_CMD_STR_GET", "CLIENT_CMD_STR_SET", "CLIENT_CMD_STR_RS_DATA", " \
 		"\n\t\t\t"CLIENT_CMD_STR_SECURE", " CLIENT_CMD_STR_IR", "
-		"\n\t\t\t"IPCMD_SYS_ADMIN_THREADS ", " IPCMD_SYS_ADMIN_VER_INFO", quit \n" \
+		"\n\t\t\t"IPCMD_SYS_ADMIN_STATUS ", quit \n" \
 		"\t\t ipaddress/fqdn: default localhost; \n", 
 		  base, base, CLIENT_TIMEOUT_SECONDS);
 
@@ -179,26 +179,6 @@ static int _writeCmdExec(struct API_CLIENT_CMD_HANDLER *handle, struct API_PARAM
 	return EXIT_FAILURE;
 }
 
-#if 0
-/* commands for WEB */	
-static int _clientWebInfosExec(struct API_CLIENT_CMD_HANDLER *handle, struct API_PARAMETERS *params)
-{
-	params->result = NULL;// muxApiWebInfos();
-	return EXIT_SUCCESS;
-}
-#endif
-
-static int _clientSysAdminThreadsExec(struct API_CLIENT_CMD_HANDLER *handle, struct API_PARAMETERS *params)
-{
-	params->result = NULL;//muxApiSysAdminThreads();
-	return EXIT_SUCCESS;
-}
-	
-static int _clientSysAdminVerInfoExec(struct API_CLIENT_CMD_HANDLER *handle, struct API_PARAMETERS *params)
-{
-	params->result = NULL;//muxApiSysAdminVerInfo();
-	return EXIT_SUCCESS;
-}
 
 static int _quitExec(struct API_CLIENT_CMD_HANDLER *handle, struct API_PARAMETERS *params)
 {
@@ -251,19 +231,12 @@ API_CLIENT_CMD_HANDLER apiClientCmdHandlers[]=
 	
 	/* commands for Sys Admin */
 	{
-		.name = IPCMD_SYS_ADMIN_THREADS,
-		.ipCmd = 	IPCMD_NAME_GET_PARAM,
+		.name = IPCMD_SYS_ADMIN_STATUS,
+		.ipCmd = 	IPCMD_NAME_SYS_ADMIN,
 		.validate = NULL,
-		.execute = _clientSysAdminThreadsExec
+		.execute = _writeCmdExec
 	},
 	
-	{
-		.name = IPCMD_SYS_ADMIN_VER_INFO,
-		.ipCmd = 	IPCMD_NAME_GET_PARAM,
-		.validate = NULL,
-		.execute = _clientSysAdminVerInfoExec
-	},
-
 	{
 		.name = "quit",
 		.ipCmd = 	IPCMD_NAME_GET_PARAM,
@@ -314,7 +287,7 @@ static int	_apiHandleCmd(struct API_PARAMETERS *params, char *programName)
 					else if(params->protocol == PROTOCOL_UNIX)
 						linkType = CTRL_LINK_UNIX;
 					
-					fprintf(stderr, "Client connectting to %s:%d on %s protocol.....\n", params->address, params->port, (linkType == CTRL_LINK_TCP)?"TCP":(linkType == CTRL_LINK_UDP)?"UDP":"Unix");
+					fprintf(stderr, "Client connect to %s:%d on %s protocol.....\n", params->address, params->port, (linkType == CTRL_LINK_TCP)?"TCP":(linkType == CTRL_LINK_UDP)?"UDP":"Unix");
 					
 #if 1
 					ret = cmnMuxClientInit(params->port, linkType, params->address, params->timeoutSeconds);
@@ -431,8 +404,6 @@ int main(int argc, char *argv[])
 		}
 
 	}
-
-//	res = cmnMuxPlayerParseConfig(MUX_PLAYER_CONFIG_FILE, &_cfg);
 
 	printf(CMN_VERSION_INFO(CMN_MODULE_APICLIENT_NAME) EXT_NEW_LINE );
 

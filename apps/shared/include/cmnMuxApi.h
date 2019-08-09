@@ -23,30 +23,6 @@ void cmnMuxClientDestroy(void);
 /* PlayMedia command and its actions */
 
 
-#define	_muxApiMediaGenericCmdNoParams(ipcmdName) \
-		cmnMuxClientRequest((ipcmdName))
-			
-#define	_muxApiPlayMediaGenericCmdNoParams( action) \
-		cmnMuxClientRequest((action))
-
-
-/* APIs for WEB */
-#define	muxApiWebInfos()	\
-	_muxApiMediaGenericCmdNoParams(IPCMD_NAME_MEDIA_WEB)
-	
-
-/* APIs for Sys Admin */
-#define	muxApiSysAdminThreads()	\
-	_muxApiMediaGenericCmdNoParams(IPCMD_NAME_SYS_ADMIN)
-	
-#define	muxApiSysAdminVerInfo()	\
-	_muxApiMediaGenericCmdNoParams(IPCMD_NAME_SYS_ADMIN)
-
-
-#define	muxApiPlayMediaQuit()	\
-	_muxApiPlayMediaGenericCmdNoParams("quit")
-
-
 #ifdef __cplusplus
 	};
 #endif

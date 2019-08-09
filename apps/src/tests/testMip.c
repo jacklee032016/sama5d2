@@ -1,7 +1,5 @@
 
 
-#include "libCmn.h"
-#include "libMux.h"
 #include "libCmnSys.h"
 
 #include "muxDrv.h"
@@ -195,7 +193,7 @@ int testLeds(void)
 int testSw1(void)
 {
 	EXT_INFOF("Please press SW1 button...");
-	return cmnSysSW1Check();
+	return cmnSysSW1CheckEvent();
 }
 
 

@@ -111,9 +111,6 @@ static struct DATA_CONN *_createDataConnection(struct CTRL_CONN *ctrlConn)
 	
 	dataConn->length = len;
 
-#if 1//MUX_OPTIONS_DEBUG_IP_COMMAND
-	CMN_HEX_DUMP( (uint8_t *)dataConn->buffer, dataConn->length, "Received data from socket" );
-#endif
 
 
 	dataConn->errCode = IPCMD_ERR_NOERROR;
@@ -125,6 +122,14 @@ static struct DATA_CONN *_createDataConnection(struct CTRL_CONN *ctrlConn)
 	dataConn->ctrlConn = ctrlConn;
 	dataConn->mutexLock = cmn_mutex_init();
 
+	if(CONTROLLER_IS_DEBUG(dataConn) )
+	{
+		MUX_INFO("Received from %s:"EXT_NEW_LINE"'%.*s'", name, len-8, dataConn->buffer+4 );
+#if 0//MUX_OPTIONS_DEBUG_IP_COMMAND
+		CMN_HEX_DUMP( (uint8_t *)dataConn->buffer, dataConn->length, "Received data from socket" );
+#endif
+	}
+	
 	snprintf(dataConn->name, sizeof(dataConn->name), "%s", name);
 	if(CONN_IS_IPCMD(dataConn->ctrlConn))
 	{

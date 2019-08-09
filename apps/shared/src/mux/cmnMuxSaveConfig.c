@@ -25,39 +25,6 @@ static int _savePrompt(FILE *f)
 	return res;
 }
 
-static int _savePlaylist(int index, void *ele,  void *data)
-{
-	PLAY_LIST *playlist = (PLAY_LIST *)ele;
-	FILE *f = (FILE *)data;
-	int res = 0;
-	int i;
-
-	res = fprintf(f, "\n# No.%d Playlist configuration #\n<PlayList  %s>\n", index, playlist->name);
-
-	res = fprintf(f, "\tRepeat\t\t%d\n", playlist->repeat);
-
-	res = fprintf(f, "\tPlayTime\t\t%d:%d/%d\n", playlist->hour, playlist->minute, playlist->dayOfWeek);
-
-	res = fprintf(f, "\tEnable\t\t%s\n", STR_BOOL_VALUE(playlist->enable) );
-
-	for(i=0;i<cmn_list_size(&playlist->fileList);i++)
-	{
-		PLAY_ITEM *playItem = (PLAY_ITEM *)cmn_list_get(&playlist->fileList, i);
-		res = fprintf(f,"\t%s\t\t%s\n", PLAYLIST_NAME_URL, playItem->filename);
-		res = fprintf(f,"\t%s\t\t%d\n", PLAYLIST_NAME_DURATION, playItem->duration);
-	}
-	
-	res = fprintf(f, "</PlayList>\n# End of No.%d Playlist configuration #\n\n\n", index);
-	
-	return res;
-}
-
-
-int	cmnMuxPlaylistSave(FILE *f, cmn_list_t *playlists)
-{
-	return cmn_list_iterate(playlists, TRUE, _savePlaylist, f);
-}
-
 static int _savePlayerGlobalConfig(FILE *f, MuxPlayerConfig *cfg)
 {
 	int res = 0;
@@ -89,59 +56,6 @@ static int _savePlayerGlobalConfig(FILE *f, MuxPlayerConfig *cfg)
 
 
 
-static int _saveRectConfig(int index, void *ele,  void *data)
-{
-	FILE *f = (FILE *)data;
-	RECT_CONFIG *win = (RECT_CONFIG *)ele;
-	int res = 0;
-	char *type = "SUBTITLE";
-
-	if(win->type == RECT_TYPE_MAIN)
-		type = "MAIN";
-	if(win->type == RECT_TYPE_PIP)
-		type = "PIP";
-	if(win->type == RECT_TYPE_SUBTITLE)
-		type = "SUBTITLE";
-	if(win->type == RECT_TYPE_ALERT)
-		type = "ALERT";
-	if(win->type == RECT_TYPE_LOGO)
-		type = "LOGO";
-	
-	res = fprintf(f, "<Window  %s>\n", type);
-
-	res = fprintf(f, "\tLeft\t\t%d\n", win->left);
-
-	res = fprintf(f, "\tTop\t\t%d\n", win->top);
-
-	res = fprintf(f, "\tWidth\t\t%d\n", win->width);
-
-	res = fprintf(f, "\tHeight\t\t%d\n", win->height);
-
-	res = fprintf(f, "\tFontSize\t\t%d\n", win->fontSize);
-	res = fprintf(f, "\tFontColor\t\t0x%8x\n", win->fontColor);
-
-	res = fprintf(f, "\tBackgroundColor\t\t0x%8x\n", win->backgroundColor);
-
-	res = fprintf(f, "\tAlpha\t\t%d\n", win->alpha);
-
-	res = fprintf(f, "\tEnable\t\t%s\n", STR_BOOL_VALUE(win->enable) );
-
-	res = fprintf(f, "\tROTATE_MODE\t\t%d\n", win->rotateType);
-
-	res = fprintf(f, "\tURL\t\t%s\n", win->url);
-
-	res = fprintf(f, "</Window>\n\n");
-	
-	return res;	
-}
-
-/** save WINDOW or OSD configurations */
-int	cmnMuxRectsSave(FILE *f, cmn_list_t *winsOrOsds)
-{
-	return cmn_list_iterate(winsOrOsds, TRUE, _saveRectConfig, f);
-}
-
-
 int cmnMuxSavePlayerConfig( MuxPlayerConfig *cfg)
 {
 	FILE *f;
@@ -158,34 +72,6 @@ int cmnMuxSavePlayerConfig( MuxPlayerConfig *cfg)
 	_savePrompt(f);
 
 	res = _savePlayerGlobalConfig(f, cfg);
-
-	res = fprintf(f, "\n### OSD configuration items## \n");
-	cmnMuxRectsSave(f, &cfg->osds);
-#if 0	
-	for(i=0; i< cmn_list_size(&cfg->osds); i++)
-	{
-		RECT_CONFIG *win = (RECT_CONFIG *)cmn_list_get(&cfg->osds, i);
-		res = _saveRectConfig( f, win, cfg);
-	}
-#endif
-
-	res = fprintf(f, "\n### multiple windows play configuration items## \n");
-	cmnMuxRectsSave(f, &cfg->windows);
-#if 0	
-	for(i=0; i< cmn_list_size(&cfg->windows); i++)
-	{
-		RECT_CONFIG *win = (RECT_CONFIG *)cmn_list_get(&cfg->windows, i);
-		res = _saveRectConfig( f, win, cfg);
-	}
-#endif
-#if 0		
-	res = fprintf(f, "\n### PlayList configuration items## \n");
-	for(i=0; i< cmn_list_size(&cfg->playlists); i++)
-	{
-		PLAY_LIST *playlist = (PLAY_LIST *)cmn_list_get(&cfg->playlists, i);
-		res = _savePlaylist( f, playlist, cfg);
-	}
-#endif
 
 	fclose(f);
 
@@ -293,9 +179,6 @@ int cmnMuxSaveAllConfig(MuxMain *muxMain)
 	res = _cmnSavePlugin(f, cmnMuxPluginFind(muxMain, MUX_PLUGIN_TYPE_SERVER ), 1, "SERVER");
 	res = _cmnSavePlugin(f, cmnMuxPluginFind(muxMain, MUX_PLUGIN_TYPE_WEB ), 2, "WEB");
 	res = _cmnSavePlugin(f, cmnMuxPluginFind(muxMain, MUX_PLUGIN_TYPE_PLAYER ), 3, "PLAYER");
-
-	res = fprintf(f, "\n\n### PlayList configuration  ## \n");
-	cmnMuxPlaylistSave( f, &muxMain->playlists);
 
 	fclose(f);
 

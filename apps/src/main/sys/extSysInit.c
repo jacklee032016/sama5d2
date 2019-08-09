@@ -45,20 +45,40 @@ static int	_extSysNetInit(MuxMain		*muxMain)
 {
 	char *ifName = MUX_ETH_DEVICE;
 	EXT_RUNTIME_CFG		*runCfg = &muxMain->runCfg;
+	EXT_MAC_ADDRESS _macAddr;
 	
 	runCfg->local.ip = cmnSysNetGetIp(ifName);
 	runCfg->ipMask = cmnSysNetGetMask(ifName);
 	runCfg->ipGateway = cmnSysNetGetDefaultGw(ifName);
 
-	if(cmnSysNetGetMacAddress(ifName, &muxMain->runCfg.local.mac) == EXIT_FAILURE)
+	if(cmnSysNetGetMacAddress(ifName, &_macAddr) == EXIT_FAILURE)
 	{
 		return EXIT_FAILURE;
 	}
 		
-	EXT_DEBUGF(EXT_DEBUG_INIT, "IP is %s, 0x%x", cmnSysNetAddress(runCfg->local.ip), runCfg->local.ip);
-	EXT_DEBUGF(EXT_DEBUG_INIT, "MASK is %s, 0x%x", cmnSysNetAddress(runCfg->ipMask), runCfg->ipMask);
-	EXT_DEBUGF(EXT_DEBUG_INIT, "Gateway is %s, 0x%x", cmnSysNetAddress(runCfg->ipGateway), runCfg->ipGateway) ;
-	EXT_DEBUGF(EXT_DEBUG_INIT, "Mac : %.2X:%.2X:%.2X:%.2X:%.2X:%.2X" , runCfg->local.mac.address[0], runCfg->local.mac.address[1], runCfg->local.mac.address[2], 
+	EXT_DEBUGF(EXT_DEBUG_INIT, "IP: %s, 0x%x", cmnSysNetAddress(runCfg->local.ip), runCfg->local.ip);
+	EXT_DEBUGF(EXT_DEBUG_INIT, "MASK: %s, 0x%x", cmnSysNetAddress(runCfg->ipMask), runCfg->ipMask);
+	EXT_DEBUGF(EXT_DEBUG_INIT, "Gateway: %s, 0x%x", cmnSysNetAddress(runCfg->ipGateway), runCfg->ipGateway) ;
+
+	if(runCfg->isMacConfiged == EXT_TRUE)
+	{/* MAC has been set by client, so use local address directly */
+		if(! MAC_ADDR_IS_EQUAL(&runCfg->local.mac, &_macAddr) )
+		{
+			EXT_ERRORF("MAC address is not correct: %.2x:%.2x:%.2x:%.2x:%.2x:%.2x(configured)!=%.2x:%.2x:%.2x:%.2x:%.2x:%.2x(local)", 
+				runCfg->local.mac.address[0], runCfg->local.mac.address[1], runCfg->local.mac.address[2], 
+				runCfg->local.mac.address[3], runCfg->local.mac.address[4], runCfg->local.mac.address[5], 
+				_macAddr.address[0], _macAddr.address[1], _macAddr.address[2],
+				_macAddr.address[3], _macAddr.address[4], _macAddr.address[5]);
+
+			memcpy(&runCfg->local.mac, &_macAddr, EXT_MAC_ADDRESS_LENGTH);
+		}
+	}
+	else
+	{/* MAC is still not been set by client, so use local address directly */
+		memcpy(&runCfg->local.mac, &_macAddr, EXT_MAC_ADDRESS_LENGTH);
+	}
+
+	EXT_DEBUGF(EXT_DEBUG_INIT, "Mac: %.2X:%.2X:%.2X:%.2X:%.2X:%.2X" , runCfg->local.mac.address[0], runCfg->local.mac.address[1], runCfg->local.mac.address[2], 
 		runCfg->local.mac.address[3], runCfg->local.mac.address[4], runCfg->local.mac.address[5] );
 
 	return EXIT_SUCCESS;
@@ -112,6 +132,7 @@ int32_t	extSystemInit(MuxMain		*muxMain)
 	isTx = runCfg->isTx;
 	ret = cmnSysCfgRead(runCfg, EXT_CFG_MAIN);
 	runCfg->isTx = isTx;
+	memcpy(&runCfg->version, &muxMain->version, sizeof(muxMain->version));
 
 	if(ret == EXIT_FAILURE)
 	{

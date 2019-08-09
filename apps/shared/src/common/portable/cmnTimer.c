@@ -151,8 +151,9 @@ static void __timer_remove(cmn_timer_t *timers, cmn_timer_id_t *prev, cmn_timer_
 
 	-- timers->numOfTimers;
 
+#if CMN_TIMER_DEBUG
 	MUX_DEBUG( "Removed Timer %s:%p, num_timers = %d ", t->name, t, timers->numOfTimers );
-
+#endif
 	cmn_free(t);
 }
 
@@ -262,7 +263,9 @@ static void __threaded_timer_check(cmn_timer_t *timers)
 			t->state = cmn_timer_id_state_servicing;
 
 
+#if CMN_TIMER_DEBUG
 			MUX_DEBUG("Executing timer %s(%p) ", t->name, t );
+#endif
 			cmn_mutex_unlock(timers->mutex );
 
 			t->cb(t->interval, t->param);
@@ -302,8 +305,11 @@ static void __threaded_timer_check(cmn_timer_t *timers)
 #else
 			t->interval = ms;
 #endif
-			MUX_DEBUG("Reload timer %s(%p) with interval of %d", t->name, t, t->interval);
+
 			EXT_ASSERT((t->interval > 0), "timer %s(%p) with interval of %d", t->name, t, t->interval);
+#if CMN_TIMER_DEBUG
+			MUX_DEBUG("Reload timer %s(%p) with interval of %d", t->name, t, t->interval);
+#endif
 		}
 		
 		/* Don't update prev if the timer has disappeared */
@@ -560,6 +566,11 @@ int cmn_set_timer(int ms, CMN_ALARM_TIMER_CALLBACK callback)
 	return retval;
 }
 
+/* get thread ID of timer thread */
+int cmn_timer_id(void)
+{
+	return (int)_timers.tId->pId;
+}
 
 int cmn_timer_init(char *name)
 {

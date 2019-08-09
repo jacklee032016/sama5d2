@@ -13,10 +13,7 @@
 #include <netdb.h> 
 #include <arpa/inet.h>
 
-#include "libCmn.h"
-#include "libMux.h"
 #include "libCmnSys.h"
-
 #include "_cmnMux.h"
 
 
@@ -197,7 +194,7 @@ int cmnMuxClientConnSendRequest(struct CLIENT_CONN *clientConn, void *buf, int s
 		sendBuf = &cmd;
 		sendSize = size+8;
 		
-#if MUX_OPTIONS_DEBUG_IP_COMMAND			
+#if MUX_OPTIONS_DEBUG_IPC_CLIENT			
 		MUX_DEBUG( "CtrlClient send %d bytes packet to %s:%d, CRC=0x%x", sendSize, inet_ntoa(clientConn->peerAddr.sin_addr), ntohs(clientConn->peerAddr.sin_port), crc32);
 		CMN_HEX_DUMP((const uint8_t *)sendBuf, sendSize, "Client send out data" );
 #endif
@@ -240,14 +237,14 @@ cJSON *cmnMuxClientConnReadReponse(struct CLIENT_CONN *clientConn)
 		len = recv(clientConn->socket, (uint8_t *)&responseBuf, sizeof(CMN_IP_COMMAND), 0);
 #endif
 
-#if MUX_OPTIONS_DEBUG_IP_COMMAND			
+#if MUX_OPTIONS_DEBUG_IPC_CLIENT			
 		MUX_DEBUG("TCP/UNIX Received %d bytes packet from %s:%d", len, inet_ntoa(clientConn->peerAddr.sin_addr), ntohs(clientConn->peerAddr.sin_port));
 #endif
 	}
 	else
 	{
 		len = recvfrom(clientConn->socket, (uint8_t *)&responseBuf, sizeof(CMN_IP_COMMAND), 0, (struct sockaddr *) &clientConn->peerAddr, &clientConn->addrlen);
-#if MUX_OPTIONS_DEBUG_IP_COMMAND			
+#if MUX_OPTIONS_DEBUG_IPC_CLIENT			
 		MUX_DEBUG("UDP Received %d bytes packet from %s:%d", len, inet_ntoa(clientConn->peerAddr.sin_addr), ntohs(clientConn->peerAddr.sin_port));
 #endif
 	}
@@ -273,7 +270,7 @@ cJSON *cmnMuxClientConnReadReponse(struct CLIENT_CONN *clientConn)
 	if(CLIENT_TYPE_IS_IPCMD(clientConn->type) )
 	{
 	
-#if MUX_OPTIONS_DEBUG_IP_COMMAND			
+#if MUX_OPTIONS_DEBUG_IPC_CLIENT			
 		MUX_DEBUG("Received %d bytes packet from %s:%d", len, inet_ntoa(clientConn->peerAddr.sin_addr), ntohs(clientConn->peerAddr.sin_port));
 		CMN_HEX_DUMP( (uint8_t *)&responseBuf, len, "client received data");
 #endif
@@ -303,7 +300,7 @@ cJSON *cmnMuxClientConnReadReponse(struct CLIENT_CONN *clientConn)
 			clientConn->errCode = IPCMD_ERR_CRC_FAIL;
 			return NULL;
 		}
-#if MUX_OPTIONS_DEBUG_IP_COMMAND			
+#if MUX_OPTIONS_DEBUG_IPC_CLIENT			
 		MUX_DEBUG("received CRC: 0x%x, Decoded CRC:0x%x", crcReceived, crcDecoded);
 #endif
 		recvBuf = responseBuf.data;
@@ -322,6 +319,7 @@ cJSON *cmnMuxClientConnReadReponse(struct CLIENT_CONN *clientConn)
 	return responseObjs;
 }
 
+#if 0
 static cJSON *findJSonObject(cJSON *array, char *key, char *valuestring)
 {
 	int i;
@@ -351,22 +349,10 @@ static cJSON *findJSonObject(cJSON *array, char *key, char *valuestring)
 
 	return NULL;
 }
+#endif
 
 
 CLIENT_CTRL _clientCtrl;
-
-#if 0
-static int _getJSonHandlerFromFile(char *jsonFilename, cJSON **handler)
-{
-	*handler = cmnMuxJsonLoadConfiguration(jsonFilename);
-	if (*handler== NULL)
-	{
-		MUX_ERROR("IP Command configuration file '%s' Parsing failed", jsonFilename);
-		return EXIT_FAILURE;
-	}
-	return EXIT_SUCCESS;
-}
-#endif
 
 int cmnMuxClientInit(int port, CTRL_LINK_TYPE type, char *serverAddress, int timeoutSecond)
 {
@@ -408,13 +394,10 @@ cJSON *cmnMuxClientRequest(cJSON *ipCmd)
 
 	char *msg = cJSON_PrintUnformatted(ipCmd);
 
-#if 1//MUX_OPTIONS_DEBUG_IP_COMMAND			
-	{
-		char *printed_json = cJSON_Print(ipCmd);
-		MUX_DEBUG("Client sendout ipCmd:\n'%s'\n", printed_json);
-		cmn_free(printed_json);
-	}
-#endif
+	/* output to debug in format */
+	char *printed_json = cJSON_Print(ipCmd);
+	MUX_DEBUG("Client sendout ipCmd:\n'%s'\n", printed_json);
+	cmn_free(printed_json);
 
 	res = cmnMuxClientConnSendRequest(clientCtrl->conn, msg, strlen(msg));
 	cmn_free(msg);

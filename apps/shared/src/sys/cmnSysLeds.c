@@ -1,3 +1,6 @@
+/*
+* LEDs, button and W1 bus
+*/
 
 #include <stdio.h>
 #include <sys/ioctl.h>
@@ -10,7 +13,6 @@
 #include "libCmnSys.h"
 #include "mux7xx.h"
 
-#define	LED_HOME			"/sys/class/leds"
 
 #define	LED_BRIGHTNESS			"brightness"
 /* write  "default-on" to trigger */
@@ -315,45 +317,45 @@ int cmnSysLedCtrl(LED_TYPE_T type, LED_MODE_T mode)
 
 #include <linux/input.h> /* struct input_event */
   
-#define    INPUT_EVENT_SW1    		"/dev/input/event0"
-#define    INPUT_EVENT_DIP_SWITCH    "/dev/input/event1"
-  
-int cmnSysSW1Check(void)
+/* return BTN_EVENT_T */  
+int cmnSysSW1CheckEvent(void)
 {
 	struct input_event _event;	
 	int fd;
 	int size = sizeof(_event);
-	int isPressed = EXT_FALSE;
+	int event = BTN_EVENT_NONE;
     
     /* Read event0 */
 	fd = open(INPUT_EVENT_SW1, O_RDONLY);
 	if(fd < 0)
 	{
 		EXT_ERRORF("Open " INPUT_EVENT_SW1 " failed: %m");
-		return EXT_FALSE;
+		return BTN_EVENT_UNKNOWN;
 	}
 	
 	/* Read and parse event, update global variable */
-	while (1)
+//	while (1)
 	{
 		if (read(fd, &_event, size) < size)
 		{
 			EXT_ERRORF("Reading from " INPUT_EVENT_SW1 " failed: %m");
-			return EXT_FALSE;
+			close(fd);
+			return BTN_EVENT_UNKNOWN;
 		}
 
 		if (_event.code == KEY_DOWN && _event.type == EV_KEY )
 		{
 			EXT_INFOF("SW1 is %s", (_event.value == 0)?"released": "pressed");
-			isPressed = EXT_TRUE;
+			event = (_event.value == 0)?BTN_EVENT_RELEASED:BTN_EVENT_PRESSED;
+//			isPressed = EXT_TRUE;
 		}
 		
-		usleep(1000);
+//		usleep(1000);
 	}
 
 	close(fd);
 
-	return isPressed;
+	return event;
 }
 
 

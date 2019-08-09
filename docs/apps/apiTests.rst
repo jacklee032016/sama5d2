@@ -3,10 +3,15 @@ REST API Testing
 Jack Lee, 04.22, 2019
 
 
+blink:
+
+apiClient -c set -a 192.168.168.101 -m "02:01:03:04:05:06" -d  '{"system":{"blinkLed":1}}'
+
+
 Commands tests
 ================================
 
-video 
+system 
 ---------------------------------
 
 ::
@@ -155,7 +160,7 @@ apiClient -c set -a 192.168.168.101 -m "08:00:27:E7:B7:63" -d  '{"security":{"ge
 
 apiClient -c set -a 192.168.168.101 -m "08:00:27:E7:B7:63" -d  '{"security":{"get_status": 0}}'
   
-apiClient -c set -a 192.168.168.101 -m "08:00:27:E7:B7:63" -d  '{"security":{"set_key": "0987654321fedcba"}}'
+apiClient -c set -a 192.168.168.101 -m "08:00:27:E7:B7:63" -d  '{"security":{"set_key": "0987654321fedcbaABCDED12345678900987654321fedcbaABCDED1234567890"}}'
 
 
 with command of 'security_check'
@@ -175,10 +180,14 @@ curl  -H "Content-Type:application/json" -X POST -d '{"username":"xyz","passwd":
 curl  -H "Content-Type:application/json" -X POST -d '{"username":"xyz","passwd":"123", "data":{"get_status": 0}}' \
 	http://192.168.168.101:5000/security -v 
 	
-curl  -H "Content-Type:application/json" -X POST -d '{"username":"xyz","passwd":"123", "data":[{"set_key": "fedcba0987654321"}]}' \
+curl  -H "Content-Type:application/json" -X POST -d '{"username":"xyz","passwd":"123", "data":[{"set_key": "0987654321fedcbaABCDED12345678900987654321fedcbaABCDED1234567890"}]}' \
 	http://192.168.168.101:5000/security --trace-ascii  /dev/stdout
 
+curl  -H "Content-Type:application/json" -X POST -d '{"username":"xyz","passwd":"123", "data":[{"set_key": "0987654321fedcbaABCDED12345678900987654321fedcbaABCDED12345678QW"}]}' \
+	http://192.168.168.101:5000/security --trace-ascii  /dev/stdout
 
+curl  -H "Content-Type:application/json" -X POST -d '{"username":"xyz","passwd":"123", "data":[{"set_key": "0987654321fedcbaABCDED12345678900987654321fedcbaABCDED12345"}]}' \
+	http://192.168.168.101:5000/security --trace-ascii  /dev/stdout
 	
 Notes:
 

@@ -1,13 +1,9 @@
 
-#include "libCmn.h"
-#include "libMux.h"
-
+#include <string.h>
 #include <sys/stat.h>
 
-#include "_cmnMux.h"
 #include "libCmnSys.h"
-
-#include <string.h>
+#include "_cmnMux.h"
 
 #include "_sdp.h"
 
@@ -87,6 +83,12 @@ static int _sdpcConnect(struct SDP_CLIENT *sdpClient, int timeoutSeconds)
 		sdpClient->fails++;
 		close(sock);
 		return EXIT_FAILURE;
+	}
+
+	if(SDP_IS_DEBUG(sdpClient->sdpCtx) )
+	{
+		SDPC_INFO_MSG(sdpClient, "send requests to http://%s:%d/%s"EXT_NEW_LINE"'%.*s'", 
+			cmnSysNetAddress(sdpClient->url.ip), sdpClient->url.port, sdpClient->url.uri, index, sdpClient->buffer );
 	}
 
 	sdpClient->socket = sock;

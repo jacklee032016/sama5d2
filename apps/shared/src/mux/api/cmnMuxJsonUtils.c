@@ -1,8 +1,5 @@
 
-#include "libCmn.h"
-#include "libMux.h"
 #include "libCmnSys.h"
-
 #include "_cmnMux.h"
 
 /* get ipaddress */
@@ -116,7 +113,7 @@ cJSON *cmnMuxJsonLoadConfiguration(char *cfgFileName)
 	return cfgHandlers;
 }
 
-
+/* make hierarchive JSON into flat if client ask */
 cJSON *cmnMuxSystemJSon2Flat(cJSON *systemJson)
 {
 	int count, i;

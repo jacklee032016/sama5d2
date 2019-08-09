@@ -4,9 +4,7 @@
 #include <sys/reboot.h>
 #include <stdint.h>
 
-#include "libCmn.h"
 #include "libCmnSys.h"
-
 #include "mux7xx.h"
 
 #include "muxFpga.h"
@@ -281,20 +279,20 @@ int	sysFpgaCheck(EXT_RUNTIME_CFG *runCfg )
 int	sysFpgaInit(EXT_RUNTIME_CFG *runCfg )
 {
 	FpgaConfig 	*fpga =  &_fpgaConfig;
+	char	value;
 	
 	fpga->runCfg = runCfg;
 	runCfg->fpgaCfg = fpga;
 	
 //	_fpgaRegisterWrite(EXT_FPGA_REG_PORT_AUDIO, (unsigned char *)&runCfg->local.aport, 2);
 
-#if 0
-	if( IS_SECURITY_CHIP_EXIST(runCfg->sc) && bspScCheckMAC(runCfg->sc)== EXIT_FAILURE)
+	
+	if(! IS_SECURITY_CHIP_EXIST(runCfg->muxMain) || cmnSysScValidate(runCfg->muxMain->scf)== EXIT_FAILURE)
 	{
 		value = EXT_FPGA_FLAGS_DISABLE_ALL;	
 		_extFpgaWriteByte(EXT_FPGA_REG_ENABLE, &value);
 		return EXIT_FAILURE;
 	}
-#endif
 
 	/*configure dest, only for TX */
 	if(EXT_IS_TX(runCfg) )

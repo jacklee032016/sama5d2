@@ -6,11 +6,9 @@
 #include <poll.h>
 #include <sys/stat.h>
 
-#include "libCmn.h"
-#include "libMux.h"
 
-#include "_cmnMux.h"
 #include "libCmnSys.h"
+#include "_cmnMux.h"
 
 #include "_sdp.h"
 
@@ -342,7 +340,11 @@ static int _sdpReceiverMainLoop(CmnThread *th)
 					}
 					else
 					{
-						SDPC_DEBUG_MSG(sdpClient, "read %d data from "EXT_NEW_LINE"'%.*s'", len, len, sdpClient->buffer+ sdpClient->length );
+						if(SDP_IS_DEBUG(sdpCtx) )
+						{
+							SDPC_INFO_MSG(sdpClient, "read %d data from "EXT_NEW_LINE"'%.*s'", len, len, sdpClient->buffer+ sdpClient->length );
+						}
+						
 //						cmnHexDump((const uint8_t *)sdpClient->buffer+ sdpClient->length, len );
 						sdpClient->length += len;
 						sdpClient->pkts++;

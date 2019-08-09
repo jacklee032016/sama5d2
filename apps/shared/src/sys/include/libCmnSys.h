@@ -11,30 +11,15 @@
 #define	EXT_DELAY_US(us)		cmn_usleep((us))
 
 
-/* LED */
-#define VIDEO_LED_MAGIC 'V'
-#define VIDEO_LED_ON  	_IO(VIDEO_LED_MAGIC,0)  
-#define VIDEO_LED_OFF 	_IO(VIDEO_LED_MAGIC,1)
+#define		SYS_REBOOT_DELAY_MS				3000	/* for delay both reboot and reset */
+#define		SYS_REBOOT_DELAY_MS_4_BTN		1000	/* for delay of reset after button has pressed about 6 seconds */
 
-#define POWER_LED_MAGIC 'P'
-#define POWER_LED_ON  	_IO(POWER_LED_MAGIC, 0)  
-#define POWER_LED_OFF 	_IO(POWER_LED_MAGIC, 1)
-
-#define ACT_LED_MAGIC 'A'
-#define ACT_LED_ON  	_IO(ACT_LED_MAGIC, 0)  
-#define ACT_LED_OFF 	_IO(ACT_LED_MAGIC, 1)
+#define		SYS_NET_CONFIG_FILE				RUN_HOME_DIR"/etc/network/interfaces"
 
 
-/* button */
-#define BUTTON_MAGIC	'B'
-#define READ_BUTTON  	_IOR(BUTTON_MAGIC, 1, unsigned char *)
+#define		DEV_HOME				RUN_HOME_DIR_TEMP"/dev"
+#define		LED_HOME				RUN_HOME_DIR_TEMP"/sys/class/leds"
 
-
-#define		DEV_HOME				"/dev"
-
-#define		MUX_DEV_BUTTON		DEV_HOME"/muxbutton"
-#define		MUX_DEV_SWITCH		DEV_HOME"/muxswitch"
-#define		MUX_DEV_LED			DEV_HOME"/powerled"
 
 #define		MUX_DEV_RS232			DEV_HOME"/ttyS1"
 #define		MUX_DEV_WATCHDOG	DEV_HOME"/watchdog"
@@ -47,13 +32,26 @@
 
 #define		MUX_ETH_DEVICE				"eth0"
 
-#define MAX_SPI_WRITE 64
+#define		MAX_SPI_WRITE 64
 
-#define		SPI_0_FILENAME				DEV_HOME"/spidev32766.0"
+#define		SPI_0_FILENAME					DEV_HOME"/spidev32766.0"
 
 #define SPI_TST_ADDR 0x0001
 #define SPI_TST_D0 0x5A
 #define SPI_TST_D1 0xC3
+
+
+#define    INPUT_EVENT_SW1    				DEV_HOME"/input/event0"
+#define    INPUT_EVENT_DIP_SWITCH    		DEV_HOME"/input/event1"
+
+/* button event */
+typedef	enum _BTN_EVENT_T
+{
+	BTN_EVENT_NONE,
+	BTN_EVENT_PRESSED,
+	BTN_EVENT_RELEASED,
+	BTN_EVENT_UNKNOWN
+}BTN_EVENT_T;
 
 
 #define		SET_LED_BLINK(muxMain)		((muxMain)->ledCtrl.ledMode = LED_MODE_BLINK)
@@ -117,6 +115,11 @@ int	cmnSysCtrlBlinkPowerLED(char	isEnable);
 int	cmnSysCtrlDelayReset(unsigned short delayMs, void *data);
 int	cmnSysCtrlDelayReboot(unsigned short delayMs, void *data);
 
+int cmnSysGetPidByName(char *progName);
+int cmnSysSigSend(pid_t pid, int sigid, int opcode);
+int cmnSysKillProcess(char *name);
+void cmnSysForkCmd(const char *cmd);
+
 
 int cmnSysRs232Init(EXT_RUNTIME_CFG *runCfg);
 int cmnSysRs232Config(EXT_RUNTIME_CFG *runCfg);
@@ -135,40 +138,61 @@ LED_MODE_T cmnSysLedCheck(LED_TYPE_T type);
 int cmnSysLedCtrl(LED_TYPE_T type, LED_MODE_T mode);
 
 
-int cmnSysSW1Check(void);
+#define	CMN_SYS_LED_CTRL(led, mode)	\
+			cmnSysLedCtrl((led), (mode)	)
+
+/* LED power, used by IP command to blink */
+#define	CMN_SYS_LED_POWER_CTRL( mode)	\
+			CMN_SYS_LED_CTRL(LED_TYPE_POWER, (mode)	)
+
+#define	CMN_SYS_LED_POWER_OFF( mode)	\
+			CMN_SYS_LED_POWER_CTRL(LED_MODE_OFF)
+
+#define	CMN_SYS_LED_POWER_ON( mode)	\
+			CMN_SYS_LED_POWER_CTRL(LED_MODE_ON)
+
+#define	CMN_SYS_LED_POWER_BLINK( mode)	\
+			CMN_SYS_LED_POWER_CTRL(LED_MODE_BLINK)
+
+/* LED video */
+#define	CMN_SYS_LED_VIDEO_CTRL( mode)	\
+			CMN_SYS_LED_CTRL(LED_TYPE_VIDEO, (mode))
+
+#define	CMN_SYS_LED_VIDEO_OFF( mode)	\
+			CMN_SYS_LED_VIDEO_CTRL(LED_MODE_OFF)
+
+#define	CMN_SYS_LED_VIDEO_ON( mode)	\
+			CMN_SYS_LED_VIDEO_CTRL(LED_MODE_ON)
+
+#define	CMN_SYS_LED_VIDEO_BLINK( mode)	\
+			CMN_SYS_LED_VIDEO_CTRL(LED_MODE_BLINK)
+
+/* LED act */
+#define	CMN_SYS_LED_ACT_CTRL( mode)	\
+			CMN_SYS_LED_CTRL(LED_TYPE_ACT, (mode))
+
+#define	CMN_SYS_LED_ACT_OFF( mode)	\
+			CMN_SYS_LED_ACT_CTRL(LED_MODE_OFF)
+
+#define	CMN_SYS_LED_ACT_ON( mode)	\
+			CMN_SYS_LED_ACT_CTRL(LED_MODE_ON)
+
+#define	CMN_SYS_LED_ACT_BLINK( mode)	\
+			CMN_SYS_LED_ACT_CTRL(LED_MODE_BLINK)
+
+
+
+int cmnSysSW1CheckEvent(void);
 int cmnSysDipSwitchCheck(void);
 
 
 int	cmnSysW1GetRomId(unsigned char *romId);
 
-/* definitions for security chip */
-#define	SC_ROM_ID_SIZE				8
-#define	SC_PAGE_SIZE				32
-#define	SC_PERSONNAL_SIZE			4
-#define	SC_CHALLENGE_SIZE			32
-
-#define	SC_SECRET_SIZE				32
-
-
-typedef struct
-{
-	char		romId[CMN_NAME_LENGTH];
-	
-	char		pageFile[CMN_NAME_LENGTH];	
-	char		keyFile[CMN_NAME_LENGTH];	
-	char		macFile[CMN_NAME_LENGTH];	
-
-	char		crcFile[CMN_NAME_LENGTH];	/* controll CRC enable/disable*/
-
-	SC_CTRL			sc;
-}SecurityFiles;
-
-
-#define	IS_SECURITY_CHIP_EXIST(sc)		\
-	( (sc)->isExist == EXT_TRUE )
-
 
 SecurityFiles *cmnSysScInit(void);
+int cmnSysScValidate(SecurityFiles *scf);
+int cmnSysScWriteKey(SecurityFiles *scf, unsigned char  *secret, int size);
+
 
 int	cmnSysScRWPage(SecurityFiles *scf, unsigned char *page, int isRead);
 int	cmnSysScRWKey(SecurityFiles *scf, unsigned char *page, int isRead);
@@ -178,6 +202,7 @@ int	cmnSysScCrc(SecurityFiles *scf, int isEnable);
 char cmnSysScComputeMAC(SC_CTRL *sc);
 int cmnSysScChallegeInit(SC_CTRL *sc);
 
+#if ARCH_ARM
 #define	SC_PAGE_READ(scf, data)	\
 	cmnSysScRWPage((scf), (data), EXT_TRUE)
 
@@ -195,6 +220,20 @@ int cmnSysScChallegeInit(SC_CTRL *sc);
 
 #define	SC_MAC_WRITE(scf, data)	\
 	cmnSysScRWMac((scf), (data), EXT_FALSE)
+#else
+#define	SC_PAGE_READ(scf, data)		(EXIT_SUCCESS)
+
+#define	SC_PAGE_WRITE(scf, data)	(EXIT_SUCCESS)
+
+#define	SC_KEY_READ(scf, data)		(EXIT_SUCCESS)
+
+#define	SC_KEY_WRITE(scf, data)		(EXIT_SUCCESS)
+
+#define	SC_MAC_READ(scf, data)		(EXIT_SUCCESS)
+
+#define	SC_MAC_WRITE(scf, data)		(EXIT_SUCCESS)
+
+#endif
 
 
 #define	SC_CRC_DISABLE(scf)	\
@@ -275,6 +314,8 @@ int cmnSysI2cSensor(void);
 
 
 int	cmnSysI2cTest(void);
+
+cJSON *cmnMuxThreadsInfo(MuxMain *muxMain);
 
 
 #endif

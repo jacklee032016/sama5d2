@@ -12,6 +12,7 @@
 #include <string.h>
 
 #include "libCmn.h"
+#include "extSysParams.h"
 #include "mux7xx.h"
 
 

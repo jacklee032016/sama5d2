@@ -21,9 +21,12 @@ void cmnSysCfgFromFactory( EXT_RUNTIME_CFG *cfg )
 	sprintf(cfg->name, "%s", EXT_MUX_PRODUCT_NAME);
 	sprintf(cfg->model, "%s", EXT_MUX_MODEL);
 
+#if 0
+	/* read from muxMain every time when it starts */
 	cfg->version.major = BL_VERSION_MAJOR;
 	cfg->version.minor = BL_VERSION_MINOR;
 	cfg->version.revision = BL_VERSION_REVISION;
+#endif
 
 	snprintf(cfg->user, EXT_USER_SIZE, "%s", EXT_USER);
 	snprintf(cfg->password, EXT_PASSWORD_SIZE, "%s", EXT_PASSWORD);

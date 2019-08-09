@@ -37,6 +37,9 @@
 #define	MUX_OPTIONS_DEBUG_CAPTURE			0
 #define	MUX_OPTIONS_DEBUG_IP_COMMAND		1
 
+#define	MUX_OPTIONS_DEBUG_IPC_CLIENT		0
+
+
 #define	DEBUG_FFMPEG							0
 
 
@@ -222,11 +225,14 @@ typedef	enum _MUX_MEDIA_TYPE
 
 
 #if	ARCH_ARM
-#define	CONFIG_FILE_HOME_PROJECT			"/etc/mLab/"
+#define	RUN_HOME_DIR						""
+#define	RUN_HOME_DIR_TEMP				""
 #else
-//#error	"root dir is " ROOT_DIR
-#define	CONFIG_FILE_HOME_PROJECT			ROOT_DIR"/releases/etc/mLab/"
+#define	RUN_HOME_DIR						ROOT_DIR"/releases"
+#define	RUN_HOME_DIR_TEMP				RUN_HOME_DIR"/x86"	/* this directory will not be packed into release version of ARM */
 #endif
+
+#define	CONFIG_FILE_HOME_PROJECT			RUN_HOME_DIR"/etc/mLab/"
 
 
 #define ADD_ELEMENT(header, element)	\
@@ -288,13 +294,15 @@ int cmn_log_init(log_stru_t *lobj);
 	#endif
 #endif
 
+#define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
+
 
 #define	FILE_TO_STDOUT			0
 
 #ifndef   __CMN_RELEASE__
 #if FILE_TO_STDOUT
 #define	CMN_MSG_LOG(level, format ,...)   \
-	do{ char buf[4096]; snprintf(buf, sizeof(buf), __FILE__".%d|%s\n", __LINE__, format ) ;\
+	do{ char buf[4096]; snprintf(buf, sizeof(buf), ERROR_TEXT_BEGIN  "%s.[ERR, %s]:[%s-%u.%s()]: %s" ERROR_TEXT_END "\n", sysTimestamp(), cmnThreadGetName(), __FILENAME__, __LINE__, __FUNCTION__, format ) ;\
 		printf(buf, ##__VA_ARGS__);			\
 		}while(0)
 #else
@@ -312,6 +320,27 @@ int cmn_log_init(log_stru_t *lobj);
 	}while(0)
 #endif
 
+#ifndef   __CMN_RELEASE__
+#if FILE_TO_STDOUT
+#define	CMN_MSG_INFO(level, format ,...)   \
+	do{ char buf[4096]; snprintf(buf, sizeof(buf), INFO_TEXT_BEGIN"%s.[INFO,%s]:[%s-%u.%s]: %s"ANSI_COLOR_RESET "\n", sysTimestamp(), cmnThreadGetName(),  __FILENAME__, __LINE__, __FUNCTION__, format ) ;\
+		printf(buf, ##__VA_ARGS__);			\
+		}while(0)
+#else
+#define	CMN_MSG_INFO(level, format ,...)   \
+	do{ 					\
+		if ( level <= CMN_LOG_DEBUG && get_current_level() >= level) \
+			log_information(level, __FILENAME__, __LINE__, format, ##__VA_ARGS__);	\
+	}while(0)
+#endif
+#else
+#define	CMN_MSG_INFO(level, format ,...) \
+	do{ 					\
+		if ( level <= CMN_LOG_DEBUG && get_current_level() >= level) \
+			log_information(level, format, ##__VA_ARGS__);	\
+	}while(0)
+#endif
+
 
 #define	CMN_ABORT(format ,...)		\
 			{CMN_MSG_LOG(CMN_LOG_ERR, format, ##__VA_ARGS__); CMN_MSG_LOG(CMN_LOG_ERR,"Program exit now!!!");exit(1);/*abort();*/}
@@ -319,7 +348,7 @@ int cmn_log_init(log_stru_t *lobj);
 #ifndef   __CMN_RELEASE__
 #if FILE_TO_STDOUT
 #define	CMN_MSG_DEBUG(level, format ,...) 	 \
-	do{ char buf[4096]; snprintf(buf, sizeof(buf), __FILE__".%d|%s\n", __LINE__, format ) ;\
+	do{ char buf[4096]; snprintf(buf, sizeof(buf), "%s.[DBUG,%s]:[%s-%u.%s]: %s\n", sysTimestamp(), cmnThreadGetName(),  __FILENAME__, __LINE__, __FUNCTION__, format ) ;\
 		printf(buf, ##__VA_ARGS__);			\
 		}while(0)
 
@@ -469,32 +498,6 @@ char* cmnGetStrFromJsonObject(cJSON* json, const char * key);
 int cmnGetIntegerFromJsonObject(cJSON* json, const char * key);
 
 
-
-#include "cmnFtpLib.h"
-
-typedef	struct CMN_FTP_CLIENT
-{
-	char		username[CMN_NAME_LENGTH];
-	char		password[CMN_NAME_LENGTH];
-
-	char		host[CMN_NAME_LENGTH];	/* IP address or domain name */
-	int		port;
-
-	char		remotePath[CMN_NAME_LENGTH];
-	char		filename[CMN_NAME_LENGTH];
-	
-	cmn_list_t	*downloadFileList;
-
-	cmn_list_t	downloadResults;
-
-
-	fsz_t			fsz;
-	netbuf		*ctrlConn;
-
-	void 		*priv;
-}CMN_FTP_CLIENT;
-
-
 void cmnForkCommand(const char *cmd);
 void cmnKillProcess(char * processName);
 
@@ -507,9 +510,9 @@ int cmnParseGetIpAddress(struct in_addr *ipAddress, const char *p);
 
 #define  MUX_DEBUG(...)		{CMN_MSG_DEBUG(CMN_LOG_DEBUG, __VA_ARGS__);}
 
-#define  MUX_INFO(...)		{CMN_MSG_LOG(CMN_LOG_INFO, __VA_ARGS__);}
+#define  MUX_INFO(...)		{CMN_MSG_INFO(CMN_LOG_INFO, __VA_ARGS__);}
 
-#define  MUX_WARN(...)		{CMN_MSG_LOG(CMN_LOG_WARNING, __VA_ARGS__);}
+#define  MUX_WARN(...)		{CMN_MSG_INFO(CMN_LOG_WARNING, __VA_ARGS__);}
 
 #define  MUX_ERROR(...)		{CMN_MSG_LOG(CMN_LOG_ERR, __VA_ARGS__);}
 
@@ -541,8 +544,9 @@ char *cmnTimestampStr(void);
 /* Definitions from include/linux/timerfd.h */
 #define TFD_TIMER_ABSTIME	(1 << 0)
 
-//#define	EXT_CLOCK_ID				CLOCK_MONOTONIC
-#define	EXT_CLOCK_ID				CLOCK_REALTIME
+#define	EXT_CLOCK_ID						CLOCK_REALTIME
+
+#define	EXT_CLOCK_ID_MONO				CLOCK_MONOTONIC
 
 int timerfd_create(int clockid, int flags);
 int timerfd_set_time(int fd, long mstime);
@@ -556,6 +560,7 @@ char *strnstr(const char *haystack, const char *needle, size_t len);
 #define	CMN_THREAD_NAME_MANAGER			"muxManager"
 #define	CMN_THREAD_NAME_SDP_MANAGER		"muxSdpMngr"
 #define	CMN_THREAD_NAME_SDP_RECEIVER		"muxSdpRecv"
+#define	CMN_THREAD_NAME_BUTTON				"muxButton"
 
 
 #ifdef __cplusplus

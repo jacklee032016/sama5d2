@@ -2,9 +2,6 @@
 * JSON object and EXT_RUNTIME_CONFIG
 */
 
-#include "libCmn.h"
-#include "libMux.h"
-
 #include "libCmnSys.h"
 
 #define	CJSON_REPLACE_STRING(obj, strKey, strValue)	\
@@ -15,19 +12,30 @@
 	cJSON_ReplaceItemInObject((obj), (strKey), cJSON_CreateNumber((intValue)) )
 
 
-
-static int _cmnSysJsonUpdateOthers(EXT_RUNTIME_CFG *runCfg, cJSON *systemObj)
+static int _cmnSysJsonUpdateOthers(EXT_RUNTIME_CFG *runCfg, cJSON *obj)
 {
-#if 0
-	char strValue[128];
+	CJSON_REPLACE_INTEGRE(obj, FIELD_OTHERS_AUTHEN, runCfg->muxMain->isAuthen );
+	CJSON_REPLACE_INTEGRE(obj, FIELD_OTHERS_DEBUG_REST, runCfg->muxMain->debugRest);
+	CJSON_REPLACE_INTEGRE(obj, FIELD_OTHERS_DEBUG_IP_CMD, runCfg->muxMain->debugCmd);
+	CJSON_REPLACE_INTEGRE(obj, FIELD_OTHERS_DEBUG_SDP, runCfg->muxMain->debugSdp );
+	if(cJSON_GetObjectItem(obj, FIELD_OTHERS_SDP_STATUS))
+	{
+		cJSON_ReplaceItemInObject(obj, FIELD_OTHERS_SDP_STATUS, cmnMuxThreadsInfo(runCfg->muxMain) );
+	}
+	else
+	{
+		cJSON_AddItemToObjectCS(obj, FIELD_OTHERS_SDP_STATUS, cmnMuxThreadsInfo(runCfg->muxMain) );
+	}
+	
+	if(cJSON_GetObjectItem(obj, FIELD_OTHERS_THREADS))
+	{
+		cJSON_ReplaceItemInObject(obj, FIELD_OTHERS_THREADS, cmnMuxSdpStatus());
+	}
+	else
+	{
+		cJSON_AddItemToObjectCS(obj, FIELD_OTHERS_THREADS, cmnMuxSdpStatus());
+	}
 
-	/* system name */
-	CJSON_REPLACE_STRING(systemObj, FIELD_SYS_CFG_PRODUCT, runCfg->product);
-
-	snprintf(strValue, sizeof(strValue), "%.2X.%.2X-%.3X",  runCfg->version.major, runCfg->version.minor, runCfg->version.revision);
-
-	CJSON_REPLACE_INTEGRE(systemObj, FIELD_SYS_CFG_DIP, (runCfg->isDipOn==0)?0:1 );
-#endif	
 	return EXIT_SUCCESS;
 }
 
@@ -197,6 +205,7 @@ static int _cmnSysJsonUpdateSystem(EXT_RUNTIME_CFG *runCfg, cJSON *systemObj)
 	CJSON_REPLACE_STRING(systemObj, FIELD_SYS_CFG_MODEL, runCfg->model);
 	snprintf(macAddress, sizeof(macAddress), "%.2X.%.2X-%.3X",  runCfg->version.major, runCfg->version.minor, runCfg->version.revision);
 	CJSON_REPLACE_STRING(systemObj, FIELD_SYS_CFG_VERSION, macAddress);
+	CJSON_REPLACE_STRING(systemObj, FIELD_SYS_CFG_BUILT_DATA, runCfg->muxMain->builtDate);
 	CJSON_REPLACE_INTEGRE(systemObj, FIELD_SYS_CFG_IS_TX, (runCfg->isTx==0)?0:1 );
 
 	/* network */

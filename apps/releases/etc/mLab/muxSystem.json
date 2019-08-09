@@ -6,6 +6,7 @@
 				"product": "SdiOverIP-774",
 				"name": "774-TX01",
 				"ver": "01.01-001",
+				"built": "Aug  8 2019 10:54:54",
 				"isTx":1,
 
       			"ip": "192.168.168.181",
@@ -110,10 +111,11 @@
 		
       		"others": 
       		{
-				"debug": 1,
+				"authen": 0,
 				"debugRest": 0,
 				"debugCmd": 0,
-				"authen": 0,
+				"debugSdp": 0,
+				"sdpc":[],
 				"threads":[]
       		}
 }

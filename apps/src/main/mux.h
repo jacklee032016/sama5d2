@@ -29,11 +29,7 @@
 
 #include <dlfcn.h>
 
-#include "libCmn.h"
-#include "libMux.h"
-
 #include "libCmnSys.h"
-
 #include "mux7xx.h"
 
 

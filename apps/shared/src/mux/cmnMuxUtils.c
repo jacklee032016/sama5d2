@@ -749,9 +749,12 @@ int	cmnMuxTypeFindType(const TYPE_NAME_T *types, char *name)
 		tmp++;
 	}
 
+#ifndef   __CMN_RELEASE__
 	{
-		CMN_ABORT("Type of name %s is not found, the first item is :%s", name, types->name);
+//		CMN_ABORT("Type of name %s is not found, the first item is :%s", name, types->name);
+		MUX_ERROR("Type of name %s is not found, the first item is :%s", name, types->name);
 	}
+#endif
 	return INVALIDATE_VALUE_U32;
 }
 
@@ -769,9 +772,11 @@ char *cmnMuxTypeFindName(const TYPE_NAME_T *types, int type)
 		tmp++;
 	}
 
+
 #ifndef   __CMN_RELEASE__
 	{
-		CMN_ABORT("Type %d is not found, the first item is :%s", type, types->name);
+//		CMN_ABORT("Type %d is not found, the first item is :%s", type, types->name);
+		MUX_ERROR("Type %d is not found, the first item is :%s", type, types->name);
 	}
 #endif
 	return NULL;
@@ -828,7 +833,7 @@ void extBcd2Ascii(unsigned char src, char *dest)
 	*dest = '\0';
 }
 
-char extSysAtoInt8(const char *str, unsigned char *value)
+int extSysAtoInt8(const char *str, unsigned char *value)
 {
 	char key;
 	unsigned int dw = 0;
@@ -871,7 +876,7 @@ char extSysAtoInt8(const char *str, unsigned char *value)
 
 
 /*mac address in string format of "xx:xx:xx:xx:xx:xx" into structure */
-char	extMacAddressParse(EXT_MAC_ADDRESS *macAddress, const char *macStr)
+int	extMacAddressParse(EXT_MAC_ADDRESS *macAddress, const char *macStr)
 {
 	const char *tmp = macStr;
 	int i;
@@ -1261,7 +1266,7 @@ char extCmnVideoParamPopulate(EXT_RUNTIME_CFG *runCfg, uint8_t index)
 
 	if(index >= EXT_ARRAYSIZE(constMediaParams) )
 	{
-		EXT_ERRORF("Index %d is out of the range %d of params", index, EXT_ARRAYSIZE(constMediaParams) );
+		EXT_ERRORF("Index %d is out of the range %d of params", index, (int)EXT_ARRAYSIZE(constMediaParams) );
 		return EXIT_FAILURE;
 	}
 

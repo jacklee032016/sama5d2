@@ -630,7 +630,7 @@ int	cmnSysI2cTestMcp4716(void)
 		return EXIT_FAILURE;
 	}
 
-	EXT_DEBUGF(EXT_DBG_ON, "\tRead %d bytes from 0x%08X:", sizeof(data), regAddr);
+	EXT_DEBUGF(EXT_DBG_ON, "\tRead %d bytes from 0x%08X:", (int)sizeof(data), regAddr);
 	CMN_HEX_DUMP(data, sizeof(data), "\tMCP4716 read");
 
 	EXT_INFOF("\tMCP4716 test OK");

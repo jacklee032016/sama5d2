@@ -670,7 +670,11 @@ typedef	struct
 #define	FIELD_IS_CHANGED_U16(field)				((field) != INVALIDATE_VALUE_U16)
 #define	FIELD_IS_CHANGED_U32(field)				((field) != INVALIDATE_VALUE_U32)
 
+#define	FIELD_IS_INVLIDATE_U32(field)				((field) == INVALIDATE_VALUE_U32)
 
+#define	PORT_IS_INVALIDATE(port)					(((port)<1024) || ((port) >= 65535) )
+
+#define	PORT_IS_INVALIDATE_SERVER(port)			(((port)<1) || ((port) >= 65535) )
 
 
 #define	EXT_UUID_STR_LENGTH		36
@@ -1058,8 +1062,6 @@ typedef struct
 }SC_CTRL;
 
 
-#define	IS_SECURITY_CHIP_EXIST(sc)		\
-	( (sc)->isExist == EXT_TRUE )
 
 
 #define	FPGA_CFG_AUTO				0
@@ -1172,7 +1174,7 @@ struct	_EXT_RUNTIME_CFG
 
 	SC_CTRL				sc;
 
-	struct _MuxMain		*mMain;
+	struct _MuxMain		*muxMain;
 
 	void					*fpgaCfg;
 };//__attribute__((packed));
@@ -1218,8 +1220,8 @@ typedef	char (*MuxDelayJob)(void *data);
 	
 
 void extBcd2Ascii(unsigned char src, char *dest);
-char extSysAtoInt8(const char *str, unsigned char *value);
-char	extMacAddressParse(EXT_MAC_ADDRESS *macAddress, const char *macStr);
+int extSysAtoInt8(const char *str, unsigned char *value);
+int	extMacAddressParse(EXT_MAC_ADDRESS *macAddress, const char *macStr);
 
 void cmnSysCfgFromFactory( EXT_RUNTIME_CFG *cfg );
 
@@ -1337,6 +1339,11 @@ char cmnCmdVersion(const struct _EXT_CLI_CMD *cmd,  char *outBuffer,  unsigned i
 
 int cmnSysCfgSave( EXT_RUNTIME_CFG *cfg, EXT_CFG_TYPE cfgType );
 int cmnSysCfgRead( EXT_RUNTIME_CFG *cfg, EXT_CFG_TYPE cfgType);
+
+int cmnSysSaveMac2Uboot( EXT_RUNTIME_CFG *cfg );
+
+int cmnSysEthernetConfig( EXT_RUNTIME_CFG *cfg);
+
 
 #ifdef	ARM 
 #define	FOR_U32 	"lu"

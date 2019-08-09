@@ -1,10 +1,7 @@
 
-#include "libCmn.h"
-#include "libMux.h"
-
+#include "libCmnSys.h"
 #include "_cmnMux.h"
 
-#include "libCmnSys.h"
 
 void cmnMuxClearConfig(EXT_RUNTIME_CFG *rxCfg)
 {
@@ -84,6 +81,7 @@ int	cmnMuxObjectParseSystem(struct DATA_CONN *dataConn, cJSON *dataObj)
 	char *value;
 	int	intValue;
 	EXT_MAC_ADDRESS macAddress;
+	int isFound = EXT_FALSE;
 	
 	MuxMain *muxMain = SYS_MAIN(dataConn);
 	EXT_RUNTIME_CFG *rxCfg = &muxMain->rxCfg;
@@ -97,6 +95,7 @@ int	cmnMuxObjectParseSystem(struct DATA_CONN *dataConn, cJSON *dataObj)
 			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s' in %s item is wrong", FIELD_SYS_CFG_ADDRESS, MUX_REST_URI_SYSTEM);
 			return EXIT_FAILURE;
 		}
+		isFound = EXT_TRUE;
 	}
 
 	value = cmnGetStrFromJsonObject(dataObj, FIELD_SYS_CFG_NETMASK);
@@ -108,6 +107,7 @@ int	cmnMuxObjectParseSystem(struct DATA_CONN *dataConn, cJSON *dataObj)
 			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s' in %s item is wrong", FIELD_SYS_CFG_NETMASK, MUX_REST_URI_SYSTEM);
 			return EXIT_FAILURE;
 		}
+		isFound = EXT_TRUE;
 	}
 	
 	value = cmnGetStrFromJsonObject(dataObj, FIELD_SYS_CFG_GATEWAY);
@@ -119,6 +119,7 @@ int	cmnMuxObjectParseSystem(struct DATA_CONN *dataConn, cJSON *dataObj)
 			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s' in %s item is wrong", FIELD_SYS_CFG_GATEWAY, MUX_REST_URI_SYSTEM);
 			return EXIT_FAILURE;
 		}
+		isFound = EXT_TRUE;
 	}
 
 	value = cmnGetStrFromJsonObject(dataObj, FIELD_SYS_CFG_MAC);
@@ -130,6 +131,7 @@ int	cmnMuxObjectParseSystem(struct DATA_CONN *dataConn, cJSON *dataObj)
 			return EXIT_FAILURE;
 		}
 		memcpy(&rxCfg->local.mac, &macAddress, sizeof(EXT_MAC_ADDRESS));
+		isFound = EXT_TRUE;
 	}
 
 
@@ -137,12 +139,14 @@ int	cmnMuxObjectParseSystem(struct DATA_CONN *dataConn, cJSON *dataObj)
 	if(!IS_STRING_NULL_OR_ZERO(value) )
 	{
 		snprintf(rxCfg->name, sizeof(rxCfg->name), "%s", value);
+		isFound = EXT_TRUE;
 	}
 
 	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_SYS_CFG_IS_DHCP);
 	if( FIELD_IS_CHANGED_U32(intValue) )
 	{
 		rxCfg->netMode = (intValue != 0)?1: 0;
+		isFound = EXT_TRUE;
 	}
 
 #if EXT_DIP_SWITCH_ON
@@ -150,6 +154,7 @@ int	cmnMuxObjectParseSystem(struct DATA_CONN *dataConn, cJSON *dataObj)
 	if( FIELD_IS_CHANGED_U32(intValue) )
 	{
 		rxCfg->isDipOn = (intValue != 0)?1: 0;
+		isFound = EXT_TRUE;
 	}
 #endif
 
@@ -157,20 +162,30 @@ int	cmnMuxObjectParseSystem(struct DATA_CONN *dataConn, cJSON *dataObj)
 	if( FIELD_IS_CHANGED_U32(intValue) )
 	{
 		rxCfg->runtime.reset = (intValue != 0)?1: 0;
+		isFound = EXT_TRUE;
 	}
 
 	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_SYS_CFG_REBOOT);
 	if( FIELD_IS_CHANGED_U32(intValue) )
 	{
 		rxCfg->runtime.reboot = (intValue != 0)?1: 0;
+		isFound = EXT_TRUE;
 	}
 
 	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_SYS_CFG_BLINK);
 	if( FIELD_IS_CHANGED_U32(intValue) )
 	{
 		rxCfg->runtime.blink = (intValue != 0)?1: 0;
+		isFound = EXT_TRUE;
 	}
 
+	if(isFound == EXT_FALSE )
+	{
+		DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "No validated field is found in '%s' packet", MUX_REST_URI_SYSTEM );
+		return EXT_TRUE;
+	}
+
+	MUX_DEBUG("'%s' command OK!", MUX_REST_URI_SYSTEM);
 	return EXIT_SUCCESS;
 }
 
@@ -179,11 +194,11 @@ int	cmnMuxObjectParseVideo(struct DATA_CONN *dataConn, cJSON *dataObj)
 {
 	char *value;
 	int	intValue;
+	int isFound = EXT_FALSE;
 	
 	MuxMain *muxMain = SYS_MAIN(dataConn);
 	EXT_RUNTIME_CFG *rxCfg = &muxMain->rxCfg;
 
-TRACE();
 	value = cmnGetStrFromJsonObject(dataObj, FIELD_VIDEO_IP);
 	if(!IS_STRING_NULL_OR_ZERO(value) )
 	{
@@ -193,58 +208,98 @@ TRACE();
 			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s' in %s item is wrong", FIELD_VIDEO_IP, MUX_REST_URI_VIDEO);
 			return EXIT_FAILURE;
 		}
+		isFound = EXT_TRUE;
 	}
 
-TRACE();
 	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_VIDEO_PORT);
 	if( FIELD_IS_CHANGED_U32(intValue) )
 	{
-TRACE();
-		rxCfg->dest.vport = intValue;
+		if(PORT_IS_INVALIDATE(intValue) )
+		{
+			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s' in %s item is wrong:%d(1024~65535)", FIELD_ANC_PORT, MUX_REST_URI_VIDEO, intValue );
+			return EXIT_FAILURE;
+		}
+		rxCfg->dest.vport = (unsigned short) intValue;
+		isFound = EXT_TRUE;
 	}
 
 	value = cmnGetStrFromJsonObject(dataObj, FIELD_VIDEO_SDP);
 	if(!IS_STRING_NULL_OR_ZERO(value) )
 	{
 		snprintf(rxCfg->sdpUriVideo.uri, sizeof(rxCfg->sdpUriVideo.uri), "%s", value);
+		isFound = EXT_TRUE;
 	}
 
 	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_VIDEO_WIDTH);
 	if( FIELD_IS_CHANGED_U32(intValue) )
 	{
-		rxCfg->runtime.vWidth = intValue;
+		rxCfg->runtime.vWidth = (unsigned short)intValue;
+		isFound = EXT_TRUE;
 	}
 
 	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_VIDEO_HEIGHT);
 	if( FIELD_IS_CHANGED_U32(intValue) )
 	{
-		rxCfg->runtime.vHeight = intValue;
+		rxCfg->runtime.vHeight = (unsigned short)intValue;
+		isFound = EXT_TRUE;
 	}
 
 	value = cmnGetStrFromJsonObject(dataObj, FIELD_VIDEO_FRAME_RATE);
 	if(!IS_STRING_NULL_OR_ZERO(value) )
 	{
-		rxCfg->runtime.vFrameRate = CMN_FIND_STR_V_FPS_4_REST(value);
+		intValue = CMN_FIND_STR_V_FPS_4_REST(value);
+		if(FIELD_IS_INVLIDATE_U32(intValue) )
+		{
+			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s' in %s item is wrong: '%s'", FIELD_VIDEO_FRAME_RATE, MUX_REST_URI_VIDEO, value);
+			return EXIT_FAILURE;
+		}
+		rxCfg->runtime.vFrameRate = (unsigned char)value;
+		isFound = EXT_TRUE;
 	}
 
 	value = cmnGetStrFromJsonObject(dataObj, FIELD_VIDEO_COLOR_SPACE);
 	if(!IS_STRING_NULL_OR_ZERO(value) )
 	{
-		rxCfg->runtime.vColorSpace = CMN_FIND_STR_V_COLORSPACE(value);
+		intValue = CMN_FIND_STR_V_COLORSPACE(value);
+		if(FIELD_IS_INVLIDATE_U32(intValue) )
+		{
+			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s' in %s item is wrong: '%s'", FIELD_VIDEO_COLOR_SPACE, MUX_REST_URI_VIDEO, value);
+			return EXIT_FAILURE;
+		}
+		rxCfg->runtime.vColorSpace = (unsigned char)value;
+		isFound = EXT_TRUE;
 	}
 
 	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_VIDEO_DEPTH);
 	if( FIELD_IS_CHANGED_U32(intValue) )
 	{
+#if 1	
+		rxCfg->runtime.vDepth = (unsigned char)intValue;
+#else
 		rxCfg->runtime.vDepth = CMN_INT_FIND_TYPE_V_DEPTH(intValue);;
+		if(FIELD_IS_INVLIDATE_U32(rxCfg->runtime.vDepth) )
+		{
+			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s' in %s item is wrong: '%s'", FIELD_VIDEO_DEPTH, MUX_REST_URI_VIDEO, value);
+			return EXIT_FAILURE;
+		}
+#endif		
+		isFound = EXT_TRUE;
 	}
 
 	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_VIDEO_INTERLACE);
 	if( FIELD_IS_CHANGED_U32(intValue) )
 	{
-		rxCfg->runtime.vIsInterlaced = intValue;
+		rxCfg->runtime.vIsInterlaced = (unsigned char)intValue;
+		isFound = EXT_TRUE;
 	}
 
+	if(isFound == EXT_FALSE )
+	{
+		DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "No validated field is found in '%s' packet", MUX_REST_URI_VIDEO );
+		return EXT_TRUE;
+	}
+
+	MUX_DEBUG("'%s' command OK!", MUX_REST_URI_VIDEO);
 	return EXIT_SUCCESS;
 }
 
@@ -254,6 +309,7 @@ int	cmnMuxObjectParseAudio(struct DATA_CONN *dataConn, cJSON *dataObj)
 {
 	char *value;
 	int	intValue;
+	int isFound = EXT_FALSE;
 	
 	MuxMain *muxMain = SYS_MAIN(dataConn);
 	EXT_RUNTIME_CFG *rxCfg = &muxMain->rxCfg;
@@ -267,44 +323,75 @@ int	cmnMuxObjectParseAudio(struct DATA_CONN *dataConn, cJSON *dataObj)
 			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s' in %s item is wrong", FIELD_AUDIO_IP, MUX_REST_URI_AUDIO);
 			return EXIT_FAILURE;
 		}
+		isFound = EXT_TRUE;
 	}
 
 	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_AUDIO_PORT);
 	if( FIELD_IS_CHANGED_U32(intValue) )
 	{
-		rxCfg->dest.aport = intValue;
+		if(PORT_IS_INVALIDATE(intValue) )
+		{
+			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s' in %s item is wrong:%d(1024~65535)", FIELD_ANC_PORT, MUX_REST_URI_AUDIO, intValue );
+			return EXIT_FAILURE;
+		}
+		rxCfg->dest.aport = (unsigned short)intValue;
+		isFound = EXT_TRUE;
 	}
 
 	value = cmnGetStrFromJsonObject(dataObj, FIELD_AUDIO_SDP);
 	if(!IS_STRING_NULL_OR_ZERO(value) )
 	{
 		snprintf(rxCfg->sdpUriAudio.uri, sizeof(rxCfg->sdpUriAudio.uri), "%s", value);
+		isFound = EXT_TRUE;
 	}
 
 	value = cmnGetStrFromJsonObject(dataObj, FIELD_AUDIO_SAMPLE);
 	if(!IS_STRING_NULL_OR_ZERO(value) )
 	{
-		rxCfg->runtime.aSampleRate = CMN_FIND_STR_A_RATE(value );
+		intValue = CMN_FIND_STR_A_RATE(value );
+		if(FIELD_IS_INVLIDATE_U32(intValue) )
+		{
+			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s' in %s item is wrong:'%s'", FIELD_AUDIO_SAMPLE, MUX_REST_URI_AUDIO, value);
+			return EXIT_FAILURE;
+		}
+		rxCfg->runtime.aSampleRate = (unsigned char )intValue;
+		isFound = EXT_TRUE;
 	}
 
 	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_AUDIO_CHANNELS);
 	if( FIELD_IS_CHANGED_U32(intValue) )
 	{
-		rxCfg->runtime.aChannels = intValue;
+		rxCfg->runtime.aChannels = (unsigned char)intValue;
+		isFound = EXT_TRUE;
 	}
 	
 	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_AUDIO_DEPTH);
 	if( FIELD_IS_CHANGED_U32(intValue) )
 	{
-		rxCfg->runtime.aDepth = intValue;
+		rxCfg->runtime.aDepth = (unsigned char)intValue;
+		isFound = EXT_TRUE;
 	}
 	
 	value = cmnGetStrFromJsonObject(dataObj, FIELD_AUDIO_PKT_SIZE);
 	if(!IS_STRING_NULL_OR_ZERO(value) )
 	{
-		rxCfg->runtime.aPktSize = CMN_FIND_STR_A_PKTSIZE(value);
+		intValue = CMN_FIND_STR_A_RATE(value );
+		if(FIELD_IS_INVLIDATE_U32(intValue) )
+		{
+			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s' in %s item is wrong:'%s'", FIELD_AUDIO_PKT_SIZE, MUX_REST_URI_AUDIO, value);
+			return EXIT_FAILURE;
+		}
+		rxCfg->runtime.aPktSize = (unsigned char)intValue;
+		isFound = EXT_TRUE;
 	}
 
+	if(isFound == EXT_FALSE )
+	{
+		DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "No validated field is found in '%s' packet", MUX_REST_URI_AUDIO );
+		return EXT_TRUE;
+	}
+
+	MUX_DEBUG("'%s' command OK!", MUX_REST_URI_AUDIO);
 	return EXIT_SUCCESS;
 }
 
@@ -314,6 +401,7 @@ int	cmnMuxObjectParseAnc(struct DATA_CONN *dataConn, cJSON *dataObj)
 {
 	char *value;
 	int	intValue;
+	int isFound = EXT_FALSE;
 	
 	MuxMain *muxMain = SYS_MAIN(dataConn);
 	EXT_RUNTIME_CFG *rxCfg = &muxMain->rxCfg;
@@ -327,20 +415,36 @@ int	cmnMuxObjectParseAnc(struct DATA_CONN *dataConn, cJSON *dataObj)
 			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s' in %s item is wrong", FIELD_ANC_IP, MUX_REST_URI_ANC);
 			return EXIT_FAILURE;
 		}
+		isFound = EXT_TRUE;
 	}
 
 	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_ANC_PORT);
 	if( FIELD_IS_CHANGED_U32(intValue) )
 	{
-		rxCfg->dest.dport = intValue;
+//		MUX_DEBUG("port: %d", intValue);
+		if(PORT_IS_INVALIDATE(intValue) )
+		{
+			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s' in %s item is wrong:%d(1024~65535)", FIELD_ANC_PORT, MUX_REST_URI_ANC, intValue );
+			return EXIT_FAILURE;
+		}
+		rxCfg->dest.dport = (unsigned short)intValue;
+		isFound = EXT_TRUE;
 	}
 
 	value = cmnGetStrFromJsonObject(dataObj, FIELD_ANC_SDP);
 	if(!IS_STRING_NULL_OR_ZERO(value) )
 	{
 		snprintf(rxCfg->sdpUriAnc.uri, sizeof(rxCfg->sdpUriAnc.uri), "%s", value);
+		isFound = EXT_TRUE;
 	}
 
+	if(isFound == EXT_FALSE )
+	{
+		DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "No validated field is found in '%s' packet", MUX_REST_URI_ANC );
+		return EXT_TRUE;
+	}
+
+	MUX_DEBUG("'%s' command OK!", MUX_REST_URI_ANC);
 	return EXIT_SUCCESS;
 }
 
@@ -348,6 +452,7 @@ static int	_objectParseOneSdp(struct DATA_CONN *dataConn, cJSON *dataObj, HttpCl
 {
 	char *value;
 	int	intValue;
+	int isFound = EXT_FALSE;
 //	MuxMain *muxMain = SYS_MAIN(dataConn);
 
 	value = cmnGetStrFromJsonObject(dataObj, FIELD_SDP_IP);
@@ -359,17 +464,30 @@ static int	_objectParseOneSdp(struct DATA_CONN *dataConn, cJSON *dataObj, HttpCl
 			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s' in %s item is wrong", FIELD_SDP_IP, MUX_REST_URI_SDP);
 			return EXIT_FAILURE;
 		}
+		isFound = EXT_TRUE;
 	}
 
 	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_SDP_PORT);
 	if( FIELD_IS_CHANGED_U32(intValue) )
 	{
-		sdpUrl->port = intValue;
+		if(PORT_IS_INVALIDATE_SERVER(intValue) )
+		{
+			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s' in %s item is wrong:%d(1024~65535)", FIELD_ANC_PORT, MUX_REST_URI_VIDEO, intValue );
+			return EXIT_FAILURE;
+		}
+		sdpUrl->port = (unsigned short)intValue;
+		isFound = EXT_TRUE;
 	}
 
-	if(cmnJsonGetStrIntoString(dataObj, FIELD_SDP_URI, sdpUrl->uri, sizeof(sdpUrl->uri)) == EXIT_FAILURE)
+	if(cmnJsonGetStrIntoString(dataObj, FIELD_SDP_URI, sdpUrl->uri, sizeof(sdpUrl->uri)) == EXIT_SUCCESS)
 	{
-		DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s' in %s item is wrong", FIELD_SDP_URI, MUX_REST_URI_SDP);
+		isFound = EXT_TRUE;
+	}
+
+	if(isFound == EXT_FALSE)
+	{
+//		DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s' in %s item is wrong", FIELD_SDP_URI, MUX_REST_URI_SDP);
+		DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "No validated field is found in '%s' packet", MUX_REST_URI_SDP );
 		return EXIT_FAILURE;
 	}
 	
@@ -447,6 +565,7 @@ TRACE();
 	}
 
 TRACE();
+	MUX_DEBUG("'%s' command OK!", MUX_REST_URI_SDP);
 	return EXIT_SUCCESS;
 }
 
@@ -577,12 +696,12 @@ int	cmnMuxObjectParseIR(struct DATA_CONN *dataConn, cJSON *dataObj)
 
 static int _securityCheckId(struct DATA_CONN *dataConn)
 {
-//	int index = 0;
-//	char *data = NULL;
-//	int size = 0;
 	int i;
 	MuxMain *muxMain = SYS_MAIN(dataConn);
 	EXT_RUNTIME_CFG *rxCfg = &muxMain->rxCfg;
+	SC_CTRL		*sc = &muxMain->scf->sc;
+	cJSON *resultObj;
+
 
 	/* get ID here */
 	if(0)
@@ -595,25 +714,14 @@ static int _securityCheckId(struct DATA_CONN *dataConn)
 		memset(rxCfg->setupData.scID, 0, sizeof(rxCfg->setupData.scID));
 		for(i=0; i< SC_ROM_ID_SIZE; i++)
 		{
-			extBcd2Ascii(rxCfg->sc.romId[i], rxCfg->setupData.scID+i*2);
+//			extBcd2Ascii(rxCfg->sc.romId[i], rxCfg->setupData.scID+i*2);
+			extBcd2Ascii(sc->romId[i], rxCfg->setupData.scID+i*2);
 		}	
 	}
 
-#if 0
-	parser->status = JSON_STATUS_OK;
-
-	extIpCmdResponseHeaderPrint( parser);
-	data = parser->outBuffer+IPCMD_HEADER_LENGTH + parser->outIndex;
-	size = parser->outSize - IPCMD_HEADER_LENGTH - parser->outIndex;
-	
-	index += snprintf(data+index, size-index, ",\""EXT_IPCMD_DATA_ARRAY"\":[{");
-	index += snprintf(data+index, size-index, "\""EXT_IPCMD_SC_GET_ID"\":\"%s\"", parser->setupData.scID );
-	index += snprintf(data+index, size-index, "}]" );
-
-	parser->outIndex += index;
-
-	extIpCmdResponseTailCalculate(parser, EXT_FALSE);
-#endif
+	resultObj = cJSON_CreateObject();
+	JEVENT_ADD_STRING(resultObj, FIELD_SECURITY_GET_ID, rxCfg->setupData.scID );
+	REPLY_DATACONN_OK(dataConn, resultObj);
 
 	return EXIT_SUCCESS;
 }
@@ -621,17 +729,12 @@ static int _securityCheckId(struct DATA_CONN *dataConn)
 
 int cmnMuxObjectParseSecurity(struct DATA_CONN *dataConn, cJSON *dataObj)
 {
-	char ret;
+	int ret = EXIT_FAILURE;
 	MuxMain *muxMain = SYS_MAIN(dataConn);
 	EXT_RUNTIME_CFG *rxCfg = &muxMain->rxCfg;
-//	int intValue;
-//	char *value;
+//	cJSON *resultObj;
 
-#if 0
-	extIpCmdSendMediaData(parser, EXT_FALSE);
-#endif
-
-	if(! IS_SECURITY_CHIP_EXIST( &muxMain->runCfg.sc) )
+	if(! IS_SECURITY_CHIP_EXIST( muxMain) )
 	{
 		DATA_CONN_ERR(dataConn, IPCMD_ERR_SERVER_INTERNEL_ERROR, "No Security Chip is found in this unit");
 		return EXIT_FAILURE;
@@ -644,27 +747,31 @@ int cmnMuxObjectParseSecurity(struct DATA_CONN *dataConn, cJSON *dataObj)
 	if(cmnJsonGetStrIntoString(dataObj, FIELD_SECURITY_SET_KEY, rxCfg->setupData.scKey, sizeof(rxCfg->setupData.scKey)) == EXIT_SUCCESS)
 #endif		
 	{ /* for set_key */
+
+		int size = 0;
+		unsigned char secret[SC_PAGE_SIZE];
 		
-		memset(rxCfg->sc.readMac, 0xFF, SC_SECRET_SIZE);
+		memset(secret, 0xFF, SC_SECRET_SIZE);
 //		snprintf(rxCfg->setupData.scKey, sizeof(rxCfg->setupData.scKey), "%s", value);
 		
 		if(strlen(rxCfg->setupData.scKey)%2 != 0)
 		{
-			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "'%s' error: Key size '%d' is not even number", FIELD_SECURITY_GET_STATUS, strlen(rxCfg->setupData.scKey) );
+			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "'%s' error: Key size '%d' is not even number", FIELD_SECURITY_SET_KEY, strlen(rxCfg->setupData.scKey) );
 			return EXIT_FAILURE;
 		}
 		else
 		{
 			unsigned int i;
-//			for(i=0; i< SC_SECRET_SIZE; i++)
 			for(i=0; i< strlen(rxCfg->setupData.scKey)/2; i++)
 			{
-				ret = extSysAtoInt8(rxCfg->setupData.scKey+i*2, muxMain->runCfg.sc.readMac+i);
+				ret = extSysAtoInt8(rxCfg->setupData.scKey+i*2, secret+i);
 				if(ret ==  EXIT_FAILURE)
 				{
-					DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "'%s' error: #%d letters '%.*s' is not an integer", FIELD_SECURITY_GET_STATUS, i*2, 2, rxCfg->setupData.scKey+i*2);
+					DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "'%s' error: #%d letters '%.*s' is not an integer", FIELD_SECURITY_SET_KEY, i*2, 2, rxCfg->setupData.scKey+i*2);
 					return EXIT_FAILURE;
 				}
+				
+				size++;
 
 #if 0
 				if(parser->runCfg->sc->readMac[i] != parser->runCfg->sc->secret[i] )
@@ -674,61 +781,51 @@ int cmnMuxObjectParseSecurity(struct DATA_CONN *dataConn, cJSON *dataObj)
 				}
 #endif				
 			}
+
+			if(size != SC_PAGE_SIZE)
+			{
+				DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "'%s' error: Size of parsed secret must be %d: %d", FIELD_SECURITY_SET_KEY, SC_PAGE_SIZE, size );
+				return EXIT_FAILURE;
+			}
 		}
 
-#if 0
 		if( ret == EXIT_SUCCESS)
 		{
-			ret = bspScWriteKey(muxMain->runCfg->sc, muxMain->runCfg->sc->readMac);
+			ret = cmnSysScWriteKey(muxMain->scf, secret, size);
 		}
 
 		if( ret == EXIT_SUCCESS)
 		{
-			muxMain->status = JSON_STATUS_OK;
+			REPLAY_OK_WITHOUT_PARAM_IN_IP_CMD(dataConn);
 		}
 		else
 		{
-			muxMain->status = JSON_STATUS_CMD_EXEC_ERROR;
 //			snprintf(parser->msg, sizeof(parser->msg), "'%s' error on hardware", EXT_IPCMD_SC_GET_STATUS);
+			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "sub-command '%s' failed: %s", FIELD_SECURITY_SET_KEY, (size==SC_SECRET_SIZE)?"Hardware error":"secret is not correct");
 		}
-#endif
 		
 		MUX_DEBUG("'%s' command OK!", FIELD_SECURITY_SET_KEY);
-//		return extIpCmdResponseReply(muxMain);
 		return EXIT_SUCCESS;
 	}
 
-
-#if 1
-//	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_SECURITY_GET_STATUS);
-//	if( FIELD_IS_CHANGED_U32(intValue) )
 
 	/* check read-only field, no matter the type is string or integer */
 	if(cJSON_HasObjectItem(dataObj, FIELD_SECURITY_GET_STATUS) )	
-#else
-	if(cmnGetStrIntoString(dataObj, FIELD_SECURITY_GET_STATUS, rxCfg->setupData.scKey, sizeof(rxCfg->setupData.scKey) )  == EXIT_SUCCESS )
-#endif		
 	{/* for get_status */
 		
-#if 0
-		if( bspScCheckMAC(muxMain->runCfg->sc ) == EXIT_SUCCESS )
+		if( cmnSysScValidate(muxMain->scf ) == EXIT_SUCCESS )
 		{
-			parser->status = JSON_STATUS_OK;
+			REPLAY_OK_WITHOUT_PARAM_IN_IP_CMD(dataConn);
+			MUX_DEBUG("'%s' command OK!", FIELD_SECURITY_GET_STATUS);
 		}
 		else
 		{
-			parser->status = JSON_STATUS_CMD_EXEC_ERROR;
-			snprintf(parser->msg, sizeof(parser->msg), "'%s' error on hardware", EXT_IPCMD_SC_GET_STATUS);
+			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "sub-command '%s' EXEC failed", FIELD_SECURITY_GET_STATUS);
 		}
-#endif
 
-		MUX_DEBUG("'%s' command OK!", FIELD_SECURITY_GET_STATUS);
-//		return extIpCmdResponseReply(parser);
 		return EXIT_SUCCESS;
 	}
 
-TRACE();
-//	if(cmnGetStrIntoString(dataObj, FIELD_SECURITY_GET_ID, rxCfg->setupData.scKey, sizeof(rxCfg->setupData.scKey) ) == EXIT_FAILURE)
 	if(! cJSON_HasObjectItem(dataObj, FIELD_SECURITY_GET_ID) )	
 	{
 		DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "No validate sub-command is found for '%s'", MUX_REST_URI_SECURITY);
@@ -741,7 +838,7 @@ TRACE();
 		return EXIT_FAILURE;
 	}
 
-	MUX_DEBUG("'%s' command OK!", MUX_REST_URI_SYSTEM);
+	MUX_DEBUG("'%s' command OK!", FIELD_SECURITY_GET_ID);
 	return EXIT_SUCCESS;
 	
 }
@@ -749,44 +846,97 @@ TRACE();
 
 int cmnMuxObjectParseOthers(struct DATA_CONN *dataConn, cJSON *dataObj)
 {
-#if 0
-	char *value;
 	int	intValue;
+	int isFound = EXT_FALSE;
 	
 	MuxMain *muxMain = SYS_MAIN(dataConn);
-	EXT_RUNTIME_CFG *rxCfg = &muxMain->rxCfg;
 
-	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_RS232_BAUDRATE);
-	if( FIELD_IS_CHANGED_U32(intValue) )
+	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_OTHERS_AUTHEN);
+	if( FIELD_IS_CHANGED_U32(intValue) && intValue != muxMain->isAuthen )
 	{
-		if( CHECK_BAUDRATE(intValue) )
-		{
-			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s': %d in %s item is wrong", FIELD_RS232_BAUDRATE, intValue, MUX_REST_URI_RS232);
-			return EXIT_FAILURE;
-		}
-		else
-		{
-			rxCfg->rs232Cfg.baudRate = intValue;
-		}
+		muxMain->isAuthen = intValue;
+		MUX_DEBUG("'%s' changed as %s", FIELD_OTHERS_AUTHEN, (muxMain->isAuthen)?"YES":"NO" );
+		isFound = EXT_TRUE;
 	}
 
-	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_RS232_DATABITS);
-	if( FIELD_IS_CHANGED_U32(intValue) )
+	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_OTHERS_DEBUG_REST);
+	if( FIELD_IS_CHANGED_U32(intValue) && intValue != muxMain->debugRest)
 	{
-		if( CHECK_DATABITS(intValue) )
-		{
-			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s': %d in %s item is wrong", FIELD_RS232_DATABITS, intValue, MUX_REST_URI_RS232);
-			return EXIT_FAILURE;
-		}
-		else
-		{
-			rxCfg->rs232Cfg.charLength = intValue;
-		}
+		muxMain->debugRest = intValue;
+		MUX_DEBUG("'%s' changed as %s", FIELD_OTHERS_DEBUG_REST, (muxMain->debugRest)?"YES":"NO" );
+		isFound = EXT_TRUE;
 	}
-#endif
+
+	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_OTHERS_DEBUG_IP_CMD);
+	if( FIELD_IS_CHANGED_U32(intValue) && intValue != muxMain->debugCmd )
+	{
+		muxMain->debugCmd = intValue;
+		MUX_DEBUG("'%s' changed as %s", FIELD_OTHERS_DEBUG_IP_CMD, (muxMain->debugCmd)?"YES":"NO" );
+		isFound = EXT_TRUE;
+	}
+
+	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_OTHERS_DEBUG_SDP);
+	if( FIELD_IS_CHANGED_U32(intValue) && intValue != muxMain->debugSdp )
+	{
+		muxMain->debugSdp = intValue;
+		MUX_DEBUG("'%s' changed as %s", FIELD_OTHERS_DEBUG_SDP, (muxMain->debugSdp)?"YES":"NO" );
+	}
+
+	if(isFound == EXT_FALSE )
+	{
+		DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "No validated field is found in '%s' packet", MUX_REST_URI_OTHERS );
+		isFound = EXT_TRUE;
+	}
 
 	MUX_DEBUG("'%s' command OK!", MUX_REST_URI_OTHERS);
-	return EXIT_SUCCESS;
-	
+	return EXIT_SUCCESS;	
 }
+
+
+
+
+static cJSON *_addOneThread(char *name, int pId)
+{
+	cJSON *obj = cJSON_CreateObject();
+				
+	JEVENT_ADD_STRING(obj, "name", name);
+	JEVENT_ADD_INTEGER(obj, "PID", pId );
+
+	return obj;
+}
+
+cJSON *cmnMuxThreadsInfo(MuxMain *muxMain)
+{
+	MuxThread *muxThread = muxMain->threads;
+	cJSON *resultObj = cJSON_CreateArray();
+
+	/* threads not start yet */
+	if(!muxThread )
+	{
+		return resultObj;
+	}
+#if 0	
+	cJSON_AddItemToArray(resultObj, cJSON_CreateString(CMN_THREAD_NAME_MAIN) );
+	cJSON_AddItemToArray(resultObj, cJSON_CreateString(CMN_THREAD_NAME_TIMER) );
+	while(muxThread)
+	{
+//		MUX_DEBUG("No.%d thread '%s' is joined", ++i, muxThread->thread->name );
+		cJSON_AddItemToArray(resultObj, cJSON_CreateString(muxThread->thread->name) );
+		muxThread = muxThread->next;
+	}
+#else
+	cJSON_AddItemToArray(resultObj, _addOneThread(CMN_THREAD_NAME_MAIN, cmnSysGetPidByName(CMN_THREAD_NAME_MAIN) ) );
+	cJSON_AddItemToArray(resultObj, _addOneThread(CMN_THREAD_NAME_TIMER, cmn_timer_id() ));
+	while(muxThread)
+	{
+//		MUX_DEBUG("No.%d thread '%s' is joined", ++i, muxThread->thread->name );
+		cJSON_AddItemToArray(resultObj, _addOneThread(muxThread->thread->name, muxThread->thread->pId) );
+		muxThread = muxThread->next;
+	}
+
+#endif
+
+	return resultObj;
+}
+
 
