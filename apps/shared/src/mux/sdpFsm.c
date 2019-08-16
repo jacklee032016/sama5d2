@@ -7,9 +7,6 @@
 
 #include "_sdp.h"
 
-#define	_SFM_DEBUG(sdpClient)	\
-	EXT_DEBUGF(SDP_CLIENT_DEBUG, "%s#%d process %s event in state of %s'", (sdpClient)->name,  (sdpClient)->reqs, CMN_FIND_SDPC_EVENT( (sdpClient)->event), CMN_FIND_SDPC_STATE( (sdpClient)->state) )
-
 
 static int _sdpcClearRequest(struct SDP_CLIENT *sdpClient)
 {
@@ -120,7 +117,6 @@ static int _sdpcEventNewReq(void *arg, EVENT *event)
 	{
 		SDPC_MSG(sdpClient, "is in state of '%s', new request is ignored", CMN_FIND_SDPC_STATE(sdpClient->state));
 		cmn_free(reqUri);
-TRACE();
 		return EXT_STATE_CONTINUE;
 	}
 
@@ -358,7 +354,7 @@ void	sdpClientFsmHandle(struct SDP_CLIENT *sdpClient, struct SDP_EVENT *sdpEvent
 		if(sdpEvent->event == handle->event )
 		{
 #if SDP_CLIENT_DEBUG		
-			if(EXT_DEBUG_HC_IS_ENABLE())
+			if(SDP_IS_DEBUG(sdpClient->sdpCtx) )
 			{
 				SDPC_INFO_MSG(sdpClient, " handle event '%s' in state '%s'", 
 					CMN_FIND_SDPC_EVENT(sdpEvent->event), CMN_FIND_SDPC_STATE(sdpClient->state));
@@ -372,13 +368,12 @@ void	sdpClientFsmHandle(struct SDP_CLIENT *sdpClient, struct SDP_EVENT *sdpEvent
 			if(newState!= EXT_STATE_CONTINUE && newState != sdpClient->state )
 			{
 #if SDP_CLIENT_DEBUG		
-				if(EXT_DEBUG_HC_IS_ENABLE())
+				if(SDP_IS_DEBUG(sdpClient->sdpCtx))
 				{
 					SDPC_INFO_MSG(sdpClient, "request from state '%s' enter into state '%s'",
 						CMN_FIND_SDPC_STATE(sdpClient->state), CMN_FIND_SDPC_STATE(newState));
 				}
 #endif
-
 				_state = _sdpcFsmFindState(_fsm, newState);
 				if(_state->enter_handle )
 				{
@@ -394,7 +389,7 @@ void	sdpClientFsmHandle(struct SDP_CLIENT *sdpClient, struct SDP_EVENT *sdpEvent
 		handle++;
 	}
 	
-#if EXT_HTTPC_DEBUG
+#if SDP_CLIENT_DEBUG
 	SDPC_INFO_MSG(sdpClient, "State Machine no handle for event %s in state %s", CMN_FIND_SDPC_EVENT(sdpEvent->event), CMN_FIND_SDPC_STATE(sdpClient->state));
 #endif
 	return;

@@ -29,7 +29,7 @@
 */
 
 #define	BROKER_ADD_CTRL_CONN(broker, ctrlConn) \
-		{ LIST_INSERT_HEAD(&broker->ctrlConns, ctrlConn, list);broker->connCount++; (ctrlConn)->broker =(broker);}
+		{if(!(ctrlConn)) return NULL; LIST_INSERT_HEAD(&broker->ctrlConns, ctrlConn, list);broker->connCount++; (ctrlConn)->broker =(broker);}
 
 #define	DATA_CONN_ADDR(ctrlConn, dataConn)	\
 		{	(ctrlConn)->connCount++; (ctrlConn)->total++; \
@@ -73,12 +73,16 @@ static struct DATA_CONN *_createDataConnection(struct CTRL_CONN *ctrlConn)
 		if(ctrlConn->type == CTRL_LINK_TCP)
 		{
 			snprintf(name, sizeof(name), "TCP#%d-%s:%d", ctrlConn->total, inet_ntoa(peerAddr.sin_addr), ntohs(peerAddr.sin_port));
+#if MUX_OPTIONS_DEBUG_IP_COMMAND			
 			MUX_DEBUG("TCP Received %d bytes packet from %s", len, name );
+#endif
 		}
 		else
 		{
 			snprintf(name, sizeof(name), "Unix#%d", ctrlConn->total);
+#if MUX_OPTIONS_DEBUG_IP_COMMAND			
 			MUX_DEBUG("UNIX Received %d bytes packet", len);
+#endif
 		}
 	}
 	else
@@ -86,7 +90,9 @@ static struct DATA_CONN *_createDataConnection(struct CTRL_CONN *ctrlConn)
 		len = recvfrom(ctrlConn->sockCtrl, (uint8_t *)dataConn->buffer, sizeof(dataConn->buffer), 0, (struct sockaddr *) &peerAddr, &addrlen);
 		dataSocket = -1; /* UDP, this socket is not used */
 		snprintf(name, sizeof(name), "UDP#%d-%s:%d", ctrlConn->total, inet_ntoa(peerAddr.sin_addr), ntohs(peerAddr.sin_port));
+#if MUX_OPTIONS_DEBUG_IP_COMMAND			
 		MUX_DEBUG("UDP Received %d bytes packet from %s, addrLen:%d", len, name, addrlen );
+#endif
 	}
 
 	if(len == 0)
@@ -124,7 +130,14 @@ static struct DATA_CONN *_createDataConnection(struct CTRL_CONN *ctrlConn)
 
 	if(CONTROLLER_IS_DEBUG(dataConn) )
 	{
-		MUX_INFO("Received from %s:"EXT_NEW_LINE"'%.*s'", name, len-8, dataConn->buffer+4 );
+		if(ctrlConn->type == CTRL_LINK_UNIX)
+		{
+			MUX_INFO("Received %d bytes from %s:"EXT_NEW_LINE"'%.*s'", len,  name,len, dataConn->buffer );
+		}
+		else
+		{
+			MUX_INFO("Received %d bytes data from %s:"EXT_NEW_LINE"'%.*s'", len-8, name, len-8, dataConn->buffer+4 );
+		}
 #if 0//MUX_OPTIONS_DEBUG_IP_COMMAND
 		CMN_HEX_DUMP( (uint8_t *)dataConn->buffer, dataConn->length, "Received data from socket" );
 #endif
@@ -146,8 +159,9 @@ static struct DATA_CONN *_createDataConnection(struct CTRL_CONN *ctrlConn)
 	dataConn->handleDestroy = cmnMuxDataConnClose;
 
 	DATA_CONN_ADDR(ctrlConn, dataConn);
+#if __DEBUG_CONNECTION
 	EXT_DEBUGF(MUX_DEBUG_BROKER, "CTRL CONN %s: current %d, total %d", ctrlConn->name, ctrlConn->connCount, ctrlConn->total);
-
+#endif
 	return dataConn;
 
 err:
@@ -247,7 +261,7 @@ static struct CTRL_CONN *_createCtrlConnection(CTRL_LINK_TYPE type, MuxMain *mux
 
 	if(res < 0)
 	{
-		MUX_ERROR("Bind Error:%s", strerror(errno));
+		MUX_ERROR("Bind %s socket error: %s", (type == CTRL_LINK_TCP)?"TCP":(type == CTRL_LINK_UDP)?"UDP":"Unix", strerror(errno));
 		close(sockCtrl);
 		return NULL;
 	}
@@ -285,14 +299,15 @@ static struct CTRL_CONN *_createCtrlConnection(CTRL_LINK_TYPE type, MuxMain *mux
 	if(type == CTRL_LINK_UNIX)
 	{
 		snprintf(ctrlConn->name, sizeof(ctrlConn->name), "%s", socket_path);
-		MUX_DEBUG("Controller's Unix port %s", ctrlConn->name );
 	}
 	else
 	{
 		snprintf(ctrlConn->name, sizeof(ctrlConn->name), "%s:%d", (type == CTRL_LINK_TCP)?"TCP":"UDP", port);
-		MUX_DEBUG("Controller's %s", ctrlConn->name );
 	}
-	
+
+#if MUX_OPTIONS_DEBUG_IP_COMMAND			
+	MUX_DEBUG("Controller's %s", ctrlConn->name );
+#endif	
 	return ctrlConn;
 }
 
@@ -366,12 +381,14 @@ static int _dataConnReadMore(struct DATA_CONN *dataConn)
 	{/* it can't happens */
 //		len = recvfrom(dataConn->ctrlConn->sockCtrl, (uint8_t *)dataConn->buffer, sizeof(dataConn->buffer), 0, (struct sockaddr *) &peerAddr, &addrlen);
 	}
+#if MUX_OPTIONS_DEBUG_IP_COMMAND			
 	MUX_DEBUG("DATA CONN %s received %d bytes more", dataConn->name, len);
+#endif
 
 	if(len > 0)
 	{
 		dataConn->length = len;
-#if 1//MUX_OPTIONS_DEBUG_IP_COMMAND
+#if MUX_OPTIONS_DEBUG_IP_COMMAND
 		CMN_HEX_DUMP( (uint8_t *)dataConn->buffer, dataConn->length, "Received more data from socket" );
 #endif
 	}
@@ -432,10 +449,12 @@ static int _cmnMuxBrokerReceive(CMN_MUX_BROKER *broker)
 		}
 	}
 
+#if 0
 	if(fdCount != 3)
 	{
 		EXT_INFOF("fdCount:%d", fdCount);
 	}
+#endif
 
 	/* Need to allocate one whole extra block of fds for UDS. */
 	pollfd = cmn_malloc( fdCount*sizeof(struct pollfd));
@@ -455,6 +474,7 @@ static int _cmnMuxBrokerReceive(CMN_MUX_BROKER *broker)
 		pfd++;
 		index ++;
 	}
+	
 	if(index != broker->connCount)
 	{
 		EXT_ERRORF("Number of Ctrl Connection is not correct: %d != %d", index, broker->connCount )
@@ -468,7 +488,9 @@ static int _cmnMuxBrokerReceive(CMN_MUX_BROKER *broker)
 		
 		LIST_FOREACH(dataConn, &ctrlConn->dataConns, list)
 		{
+#if __DEBUG_CONNECTION
 			EXT_DEBUGF(MUX_DEBUG_BROKER, "DATA CONN#%s adding to poll...", dataConn->name);
+#endif
 			if( dataConn->ctrlConn->type !=  CTRL_LINK_UDP)
 			{/* no matter fd of UDP connection is 0, it is also to be used to simplify the process */
 				/* socket */
@@ -556,7 +578,9 @@ static int _cmnMuxBrokerReceive(CMN_MUX_BROKER *broker)
 			{
 				if( cmnMuxManagerAddEvent(dataConn->cmd, dataConn->method, dataConn) == EXIT_SUCCESS)
 				{
+#if MUX_OPTIONS_DEBUG_IP_COMMAND
 					EXT_DEBUGF(MUX_DEBUG_BROKER, "DATA CONN#%s submit to Mgr thread", dataConn->name);
+#endif
 					dataConn->status = DATA_CONN_STATUS_WAITING;
 					isClose = FALSE;
 				}
@@ -570,7 +594,9 @@ static int _cmnMuxBrokerReceive(CMN_MUX_BROKER *broker)
 
 			if(isClose)
 			{/* send reply, and then it will be freed */
+#if MUX_OPTIONS_DEBUG_IP_COMMAND
 				MUX_DEBUG( "Broker reply DATA_CONN %s %p directly", dataConn->name, dataConn);
+#endif
 				dataConn->handleOutput(dataConn);
 			}
 		}
@@ -603,7 +629,9 @@ static int _cmnMuxBrokerReceive(CMN_MUX_BROKER *broker)
 		{/* timer fd, check */
 			if( pfd->revents & POLLIN )
 			{
+#if __DEBUG_CONNECTION
 				EXT_ERRORF("Data Connection %s timeout", dataConn->name )
+#endif				
 				cmn_mutex_lock(dataConn->mutexLock);
 				if(dataConn->status != DATA_CONN_STATUS_FINISHED)
 				{
@@ -618,7 +646,9 @@ static int _cmnMuxBrokerReceive(CMN_MUX_BROKER *broker)
 			{
 				int _readLen;
 				
+#if __DEBUG_CONNECTION
 				EXT_ERRORF("Data Connection %s received more data, ignored!!", dataConn->name )
+#endif
 				if(dataConn->ctrlConn->type == CTRL_LINK_UDP )
 				{
 					EXT_ERRORF("UDP CONN %s can not be timeout", dataConn->name);
@@ -631,7 +661,9 @@ static int _cmnMuxBrokerReceive(CMN_MUX_BROKER *broker)
 
 				if(_readLen == 0)
 				{
-					MUX_INFO("Connection is broken by peer");
+#if __DEBUG_CONNECTION
+					EXT_DEBUGF(MUX_DEBUG_BROKER, "Connection is broken by peer");
+#endif
 				}
 				else if(_readLen<0)
 				{

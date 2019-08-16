@@ -18,7 +18,8 @@
 				"isDipOn": 0,
 				"reset": 0,
 				"reboot": 0,
-      			"blinkLed": 0
+      			"blinkLed": 0,
+				"mediaMode": "Auto"
   			},
 		
 			"video": 

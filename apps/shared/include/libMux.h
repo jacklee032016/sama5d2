@@ -242,6 +242,8 @@ typedef	enum _CMD_TYPE
 #define	FIELD_SYS_CFG_REBOOT						"reboot"
 #define	FIELD_SYS_CFG_BLINK						"blinkLed"
 
+#define	FIELD_SYS_CFG_MEDIA_AUTO					"mediaMode"
+
 
 /* fields in Data array */
 #define	EXT_IPCMD_DATA_P_NAME					"pName"
@@ -942,6 +944,9 @@ extern	const	TYPE_NAME_T _sdpcEventTypes[];
 extern	const 	TYPE_NAME_T _sdpcStateTypes[];
 
 
+extern	const 	TYPE_NAME_T _mediaModes[];
+
+
 #define	CMN_FIND_SDPC_STATE(type)		\
 	cmnMuxTypeFindName(_sdpcStateTypes, (type) )
 
@@ -993,6 +998,8 @@ extern	const 	TYPE_NAME_T _sdpcStateTypes[];
 
 
 
+
+
 #define	CMN_FIND_A_PKTSIZE(type)		\
 	cmnMuxTypeFindName(_audioPktSizes, (type) )
 
@@ -1005,6 +1012,13 @@ extern	const 	TYPE_NAME_T _sdpcStateTypes[];
 
 #define	CMN_FIND_A_RATE(type)		\
 	cmnMuxTypeFindName(_audioRates, (type) )
+
+
+#define	CMN_FIND_STR_MEDIA_MODE(str)		\
+	cmnMuxTypeFindType(_mediaModes, (str) )
+
+#define	CMN_FIND_MEDIA_MODE(type)		\
+	cmnMuxTypeFindName(_mediaModes, (type) )
 
 	
 
@@ -1020,7 +1034,6 @@ extern	const 	TYPE_NAME_T _sdpcStateTypes[];
 
 #define	CMN_INT_FIND_TYPE_V_FPS(name)		\
 	cmnMuxTypeFindType(intVideoFpsList, (name) )
-
 
 
 

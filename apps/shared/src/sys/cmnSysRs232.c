@@ -16,7 +16,14 @@
 #include "mux7xx.h"
 
 
-#define	EXT_RS232_DEBUG				EXT_DBG_ON
+void rs232StartRx(void)
+{/* init IRQ, index of buffer */
+}
+
+void rs232StopRx(void)
+{/* Disable interrupt  */
+}
+
 
 int cmnSys232Read(unsigned char *data, unsigned short size)
 {
@@ -101,6 +108,7 @@ static void _checkRs232Params(EXT_RUNTIME_CFG *runCfg)
  */
 int cmnSysRs232Config(EXT_RUNTIME_CFG *runCfg)
 {
+
 #if 0
 
 	sam_usart_opt_t _settings;

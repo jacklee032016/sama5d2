@@ -92,7 +92,7 @@ static int _sdpParseAudioStream(struct SDP_CLIENT *sdpClient, EXT_RUNTIME_CFG *r
 		rxCfg->runtime.rtpTypeAudio = SDP_P_MEDIA_FORMAT_AUDIO;
 		return EXIT_FAILURE;
 	}
-//	EXT_DEBUGF(EXT_DBG_OFF, ("Audio RTP Payload : '%d'", rxCfg->runtime.rtpTypeAudio ));
+	_SDP_DEBUG( "Audio RTP Payload : '%d'", rxCfg->runtime.rtpTypeAudio);
 	
 	index= p -data;
 
@@ -197,9 +197,9 @@ static int _sdpParseAudioStream(struct SDP_CLIENT *sdpClient, EXT_RUNTIME_CFG *r
 		EXT_ERRORF("Not support audio packet size '%s'", pnext);
 	}
 
-	if(EXT_DEBUG_HC_IS_ENABLE())
+	if(SDP_IS_DEBUG(sdpClient->sdpCtx))
 	{
-		printf("\tParsed SDP Audio params:IP:%s; Port:%d; Depth:%d; Sample Freq:%d; Channels:%d; PktSize:%d"EXT_NEW_LINE,
+		SDPC_INFO_MSG(sdpClient, " Parsed SDP Audio params:"EXT_NEW_LINE"IP:%s; Port:%d; Depth:%d; Sample Freq:%d; Channels:%d; PktSize:%d"EXT_NEW_LINE,
 			cmnSysNetAddress(rxCfg->dest.audioIp), rxCfg->dest.aport, rxCfg->runtime.aDepth, rxCfg->runtime.aSampleRate, rxCfg->runtime.aChannels, rxCfg->runtime.aPktSize );
 	}
 	
@@ -261,7 +261,7 @@ static char __sdpVideoParams(EXT_RUNTIME_CFG *rxCfg, char *key, char *value)
 	}
 	else
 	{
-//		EXT_DEBUGF(EXT_DBG_ON, ("Key '%s' and value '%s' is not support now", key,  value));
+		_SDP_DEBUG("Key '%s' and value '%s' is not support now", key,  value);
 	}
 
 	return EXIT_SUCCESS;
@@ -273,8 +273,10 @@ static uint32_t __parseSdpKeyValue(EXT_RUNTIME_CFG *rxCfg, char *data, uint32_t 
 #define	_SDP_CHAR_SEPERATE			"; "
 
 	char *key, *value, *nextKey;
-	int i = 0;
 	uint32_t left = size;
+#if SDP_CLIENT_DEBUG		
+	int i = 0;
+#endif
 
 	data[left] = 0;
 	key = data;
@@ -283,7 +285,7 @@ static uint32_t __parseSdpKeyValue(EXT_RUNTIME_CFG *rxCfg, char *data, uint32_t 
 		value = strnstr(key, _CHAR_EQUAL, left );
 		if(value == NULL)
 		{/* interlace and segmented is not in the format of 'key'='value' */
-//			EXT_DEBUGF(EXT_DBG_OFF, ("Invalidate key/value (%s) for SDP stream, on position %d", key, size-left));
+			_SDP_DEBUG("Invalidate key/value (%s) for SDP stream, on position %d", key, size-left);
 			return size - left;
 		}
 		key[value-key] = 0;
@@ -298,11 +300,12 @@ static uint32_t __parseSdpKeyValue(EXT_RUNTIME_CFG *rxCfg, char *data, uint32_t 
 		{
 			value[left-(value-key)] = 0;
 		}
-		
-		if(EXT_DEBUG_HC_IS_ENABLE())
+
+#if SDP_CLIENT_DEBUG		
 		{
 			printf("\t\tNo#%d: '%s' = '%s'" EXT_NEW_LINE, ++i, key, value );
 		}
+#endif
 
 		if(__sdpVideoParams(rxCfg, key, value) == EXIT_FAILURE)
 		{
@@ -345,7 +348,7 @@ static int _sdpParseVideoStream(struct SDP_CLIENT *sdpClient, EXT_RUNTIME_CFG	*r
 		rxCfg->runtime.rtpTypeVideo = SDP_P_MEDIA_FORMAT_VIDEO;
 		return EXIT_FAILURE;
 	}
-//	EXT_DEBUGF(EXT_DBG_OFF, ("Video RTP Payload : '%d'", rxCfg->runtime.rtpTypeVideo));
+	_SDP_DEBUG("Video RTP Payload : '%d'", rxCfg->runtime.rtpTypeVideo);
 
 	while(*p != ' ')/* for rtpmap constants */
 	{
@@ -389,9 +392,9 @@ static int _sdpParseVideoStream(struct SDP_CLIENT *sdpClient, EXT_RUNTIME_CFG	*r
 	}
 
 
-	if(EXT_DEBUG_HC_IS_ENABLE())
+	if(SDP_IS_DEBUG(sdpClient->sdpCtx))
 	{
-		printf("\tParsed SDP Video params:IP:%s; Port:%d; ColorSpace:%s; width:%d; height:%d; framerate:%s; depth:%d; isInterlace:%d;"EXT_NEW_LINE,
+		SDPC_INFO_MSG(sdpClient, " Parsed SDP Video params:"EXT_NEW_LINE"IP:%s; Port:%d; ColorSpace:%s; width:%d; height:%d; framerate:%s; depth:%d; isInterlace:%d;"EXT_NEW_LINE,
 			cmnSysNetAddress(rxCfg->dest.ip), rxCfg->dest.vport, CMN_FIND_V_COLORSPACE(rxCfg->runtime.vColorSpace),  
 			rxCfg->runtime.vWidth, rxCfg->runtime.vHeight, CMN_FIND_V_FRAME_RATE(rxCfg->runtime.vFrameRate), rxCfg->runtime.vDepth, rxCfg->runtime.vIsInterlaced);
 	}
@@ -416,11 +419,11 @@ static int _sdpParseAncStream(struct SDP_CLIENT *sdpClient, EXT_RUNTIME_CFG	*rxC
 		rxCfg->runtime.vpid = SDP_P_MEDIA_VP_ID;
 		return EXIT_FAILURE;
 	}
-//	EXT_DEBUGF(EXT_DBG_OFF, ("Audio RTP Payload : '%d'", rxCfg->runtime.rtpTypeAudio ));
+//	_SDP_DEBUG("Audio RTP Payload : '%d'", rxCfg->runtime.rtpTypeAudio );
 	
-	if(EXT_DEBUG_HC_IS_ENABLE())
+	if(SDP_IS_DEBUG(sdpClient->sdpCtx) )
 	{
-		printf("\tParsed SDP ANC params:IP:%s; Port:%d; PDID:%d"EXT_NEW_LINE,
+		SDPC_INFO_MSG(sdpClient, " Parsed SDP ANC params:"EXT_NEW_LINE"IP:%s; Port:%d; PDID:%d"EXT_NEW_LINE,
 			cmnSysNetAddress(rxCfg->dest.ancIp), rxCfg->dest.dport, rxCfg->runtime.vpid);
 	}
 	

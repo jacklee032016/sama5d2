@@ -20,7 +20,7 @@
 #define	REPLY_DATACONN_OK( dataConn, resultObj)	\
 	do{	(dataConn)->resultObject = (resultObj); 	\
 		if( (dataConn)->resultObject == NULL){DATA_CONN_ERR(dataConn, IPCMD_ERR_SERVER_INTERNEL_ERROR, "No data is found for URI: '%s'", dataConn->cmd );} \
-		else {(dataConn)->errCode = IPCMD_ERR_NOERROR;TRACE(); } \
+		else {(dataConn)->errCode = IPCMD_ERR_NOERROR; } \
 			}while(0)
 
 
@@ -28,11 +28,10 @@
 			REPLY_DATACONN_OK((dataConn), (dataConn)->dataObj);
 
 
-//MUX_DEBUG_JSON_OBJ((dataConn)->resultObject); 
-		
+#define	__DEBUG_CONNECTION		0
+
 
 int cmnMuxManagerAddEvent(char *cmd, 	int method, void *dataConn);
-
 
 int cmnMuxCtrlDataHandle( struct DATA_CONN *dataConn );
 
@@ -57,9 +56,14 @@ int	cmnMuxObjectParseAudio(struct DATA_CONN *dataConn, cJSON *dataObj);
 int	cmnMuxObjectParseAnc(struct DATA_CONN *dataConn, cJSON *dataObj);
 int	cmnMuxObjectParseSdp(struct DATA_CONN *dataConn, cJSON *dataObj);
 int	cmnMuxObjectParseRs232(struct DATA_CONN *dataConn, cJSON *dataObj);
+int	cmnMuxObjectParseIR(struct DATA_CONN *dataConn, cJSON *dataObj);
 int cmnMuxObjectParseSecurity(struct DATA_CONN *dataConn, cJSON *dataObj);
 int cmnMuxObjectParseOthers(struct DATA_CONN *dataConn, cJSON *dataObj);
 
+
+int	cmnMuxObjectParseHexaData(struct DATA_CONN *dataConn, cJSON *dataObj, char *cmdName);
+int	cmnMuxSendRsData(struct DATA_CONN *dataConn, cJSON *dataObj);
+int	cmnMuxSendIRData(struct DATA_CONN *dataConn, cJSON *dataObj);
 
 
 void cmnMuxCfgDebugData(EXT_RUNTIME_CFG *cfg);

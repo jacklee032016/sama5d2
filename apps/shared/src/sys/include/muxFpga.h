@@ -3,6 +3,18 @@
 #define	__MUX_FPGA_H__
 
  #include <arpa/inet.h>
+
+#define	FPGA_DEBUG			1
+
+#if (MUX_BOARD == MUX_BOARD_774)
+/* salve address */
+#define	EXT_FPAG_ADDRESS_SYSTEM				0x60	/* reset, video, audio, IR */
+#define	EXT_FPAG_ADDRESS_PCSPMA_2			0x62
+#define	EXT_FPAG_ADDRESS_PTP					0x66	/* Ptp timestamp */
+#define	EXT_FPAG_ADDRESS_NETWORK			0x68	/* ip/port and MAC */
+#define	EXT_FPAG_ADDRESS_DRP_PLL				0x6A	/* Dynamic Reconfiguration Port : Rx PLL; only RX */
+#define	EXT_FPAG_ADDRESS_DRP_XADC			0x6C	/* DRP */
+#define	EXT_FPAG_ADDRESS_PCSPMA_1			0x6E
  
 /* registers */
 #define	EXT_FPGA_REG_ETHERNET_RESET			0
@@ -99,79 +111,126 @@
 #define	EXT_FPGA_REG_DEST_PORT_ANC_DT			82
 #define	EXT_FPGA_REG_DEST_PORT_ANC_ST			86
 
+#else
+#error 	Not support board definition
+#endif
 
-struct Tx_Media_Stream_Register_Address
+
+typedef	struct
 {
-	uint8_t		addrIp;
-	uint8_t		addrMac;
-	uint8_t		addrPort;
-	uint8_t		addrRtpPayload;
-};
+	uint8_t		bus;
+	uint8_t		channel;
+	uint8_t 		slaveAddress;
+#if FPGA_DEBUG
+	char			*name;
+#endif
+}FpgaI2cDevice;
 
-struct Rx_Media_Stream_Register_Address
+typedef	struct
 {
-	uint8_t		addrIp;
-	uint8_t		addrPort;
-	uint8_t		addrRtpPayload;
-};
+	FpgaI2cDevice	*device;
+
+	uint8_t			offset;
+#if FPGA_DEBUG
+	char				*name;
+#endif
+}FpgaI2cAddress;
 
 
-struct Media_Register_Address
+typedef struct 
 {
-	uint8_t		addrWidth;
-	uint8_t		addrHeight;
-	uint8_t		addrFramerate;
-	uint8_t		addrColorSpace;
-	uint8_t		addrVDepth;
-	uint8_t		addrIntl;
+	FpgaI2cAddress		ip;
+	FpgaI2cAddress		mac;	/* this field not used in RX */
+	FpgaI2cAddress		port;
+	FpgaI2cAddress		rtpPayload;
+}StreamRegisterAddress;
+
+
+typedef struct 
+{
+	/* video */
+	FpgaI2cAddress		width;
+	FpgaI2cAddress		height;
+	FpgaI2cAddress		framerate;
+	FpgaI2cAddress		colorSpace;
+	FpgaI2cAddress		vDepth;
+	FpgaI2cAddress		intl;
+
+	/* audio */
+	FpgaI2cAddress		channels;
+	FpgaI2cAddress		audioRate;
+	FpgaI2cAddress		pktSize;
 	
-	uint8_t		addrChannels;
-	uint8_t		addrAudioRate;
-	uint8_t		addrPktSize;
-};
+}MediaRegisterAddress;
 
-struct Tx_Register_Address
+
+typedef	struct
 {
-	/* local address and port */
-	uint8_t		localMac;
-	uint8_t		localIp;
+	FpgaI2cAddress			version;
+	FpgaI2cAddress			revision;
 
-	uint8_t		localPortV;
-	uint8_t		localPortA;
-	uint8_t		localPortAnc;
-	uint8_t		localPortAuc;
+	FpgaI2cAddress			year;
+	FpgaI2cAddress			month;
+	FpgaI2cAddress			day;
+	FpgaI2cAddress			hour;
+	FpgaI2cAddress			minute;
+}FpgaVersionAddress;
+
+
+typedef	struct 
+{
+	FpgaI2cAddress			reset;
+	
+	/* local address and port */
+	FpgaI2cAddress			localMac;
+	FpgaI2cAddress			localIp;
+
+	FpgaI2cAddress			localPortV;
+	FpgaI2cAddress			localPortA;
+	FpgaI2cAddress			localPortAnc;
+#if EXT_FPGA_AUX_ON	
+	FpgaI2cAddress			localPortAuc;
+#endif
 
 	/* dest address and port for every stream */
-	struct Tx_Media_Stream_Register_Address	*addrStreamVideo;
-	struct Tx_Media_Stream_Register_Address	*addrStreamAudio;
-	struct Tx_Media_Stream_Register_Address	*addrStreamAnc;
+	StreamRegisterAddress		*streamVideo;
+	StreamRegisterAddress		*streamAudio;
+	StreamRegisterAddress		*streamAnc;
 #if EXT_FPGA_AUX_ON	
-	struct Tx_Media_Stream_Register_Address	*addrStreamAux;
+	StreamRegisterAddress		*streamAux;
 #endif
-	struct Media_Register_Address		*addrMedia;
-};
+
+	MediaRegisterAddress		*media;
+
+	FpgaVersionAddress		*version;
+}TxRegisterMap;
 
 
-struct Rx_Register_Address
+typedef	struct 
 {
-	uint8_t		localMac;
-	uint8_t		localIp;
+	FpgaI2cAddress			reset;
+	
+	FpgaI2cAddress			localMac;
+	FpgaI2cAddress			localIp;
 
 	/* for RX, these are not used */
-	uint8_t		localPortV;
-	uint8_t		localPortA;
-	uint8_t		localPortAnc;
-	uint8_t		localPortAux;
+	FpgaI2cAddress			localPortV;
+	FpgaI2cAddress			localPortA;
+	FpgaI2cAddress			localPortAnc;
+	FpgaI2cAddress			localPortAux;
 
 	/* dest address and port for every stream */
-	struct Rx_Media_Stream_Register_Address	*addrStreamVideo;
-	struct Rx_Media_Stream_Register_Address	*addrStreamAudio;
-	struct Rx_Media_Stream_Register_Address	*addrStreamAnc;
+	StreamRegisterAddress		*streamVideo;
+	StreamRegisterAddress		*streamAudio;
+	StreamRegisterAddress		*streamAnc;
 #if EXT_FPGA_AUX_ON	
-	struct Rx_Media_Stream_Register_Address	*addrStreamAux;
+	StreamRegisterAddress		*streamAux;
 #endif
-	struct Media_Register_Address		*addrMedia;
-};
+
+	MediaRegisterAddress		*media;
+
+	FpgaVersionAddress		*version;
+}RxRegisterMap;
 
 struct	_FpgaConfig;
 
@@ -180,21 +239,10 @@ typedef	int	(*FpgaCtrlHandler)(struct	_FpgaConfig *_fpgaCfg);
 
 typedef	struct	_FpgaConfig
 {
-	struct Tx_Register_Address		*txAddress;
-	struct Rx_Register_Address		*rxAddress;
-
-
-	uint8_t			addrVersion;
-	uint8_t			addrRevision;
-
-	uint8_t			addrYear;
-	uint8_t			addrMonth;
-	uint8_t			addrDay;
-	uint8_t			addrHour;
-	uint8_t			addrMinute;
-
-
 	EXT_RUNTIME_CFG				*runCfg;
+
+	TxRegisterMap				*txAddress;
+	RxRegisterMap					*rxAddress;
 
 	FpgaCtrlHandler				opProtocolCtrl;		/* IP address, port of all streams */
 	FpgaCtrlHandler				opMediaWrite;		/* media params except address and port */
@@ -206,6 +254,10 @@ typedef	struct	_FpgaConfig
 }FpgaConfig;
 
 
+#define	FPGA_IS_TX(fpgaCfg)		\
+			EXT_IS_TX((fpgaCfg)->runCfg)
+		
+/* used to debug, accessing with address directly */
 /* 8 bits address, and 8 bit data */
 #define	FPGA_I2C_WRITE(address, val, size)		\
 	I2C_EXT_WRITE(0, EXT_I2C_PCA9554_CS_NONE, EXT_I2C_ADDRESS_FPGA, (address), 1, (val), size)
@@ -216,51 +268,76 @@ typedef	struct	_FpgaConfig
 	I2C_EXT_READ(0, EXT_I2C_PCA9554_CS_NONE, EXT_I2C_ADDRESS_FPGA, (address), 1, (val), size)
 //	extI2CRead(EXT_I2C_PCA9554_CS_NONE, EXT_I2C_ADDRESS_FPGA, (address), 1, (val), size)
 
+
+/* can be used to implment on different boards */
+#define	FPGA_WRITE(addr, val, size)		\
+	do{int ret; EXT_ASSERT( (((addr)!=NULL) && ((addr)->device != NULL)), "FPGA address ' %s' is null", #addr); ret = I2C_EXT_WRITE((addr)->device->bus, (addr)->device->channel, (addr)->device->slaveAddress, (addr)->offset, 1, (val), (size)); \
+		MUX_DEBUG("FPGA write on %d.%d.0x%x(%s), offset 0x%x(%s): %s",(addr)->device->bus, (addr)->device->channel, (addr)->device->slaveAddress, (addr)->device->name, (addr)->offset, (addr)->name, (ret==EXIT_SUCCESS)?"OK":"Failed");\
+		}while(0)
+		
+
+
+#define	FPGA_READ(addr, val, size)		\
+		do{int ret; EXT_ASSERT( (((addr)!=NULL) && ((addr)->device != NULL)), "FPGA address ' %s' is null", #addr); ret = I2C_EXT_READ((addr)->device->bus, (addr)->device->channel, (addr)->device->slaveAddress, (addr)->offset, 1, (val), (size)); \
+			MUX_DEBUG("FPGA read on %d.%d.0x%x(%s), offset 0x%x(%s): %s", (addr)->device->bus, (addr)->device->channel, (addr)->device->slaveAddress, (addr)->device->name, (addr)->offset, (addr)->name, (ret==EXIT_SUCCESS)?"OK":"Failed");\
+			}while(0)
+
+
+#if FPGA_DEBUG
+#endif
+
+
+
 #define	_extFpgaReadByte(address, value)	\
-	FPGA_I2C_READ((address), (value), 1)
+			FPGA_READ((address), (value), 1)
+
+//	FPGA_I2C_READ((address), (value), 1)
 
 
 #define	_extFpgaReadShortChanging(address, shortVal) \
-{	_fpgaRegisterRead((address), (shortVal), 2); \
+	{	FPGA_READ((address), (shortVal), 2); \
 	 *((unsigned short *)shortVal) = ntohs(*((unsigned short *)shortVal)); }
 
 
 #define	_extFpgaReadShort(address, shortVal) \
-{	_fpgaRegisterRead((address), (shortVal), 2); }
+	{	FPGA_READ((address), (shortVal), 2); }
 
 #define	_extFpgaRead3Bytes(address, intVal) \
-{	unsigned char *p = (unsigned char *)(intVal); *intVal=0;  _fpgaRegisterRead((address), p, 3); *intVal = (ntohl(*intVal)|(239) ) ; }
+	{	unsigned char *p = (unsigned char *)(intVal); *intVal=0;  FPGA_READ((address), p, 3); *intVal = (ntohl(*intVal)|(239) ) ; }
 
 
 #define	_extFpgaReadInteger(address, intVal) \
-{	_fpgaRegisterRead((address), intVal, 4); *((unsigned int *)intVal) = ntohl(*((unsigned int *)intVal)); }
+		{FPGA_READ((address), intVal, 4); *((unsigned int *)intVal) = ntohl(*((unsigned int *)intVal)); }
 
 
 
 #define	_extFpgaWriteByte(address, value)	\
-	FPGA_I2C_WRITE((address), (value), 1)
+		FPGA_WRITE((address), (value), 1)
+
+//		FPGA_I2C_WRITE((address), (value), 1)
 
 
 #define	_extFpgaWriteShortChanging(address, shortVal) \
-{	unsigned short _value = ntohs(*((unsigned short *)(shortVal))); _fpgaRegisterWrite((address), (unsigned char *)&_value, 2); }
+	{	unsigned short _value = ntohs(*((unsigned short *)(shortVal))); FPGA_WRITE((address), (unsigned char *)&_value, 2); }
 
 
 #define	_extFpgaWriteShort(address, shortVal) \
-{	_fpgaRegisterWrite((address), shortVal, 2); }
+	{	FPGA_WRITE((address), shortVal, 2); }
 
 
 #define	_extFpgaWrite3Bytes(address, intVal) \
-{	unsigned int _value = ntohl(*((unsigned int *)(intVal))); unsigned char *p = (unsigned char *)&_value; _fpgaRegisterWrite((address), p, 3); }
+	{	unsigned int _value = ntohl(*((unsigned int *)(intVal))); unsigned char *p = (unsigned char *)&_value; FPGA_WRITE((address), p, 3); }
 
 
 #define	_extFpgaWriteInteger(address, intVal) \
-{	unsigned int _value = ntohl(*((unsigned int *)(intVal))); _fpgaRegisterWrite((address), (unsigned char *)&_value, 4); }
+	{	unsigned int _value = ntohl(*((unsigned int *)(intVal))); FPGA_WRITE((address), (unsigned char *)&_value, 4); }
+
 
 
 void _fpgaRegisterRead(unsigned char address, unsigned char *data, unsigned char size);
 void	_fpgaRegisterWrite(unsigned char baseAddr, unsigned char *data, unsigned char size);
 
-int fpgaReadParamRegisters(struct Media_Register_Address *addrMedia, EXT_RUNTIME_CFG *runCfg);
+int fpgaReadParamRegisters(MediaRegisterAddress *addrMedia, EXT_RUNTIME_CFG *runCfg);
 
 
 int	sysFpgaTxConfig(FpgaConfig *fpga);
@@ -269,6 +346,9 @@ int sysFpgaTxReadParams(FpgaConfig *fpga);
 int sysFpgaRxReadParams(FpgaConfig *fpga);
 int sysFpgaTxWriteParams(FpgaConfig *fpga);
 int sysFpgaRxWriteParams(FpgaConfig *fpga);
+
+extern	FpgaConfig 	_fpgaConfig;
+
 
 #endif
 

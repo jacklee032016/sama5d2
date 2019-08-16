@@ -179,17 +179,19 @@ static char _compareMediaCfg(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 //	const ip4_addr_t *mcIpAddr;
 	char ret = EXT_FALSE;
 
+TRACE();
 	if(FIELD_IS_CHANGED_U8(rxCfg->fpgaAuto) )
 	{
-		if(rxCfg->fpgaAuto == FPGA_CFG_AUTO || rxCfg->fpgaAuto == FPGA_CFG_MANUAL || rxCfg->fpgaAuto == FPGA_CFG_SDP )
+TRACE();
+		if( (runCfg->fpgaAuto) !=  (rxCfg->fpgaAuto) )
 		{
-			if( (runCfg->fpgaAuto) !=  (rxCfg->fpgaAuto) )
-			{
-				runCfg->fpgaAuto = rxCfg->fpgaAuto;
-//				EXT_DEBUGF(EXT_DBG_ON, (": %s", FPGA_CFG_STR_NAME(rxCfg->fpgaAuto)) );
-	//				(rxCfg->fpgaAuto==FPGA_CFG_AUTO)? EXT_WEB_CFG_FIELD_FPGA_AUTO_V_AUTO:(rxCfg->fpgaAuto==FPGA_CFG_MANUAL)?EXT_WEB_CFG_FIELD_FPGA_AUTO_V_MANUAL:EXT_WEB_CFG_FIELD_FPGA_AUTO_V_SDP) );
-				ret = EXT_TRUE;
-			}
+TRACE();
+			EXT_DEBUGF(DEBUG_SYS_CTRL, FIELD_SYS_CFG_MEDIA_AUTO" changed from %s to %s", 
+				CMN_FIND_MEDIA_MODE(runCfg->fpgaAuto), CMN_FIND_MEDIA_MODE(rxCfg->fpgaAuto) );
+TRACE();
+			runCfg->fpgaAuto = rxCfg->fpgaAuto;
+			
+			ret = EXT_TRUE;
 		}
 	}
 
@@ -414,42 +416,17 @@ char extSysCompareParams(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 		cmnMuxCfgDebugData(runCfg);
 	}
 
-TRACE();	
 	return EXIT_SUCCESS;
 }
 
-static char _sendRsData(EXT_RUNTIME_CFG *runCfg)
-{
-	char ret = EXIT_SUCCESS;
 
-#if 0	
-	uint32_t size = 0;
-	
-	rs232StartRx();
-	
-	if(rs232SendHexStr(runCfg->hexData) == EXIT_FAILURE)
-	{
-		snprintf(runCfg->hexData + strlen(runCfg->hexData), sizeof(runCfg->hexData)-strlen(runCfg->hexData), " is not validate when sent to RS232");
-		return EXIT_FAILURE;
-	}
-
-	memset(runCfg->hexData, 0, sizeof(runCfg->hexData) );
-	size = rs232StartRead(0, runCfg->hexData);
-	if(size <= 0)
-	{
-		snprintf(runCfg->hexData, sizeof(runCfg->hexData), "No reply from RS232");
-		ret = EXIT_FAILURE;
-	}
-	
-	rs232StopRx();
-#endif
-
-	return ret;
-}
-
+/* call wen chip configuration is changed; not data is send. For example, change RS232 will call this function, but send data to RS232 will not
+*  Because read reply data is needed after write data, so delay maybe needed for data operation
+*/
 static int _cmnSysConfigCtrl(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 {
 	FpgaConfig 	*fpga = (FpgaConfig 	*)runCfg->fpgaCfg;
+	MuxMain *muxMain = runCfg->muxMain;
 	
 //	EXT_DEBUGF(EXT_DBG_ON, ("config options:0x%x (0x%x)"LWIP_NEW_LINE, _setupType, SETUP_CHECK_TYPE(_SETUP_TYPE_RS232) ) );
 
@@ -480,6 +457,11 @@ static int _cmnSysConfigCtrl(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 		cmnSysCfgSave(runCfg, EXT_CFG_MAIN);
 		if(SETUP_CHECK_TYPE(_SETUP_TYPE_RS232) )
 		{
+			if(MUX_MAIN_IS_DEBUG_MSG(muxMain))
+			{
+				MUX_INFO("RS232 new configuration: bitrate:%d; parity:%s; databits:%d; stopbits:%d", 
+					runCfg->rs232Cfg.baudRate, CMN_FIND_RS_PARITY(runCfg->rs232Cfg.parityType), runCfg->rs232Cfg.charLength, runCfg->rs232Cfg.stopbits);
+			}
 			cmnSysRs232Config(runCfg);
 		}
 		EXT_DEBUGF(EXT_DBG_ON, "RS232 save and setup" );
@@ -517,11 +499,6 @@ static int _cmnSysConfigCtrl(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 	}
 #endif
 
-	if(! IS_STRING_NULL_OR_ZERO(runCfg->hexData) )
-	{
-		_sendRsData(runCfg);
-	}
-
 	cmnSysJsonUpdate(runCfg->muxMain);
 
 	return EXIT_SUCCESS;
@@ -548,8 +525,7 @@ void cmnMuxCfgDebugData(EXT_RUNTIME_CFG *cfg)
 	printf("%s"EXT_NEW_LINE"\tIP:%s; port:%d; sdp:%s"EXT_NEW_LINE, 
 		MUX_REST_URI_ANC, cmnSysNetAddress(cfg->dest.ancIp), cfg->dest.dport, cfg->sdpUriAnc.uri );
 
-//	printf("\tmediaSet:%s; "EXT_NEW_LINE, FPGA_CFG_STR_NAME(cfg->fpgaAuto));
-	//(cfg->fpgaAuto==FPGA_CFG_AUTO)?EXT_WEB_CFG_FIELD_FPGA_AUTO_V_AUTO:(cfg->fpgaAuto==FPGA_CFG_MANUAL)?EXT_WEB_CFG_FIELD_FPGA_AUTO_V_MANUAL:EXT_WEB_CFG_FIELD_FPGA_AUTO_V_SDP);
+	printf("\%s:%s; "EXT_NEW_LINE, FIELD_SYS_CFG_MEDIA_AUTO, CMN_FIND_MEDIA_MODE(cfg->fpgaAuto) );
 //	printf("Audio:Chans:%d; depth:%d; pktSize:%d; sampleRate:%d", cfg->runtime.aChannels, cfg->runtime.aDepth, cfg->runtime.aPktSize, cfg->runtime.aSampleRate));
 
 	printf("%s"EXT_NEW_LINE"\tVideo IP:%s; port:%d; URI:%s"EXT_NEW_LINE,
@@ -559,15 +535,21 @@ void cmnMuxCfgDebugData(EXT_RUNTIME_CFG *cfg)
 
 	printf("\tRTP Payload Video:%d; Audio:%d; Anc:%d"EXT_NEW_LINE, cfg->runtime.rtpTypeVideo, cfg->runtime.rtpTypeAudio, cfg->runtime.rtpTypeAnc);
 
+	/* RS232 */
+	printf("%s"EXT_NEW_LINE"\tbitrate:%d; parity:%s; databits:%d; stopbits:%d"EXT_NEW_LINE, 
+				MUX_REST_URI_RS232,	cfg->rs232Cfg.baudRate, CMN_FIND_RS_PARITY(cfg->rs232Cfg.parityType), cfg->rs232Cfg.charLength, cfg->rs232Cfg.stopbits);
 }
 
 int cmnMuxSystemConfig(EXT_RUNTIME_CFG *runCfg, 	EXT_RUNTIME_CFG	 *rxCfg)
 {
-	EXT_INFOF("Existed data:");
-	cmnMuxCfgDebugData(runCfg);
+	if(0)//MUX_MAIN_IS_DEBUG_MSG(runCfg->muxMain))
+	{
+		EXT_INFOF("Existed data:");
+		cmnMuxCfgDebugData(runCfg);
 
-	EXT_INFOF("Received/parsed data:");
-	cmnMuxCfgDebugData(rxCfg);
+		EXT_INFOF("Received/parsed data:");
+		cmnMuxCfgDebugData(rxCfg);
+	}
 
 	extSysCompareParams(runCfg, rxCfg);
 

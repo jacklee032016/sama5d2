@@ -397,20 +397,10 @@
 
 
 
-#define	EXT_MDNS_CLIENT_DEBUG				EXT_DBG_OFF
-#define	EXT_NMOS_DEBUG						EXT_DBG_OFF
 
-#ifdef	ARM
-#define	EXT_HTTPD_DEBUG						EXT_DBG_OFF
-#define	EXT_HTTPD_DATA_DEBUG					EXT_DBG_OFF
-#define	EXT_HTTPC_DEBUG						EXT_DBG_OFF
-#else
-#define	EXT_HTTPD_DEBUG						EXT_DBG_OFF
-#define	EXT_HTTPD_DATA_DEBUG					EXT_DBG_OFF
-#define	EXT_HTTPC_DEBUG						EXT_DBG_OFF
-#endif
+#define	EXT_IPCMD_DEBUG						EXT_DBG_OFF
 
-#define		EXT_IPCMD_DEBUG						EXT_DBG_OFF
+#define	SDP_CLIENT_DEBUG					EXT_DBG_OFF
 
 
 /*
@@ -482,6 +472,19 @@
 			{SYS_PRINT("%s: [%s-%u.%s()]: "format,  sysTaskName(), __FILE__, __LINE__, __FUNCTION__, ##message); }
 
 
+#define		MUX_DEBUG_HW_CTRL					EXT_DBG_OFF
+
+#define		MUX_DEBUG_FPGA					EXT_DBG_ON
+
+
+#if MUX_DEBUG_HW_CTRL
+#define	MUX_DEBUG_CTRL(format, messages...)	\
+		EXT_DEBUGF(MUX_DEBUG_HW_CTRL, ""format, ##messages)
+
+#else
+#define	MUX_DEBUG_CTRL(format, messages...)			{}
+
+#endif
 
 
 
@@ -1063,13 +1066,14 @@ typedef struct
 
 
 
+#define	EXT_WEB_CFG_FIELD_FPGA_AUTO_V_AUTO		"Auto"
+#define	EXT_WEB_CFG_FIELD_FPGA_AUTO_V_MANUAL		"Manual"
+#define	EXT_WEB_CFG_FIELD_FPGA_AUTO_V_SDP			"SDP"
+
 
 #define	FPGA_CFG_AUTO				0
 #define	FPGA_CFG_MANUAL			1
 #define	FPGA_CFG_SDP				2
-
-#define	FPGA_CFG_STR_NAME(fpgaAuto)	\
-	((fpgaAuto)==FPGA_CFG_AUTO)?EXT_WEB_CFG_FIELD_FPGA_AUTO_V_AUTO:((fpgaAuto)==FPGA_CFG_MANUAL)?EXT_WEB_CFG_FIELD_FPGA_AUTO_V_MANUAL:((fpgaAuto)==FPGA_CFG_SDP)?EXT_WEB_CFG_FIELD_FPGA_AUTO_V_SDP:"None"
 
 
 struct _MuxMain;

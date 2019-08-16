@@ -201,5 +201,21 @@ typedef	struct _Rs232Ctrl
 
 #define	DEBUG_SYS_CTRL				EXT_DBG_ON
 
+
+#define	EXT_RS232_DEBUG				EXT_DBG_ON
+
+
+struct DATA_BUFFER
+{
+	unsigned char		buffer[1024];
+	int				size;
+
+	int				writeIndex;
+	int				readIndex;
+};
+
+
+
+
 #endif
 

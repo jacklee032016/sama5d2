@@ -227,10 +227,21 @@ static int _cmnSysJsonUpdateSystem(EXT_RUNTIME_CFG *runCfg, cJSON *systemObj)
 
 	CJSON_REPLACE_INTEGRE(systemObj, FIELD_SYS_CFG_DIP, (runCfg->isDipOn==0)?0:1 );
 
+	
+	if(!EXT_IS_TX(runCfg))
+	{
+		CJSON_REPLACE_STRING(systemObj, FIELD_SYS_CFG_MEDIA_AUTO, CMN_FIND_MEDIA_MODE(runCfg->fpgaAuto) );
+	}
+	else
+	{
+		CJSON_REPLACE_STRING(systemObj, FIELD_SYS_CFG_MEDIA_AUTO, "None");
+	}
+	
 	/* reboot, reset, blinkLed are not needed to update*/	
 	CJSON_REPLACE_INTEGRE(systemObj, FIELD_SYS_CFG_RESET, (runCfg->runtime.reset==0)?0:1 );
 	CJSON_REPLACE_INTEGRE(systemObj, FIELD_SYS_CFG_REBOOT, (runCfg->runtime.reboot==0)?0:1 );
 	CJSON_REPLACE_INTEGRE(systemObj, FIELD_SYS_CFG_BLINK, (runCfg->runtime.blink==0)?0:1 );
+
 
 	return EXIT_SUCCESS;
 }

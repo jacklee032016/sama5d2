@@ -437,7 +437,11 @@ int main(int argc, char *argv[])
 	else
 #endif		
 	{
-		MUX_DEBUG_JSON_OBJ(params.result);
+		char *printedStr =cJSON_Print(params.result);  
+		printf("JSON result:\n'%s'\n", printedStr);	
+		free(printedStr);
+		
+//		MUX_DEBUG_JSON_OBJ(params.result);
 		/* bash script will check it to determine whether go on or not */
 		return 1;
 	}

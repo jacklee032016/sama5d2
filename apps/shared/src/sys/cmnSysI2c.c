@@ -16,17 +16,21 @@ static int _sysI2cSetSlaveAddr(int fd, int slaveAddress, int force)
 {
 	/* With force, let the user read from/write to the registers
 	   even when a driver is also running */
+#if ARCH_ARM
 	if (ioctl(fd, force ? I2C_SLAVE_FORCE : I2C_SLAVE, slaveAddress) < 0)
 	{
-		EXT_ERRORF("Could not set address to 0x%02x: %m\n", slaveAddress);
+		EXT_ERRORF("Could not set SLAVE address to 0x%02x: %m", slaveAddress);
 		return EXIT_FAILURE;
 	}
-
+#else
+	MUX_DEBUG_CTRL("set SLAVE address to 0x%02x", slaveAddress);
+#endif
 	return EXIT_SUCCESS;
 }
 
 static int _sysI2cCheckFuncs(int fd, int size, int pec)
 {
+#if ARCH_ARM
 	unsigned long funcs;
 
 	/* check adapter functionality */
@@ -90,6 +94,9 @@ static int _sysI2cCheckFuncs(int fd, int size, int pec)
 		EXT_ERRORF( _MISSING_FUNC_FMT, "I2C transfers");
 		return EXIT_FAILURE;
 	}
+#endif
+
+	MUX_DEBUG_CTRL("I2C transfers check OK!");
 
 	return EXIT_SUCCESS;
 }
@@ -99,7 +106,7 @@ int cmnSysI2cOpen(int i2cbus, int quiet)
 	int fd, len;
 	char fileName[CMN_NAME_LENGTH];
 
-	len = snprintf(fileName, sizeof(fileName), "/dev/i2c/%d", i2cbus);
+	len = snprintf(fileName, sizeof(fileName), I2C_DEV_HOME"/%d", i2cbus);
 	if (len >= (int)sizeof(fileName) )
 	{
 		EXT_ERRORF("%s: path truncated", fileName);
@@ -109,7 +116,7 @@ int cmnSysI2cOpen(int i2cbus, int quiet)
 	fd = open(fileName, O_RDWR);
 	if (fd < 0 && (errno == ENOENT || errno == ENOTDIR))
 	{
-		len = snprintf(fileName, sizeof(fileName), "/dev/i2c-%d", i2cbus);
+		len = snprintf(fileName, sizeof(fileName), I2C_DEV_HOME"-%d", i2cbus);
 		if (len >= (int)sizeof(fileName))
 		{
 			EXT_ERRORF("%s: path truncated", fileName);
@@ -122,14 +129,17 @@ int cmnSysI2cOpen(int i2cbus, int quiet)
 	{
 		if (errno == ENOENT)
 		{
-			EXT_ERRORF("Could not open file `/dev/i2c-%d' or `/dev/i2c/%d': %s", i2cbus, i2cbus, strerror(ENOENT));
+			EXT_ERRORF("Could not open file `"I2C_DEV_HOME"-%d' or `"I2C_DEV_HOME"/%d': %s", i2cbus, i2cbus, strerror(ENOENT));
 		}
 		else
 		{
-			EXT_ERRORF("Could not open file `%s': %s\n", fileName, strerror(errno));
 			if (errno == EACCES)
 			{
 				EXT_ERRORF("Run as root?");
+			}
+			else
+			{
+				EXT_ERRORF("Could not open file `%s': %s\n", fileName, strerror(errno));
 			}
 		}
 	}
@@ -148,7 +158,7 @@ int cmnSysI2cRW(int bus, unsigned char slaveAddr, unsigned int regAddr, int regA
 	unsigned char data[2][64];
 
 
-	EXT_DEBUGF(EXT_DBG_OFF, "I2C %s on: Bus:%d; Slave:0x%x; Reg:0x%x,size:%d; BufSize:%d", (isRead)?"read":"write", bus, slaveAddr, regAddr, regAddrSize, length);
+	MUX_DEBUG_CTRL("I2C %s on: Bus:%d; Slave:0x%x; Reg:0x%x,size:%d; BufSize:%d", (isRead)?"read":"write", bus, slaveAddr, regAddr, regAddrSize, length);
 	fd = cmnSysI2cOpen(bus, EXT_FALSE);
 	if(fd <= 0)
 	{
@@ -217,8 +227,18 @@ int cmnSysI2cRW(int bus, unsigned char slaveAddr, unsigned int regAddr, int regA
 	i++;
 	rdwr.nmsgs = i;
 	rdwr.msgs = msgs;
-	
-	if (ioctl(fd, I2C_RDWR, &rdwr) < 0)
+
+#if ARCH_ARM
+	ret = ioctl(fd, I2C_RDWR, &rdwr);
+#else
+	ret = write(fd, (void *)&rdwr, sizeof(struct i2c_rdwr_ioctl_data));
+	if(isRead)
+	{
+		int _value = rand();
+		memcpy(data[1], &_value, sizeof(int));
+	}
+#endif
+	if (ret < 0)
 	{
 		MUX_ERROR("I2C %s failed at Salve Address %02x, offset %d, data length %d: %m", (isRead)?"read":"write", slaveAddr, regAddr, length);
 		ret = EXIT_FAILURE;
@@ -229,6 +249,7 @@ int cmnSysI2cRW(int bus, unsigned char slaveAddr, unsigned int regAddr, int regA
 		{
 			memcpy(buffer, data[1], length);
 		}
+		ret = EXIT_SUCCESS;
 	}
 	
 	close(fd);

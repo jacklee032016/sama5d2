@@ -396,7 +396,8 @@ cJSON *cmnMuxClientRequest(cJSON *ipCmd)
 
 	/* output to debug in format */
 	char *printed_json = cJSON_Print(ipCmd);
-	MUX_DEBUG("Client sendout ipCmd:\n'%s'\n", printed_json);
+//	MUX_DEBUG("Client sendout ipCmd:\n'%s'\n", printed_json);
+	printf("Client sendout ipCmd:\n'%s'\n", printed_json);
 	cmn_free(printed_json);
 
 	res = cmnMuxClientConnSendRequest(clientCtrl->conn, msg, strlen(msg));

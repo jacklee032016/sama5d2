@@ -173,6 +173,8 @@ struct SDP_EVENT
 	void						*data;	/* can be different for different events */
 };
 
+
+
 #define	SDPC_MSG(sdpClient, frmat, ...)		\
 	{MUX_ERROR( "%s#%d "frmat, sdpClient->name, sdpClient->reqs, ##__VA_ARGS__); \
 		sdpcErrorMsg(sdpClient, frmat, ##__VA_ARGS__);  }
@@ -188,18 +190,26 @@ struct SDP_EVENT
 	MUX_ERROR( "%s#%d "frmat, sdpClient->name, sdpClient->reqs, ##message)
 
 
-#define	SDPC_DEBUG_MSG(sdpClient, frmat, message...)		\
-		EXT_DEBUGF(SDP_CLIENT_DEBUG, "%s#%d "frmat, sdpClient->name, sdpClient->reqs, ##message)
-
-
 #define	SDPC_INFO_MSG(sdpClient, frmat, message...)		\
-		EXT_INFOF("%s#%d "frmat, sdpClient->name, sdpClient->reqs, ##message)
+			MUX_INFO("%s#%d "frmat, sdpClient->name, sdpClient->reqs, ##message)
 
 
-#define	EXT_DEBUG_HC_IS_ENABLE()			1		
+#if SDP_CLIENT_DEBUG
+#define	_SDP_DEBUG(frmat, message...)	\
+			EXT_DEBUGF(SDP_CLIENT_DEBUG, ""frmat, ##message )
+			
+#else
+#define	_SDP_DEBUG(frmat, message...)						{}
+
+#endif
+
+#define	SDPC_DEBUG_MSG(sdpClient, frmat, message...)		\
+			_SDP_DEBUG( "%s#%d "frmat, sdpClient->name, sdpClient->reqs, ##message)
+
+#define	_SFM_DEBUG(sdpClient)	\
+			SDPC_DEBUG_MSG(sdpClient, "process %s event in state of %s'", CMN_FIND_SDPC_EVENT( (sdpClient)->event), CMN_FIND_SDPC_STATE( (sdpClient)->state) )
 
 
-#define	SDP_CLIENT_DEBUG					EXT_DBG_ON
 
 #define	EXT_HTTP_CRLF							"\r\n"
 

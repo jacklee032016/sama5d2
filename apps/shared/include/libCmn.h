@@ -31,50 +31,24 @@
 
 #define	DEBUG_CONFIG_FILE						0
 
-#define	MUX_THREAD_SUPPORT_DYNAMIC			1
 
-
-#define	MUX_OPTIONS_DEBUG_CAPTURE			0
-#define	MUX_OPTIONS_DEBUG_IP_COMMAND		1
+#define	MUX_OPTIONS_DEBUG_IP_COMMAND		0
 
 #define	MUX_OPTIONS_DEBUG_IPC_CLIENT		0
 
 
-#define	DEBUG_FFMPEG							0
-
-
-/* build options for player */
-#define	WITH_HIPLAYER_STATE_CHECK			0
-
-#define	WITH_HIGO_DEBUG						0
-
-/* some event only for info alert, no handle is needed, so these events can be ignored in FSM */
-#define	PLAYER_ENABLE_INFO_EVENT				0
-
-#define	PLAYER_DEBUG_HIPLAY_EVENT			0
-
-#define	PLAYER_DEBUG_HIPLAY_LOG				0	/* HiPlayer log : max log level */
-
-#define	PLAYER_ENABLE_SUBTITLE				0
-
-#define	MUX_WITH_IMAGE_PLAY					1
-
-/* send background parameter of API as a string in form of '0xFFRRGGBB' */
-#define	BACKGROUND_AS_STRING					1
-
-#define	OSD_ENABLE_DOUBLE_BUFFER			0
 
 /* playlist which is added is only saved in testing. In release version, no any playlist is saved in configuration file */
 #define	MUX_SAVE_PLAYLIST						0
 
 /* Macros for constants */
 
-#define	CMN_NAME_LENGTH			256
+#define	CMN_NAME_LENGTH						256
 
 
-#define	MUX_INVALIDATE_CHAR			0xFF
-#define	MUX_INVALIDATE_SHORT			0xFFFF
-#define	MUX_INVALIDATE_INTEGER		0xFFFFFFFF
+#define	MUX_INVALIDATE_CHAR					0xFF
+#define	MUX_INVALIDATE_SHORT					0xFFFF
+#define	MUX_INVALIDATE_INTEGER				0xFFFFFFFF
 
 
 
@@ -228,7 +202,8 @@ typedef	enum _MUX_MEDIA_TYPE
 #define	RUN_HOME_DIR						""
 #define	RUN_HOME_DIR_TEMP				""
 #else
-#define	RUN_HOME_DIR						ROOT_DIR"/releases"
+//#define	RUN_HOME_DIR						ROOT_DIR"/releases"
+#define	RUN_HOME_DIR						"./releases"
 #define	RUN_HOME_DIR_TEMP				RUN_HOME_DIR"/x86"	/* this directory will not be packed into release version of ARM */
 #endif
 
@@ -517,6 +492,10 @@ int cmnParseGetIpAddress(struct in_addr *ipAddress, const char *p);
 #define  MUX_ERROR(...)		{CMN_MSG_LOG(CMN_LOG_ERR, __VA_ARGS__);}
 
 
+#define	MUX_MAIN_INFO(muxMain, format, message...) \
+	if(MUX_MAIN_IS_DEBUG_MSG((muxMain)) ){MUX_INFO((format), ##message);}
+
+
 
 extern volatile int recvSigalTerminal;
 
@@ -529,9 +508,15 @@ extern volatile int recvSigalTerminal;
 		(recvSigalTerminal == TRUE)
 
 
+#if MUX_OPTIONS_DEBUG_IP_COMMAND			
 #define	MUX_DEBUG_JSON_OBJ(obj)	\
 	{ char *printedStr =cJSON_Print((obj));  MUX_DEBUG("JSON object %s :\n'%s'", #obj, printedStr);	\
 		free(printedStr);}
+
+#else
+#define	MUX_DEBUG_JSON_OBJ(obj)					{}
+
+#endif
 
 
 char *cmn_read_file(const char *filename, uint32_t *size);

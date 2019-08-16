@@ -79,7 +79,7 @@ uint32_t	cmnHttpParseHeaderContentLength(char *headers, uint32_t headerLength)
 		return _SDP_RV_ERROR;
 	}
 
-	EXT_DEBUGF(SDP_CLIENT_DEBUG, "SDPC content length:%d",   contentLen);
+	_SDP_DEBUG( "SDPC content length:%d", contentLen);
 	
 	return contentLen;
 }
@@ -127,10 +127,11 @@ static int __sdpParseHttpProtocol(struct SDP_CLIENT *sdpClient)
 				sdpClient->contentLength = ret;
 //				sdpClient->data = sdpClient->buffer + (sdpClient->length - sdpClient->contentLength);
 				sdpClient->data = sdpClient->buffer + sdpClient->headerLength;
+
 				SDPC_DEBUG_MSG(sdpClient, "recv %d bytes, header length %d, content length %d, data "EXT_NEW_LINE"'%.*s'", 
 					sdpClient->length, sdpClient->headerLength, sdpClient->contentLength, sdpClient->contentLength, sdpClient->data);
 
-				SDPC_INFO_MSG(sdpClient, "Recv SDP response in one packet OK" );
+				SDPC_DEBUG_MSG(sdpClient, "Recv SDP response in one packet OK" );
 				return _SDP_RV_OK;
 			}
 			else if(_dataLen >= 0)
@@ -150,7 +151,7 @@ static int __sdpParseHttpProtocol(struct SDP_CLIENT *sdpClient)
 		SDPC_DEBUG_MSG(sdpClient, "Recv late packet, total length %d, Content Length %d, header length %d ", sdpClient->length, sdpClient->contentLength, sdpClient->headerLength );
 		if(sdpClient->contentLength + sdpClient->headerLength == sdpClient->length)
 		{/* after parsed content_length and new line in the end of http header, and then received new packet only for data */
-			SDPC_INFO_MSG(sdpClient, "Recv SDP response in multiple packets OK" );
+			SDPC_DEBUG_MSG(sdpClient, "Recv SDP response in multiple packets OK" );
 			sdpClient->data = sdpClient->buffer + sdpClient->headerLength;
 			return _SDP_RV_OK;
 		}
@@ -270,7 +271,7 @@ static int _sdpReceiverMainLoop(CmnThread *th)
 		goto wait;
 	}
 
-	EXT_DEBUGF(SDP_CLIENT_DEBUG, "Total %d fds are polling now...", count );
+	_SDP_DEBUG( "Total %d fds are polling now...", count );
 	res = poll(pfds, count, SDPC_POLL_TIMEOUT/*-1*/); /* in milliseconds */
 	if (res == -1 )
 	{
@@ -300,7 +301,7 @@ static int _sdpReceiverMainLoop(CmnThread *th)
 	{
 		int isTimer = 0;
 		
-		EXT_DEBUGF(SDP_CLIENT_DEBUG, "#%d: fd=%d; events=0x%x; revents:0x%x", i, pollfd->fd, pollfd->events, pollfd->revents );
+		_SDP_DEBUG( "#%d: fd=%d; events=0x%x; revents:0x%x", i, pollfd->fd, pollfd->events, pollfd->revents );
 		sdpClient = _findSdpcClient(sdpCtx, &isTimer, pollfd->fd);
 		if(sdpClient)
 		{
@@ -350,7 +351,6 @@ static int _sdpReceiverMainLoop(CmnThread *th)
 						sdpClient->pkts++;
 
 						res = __sdpParseHttpProtocol(sdpClient);
-						TRACE();
 						if(res == _SDP_RV_OK)
 						{
 							SDPC_SEND_EVENT(sdpClient, SDPC_EVENT_RECV);				
@@ -394,7 +394,7 @@ static int _sdpReceiverMainLoop(CmnThread *th)
 	return EXIT_SUCCESS;
 
 wait:
-	EXT_DEBUGF(SDP_CLIENT_DEBUG, "waiting to be waked by SdpManager" );
+	_SDP_DEBUG( "waiting to be waked by SdpManager" );
 	if(cmn_sem_wait(sdpCtx->semaphore) < 0)
 	{
 		EXT_ERRORF("SDPC can't wait, because %m");

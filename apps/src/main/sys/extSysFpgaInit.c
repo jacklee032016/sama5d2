@@ -137,7 +137,7 @@ void extFpgaTimerJob(MuxRunTimeParam  *mediaParams)
 	if(value != EXT_FPGA_FLAGS_PARAM_USABLE)
 		return;
 
-	EXT_DEBUGF(EXT_DBG_ON, "New Media Params is available now!");
+	EXT_DEBUGF(MUX_DEBUG_FPGA, "New Media Params is available now!");
 	
 //	extFpgaReadParams(mediaParams);
 	/* clear register */

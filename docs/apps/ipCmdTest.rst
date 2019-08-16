@@ -30,6 +30,8 @@ apiClient -c set -a 192.168.168.101 -m "02:01:03:04:05:06" -d  '{"system":{"mac"
 wrong format of MAC address:
 apiClient -c set -a 192.168.168.101 -m "02:01:03:04:05:06" -d  '{"system":{"mac":"02:01:03:04:05"}}'
 
+media mode: "Auto|Manual|SDP"
+apiClient -c set -a 192.168.168.101 -m "02:01:03:04:05:06" -d  '{"system":{"mediaMode":"Manual"}}'
 
 IP Address
 
@@ -80,6 +82,13 @@ Error field name:
 apiClient -c set -a 192.168.168.101 -m "02:01:03:04:05:06" -d  '{"anc":{"sdp2":"ancSdp"}}'
 
 
+SDP:
+apiClient -c set -a 192.168.168.101 -m "02:01:03:04:05:06" -d  '{"sdp":[
+    {"media": "video", "ip":"192.168.167.155", "port":8080, "uri":"videoSdp3"},
+    {"media": "audio", "ip":"192.168.167.165", "port":8080, "uri":"audioSdp3"},
+    {"media": "anc", "ip":"192.168.167.175", "port":8080, "uri":"ancSdp3"}]}'
+
+
 security chip:
 
 apiClient -c secure -a 192.168.168.101 -m "08:00:27:E7:B7:63" -d  '{"get_id": ""}'
@@ -94,6 +103,62 @@ apiClient -c secure -a 192.168.168.101 -m "08:00:27:E7:B7:63" -d  '{"set_key": "
  
 # wrong key : some letters can be changed into digit
 apiClient -c secure -a 192.168.168.101 -m "08:00:27:E7:B7:63" -d  '{"set_key": "0987654321fedcbaABCDED12345678900987654321fedcbaABCDED12345678QW"}'
+
+
+
+RS232
+---------------------------------
+
+::
+with command of 'set_param'
+++++++++++++++++++++++++++++++++++++
+Configure RS232 and send data to RS232:
+
+apiClient -c set -a 192.168.168.101 -m "02:01:03:04:05:06" -d  '{"rs232":{"baudrate": 115200, 
+    "databit":8, "parity":"none", "stopbit":1, "data":"1234567980abcdef","isFeedback":1, "waitTime":1000}}'
+
+apiClient -c set -a 192.168.168.101 -m "02:01:03:04:05:06" -d  '{"rs232":{"baudrate": 115200, 
+    "databit":7, "parity":"none", "stopbit":1, "data":"1234567980abcdef","isFeedback":1, "waitTime":1000}}'
+
+	
+with command of 'send_data_rs232'
+++++++++++++++++++++++++++++++++++++
+Only send data to RS232(as specs): 
+
+apiClient -c rs -a 192.168.168.101 -m "08:00:27:E7:B7:63" -d  '{"data":"1234567980abcdef","isFeedback":1, "waitTime":1000}'
+
+error data: invalidate code
+apiClient -c rs -a 192.168.168.101 -m "08:00:27:E7:B7:63" -d  '{"data":"1234567980abcdefGV","isFeedback":1, "waitTime":1000}'
+
+error data: odd number of letters, is not even number
+apiClient -c rs -a 192.168.168.101 -m "08:00:27:E7:B7:63" -d  '{"data":"1234567980abcdeff","isFeedback":1, "waitTime":1000}'
+	
+
+with REST API
+++++++++++++++++++++++++++++++++++++
+curl  -H "Content-Type:application/json" -X POST -d '{"username":"xyz","passwd":"123", "data":{"data":"1234567980abcdef","isFeedback":1, "waitTime":1000}}' \
+	http://192.168.168.101:5000/rs232 -v 
+	
+
+IR
+---------------------------------
+
+::
+with command of 'set_param'
+++++++++++++++++++++++++++++++++++++
+apiClient -c set -a 192.168.168.101 -m "02:01:03:04:05:06" -d  '{"IR":{"data":"1234567980abcdef","isFeedback":1, "waitTime":1000}}'
+
+	
+with command of 'send_data_ir'
+++++++++++++++++++++++++++++++++++++
+apiClient -c ir -a 192.168.168.101 -m "08:00:27:E7:B7:63" -d  '{"data":"1234567980abcdef","isFeedback":1, "waitTime":1000}'
+
+error data: invalidate code
+apiClient -c ir -a 192.168.168.101 -m "08:00:27:E7:B7:63" -d  '{"data":"1234567980abcdefgh","isFeedback":1, "waitTime":1000}'
+
+error data: odd number of letters, is not even number
+apiClient -c ir -a 192.168.168.101 -m "08:00:27:E7:B7:63" -d  '{"data":"1234567980abcdef345","isFeedback":1, "waitTime":1000}'
+
 
 other command:
 

@@ -237,7 +237,7 @@ void cmnSysCfgFromFactory( EXT_RUNTIME_CFG *cfg )
 	cfg->ipMask = CFG_MAKE_IP_ADDRESS(ETHERNET_CONF_NET_MASK0, ETHERNET_CONF_NET_MASK1, ETHERNET_CONF_NET_MASK2, ETHERNET_CONF_NET_MASK3);
 
 	/* RS232: 57600, even, 6 bit, 2 stop-bits */
-	cfg->rs232Cfg.baudRate = EXT_BAUDRATE_57600;
+	cfg->rs232Cfg.baudRate = EXT_BAUDRATE_115200;
 	cfg->rs232Cfg.charLength = EXT_RS232_CHAR_LENGTH_8;	/* 6 bits */
 	cfg->rs232Cfg.parityType = EXT_RS232_PARITY_NONE;
 	cfg->rs232Cfg.stopbits = EXT_RS232_STOP_BITS_1;

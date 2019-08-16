@@ -161,7 +161,6 @@ static int	_ipCmdHandle4SetParams(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataCo
 		isFound = EXT_TRUE;
 	}
 
-TRACE();
 	obj = cmnJsonSystemGetSubItem(dataConn->dataObj, MUX_REST_URI_AUDIO, INVALIDATE_VALUE_U32);
 	if(obj )
 	{
@@ -182,7 +181,6 @@ TRACE();
 		isFound = EXT_TRUE;
 	}
 
-TRACE();
 	obj = cmnJsonSystemGetSubItem(dataConn->dataObj, MUX_REST_URI_SDP, INVALIDATE_VALUE_U32);
 	if(obj )
 	{
@@ -193,11 +191,20 @@ TRACE();
 		isFound = EXT_TRUE;
 	}
 
-TRACE();
 	obj = cmnJsonSystemGetSubItem(dataConn->dataObj, MUX_REST_URI_RS232, INVALIDATE_VALUE_U32);
 	if(obj )
 	{
 		if( cmnMuxObjectParseRs232(dataConn, obj) == EXIT_FAILURE)
+		{
+			goto failed;
+		}
+		isFound = EXT_TRUE;
+	}
+
+	obj = cmnJsonSystemGetSubItem(dataConn->dataObj, MUX_REST_URI_IR, INVALIDATE_VALUE_U32);
+	if(obj )
+	{
+		if( cmnMuxObjectParseIR(dataConn, obj) == EXIT_FAILURE)
 		{
 			goto failed;
 		}
@@ -608,7 +615,7 @@ static int	_handle4SetIR(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataConn, cJSON
 
 	cmnMuxClearConfig(&muxMain->rxCfg);
 
-	if(!data || cmnMuxObjectParseRs232(dataConn, data) == EXIT_FAILURE)
+	if(!data || cmnMuxObjectParseIR(dataConn, data) == EXIT_FAILURE)
 	{
 		SYS_PLAYLIST_UNLOCK(muxMain);
 		return EXIT_FAILURE;
@@ -912,7 +919,7 @@ int cmnMuxCtrlDataHandle( struct DATA_CONN *dataConn )
 				}
 			}
 			
-#if 1// MUX_OPTIONS_DEBUG_IP_COMMAND			
+#if MUX_OPTIONS_DEBUG_IP_COMMAND			
 			MUX_DEBUG("CONN %s, URI '%s' '%s' is processing.....", dataConn->name, dataConn->cmd, CMN_MUX_FIND_METHOD_NAME(dataConn->method) );
 #endif
 

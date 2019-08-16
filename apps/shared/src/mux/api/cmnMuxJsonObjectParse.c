@@ -179,6 +179,26 @@ int	cmnMuxObjectParseSystem(struct DATA_CONN *dataConn, cJSON *dataObj)
 		isFound = EXT_TRUE;
 	}
 
+TRACE();
+	if(!EXT_IS_TX(&muxMain->runCfg) )
+	{
+		value = cmnGetStrFromJsonObject(dataObj, FIELD_SYS_CFG_MEDIA_AUTO);
+TRACE();
+		if(!IS_STRING_NULL_OR_ZERO(value) )
+		{
+TRACE();
+			rxCfg->fpgaAuto = CMN_FIND_STR_MEDIA_MODE(value);
+TRACE();
+			if(rxCfg->fpgaAuto == -1 )
+			{
+TRACE();
+				DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s' in %s item is wrong", FIELD_SYS_CFG_MEDIA_AUTO, MUX_REST_URI_SYSTEM);
+				return EXIT_FAILURE;
+			}
+			isFound = EXT_TRUE;
+		}
+	}
+
 	if(isFound == EXT_FALSE )
 	{
 		DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "No validated field is found in '%s' packet", MUX_REST_URI_SYSTEM );
@@ -253,7 +273,7 @@ int	cmnMuxObjectParseVideo(struct DATA_CONN *dataConn, cJSON *dataObj)
 			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s' in %s item is wrong: '%s'", FIELD_VIDEO_FRAME_RATE, MUX_REST_URI_VIDEO, value);
 			return EXIT_FAILURE;
 		}
-		rxCfg->runtime.vFrameRate = (unsigned char)value;
+		rxCfg->runtime.vFrameRate = (unsigned char)intValue;
 		isFound = EXT_TRUE;
 	}
 
@@ -266,7 +286,7 @@ int	cmnMuxObjectParseVideo(struct DATA_CONN *dataConn, cJSON *dataObj)
 			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s' in %s item is wrong: '%s'", FIELD_VIDEO_COLOR_SPACE, MUX_REST_URI_VIDEO, value);
 			return EXIT_FAILURE;
 		}
-		rxCfg->runtime.vColorSpace = (unsigned char)value;
+		rxCfg->runtime.vColorSpace = (unsigned char)intValue;
 		isFound = EXT_TRUE;
 	}
 
@@ -505,7 +525,6 @@ int	cmnMuxObjectParseSdp(struct DATA_CONN *dataConn, cJSON *dataObj)
 	MuxMain *muxMain = SYS_MAIN(dataConn);
 	EXT_RUNTIME_CFG *rxCfg = &muxMain->rxCfg;
 
-TRACE();
 	if(!cJSON_IsArray(dataObj) )
 	{
 		DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "SDP item %s must be JSON array", MUX_REST_URI_SDP);
@@ -513,7 +532,7 @@ TRACE();
 	}
 	
 	count = cJSON_GetArraySize(dataObj);
-	MUX_DEBUG("Count : %d", count);
+//	MUX_DEBUG("Count : %d", count);
 	for(index = 0; index< count; index++)
 	{
 		HttpClientReq *sdpUrl = NULL;
@@ -564,7 +583,6 @@ TRACE();
 		
 	}
 
-TRACE();
 	MUX_DEBUG("'%s' command OK!", MUX_REST_URI_SDP);
 	return EXIT_SUCCESS;
 }
@@ -634,64 +652,27 @@ int	cmnMuxObjectParseRs232(struct DATA_CONN *dataConn, cJSON *dataObj)
 	}
 
 
-	if(cmnJsonGetStrIntoString(dataObj, FIELD_RS232_DATA, rxCfg->setupData.hexData, sizeof(rxCfg->setupData.hexData)) == EXIT_FAILURE)
+	if(cmnMuxObjectParseHexaData(dataConn, dataObj, MUX_REST_URI_RS232) == EXIT_SUCCESS)
 	{
-//		DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s' in %s item is not found", FIELD_RS232_DATA, MUX_REST_URI_RS232);
-//		return EXIT_FAILURE;
+		cmnMuxSendRsData(dataConn, dataObj);
 	}
+
+	/* go on for RS232 configuration */
 	
-	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_RS232_IS_FEEDBACK);
-	if( FIELD_IS_CHANGED_U32(intValue) )
-	{
-		rxCfg->setupData.isFeedBack = (intValue)?1:0;
-	}
-
-	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_RS232_WAIT_TIME);
-	if( FIELD_IS_CHANGED_U32(intValue) )
-	{
-		if(intValue < 0)
-		{
-			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s': %d in %s item is wrong", FIELD_RS232_WAIT_TIME, intValue, MUX_REST_URI_RS232);
-			return EXIT_FAILURE;
-		}
-		rxCfg->setupData.waitMs = intValue;
-	}
-
 	return EXIT_SUCCESS;
 }
 
 int	cmnMuxObjectParseIR(struct DATA_CONN *dataConn, cJSON *dataObj)
 {
-//	char *value;
-	int	intValue;
-	
-	MuxMain *muxMain = SYS_MAIN(dataConn);
-	EXT_RUNTIME_CFG *rxCfg = &muxMain->rxCfg;
+//	MuxMain *muxMain = SYS_MAIN(dataConn);
 
-	if(cmnJsonGetStrIntoString(dataObj, FIELD_RS232_DATA, rxCfg->setupData.hexData, sizeof(rxCfg->setupData.hexData)) == EXIT_FAILURE)
+	if(cmnMuxObjectParseHexaData(dataConn, dataObj, MUX_REST_URI_IR) == EXIT_SUCCESS)
 	{
-		DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s' in %s item is not found", FIELD_RS232_DATA, MUX_REST_URI_IR);
-		return EXIT_FAILURE;
+		cmnMuxSendIRData(dataConn, dataObj);
+		return EXIT_SUCCESS;
 	}
-	
-	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_RS232_IS_FEEDBACK);
-	if( FIELD_IS_CHANGED_U32(intValue) )
-	{
-		rxCfg->setupData.isFeedBack = (intValue)?1:0;
-	}
-
-	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_RS232_WAIT_TIME);
-	if( FIELD_IS_CHANGED_U32(intValue) )
-	{
-		if(intValue < 0)
-		{
-			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s': %d in %s item is wrong", FIELD_RS232_WAIT_TIME, intValue, MUX_REST_URI_IR);
-			return EXIT_FAILURE;
-		}
-		rxCfg->setupData.waitMs = intValue;
-	}
-
-	return EXIT_SUCCESS;
+		
+	return EXIT_FAILURE;
 }
 
 static int _securityCheckId(struct DATA_CONN *dataConn)
@@ -855,7 +836,7 @@ int cmnMuxObjectParseOthers(struct DATA_CONN *dataConn, cJSON *dataObj)
 	if( FIELD_IS_CHANGED_U32(intValue) && intValue != muxMain->isAuthen )
 	{
 		muxMain->isAuthen = intValue;
-		MUX_DEBUG("'%s' changed as %s", FIELD_OTHERS_AUTHEN, (muxMain->isAuthen)?"YES":"NO" );
+		MUX_MAIN_INFO(muxMain, "'%s' changed as %s", FIELD_OTHERS_AUTHEN, (muxMain->isAuthen)?"YES":"NO" );
 		isFound = EXT_TRUE;
 	}
 
@@ -863,7 +844,7 @@ int cmnMuxObjectParseOthers(struct DATA_CONN *dataConn, cJSON *dataObj)
 	if( FIELD_IS_CHANGED_U32(intValue) && intValue != muxMain->debugRest)
 	{
 		muxMain->debugRest = intValue;
-		MUX_DEBUG("'%s' changed as %s", FIELD_OTHERS_DEBUG_REST, (muxMain->debugRest)?"YES":"NO" );
+		MUX_MAIN_INFO(muxMain, "'%s' changed as %s", FIELD_OTHERS_DEBUG_REST, (muxMain->debugRest)?"YES":"NO" );
 		isFound = EXT_TRUE;
 	}
 
@@ -871,7 +852,7 @@ int cmnMuxObjectParseOthers(struct DATA_CONN *dataConn, cJSON *dataObj)
 	if( FIELD_IS_CHANGED_U32(intValue) && intValue != muxMain->debugCmd )
 	{
 		muxMain->debugCmd = intValue;
-		MUX_DEBUG("'%s' changed as %s", FIELD_OTHERS_DEBUG_IP_CMD, (muxMain->debugCmd)?"YES":"NO" );
+		MUX_MAIN_INFO(muxMain, "'%s' changed as %s", FIELD_OTHERS_DEBUG_IP_CMD, (muxMain->debugCmd)?"YES":"NO" );
 		isFound = EXT_TRUE;
 	}
 
@@ -879,7 +860,8 @@ int cmnMuxObjectParseOthers(struct DATA_CONN *dataConn, cJSON *dataObj)
 	if( FIELD_IS_CHANGED_U32(intValue) && intValue != muxMain->debugSdp )
 	{
 		muxMain->debugSdp = intValue;
-		MUX_DEBUG("'%s' changed as %s", FIELD_OTHERS_DEBUG_SDP, (muxMain->debugSdp)?"YES":"NO" );
+		MUX_MAIN_INFO(muxMain, "'%s' changed as %s", FIELD_OTHERS_DEBUG_SDP, (muxMain->debugSdp)?"YES":"NO" );
+		isFound = EXT_TRUE;
 	}
 
 	if(isFound == EXT_FALSE )

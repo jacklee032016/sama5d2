@@ -360,6 +360,30 @@ const	TYPE_NAME_T	_ipcmdStringRsStopbits[] =
 	}
 };
 
+const	TYPE_NAME_T _mediaModes[] =
+{
+	{
+		.type = FPGA_CFG_AUTO,
+		.name = EXT_WEB_CFG_FIELD_FPGA_AUTO_V_AUTO,	
+		.value = NULL,
+	},
+	{
+		.type = FPGA_CFG_MANUAL,
+		.name = EXT_WEB_CFG_FIELD_FPGA_AUTO_V_MANUAL,	
+		.value = NULL,
+	},
+	{
+		.type = FPGA_CFG_SDP,
+		.name = EXT_WEB_CFG_FIELD_FPGA_AUTO_V_SDP,	
+		.value = NULL,
+	},
+	{
+		.type = -1,
+		.name = NULL,	
+		.value = NULL,
+	}
+};
+
 
 const	TYPE_NAME_T	_videoFormats[] =
 {
@@ -778,8 +802,10 @@ char *cmnMuxTypeFindName(const TYPE_NAME_T *types, int type)
 //		CMN_ABORT("Type %d is not found, the first item is :%s", type, types->name);
 		MUX_ERROR("Type %d is not found, the first item is :%s", type, types->name);
 	}
+//	return NULL;
+	return "Unknown";
 #endif
-	return NULL;
+	return "Unknown";
 }
 
 unsigned int cmnMuxCRC32b(void *message, int len)

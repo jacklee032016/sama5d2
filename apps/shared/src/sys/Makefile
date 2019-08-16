@@ -26,6 +26,7 @@ MUX_SRC += \
 		cmnSysLeds.c \
 		cmnSysCtrlDeps.c \
 		cmnSysRs232.c \
+		cmnSysFpgaDefs.c \
 		cmnSysFpgaInit.c \
 		cmnSysFpgaOps.c \
 		cmnSysConfig.c \

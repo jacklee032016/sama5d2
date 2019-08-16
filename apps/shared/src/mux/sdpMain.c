@@ -33,7 +33,7 @@ int sdpcErrorMsg(struct SDP_CLIENT *sdpClient, const char *frmt,...)
 		sdpClient->msgLength += length;
 	}
 	
-//	EXT_DEBUGF(SDP_CLIENT_DEBUG, "finial msg='%s'", sdpClient->msg );
+	_SDP_DEBUG("finial msg='%s'", sdpClient->msg );
 
 	return length;
 }

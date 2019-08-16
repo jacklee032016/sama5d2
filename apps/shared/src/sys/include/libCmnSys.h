@@ -20,6 +20,8 @@
 #define		DEV_HOME				RUN_HOME_DIR_TEMP"/dev"
 #define		LED_HOME				RUN_HOME_DIR_TEMP"/sys/class/leds"
 
+#define		I2C_DEV_HOME			RUN_HOME_DIR_TEMP"/dev/i2c"
+
 
 #define		MUX_DEV_RS232			DEV_HOME"/ttyS1"
 #define		MUX_DEV_WATCHDOG	DEV_HOME"/watchdog"
@@ -43,6 +45,7 @@
 
 #define    INPUT_EVENT_SW1    				DEV_HOME"/input/event0"
 #define    INPUT_EVENT_DIP_SWITCH    		DEV_HOME"/input/event1"
+
 
 /* button event */
 typedef	enum _BTN_EVENT_T
@@ -119,6 +122,9 @@ int cmnSysGetPidByName(char *progName);
 int cmnSysSigSend(pid_t pid, int sigid, int opcode);
 int cmnSysKillProcess(char *name);
 void cmnSysForkCmd(const char *cmd);
+
+void rs232StartRx(void);
+void rs232StopRx(void);
 
 
 int cmnSysRs232Init(EXT_RUNTIME_CFG *runCfg);

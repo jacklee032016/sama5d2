@@ -74,8 +74,9 @@ void cmnMuxDataConnClose(struct DATA_CONN *dataConn)
 	close(dataConn->timeFd);
 	cmn_mutex_destroy(dataConn->mutexLock);
 
+#if __DEBUG_CONNECTION
 	EXT_DEBUGF(MUX_DEBUG_BROKER, "free DATA CONN:%s:%p", dataConn->name, dataConn);	
-
+#endif
 	cmn_free(dataConn);
 }
 
@@ -102,7 +103,7 @@ static int _dataConnOutput(struct DATA_CONN *dataConn, void *buf, int size)
 	}
 	else if(dataConn->ctrlConn->type == CTRL_LINK_UDP)
 	{
-#if 0//MUX_OPTIONS_DEBUG_IP_COMMAND			
+#if MUX_OPTIONS_DEBUG_IP_COMMAND			
 		MUX_DEBUG("Reply %d bytes packet to %s:%d, addrLen:%d:"EXT_NEW_LINE"'%.*s'", 
 			size, inet_ntoa(dataConn->peerAddr.sin_addr), ntohs(dataConn->peerAddr.sin_port), dataConn->addrlen, size-8, buf+4 );
 #endif
@@ -116,7 +117,14 @@ static int _dataConnOutput(struct DATA_CONN *dataConn, void *buf, int size)
 
 	if(CONTROLLER_IS_DEBUG(dataConn) )
 	{
-		MUX_INFO("Replied %d bytes to %s"EXT_NEW_LINE"\'%.*s'", len, dataConn->name, size-8, buf+4);
+		if(dataConn->ctrlConn->type == CTRL_LINK_UNIX)
+		{
+			MUX_INFO("Replied %d bytes to %s"EXT_NEW_LINE"\'%.*s'", len, dataConn->name, size, buf );
+		}
+		else
+		{
+			MUX_INFO("Replied %d bytes to %s"EXT_NEW_LINE"\'%.*s'", len, dataConn->name, size-8, buf+4);
+		}
 	}
 
 	return len;
@@ -213,7 +221,9 @@ sendout:
 	{
 		EXT_ERRORF("DataConnect response object is null ");
 	}
+#if __DEBUG_CONNECTION
 	EXT_DEBUGF(MUX_DEBUG_BROKER, "CONN %s output obj#%p", dataConn->name, responseObj);
+#endif
 
 	msg = cJSON_PrintUnformatted(responseObj);
 //	EXT_DEBUGF(MUX_DEBUG_BROKER, "CONN %s output msg:'%s'", dataConn->name, msg);
@@ -279,7 +289,9 @@ int cmnMuxDataConnRestOutput(struct DATA_CONN *dataConn)
 
 	if(msg)
 	{
+#if MUX_OPTIONS_DEBUG_IP_COMMAND			
 		MUX_DEBUG("REST output :'%s'", msg);
+#endif
 		if(dataConn->status == DATA_CONN_STATUS_INIT || dataConn->status == DATA_CONN_STATUS_WAITING)
 		{/* called by Broker and Manager both */
 			len = _dataConnOutput(dataConn, msg, strlen(msg));
@@ -319,7 +331,9 @@ static int _ipCmdIsLocal(struct DATA_CONN *dataConn)
 	MuxMain *muxMain = SYS_MAIN(dataConn);
 
 	target = cmnGetStrFromJsonObject(dataConn->cmdObjs, IPCMD_NAME_KEYWORD_TARG);
+#if MUX_OPTIONS_DEBUG_IP_COMMAND			
 	MUX_DEBUG("target: %s", target );
+#endif
 
 	if(extMacAddressParse(&macAddress, target) == EXIT_FAILURE)
 	{
@@ -334,17 +348,15 @@ static int _ipCmdIsLocal(struct DATA_CONN *dataConn)
 		return EXIT_FAILURE;
 	}
 
-	TRACE();
 	if(!MAC_ADDR_IS_EQUAL(&macAddress, &muxMain->runCfg.local.mac) )
 	{
 		DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s' : '%s' is not my MAC address", IPCMD_NAME_KEYWORD_TARG, target);
-		EXT_ERRORF("My MAC address:%02x:%02x:%02x:%02x:%02x:%02x", 
+		MUX_ERROR("My MAC address:%02x:%02x:%02x:%02x:%02x:%02x", 
 			muxMain->runCfg.local.mac.address[0], muxMain->runCfg.local.mac.address[1], muxMain->runCfg.local.mac.address[2], 
 			muxMain->runCfg.local.mac.address[3], muxMain->runCfg.local.mac.address[4], muxMain->runCfg.local.mac.address[5]);
 		return EXIT_FAILURE;
 	}
 
-	TRACE();
 	return EXIT_SUCCESS;
 }
 
@@ -516,7 +528,7 @@ int cmnMuxDataConnIpCmdInput(struct DATA_CONN *dataConn)
 
 	dataConn->cmdObjs = reqObj;
 	
-	if(muxMain->isAuthen)
+	if((muxMain->isAuthen) && (dataConn->ctrlConn->type != CTRL_LINK_UNIX) )
 	{
 		username = cmnGetStrFromJsonObject(reqObj, IPCMD_NAME_KEYWORD_LOGIN_ACK);
 		pwd = cmnGetStrFromJsonObject(reqObj, IPCMD_NAME_KEYWORD_PWD_MSG);
@@ -538,7 +550,6 @@ int cmnMuxDataConnIpCmdInput(struct DATA_CONN *dataConn)
 
 	if(_dataConnIpCmdAdapt(dataConn, reqObj) == EXIT_FAILURE)
 	{
-	TRACE();
 		return EXIT_FAILURE;
 	}
 
@@ -551,7 +562,6 @@ int cmnMuxDataConnRestInput(struct DATA_CONN *dataConn)
 	cJSON *reqObj = NULL, *_dataArrayObj = NULL;
 	char *username = NULL, *pwd = NULL;
 	char *uri = NULL;
-	TRACE();
 	MuxMain *muxMain = SYS_MAIN(dataConn);
 
 	if(CONN_IS_IPCMD(dataConn->ctrlConn))
@@ -568,8 +578,8 @@ int cmnMuxDataConnRestInput(struct DATA_CONN *dataConn)
 	}
 	dataConn->cmdObjs = reqObj;
 
-	if(muxMain->isAuthen)
-	{
+	if( (muxMain->isAuthen ) && (dataConn->ctrlConn->type != CTRL_LINK_UNIX) )
+	{/* unix socket is for python service, so no authen is needed */
 		username = cmnGetStrFromJsonObject(reqObj, MUX_REST_USER_NAME);
 		pwd = cmnGetStrFromJsonObject(reqObj, MUX_REST_USER_PWD);
 		if( IS_STRING_NULL_OR_ZERO(username) || IS_STRING_NULL_OR_ZERO(pwd) )
