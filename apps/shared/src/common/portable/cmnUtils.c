@@ -554,7 +554,8 @@ char cmnUtilsParseInt32(char *strValue, uint32_t  *value)
 {
 	uint32_t _val;
 #ifdef	ARM
-	if (1 != sscanf(strValue, "%"PRIu32, &_val))
+//	if (1 != sscanf(strValue, "%"PRIu32, &_val))
+	if (1 != sscanf(strValue, "%u", &_val))
 #else		
 	if (1 != sscanf(strValue, "%u"/*U32_F*/, &_val))
 #endif
@@ -574,7 +575,8 @@ char cmnUtilsParseInt16(char *strValue, uint16_t  *value)
 {
 	uint16_t _val;
 #ifdef	ARM
-	if (1 != sscanf(strValue, "%"PRIu16, &_val))
+//	if (1 != sscanf(strValue, "%"PRIu16, &_val))
+	if (1 != sscanf(strValue, "%hu", &_val))
 #else
 	if (1 != sscanf(strValue, "%hu", &_val))
 #endif		
@@ -594,7 +596,8 @@ char cmnUtilsParseInt8(char *strValue, uint8_t  *value)
 {
 	uint8_t _val;
 #ifdef	ARM
-	if (1 != sscanf(strValue, "%"PRIu8, &_val))
+//	if (1 != sscanf(strValue, "%"PRIu8, &_val))
+	if (1 != sscanf(strValue, "%hhu", &_val))
 #else
 	if (1 != sscanf(strValue, "%hhu", &_val))
 #endif		

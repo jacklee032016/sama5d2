@@ -39,7 +39,7 @@ DHCP enable:
 apiClient -c set -a 192.168.168.101 -m "08:00:27:E7:B7:63" -d  '{"system":{"isDhcp":1}}'
 
 DHCP disable and IP address must also be provided:
-apiClient -c set -a 192.168.168.101 -m "08:00:27:E7:B7:63" -d  '{"system":{"ip":"192.168.168.181", "mask": "255.255.255.0", "gateway": "192.168.168.1", "isDhcp":0}}'
+apiClient -c set -a 192.168.168.102 -m "08:00:27:E7:B7:63" -d  '{"system":{"ip":"192.168.168.181", "mask": "255.255.255.0", "gateway": "192.168.168.1", "isDhcp":0}}'
 
 
 Video:

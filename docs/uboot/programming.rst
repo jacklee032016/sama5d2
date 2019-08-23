@@ -39,6 +39,7 @@ Steps:
 ::
 
    tftpboot 0x21000000 at91-sama5d2_xplained.dtb;   sf probe 1:0; sf erase 0x20000 0x10000; sf write 0x21000000 0x20000 0x10000
+  * 
    tftpboot 0x21000000 mux774_v2.dtb;sf probe 1:0; sf erase 0x20000 0x10000; sf write 0x21000000 0x20000 0x10000
    tftpboot 0x21000000 mux768.dtb;sf probe 1:0; sf erase 0x20000 0x10000; sf write 0x21000000 0x20000 0x10000
 

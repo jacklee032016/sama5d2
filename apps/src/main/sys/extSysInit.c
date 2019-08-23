@@ -128,17 +128,26 @@ int32_t	extSystemInit(MuxMain		*muxMain)
 	{
 		EXT_ERRORF("Check FPGA failed");
 	}
+	
+	if((runCfg->runtime.revision == 0) && (runCfg->runtime.revision== 0))
+	{
+		do
+		{
+			MUX_ERROR("No FPGA is found, service stop");
+		}while(1);
+	}
 
 	isTx = runCfg->isTx;
 	ret = cmnSysCfgRead(runCfg, EXT_CFG_MAIN);
+	if(ret == EXIT_FAILURE)
+	{/* TX/RX must be get before default condfiguration*/
+		cmnSysCfgFromFactory(runCfg);
+		cmnSysCfgSave(runCfg, EXT_CFG_MAIN);
+		MUX_ERROR("No "MUX_SYSTEM_CONFIG_DATA" is found, default %s factory configuration is used", (EXT_IS_TX(runCfg))?"TX":"RX");
+	}
+	
 	runCfg->isTx = isTx;
 	memcpy(&runCfg->version, &muxMain->version, sizeof(muxMain->version));
-
-	if(ret == EXIT_FAILURE)
-	{
-		MUX_ERROR("Read configuration data failed, using factory default data");
-		cmnSysCfgFromFactory(runCfg);
-	}
 
 	if(_extSysNetInit(muxMain)== EXIT_FAILURE)
 	{

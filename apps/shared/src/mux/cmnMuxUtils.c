@@ -3,8 +3,8 @@
  #include <string.h>
 
 #include "libCmn.h"
+#include "mux7xx.h"
 #include "libMux.h"
-
 
 
 TYPE_NAME_T jsonErrors[] =
@@ -412,20 +412,21 @@ const	TYPE_NAME_T	_videoFormats[] =
 
 const	TYPE_NAME_T	_videoColorSpaces[] =
 {/* from page 17 of specs SAMPTE ST 2110-20:2017 */
+#if (MUX_BOARD == MUX_BOARD_767 )
 	{
-		type	: EXT_V_COLORSPACE_YCBCR_422,
-		name	: "YCbCr-4:2:2",
-		value : NULL,
+		.type = EXT_V_COLORSPACE_YCBCR_422,
+		.name = "YCbCr-4:2:2",
+		.value = NULL,
 	},
 	{
-		type	: EXT_V_COLORSPACE_YCBCR_444,
-		name	: "YCbCr-4:4:4",
-		value : NULL,
+		.type = EXT_V_COLORSPACE_YCBCR_444,
+		.name = "YCbCr-4:4:4",
+		.value = NULL,
 	},
 	
 	{
-		type	: EXT_V_COLORSPACE_RGB,
-		name	: "RGB",
+		.type = EXT_V_COLORSPACE_RGB,
+		.name = "RGB",
 		value : NULL,
 	},
 #if 0
@@ -462,6 +463,48 @@ const	TYPE_NAME_T	_videoColorSpaces[] =
 		value : NULL,
 	},
 #endif		
+#elif (MUX_BOARD == MUX_BOARD_774)
+	{
+		type	: EXT_V_COLORSPACE_YCBCR_444,
+		name	: "YCbCr-4:4:4",
+		value : NULL,
+	},
+	{
+		type	: EXT_V_COLORSPACE_YCBCR_422,
+		name	: "YCbCr-4:2:2",
+		value : NULL,
+	},
+	{
+		type	: EXT_V_COLORSPACE_YCBCR_420,
+		name	: "YCbCr-4:2:0",
+		value : NULL,
+	},
+	{
+		type	: EXT_V_COLORSPACE_YCBCR_RAW,
+		name	: "YCbCr-RAW",
+		value : NULL,
+	},
+	
+	{
+		type	: EXT_V_COLORSPACE_RESERVED,
+		name	: "Reserved",
+		value : NULL,
+	},
+	
+	{
+		type	: EXT_V_COLORSPACE_Y4K_420,
+		name	: "Y4K-4:2:0",
+		value : NULL,
+	},
+	{
+		type	: EXT_V_COLORSPACE_RGB_RAW,
+		name	: "RGB-RAW",
+		value : NULL,
+	},
+
+#else
+#error 	Not support board definition
+#endif
 	{
 		type	: -1,
 		name	: NULL,

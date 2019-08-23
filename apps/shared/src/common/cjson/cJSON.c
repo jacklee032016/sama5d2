@@ -1099,7 +1099,11 @@ fail:
 
         global_error = local_error;
 		/* 03.25, 2019. JL, to support debug in JSON file */
+#ifdef	ARM
+		printf("%s#%d: JSON parsing failed at %d is '%s' ", __FILE__, __LINE__, global_error.position, global_error.json + global_error.position);
+#else
 		printf("%s#%d: JSON parsing failed at %ld is '%s' ", __FILE__, __LINE__, global_error.position, global_error.json + global_error.position);
+#endif
     }
 
     return NULL;

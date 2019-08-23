@@ -9,9 +9,9 @@
 
 #include "mux7xx.h"
 
-#if	(MUX_BOARD == MUX_BOARD_768)
+#if	(MUX_BOARD == MUX_BOARD_768 || MUX_BOARD == MUX_BOARD_774 )
 #include "si5351bRegs.h"
-#elif (MUX_BOARD == MUX_BOARD_774)
+#elif (MUX_BOARD == MUX_BOARD_767)
 #include "si5351bRegisters.h"
 #endif
 
@@ -23,7 +23,7 @@ int  muxSi5351bHwInit(void)
 	unsigned int bus;
 
 	bus = muxHwTwiSetMuxChannel(MUX_BUS_SI5351B);
-#if	(MUX_BOARD == MUX_BOARD_768)
+#if	(MUX_BOARD == MUX_BOARD_768 || MUX_BOARD == MUX_BOARD_774)
 	buffer[0] = 0xff;
 	twi_write(bus, EXT_I2C_DEV_SI5351B, 3, 1, buffer, 1);
 
@@ -62,7 +62,7 @@ int  muxSi5351bHwInit(void)
 	dbg_info("SI5351B status: %x, %s\n", buffer[0], (buffer[0]==0x11)?"OK":"Failed");
 #endif
 
-#elif (MUX_BOARD == MUX_BOARD_774)
+#elif (MUX_BOARD == MUX_BOARD_767 )
 	// Turn off the clocks
 	buffer[0] = 0xff;
 	if(twi_write(bus, EXT_I2C_DEV_SI5351B, 3, 1, buffer, 1) )

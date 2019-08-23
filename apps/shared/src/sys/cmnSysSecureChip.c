@@ -78,7 +78,7 @@ static void _bspScInitPage(SC_CTRL *sc)
 
 
 /* initialize 32 byte challenge from random */
-int cmnSysScChallegeInit(SC_CTRL *sc)
+int cmnSysScChallengeInit(SC_CTRL *sc)
 {
 	int ranVal;
 	int i;
@@ -87,7 +87,20 @@ int cmnSysScChallegeInit(SC_CTRL *sc)
 	
 	for (i = 0; i < 8; i++)
 	{
+#if 1
+		if(i==0)
+			ranVal= 1234;
+		else if(i==1)
+			ranVal= 5678;
+		else if(i==2)
+			ranVal= 9012;
+		else if(i==3)
+			ranVal= 1290;
+		else
+			ranVal= 3456;
+#else
 		ranVal= rand();
+#endif
 		memcpy( &sc->challenge[i*4], &ranVal, 4);
 	}
 
@@ -114,7 +127,7 @@ char cmnSysScComputeMAC(SC_CTRL *sc)
 	memcpy(&MT[64], sc->secret, 32);
 	
 	// insert ROM number or FF
-	if (sc->isAnon )
+	if (0)//sc->isAnon )
 	{
 		memset(&MT[96], 0xFF, 8);
 	}
@@ -123,10 +136,11 @@ char cmnSysScComputeMAC(SC_CTRL *sc)
 		memcpy(&MT[96], sc->romId, 8);
 	}
 
-	MT[106] = sc->pageNum;
+	MT[106] = 0;//sc->pageNum;
 	MT[105] = sc->manId[0];
 	MT[104] = sc->manId[1];
 
+	CMN_HEX_DUMP(MT, 119, "raw MT data:");
 	// change to little endian for A1 devices    
 	for (i = 0; i < 108; i+=4)
 	{
@@ -223,9 +237,15 @@ SecurityFiles *cmnSysScInit(void)
 #endif
 	CMN_HEX_DUMP(personality_byte, sizeof(personality_byte), "Personality");
 
+#if 1
 	scf->sc.manId[0] = personality_byte[2];
 	scf->sc.manId[1] = personality_byte[3];
+#else	
+	scf->sc.manId[0] = personality_byte[1];
+	scf->sc.manId[1] = personality_byte[0];
+#endif
 
+	MUX_INFO("ManuID: 0x%02x:0x%02x", scf->sc.manId[0], scf->sc.manId[1]);
 	return scf; 
 }
 
@@ -315,7 +335,7 @@ int	cmnSysScRWMac(SecurityFiles *scf, unsigned char *page, int isRead)	/* key : 
 	
 	if(len != SC_PAGE_SIZE)
 	{
-		EXT_ERRORF("SC: %s MAC failed, %d: %m", (isRead)?"Read":"Write", len);
+		EXT_ERRORF("SC: %s MAC %s failed, %d: %m", (isRead)?"Read":"Write", scf->macFile, len);
 		return EXIT_FAILURE;
 	}
 
@@ -390,7 +410,7 @@ int cmnSysScValidate(SecurityFiles *scf)
 		return EXIT_FAILURE;
 	}
 
-	cmnSysScChallegeInit(&scf->sc);
+	cmnSysScChallengeInit(&scf->sc);
 	EXT_INFOF(EXT_NEW_LINE"Challenge"EXT_NEW_LINE"\tWrite ...");
 	CMN_HEX_DUMP(scf->sc.challenge, sizeof(scf->sc.challenge), "Write Challenge:");
 	if(SC_MAC_WRITE(scf, scf->sc.challenge))
@@ -406,12 +426,12 @@ int cmnSysScValidate(SecurityFiles *scf)
 #if ARCH_ARM
 	if(cmnSysScComputeMAC(&scf->sc) == EXIT_FAILURE)
 	{
-		EXT_ERRORF("Securety Validating result: Failed");
+		MUX_ERROR("Securety Validating result: Failed");
 		return EXIT_FAILURE;
 	}
 #endif
 
-	EXT_INFOF("Securety Validating result: Success");
+	MUX_INFO("Securety Validating result: Success");
 	
 	return EXIT_SUCCESS;
 }

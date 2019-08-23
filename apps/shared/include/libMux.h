@@ -1137,6 +1137,7 @@ extern	CmnThread  threadSdpClient;
 extern	CmnThread  threadSdpReceiver;
 
 extern	CmnThread  threadButton;
+extern	CmnThread  threadLed;
 
 
 MuxPlugIn *cmnMuxPluginFind(MuxMain *muxMain, MUX_PLUGIN_TYPE type);

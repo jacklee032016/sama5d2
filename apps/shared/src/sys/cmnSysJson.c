@@ -133,11 +133,13 @@ static int _cmnSysJsonUpdateSdp(EXT_RUNTIME_CFG *runCfg, cJSON *objArray)
 		return EXIT_FAILURE;
 	}
 	
+#if WITH_ANCILLIARY_STREAM
 	if(cmnSysJsonGetSdpObject(objArray, MUX_REST_URI_ANC, &runCfg->sdpUriAnc) == NULL)
 	{
 		MUX_ERROR("SDP of '%s' update failed", MUX_REST_URI_ANC);
 		return EXIT_FAILURE;
 	}
+#endif
 	return EXIT_SUCCESS;
 }
 
@@ -198,6 +200,12 @@ static int _cmnSysJsonUpdateSystem(EXT_RUNTIME_CFG *runCfg, cJSON *systemObj)
 {
 	cJSON *newObj = NULL;
 	char macAddress[128];
+	char *ifName = MUX_ETH_DEVICE;
+
+	/* use new info after ip address has been changed */
+	runCfg->local.ip = cmnSysNetGetIp(ifName);
+	runCfg->ipMask = cmnSysNetGetMask(ifName);
+	runCfg->ipGateway = cmnSysNetGetDefaultGw(ifName);
 
 	/* system name */
 	CJSON_REPLACE_STRING(systemObj, FIELD_SYS_CFG_PRODUCT, runCfg->product);
@@ -270,12 +278,14 @@ int cmnSysJsonUpdate(MuxMain *muxMain)
 		MUX_ERROR("Update '%s' JSON failed", MUX_REST_URI_AUDIO);
 	}
 
+#if WITH_ANCILLIARY_STREAM
 	itemObj = cmnJsonSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_ANC, INVALIDATE_VALUE_U32);
 	if(_cmnSysJsonUpdateAnc(&muxMain->runCfg, itemObj))
 	{
 		MUX_ERROR("Update '%s' JSON failed", MUX_REST_URI_ANC);
 	}
-	
+#endif
+
 	itemObj = cmnJsonSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_SDP, INVALIDATE_VALUE_U32);
 	if(_cmnSysJsonUpdateSdp(&muxMain->runCfg, itemObj))
 	{

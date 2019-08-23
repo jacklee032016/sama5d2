@@ -2,6 +2,27 @@ MAC Address and Flash
 #####################################
 06.14, 2019
 
+
+arch=arm
+baudrate=115200
+board=sama5d2_xplained
+board_name=sama5d2_xplained
+bootargs=root=/dev/mtdblock6 rootfstype=jffs2 rw rootwait console=ttyS0,115200 earlyprintk
+bootcmd=sf probe 1:0; sf read 0x21000000 0x20000 0x10000; sf read 0x22000000 0x100000 0x400000; bootz 0x22000000 - 0x21000000
+bootdelay=3
+cpu=armv7
+ethaddr=fc:c2:3d:0d:16:13
+fdtcontroladdr=2fb6c6f0
+ipaddr=192.168.168.181
+netmask=255.255.255.0
+serverip=192.168.168.101
+soc=at91
+stderr=serial@f8020000
+stdin=serial@f8020000
+stdout=serial@f8020000
+vendor=atmel
+
+
 Set MAC Address 
 ========================
 ::

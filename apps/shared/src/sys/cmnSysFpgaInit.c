@@ -18,56 +18,32 @@ static int _sysFpgaReadHwInfo(FpgaConfig 	*fpga)
 	EXT_RUNTIME_CFG *runCfg = fpga->runCfg;
 	FpgaVersionAddress		*verAddr = NULL;
 
-	if(FPGA_IS_TX(fpga) )
+	_extFpgaReadByte(&fpga->version->version, &runCfg->runtime.version);
+	_extFpgaReadByte(&fpga->version->revision, &runCfg->runtime.revision);
+
+	if( (runCfg->runtime.version &0x80) )
 	{
-		verAddr = fpga->txAddress->version;
+		runCfg->isTx = 1;
 	}
 	else
 	{
-		verAddr = fpga->rxAddress->version;
+		runCfg->isTx = 0;
 	}
-	
-	_extFpgaReadByte(&verAddr->version, &runCfg->runtime.version);
-	_extFpgaReadByte(&verAddr->revision, &runCfg->runtime.revision);
+	MUX_DEBUG("FPGA Firmware is %s", FPGA_IS_TX(fpga)?"TX":"RX");
+
+	EXT_DEBUGF(MUX_DEBUG_FPGA, "version:0x%x; revision:0x%x:%p", runCfg->runtime.version, runCfg->runtime.revision, runCfg);
+#if 0	
 	_extFpgaReadByte(&verAddr->year, &runCfg->runtime.year);
 	_extFpgaReadByte(&verAddr->month, &runCfg->runtime.month);
 	_extFpgaReadByte(&verAddr->day, &runCfg->runtime.day);
 	_extFpgaReadByte(&verAddr->hour, &runCfg->runtime.hour);
 	_extFpgaReadByte(&verAddr->minute, &runCfg->runtime.minute);
+#endif
 
 	return EXIT_SUCCESS;
 }
 
 
-void _fpgaRegisterRead(unsigned char address, unsigned char *data, unsigned char size)
-{
-	unsigned char i;
-	unsigned char *index = data;
-	
-	for(i=0; i< size; i++)
-	{
-		FPGA_I2C_READ(address+i, index+i, 1);
-	}
-}
-
-
-/* IPAddress from Lwip, in network byte order */
-void	_fpgaRegisterWrite(unsigned char baseAddr, unsigned char *data, unsigned char size)
-{
-	unsigned char i;
-	unsigned char *index = data;
-	
-//	unsigned char baseAddr = address->offset;
-
-	for(i=0; i < size; i++)
-	{
-//		I2C_EXT_READ( address->device->bus,address->device->bus,address->device->bus, address+i, 1, index+i, 1);
-	}
-
-//		FPGA_I2C_READ(i, &data, 1);
-
-	return ;//EXIT_SUCCESS;
-}
 
 
 /* check hw info and read TX/RX */
@@ -94,10 +70,12 @@ char *sysFgpaVersion(FpgaConfig 	*fpga)
 	EXT_RUNTIME_CFG *runCfg = fpga->runCfg;
 	MuxRunTimeParam *mediaParams = &runCfg->runtime;
 	
-//	_extFpgaReadVer(mediaParams);
-
-	index += snprintf(_fpgaVersion+index, sizeof(_fpgaVersion) - index, " %s, Ver:%02x", 
+	EXT_DEBUGF(MUX_DEBUG_FPGA, "version:0x%x; revision:0x%x:%p", mediaParams->version, mediaParams->revision, runCfg);
+	index += snprintf(_fpgaVersion+index, sizeof(_fpgaVersion) - index, "%s, Ver:%02x", 
 		((mediaParams->version&EXT_FPGA_TX_FLAGS)==0)?"RX":"TX", (mediaParams->version&(~EXT_FPGA_TX_FLAGS)) );
+#if 1
+	index += snprintf(_fpgaVersion+index, sizeof(_fpgaVersion) - index, ".%02x", mediaParams->revision);
+#else
 	index += snprintf(_fpgaVersion+index, sizeof(_fpgaVersion) - index, ".%02x, ", mediaParams->revision);
 
 	index += snprintf(_fpgaVersion+index, sizeof(_fpgaVersion) - index, "(Build %02x ", mediaParams->month);
@@ -105,6 +83,7 @@ char *sysFgpaVersion(FpgaConfig 	*fpga)
 	index += snprintf(_fpgaVersion+index, sizeof(_fpgaVersion) - index, "%02x ", mediaParams->year);
 	index += snprintf(_fpgaVersion+index, sizeof(_fpgaVersion) - index, "%02x:", mediaParams->hour);
 	index += snprintf(_fpgaVersion+index, sizeof(_fpgaVersion) - index, "%02x)", mediaParams->minute);
+#endif
 
 	return _fpgaVersion;
 }
@@ -150,7 +129,7 @@ int _debugOneStreamRx(char *label, StreamRegisterAddress *streamAddr, char *data
 }
 
 
-int sysFgpaRegistersDebug( char *data, unsigned int size)
+int sysFpgaRegistersDebug( char *data, unsigned int size)
 {
 	int index = 0;
 //	unsigned char val;
@@ -170,6 +149,7 @@ int sysFgpaRegistersDebug( char *data, unsigned int size)
 		return EXIT_FAILURE;
 	}
 
+TRACE();
 	index += snprintf(data+index, size-index, "%s;"EXT_NEW_LINE, sysFgpaVersion(fpga) );
 	index += snprintf(data+index, size-index, "%s configuration: ", EXT_IS_TX(runCfg)?"TX":"RX");
 
@@ -272,13 +252,17 @@ int	sysFpgaInit(EXT_RUNTIME_CFG *runCfg )
 	runCfg->fpgaCfg = fpga;
 	
 //	_fpgaRegisterWrite(EXT_FPGA_REG_PORT_AUDIO, (unsigned char *)&runCfg->local.aport, 2);
-	
+
+#if 1	
 	if(! IS_SECURITY_CHIP_EXIST(runCfg->muxMain) || cmnSysScValidate(runCfg->muxMain->scf)== EXIT_FAILURE)
 	{
 		value = EXT_FPGA_FLAGS_DISABLE_ALL;	
 		FPGA_I2C_READ(EXT_FPGA_REG_ENABLE, &value, 1);
 		return EXIT_FAILURE;
 	}
+#endif
+
+	sysFpgaCheck(runCfg);
 
 	/*configure dest, only for TX */
 	if(EXT_IS_TX(runCfg) )
@@ -308,8 +292,83 @@ int	sysFpgaInit(EXT_RUNTIME_CFG *runCfg )
 
 	fpga->opProtocolCtrl(fpga);
 
-	fpga->opMediaWrite(fpga);
+	if(EXT_IS_TX(runCfg) )
+	{
+		fpga->opMediaRead(fpga);
+	}
+	else
+	{
+		fpga->opMediaWrite(fpga);
+	}
+
+	{
+		char 	buf[4096];
+		sysFpgaRegistersDebug(buf, sizeof(buf));
+
+		printf(buf);
+	}
 
 	return EXIT_SUCCESS;
 }
+
+
+int	sysFpgaReadVideoStatus(void)
+{
+	FpgaI2cAddress		*reg;
+	FpgaConfig 	*fpga =  &_fpgaConfig;
+	unsigned char _chValue;
+
+
+	if(fpga->runCfg == NULL)
+		return EXT_FALSE;
+	
+	if(EXT_IS_TX(fpga->runCfg) )
+	{
+		reg = &fpga->txAddress->media->width;
+	}
+	else
+	{
+		reg = &fpga->rxAddress->media->width;
+	}
+
+	_extFpgaReadByte(reg, &_chValue);
+
+	if(_chValue)
+	{
+		return EXT_TRUE;
+	}
+
+	return EXT_FALSE;
+}
+
+
+int	sysFpgaReadFpsStatus(void)
+{
+	FpgaI2cAddress		*reg;
+	FpgaConfig 	*fpga =  &_fpgaConfig;
+	unsigned char _chValue;
+
+
+	if(fpga->runCfg == NULL)
+		return EXT_FALSE;
+	
+	if(EXT_IS_TX(fpga->runCfg) )
+	{
+		reg = &fpga->txAddress->media->width;
+	}
+	else
+	{
+		reg = &fpga->rxAddress->media->width;
+	}
+
+	_extFpgaReadByte(reg, &_chValue);
+
+	if(_chValue)
+	{
+		return EXT_TRUE;
+	}
+
+	return EXT_FALSE;
+}
+
 

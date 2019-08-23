@@ -400,7 +400,7 @@
 
 #define	EXT_IPCMD_DEBUG						EXT_DBG_OFF
 
-#define	SDP_CLIENT_DEBUG					EXT_DBG_OFF
+#define	SDP_CLIENT_DEBUG						EXT_DBG_OFF
 
 
 /*
@@ -806,6 +806,7 @@ typedef	enum
 
 
 
+#if (MUX_BOARD == MUX_BOARD_767 )
 typedef	enum
 {/* value definitions are from FPGA */
 	EXT_V_COLORSPACE_YCBCR_422		= 0,
@@ -818,7 +819,21 @@ typedef	enum
 	EXT_V_COLORSPACE_CL_YCBCR_444	= 9,
 	EXT_V_COLORSPACE_CL_YCBCR_420	= 11
 }EXT_V_COLORSPACE;
-
+#elif (MUX_BOARD == MUX_BOARD_774)
+typedef	enum
+{/* value definitions are from FPGA */
+	EXT_V_COLORSPACE_YCBCR_444 		= 0,
+	EXT_V_COLORSPACE_YCBCR_422		= 1,
+	EXT_V_COLORSPACE_YCBCR_420		= 2,
+	EXT_V_COLORSPACE_YCBCR_RAW		= 3,
+	EXT_V_COLORSPACE_RGB444			= 4,
+	EXT_V_COLORSPACE_RESERVED		= 5,
+	EXT_V_COLORSPACE_Y4K_420		= 6,
+	EXT_V_COLORSPACE_RGB_RAW		= 7
+}EXT_V_COLORSPACE;
+#else
+#error 	Not support board definition
+#endif
 
 typedef	enum
 {

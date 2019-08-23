@@ -120,7 +120,7 @@ static int _muxFpgaReload(void)
 	return  _extBspFpgaWaitDone(8);
 }
 
-
+/* make every LED on */
 static void _ledReset(void)
 {
 	/* set LED pins to output */
@@ -223,7 +223,6 @@ int muxHwInit(void)
 #endif
 
 	/* after reload, LEDs off */
-
 #if	(MUX_BOARD == MUX_BOARD_768)
 	pio_set_gpio_output(LED_VIDEO, 0);
 	pio_set_gpio_output(LED_ACT, 0);
@@ -232,6 +231,11 @@ int muxHwInit(void)
 	pio_set_value(LED_VIDEO, 0);
 	pio_set_value(LED_ACT, 0);
 	pio_set_value(LED_LINK, 0);
+
+	/* flash from FPGA to MUC, 08.22, 2019 */
+	EXT_INFOF("Flash switch to MCU");
+	pio_set_gpio_output(FPGA_FLASH_SWITCH, 1);
+	pio_set_value(FPGA_FLASH_SWITCH, 1);
 #endif
 	
 

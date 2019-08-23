@@ -592,6 +592,7 @@ int	cmnMuxObjectParseRs232(struct DATA_CONN *dataConn, cJSON *dataObj)
 {
 	char *value;
 	int	intValue;
+	int	isFound = 0;
 	
 	MuxMain *muxMain = SYS_MAIN(dataConn);
 	EXT_RUNTIME_CFG *rxCfg = &muxMain->rxCfg;
@@ -608,6 +609,7 @@ int	cmnMuxObjectParseRs232(struct DATA_CONN *dataConn, cJSON *dataObj)
 		{
 			rxCfg->rs232Cfg.baudRate = intValue;
 		}
+		isFound = 1;
 	}
 
 	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_RS232_DATABITS);
@@ -622,6 +624,7 @@ int	cmnMuxObjectParseRs232(struct DATA_CONN *dataConn, cJSON *dataObj)
 		{
 			rxCfg->rs232Cfg.charLength = intValue;
 		}
+		isFound = 1;
 	}
 
 	value = cmnGetStrFromJsonObject(dataObj, FIELD_RS232_PARITY);
@@ -635,6 +638,7 @@ int	cmnMuxObjectParseRs232(struct DATA_CONN *dataConn, cJSON *dataObj)
 		}
 		
 		rxCfg->rs232Cfg.parityType = (unsigned char )intValue;
+		isFound = 1;
 	}
 
 	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_RS232_STOPBITS);
@@ -649,10 +653,11 @@ int	cmnMuxObjectParseRs232(struct DATA_CONN *dataConn, cJSON *dataObj)
 			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s': %d in %s item is wrong", FIELD_RS232_STOPBITS, intValue, MUX_REST_URI_RS232);
 			return EXIT_FAILURE;
 		}
+		isFound = 1;
 	}
 
 
-	if(cmnMuxObjectParseHexaData(dataConn, dataObj, MUX_REST_URI_RS232) == EXIT_SUCCESS)
+	if(cmnMuxObjectParseHexaData(dataConn, dataObj, MUX_REST_URI_RS232, (isFound==0)?EXT_TRUE:EXT_FALSE) == EXIT_SUCCESS)
 	{
 		cmnMuxSendRsData(dataConn, dataObj);
 	}
@@ -666,7 +671,7 @@ int	cmnMuxObjectParseIR(struct DATA_CONN *dataConn, cJSON *dataObj)
 {
 //	MuxMain *muxMain = SYS_MAIN(dataConn);
 
-	if(cmnMuxObjectParseHexaData(dataConn, dataObj, MUX_REST_URI_IR) == EXIT_SUCCESS)
+	if(cmnMuxObjectParseHexaData(dataConn, dataObj, MUX_REST_URI_IR, EXT_TRUE) == EXIT_SUCCESS)
 	{
 		cmnMuxSendIRData(dataConn, dataObj);
 		return EXIT_SUCCESS;

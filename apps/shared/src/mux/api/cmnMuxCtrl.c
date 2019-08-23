@@ -179,16 +179,12 @@ static char _compareMediaCfg(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 //	const ip4_addr_t *mcIpAddr;
 	char ret = EXT_FALSE;
 
-TRACE();
 	if(FIELD_IS_CHANGED_U8(rxCfg->fpgaAuto) )
 	{
-TRACE();
 		if( (runCfg->fpgaAuto) !=  (rxCfg->fpgaAuto) )
 		{
-TRACE();
 			EXT_DEBUGF(DEBUG_SYS_CTRL, FIELD_SYS_CFG_MEDIA_AUTO" changed from %s to %s", 
 				CMN_FIND_MEDIA_MODE(runCfg->fpgaAuto), CMN_FIND_MEDIA_MODE(rxCfg->fpgaAuto) );
-TRACE();
 			runCfg->fpgaAuto = rxCfg->fpgaAuto;
 			
 			ret = EXT_TRUE;

@@ -165,6 +165,11 @@ static struct DATA_CONN *_createDataConnection(struct CTRL_CONN *ctrlConn)
 	return dataConn;
 
 err:
+	if(dataSocket > 0)
+	{
+		close(dataSocket);
+	}
+	
 	cmn_free(dataConn);
 	
 	return NULL;

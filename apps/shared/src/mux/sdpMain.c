@@ -194,6 +194,8 @@ static int _cmnMuxSdpAddRequest(HttpClientReq *sdpUri, struct SDP_CLIENT_CTX *sd
 {
 	HttpClientReq *uri;
 
+	_SDP_DEBUG("add SDP request='%s', %s:%d; type:%d", sdpUri->uri,  cmnSysNetAddress(sdpUri->ip), sdpUri->port, sdpUri->type );
+
 	struct SDP_CLIENT *sdpClient = _sdpFindClient(sdpCtx, sdpUri->type);
 	if(sdpClient == NULL)
 	{
@@ -229,7 +231,9 @@ int cmnMuxSdpTimerCallback(int interval, void *param)
 
 	_cmnMuxSdpAddRequest(&sdpCtx->muxMain->runCfg.sdpUriVideo, sdpCtx);
 	_cmnMuxSdpAddRequest(&sdpCtx->muxMain->runCfg.sdpUriAudio, sdpCtx);
+#if WITH_ANCILLIARY_STREAM
 	_cmnMuxSdpAddRequest(&sdpCtx->muxMain->runCfg.sdpUriAnc, sdpCtx);
+#endif
 
 	return EXIT_SUCCESS;
 }

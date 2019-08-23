@@ -736,7 +736,6 @@ CONFIG_CAN_M_CAN=y
 # CONFIG_AF_KCM is not set
 # CONFIG_STREAM_PARSER is not set
 # CONFIG_WIRELESS is not set
-# CONFIG_MAC80211_RC_DEFAULT_MINSTREL is not set
 # CONFIG_WIMAX is not set
 # CONFIG_RFKILL is not set
 # CONFIG_NET_9P is not set

@@ -1,5 +1,5 @@
 # /etc/network/interfaces by muxCtrl
-2019-08-08 15:24:05
+# 2019-08-08 15:24:05
 
 # The loopback interface
 auto lo
@@ -8,5 +8,4 @@ iface lo inet loopback
 # wire interface eth0
 auto eth0
 iface eth0 inet dhcp
-
 

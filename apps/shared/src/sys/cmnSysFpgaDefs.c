@@ -13,7 +13,7 @@
 static FpgaI2cDevice	_fpgaDevTxSystem =
 {
 	.bus		= 0,
-	.channel	= I2C_CHAN_4_AQLX107GK7,
+	.channel	= EXT_I2C_PCA9554_CS_NONE,
 	.slaveAddress = EXT_FPAG_ADDRESS_SYSTEM,
 #if FPGA_DEBUG
 	.name = "TxSystem",
@@ -21,10 +21,10 @@ static FpgaI2cDevice	_fpgaDevTxSystem =
 
 };
 
-static FpgaI2cDevice	_fpgaDevTxPtp =
+static FpgaI2cDevice	_fpgaDevTxRtp =
 {
 	.bus		= 0,
-	.channel	= I2C_CHAN_4_AQLX107GK7,
+	.channel	= EXT_I2C_PCA9554_CS_NONE,
 	.slaveAddress = EXT_FPAG_ADDRESS_PTP,
 #if FPGA_DEBUG
 	.name = "TxPtp",
@@ -35,7 +35,7 @@ static FpgaI2cDevice	_fpgaDevTxPtp =
 static FpgaI2cDevice	_fpgaDevTxNetwork =
 {
 	.bus		= 0,
-	.channel	= I2C_CHAN_4_AQLX107GK7,
+	.channel	= EXT_I2C_PCA9554_CS_NONE,
 	.slaveAddress = EXT_FPAG_ADDRESS_NETWORK,
 #if FPGA_DEBUG
 	.name = "TxNetwork",
@@ -46,17 +46,17 @@ static FpgaI2cDevice	_fpgaDevTxNetwork =
 static FpgaI2cDevice	_fpgaDevRxSystem =
 {
 	.bus		= 0,
-	.channel	= I2C_CHAN_4_AQLX107GK7,
+	.channel	= EXT_I2C_PCA9554_CS_NONE,
 	.slaveAddress = EXT_FPAG_ADDRESS_SYSTEM,
 #if FPGA_DEBUG
 	.name = "RxSysten",
 #endif
 };
 
-static FpgaI2cDevice	_fpgaDevRxPtp =
+static FpgaI2cDevice	_fpgaDevRxRtp =
 {
 	.bus		= 0,
-	.channel	= I2C_CHAN_4_AQLX107GK7,
+	.channel	= EXT_I2C_PCA9554_CS_NONE,
 	.slaveAddress = EXT_FPAG_ADDRESS_PTP,
 #if FPGA_DEBUG
 	.name = "RxPtp",
@@ -67,7 +67,7 @@ static FpgaI2cDevice	_fpgaDevRxPtp =
 static FpgaI2cDevice	_fpgaDevRxNetwork =
 {
 	.bus		= 0,
-	.channel	= I2C_CHAN_4_AQLX107GK7,
+	.channel	= EXT_I2C_PCA9554_CS_NONE,
 	.slaveAddress = EXT_FPAG_ADDRESS_NETWORK,
 #if FPGA_DEBUG
 	.name = "RxNetwork",
@@ -80,7 +80,7 @@ static StreamRegisterAddress _txStreamVideo =
 	.ip = 
 	{
 		.device = &_fpgaDevTxNetwork,
-		.offset = 88,
+		.offset = F_REG_TX_NET_DEST_VIDEO_IP,
 #if FPGA_DEBUG
 		.name = "txVideoIp",
 #endif
@@ -88,7 +88,7 @@ static StreamRegisterAddress _txStreamVideo =
 	.mac =
 	{
 		.device = &_fpgaDevTxNetwork,
-		.offset = 64,
+		.offset = F_REG_TX_NET_DEST_MAC,
 #if FPGA_DEBUG
 		.name = "txVideoMac",
 #endif
@@ -96,15 +96,15 @@ static StreamRegisterAddress _txStreamVideo =
 	.port = 
 	{
 		.device = &_fpgaDevTxNetwork,
-		.offset = 104,
+		.offset = F_REG_TX_NET_DEST_VIDEO_PORT,
 #if FPGA_DEBUG
 		.name = "txVideoPort",
 #endif
 	},
 	.rtpPayload = 
 	{
-		.device = &_fpgaDevTxNetwork,
-		.offset = 37,
+		.device = &_fpgaDevTxRtp,
+		.offset = F_REG_TX_RTP_VIDEO_PAYLOAD_TYPE,
 #if FPGA_DEBUG
 		.name = "txVideoRtpPayload",
 #endif
@@ -117,7 +117,7 @@ static StreamRegisterAddress _txStreamAudio =
 	.ip = 
 	{
 		.device = &_fpgaDevTxNetwork,
-		.offset = 92,
+		.offset = F_REG_TX_NET_DEST_AUDIO_IP,
 #if FPGA_DEBUG
 		.name = "txAudioIp",
 #endif
@@ -125,7 +125,7 @@ static StreamRegisterAddress _txStreamAudio =
 	.mac =
 	{
 		.device = &_fpgaDevTxNetwork,
-		.offset = 70,
+		.offset = F_REG_TX_NET_DEST_MAC,
 #if FPGA_DEBUG
 		.name = "txAudioMac",
 #endif
@@ -133,15 +133,15 @@ static StreamRegisterAddress _txStreamAudio =
 	.port = 
 	{
 		.device = &_fpgaDevTxNetwork,
-		.offset = 106,
+		.offset = F_REG_TX_NET_DEST_AUDIO_PORT,
 #if FPGA_DEBUG
 		.name = "txAudioPort",
 #endif
 	},
 	.rtpPayload = 
 	{
-		.device = &_fpgaDevTxNetwork,
-		.offset = 38,
+		.device = &_fpgaDevTxRtp,
+		.offset = F_REG_TX_RTP_AUDIO_PAYLOAD_TYPE,
 #if FPGA_DEBUG
 		.name = "txAudioRtpPayload",
 #endif
@@ -154,7 +154,7 @@ static StreamRegisterAddress _txStreamAnc =
 	.ip = 
 	{
 		.device = &_fpgaDevTxNetwork,
-		.offset = 96,
+		.offset = F_REG_TX_NET_DEST_IP_ANC,
 #if FPGA_DEBUG
 		.name = "txAncIp",
 #endif
@@ -162,7 +162,7 @@ static StreamRegisterAddress _txStreamAnc =
 	.mac =
 	{
 		.device = &_fpgaDevTxNetwork,
-		.offset = 76,
+		.offset = F_REG_TX_NET_DEST_MAC_ANC,
 #if FPGA_DEBUG
 		.name = "txAncMac",
 #endif
@@ -170,15 +170,15 @@ static StreamRegisterAddress _txStreamAnc =
 	.port = 
 	{
 		.device = &_fpgaDevTxNetwork,
-		.offset = 108,
+		.offset = F_REG_TX_NET_DEST_ANC_PORT,
 #if FPGA_DEBUG
 		.name = "txAncPort",
 #endif
 	},
 	.rtpPayload = 
 	{
-		.device = &_fpgaDevTxNetwork,
-		.offset = 39,
+		.device = &_fpgaDevTxRtp,
+		.offset = F_REG_TX_RTP_ANC_PAYLOAD_TYPE,
 #if FPGA_DEBUG
 		.name = "txAncRtpPayload",
 #endif
@@ -191,7 +191,7 @@ static StreamRegisterAddress _txStreamAux =
 	.ip = 
 	{
 		.device = &_fpgaDevTxNetwork,
-		.offset = 100,
+		.offset = F_REG_TX_NET_DEST_AUX_IP,
 #if FPGA_DEBUG
 		.name = "txAuxIp",
 #endif
@@ -199,7 +199,7 @@ static StreamRegisterAddress _txStreamAux =
 	.mac =
 	{
 		.device = &_fpgaDevTxNetwork,
-		.offset = 82,
+		.offset = F_REG_TX_NET_DEST_MAC_AUX,
 #if FPGA_DEBUG
 		.name = "txAuxMac",
 #endif
@@ -207,15 +207,15 @@ static StreamRegisterAddress _txStreamAux =
 	.port = 
 	{
 		.device = &_fpgaDevTxNetwork,
-		.offset = 110,
+		.offset = F_REG_TX_NET_DEST_AUX_PORT,
 #if FPGA_DEBUG
 		.name = "txAuxPort",
 #endif
 	},
 	.rtpPayload = 
 	{
-		.device = &_fpgaDevTxNetwork,
-		.offset = INVALIDATE_VALUE_U8,
+		.device = &_fpgaDevTxRtp,
+		.offset = F_REG_TX_RTP_AUX_PAYLOAD_TYPE,
 #if FPGA_DEBUG
 		.name = "txAuxRtpPayload",
 #endif
@@ -228,7 +228,7 @@ static MediaRegisterAddress _txMediaAddress =
 	.width = 
 	{
 		.device = &_fpgaDevTxSystem,
-		.offset = EXT_FPGA_REG_WIDTH,
+		.offset = F_REG_TX_SYS_X_ACTIVE,
 #if FPGA_DEBUG
 		.name = "txMediaWidth",
 #endif
@@ -237,7 +237,7 @@ static MediaRegisterAddress _txMediaAddress =
 	.height = 
 	{
 		.device = &_fpgaDevTxSystem,
-		.offset = EXT_FPGA_REG_HEIGHT,
+		.offset = F_REG_TX_SYS_Y_ACTIVE,
 #if FPGA_DEBUG
 		.name = "txMediaHeight",
 #endif
@@ -255,7 +255,7 @@ static MediaRegisterAddress _txMediaAddress =
 	.colorSpace = 
 	{
 		.device = &_fpgaDevTxSystem,
-		.offset = EXT_FPGA_REG_SAMPLING,
+		.offset = F_REG_TX_SYS_VIDEO_CTRL,
 #if FPGA_DEBUG
 		.name = "txMediaColorSpace",
 #endif
@@ -284,7 +284,7 @@ static MediaRegisterAddress _txMediaAddress =
 	.channels = 
 	{
 		.device = &_fpgaDevTxSystem,
-		.offset = EXT_FPGA_REG_AUDIO_CHANNELS,
+		.offset = F_REG_TX_SYS_AUDIO_INPUT,
 #if FPGA_DEBUG
 		.name = "txMediaChannel",
 #endif
@@ -316,7 +316,7 @@ static FpgaVersionAddress _txVerAddress =
 	.version = 
 	{
 		.device = &_fpgaDevTxSystem,
-		.offset = EXT_FPGA_REG_VERSION,
+		.offset = F_REG_TX_SYS_VERSION,
 #if FPGA_DEBUG
 		.name = "txVersion",
 #endif
@@ -325,7 +325,7 @@ static FpgaVersionAddress _txVerAddress =
 	.revision = 
 	{
 		.device = &_fpgaDevTxSystem,
-		.offset = EXT_FPGA_REG_REVISION,
+		.offset = F_REG_TX_SYS_REVISION,
 #if FPGA_DEBUG
 		.name = "txRevision",
 #endif
@@ -334,7 +334,7 @@ static FpgaVersionAddress _txVerAddress =
 	.year = 
 	{
 		.device = &_fpgaDevTxSystem,
-		.offset = EXT_FPGA_REG_YEAR,
+		.offset = F_REG_TX_SYS_YEAR,
 #if FPGA_DEBUG
 		.name = "txYear",
 #endif
@@ -342,7 +342,7 @@ static FpgaVersionAddress _txVerAddress =
 	.month = 
 	{
 		.device = &_fpgaDevTxSystem,
-		.offset = EXT_FPGA_REG_MONTH,
+		.offset = F_REG_TX_SYS_MONTH,
 #if FPGA_DEBUG
 		.name = "txMonth",
 #endif
@@ -350,7 +350,7 @@ static FpgaVersionAddress _txVerAddress =
 	.day = 
 	{
 		.device = &_fpgaDevTxSystem,
-		.offset = EXT_FPGA_REG_DAY,
+		.offset = F_REG_TX_SYS_DAY,
 #if FPGA_DEBUG
 		.name = "txDay",
 #endif
@@ -358,7 +358,7 @@ static FpgaVersionAddress _txVerAddress =
 	.hour = 
 	{
 		.device = &_fpgaDevTxSystem,
-		.offset = EXT_FPGA_REG_HOUR,
+		.offset = F_REG_TX_SYS_HOUR,
 #if FPGA_DEBUG
 		.name = "txHour",
 #endif
@@ -366,7 +366,7 @@ static FpgaVersionAddress _txVerAddress =
 	.minute = 
 	{
 		.device = &_fpgaDevTxSystem,
-		.offset = EXT_FPGA_REG_MINUTE,
+		.offset = F_REG_TX_SYS_MINUTE,
 #if FPGA_DEBUG
 		.name = "txMinute",
 #endif
@@ -378,7 +378,7 @@ static TxRegisterMap _TX_ADDRESS =
 	.reset = 
 	{
 		.device = &_fpgaDevTxSystem,
-		.offset = 0,
+		.offset = F_REG_TX_SYS_RESET,
 #if FPGA_DEBUG
 		.name = "txReset",
 #endif
@@ -387,7 +387,7 @@ static TxRegisterMap _TX_ADDRESS =
 	.localMac =
 	{
 		.device = &_fpgaDevTxNetwork,
-		.offset = 46,
+		.offset = F_REG_TX_NET_LOCAL_MAC,
 #if FPGA_DEBUG
 		.name = "txLocalMac",
 #endif
@@ -396,7 +396,7 @@ static TxRegisterMap _TX_ADDRESS =
 	.localIp = 
 	{
 		.device = &_fpgaDevTxNetwork,
-		.offset = 52,
+		.offset = F_REG_TX_NET_LOCAL_VIDEO_IP,
 #if FPGA_DEBUG
 		.name = "txLocalIp",
 #endif
@@ -405,7 +405,7 @@ static TxRegisterMap _TX_ADDRESS =
 	.localPortV = 
 	{
 		.device = &_fpgaDevTxNetwork,
-		.offset = 56,
+		.offset = F_REG_TX_NET_LOCAL_VIDEO_PORT,
 #if FPGA_DEBUG
 		.name = "txLocalPortV",
 #endif
@@ -414,7 +414,7 @@ static TxRegisterMap _TX_ADDRESS =
 	.localPortA = 
 	{
 		.device = &_fpgaDevTxNetwork,
-		.offset = 58,
+		.offset = F_REG_TX_NET_LOCAL_AUDIO_PORT,
 #if FPGA_DEBUG
 		.name = "txLocalPortA",
 #endif
@@ -423,7 +423,7 @@ static TxRegisterMap _TX_ADDRESS =
 	.localPortAnc =
 	{
 		.device = &_fpgaDevTxNetwork,
-		.offset = 60,
+		.offset = F_REG_TX_NET_LOCAL_ANC_PORT,
 #if FPGA_DEBUG
 		.name = "txLocalPortAnc",
 #endif
@@ -433,7 +433,7 @@ static TxRegisterMap _TX_ADDRESS =
 	.localPortAuc = 
 	{
 		.device = &_fpgaDevTxNetwork,
-		.offset = 62,
+		.offset = F_REG_TX_NET_LOCAL_AUX_PORT,
 #if FPGA_DEBUG
 		.name = "txLocalPortAuc",
 #endif
@@ -450,7 +450,7 @@ static TxRegisterMap _TX_ADDRESS =
 
 	.media = &_txMediaAddress,
 
-	.version = &_txVerAddress,
+//	.version = &_txVerAddress,
 };
 
 
@@ -461,7 +461,7 @@ static StreamRegisterAddress _rxStreamVideo =
 	.ip = 
 	{
 		.device = &_fpgaDevRxNetwork,
-		.offset = 46,
+		.offset = F_REG_RX_NET_DEST_VIDEO_IP,
 #if FPGA_DEBUG
 		.name = "rxVideoIp",
 #endif
@@ -469,7 +469,7 @@ static StreamRegisterAddress _rxStreamVideo =
 	.mac =
 	{
 		.device = &_fpgaDevRxNetwork,
-		.offset = INVALIDATE_VALUE_U8,
+		.offset = F_REG_RX_NET_DEST_MAC,
 #if FPGA_DEBUG
 		.name = "rxVideoMac",
 #endif
@@ -477,15 +477,15 @@ static StreamRegisterAddress _rxStreamVideo =
 	.port = 
 	{
 		.device = &_fpgaDevRxNetwork,
-		.offset = 62,
+		.offset = F_REG_RX_NET_DEST_VIDEO_PORT,
 #if FPGA_DEBUG
 		.name = "rxVideoPort",
 #endif
 	},
 	.rtpPayload = 
 	{
-		.device = &_fpgaDevRxNetwork,
-		.offset = 114,
+		.device = &_fpgaDevRxRtp,
+		.offset = F_REG_RX_RTP_VIDEO_PAYLOAD_TYPE,
 #if FPGA_DEBUG
 		.name = "rxVideoRtpPayload",
 #endif
@@ -498,7 +498,7 @@ static StreamRegisterAddress _rxStreamAudio =
 	.ip = 
 	{
 		.device = &_fpgaDevRxNetwork,
-		.offset = 49,
+		.offset = F_REG_RX_NET_DEST_AUDIO_IP,
 #if FPGA_DEBUG
 		.name = "rxAudioIp",
 #endif
@@ -506,7 +506,7 @@ static StreamRegisterAddress _rxStreamAudio =
 	.mac =
 	{
 		.device = &_fpgaDevRxNetwork,
-		.offset = INVALIDATE_VALUE_U8,
+		.offset = F_REG_RX_NET_DEST_MAC,
 #if FPGA_DEBUG
 		.name = "rxAudioMac",
 #endif
@@ -514,15 +514,15 @@ static StreamRegisterAddress _rxStreamAudio =
 	.port = 
 	{
 		.device = &_fpgaDevRxNetwork,
-		.offset = 76,
+		.offset = F_REG_RX_NET_DEST_AUDIO_PORT,
 #if FPGA_DEBUG
 		.name = "rxAudioPort",
 #endif
 	},
 	.rtpPayload = 
 	{
-		.device = &_fpgaDevRxNetwork,
-		.offset = 115,
+		.device = &_fpgaDevRxRtp,
+		.offset = F_REG_RX_RTP_AUDIO_PAYLOAD_TYPE,
 #if FPGA_DEBUG
 		.name = "rxAudioRtpPayload",
 #endif
@@ -535,7 +535,7 @@ static StreamRegisterAddress _rxStreamAnc =
 	.ip = 
 	{
 		.device = &_fpgaDevRxNetwork,
-		.offset = 88,
+		.offset = F_REG_RX_NET_DEST_IP_ANC,
 #if FPGA_DEBUG
 		.name = "rxAncIp",
 #endif
@@ -543,7 +543,7 @@ static StreamRegisterAddress _rxStreamAnc =
 	.mac =
 	{
 		.device = &_fpgaDevRxNetwork,
-		.offset = 76,
+		.offset = F_REG_RX_NET_DEST_MAC_ANC,
 #if FPGA_DEBUG
 		.name = "rxAncMac",
 #endif
@@ -551,20 +551,21 @@ static StreamRegisterAddress _rxStreamAnc =
 	.port = 
 	{
 		.device = &_fpgaDevRxNetwork,
-		.offset = 80,
+		.offset = F_REG_RX_NET_DEST_ANC_PORT,
 #if FPGA_DEBUG
 		.name = "rxAncPort",
 #endif
 	},
 	.rtpPayload = 
 	{
-		.device = &_fpgaDevRxNetwork,
-		.offset = 116,
+		.device = &_fpgaDevRxRtp,
+		.offset = F_REG_RX_RTP_ANC_PAYLOAD_TYPE,
 #if FPGA_DEBUG
 		.name = "rxAncRtpPayload",
 #endif
 	}	
 };
+
 
 #if EXT_FPGA_AUX_ON	
 static StreamRegisterAddress _rxStreamAux =
@@ -572,7 +573,7 @@ static StreamRegisterAddress _rxStreamAux =
 	.ip = 
 	{
 		.device = &_fpgaDevRxNetwork,
-		.offset = 91,
+		.offset = F_REG_RX_NET_DEST_IP_AUX,
 #if FPGA_DEBUG
 		.name = "rxAuxIp",
 #endif
@@ -580,7 +581,7 @@ static StreamRegisterAddress _rxStreamAux =
 	.mac =
 	{
 		.device = &_fpgaDevRxNetwork,
-		.offset = INVALIDATE_VALUE_U8,
+		.offset = F_REG_RX_NET_DEST_MAC_AUX,
 #if FPGA_DEBUG
 		.name = "rxAuxMac",
 #endif
@@ -588,15 +589,15 @@ static StreamRegisterAddress _rxStreamAux =
 	.port = 
 	{
 		.device = &_fpgaDevRxNetwork,
-		.offset = 84,
+		.offset = F_REG_RX_NET_DEST_AUX_PORT,
 #if FPGA_DEBUG
 		.name = "rxAuxPort",
 #endif
 	},
 	.rtpPayload = 
 	{
-		.device = &_fpgaDevRxNetwork,
-		.offset = 114,
+		.device = &_fpgaDevRxRtp,
+		.offset = F_REG_RX_RTP_AUX_PAYLOAD_TYPE,
 #if FPGA_DEBUG
 		.name = "rxAuxRtpPayload",
 #endif
@@ -610,7 +611,7 @@ static MediaRegisterAddress _rxMediaAddress =
 	.width = 
 	{
 		.device = &_fpgaDevRxSystem,
-		.offset = EXT_FPGA_REG_WIDTH,
+		.offset = F_REG_RX_SYS_X_ACTIVE,
 #if FPGA_DEBUG
 		.name = "rxMediaWidth",
 #endif
@@ -619,7 +620,7 @@ static MediaRegisterAddress _rxMediaAddress =
 	.height = 
 	{
 		.device = &_fpgaDevRxSystem,
-		.offset = EXT_FPGA_REG_HEIGHT,
+		.offset = F_REG_RX_SYS_Y_ACTIVE,
 #if FPGA_DEBUG
 		.name = "rxMediaHeight",
 #endif
@@ -637,7 +638,7 @@ static MediaRegisterAddress _rxMediaAddress =
 	.colorSpace = 
 	{
 		.device = &_fpgaDevRxSystem,
-		.offset = EXT_FPGA_REG_SAMPLING,
+		.offset = F_REG_RX_SYS_VIDEO_CTRL,
 #if FPGA_DEBUG
 		.name = "rxMediaColorSpace",
 #endif
@@ -646,7 +647,7 @@ static MediaRegisterAddress _rxMediaAddress =
 	.vDepth = 
 	{
 		.device = &_fpgaDevRxSystem,
-		.offset = EXT_FPGA_REG_DEPTH,
+		.offset = F_REG_RX_SYS_VIDEO_CTRL,
 #if FPGA_DEBUG
 		.name = "rxMediaVDepth",
 #endif
@@ -666,7 +667,7 @@ static MediaRegisterAddress _rxMediaAddress =
 	.channels = 
 	{
 		.device = &_fpgaDevRxSystem,
-		.offset = EXT_FPGA_REG_AUDIO_CHANNELS,
+		.offset = F_REG_RX_SYS_AUDIO_INPUT,
 #if FPGA_DEBUG
 		.name = "rxMediaChannel",
 #endif
@@ -675,7 +676,7 @@ static MediaRegisterAddress _rxMediaAddress =
 	.audioRate = 
 	{
 		.device = &_fpgaDevRxSystem,
-		.offset = EXT_FPGA_REG_AUDIO_RATE,
+		.offset = F_REG_RX_SYS_AUDIO_MASK,
 #if FPGA_DEBUG
 		.name = "rxMediaAudioRate",
 #endif
@@ -684,7 +685,7 @@ static MediaRegisterAddress _rxMediaAddress =
 	.pktSize = 
 	{
 		.device = &_fpgaDevRxSystem,
-		.offset = EXT_FPGA_REG_AUDIO_PKT_SIZE,
+		.offset = F_REG_RX_SYS_AUDIO_SELECT,
 #if FPGA_DEBUG
 		.name = "rxMediaPktSize",
 #endif
@@ -698,7 +699,7 @@ static FpgaVersionAddress _rxVerAddress =
 	.version = 
 	{
 		.device = &_fpgaDevRxSystem,
-		.offset = EXT_FPGA_REG_VERSION,
+		.offset = F_REG_RX_SYS_VERSION,
 #if FPGA_DEBUG
 		.name = "rxVersion",
 #endif
@@ -707,7 +708,7 @@ static FpgaVersionAddress _rxVerAddress =
 	.revision = 
 	{
 		.device = &_fpgaDevRxSystem,
-		.offset = EXT_FPGA_REG_REVISION,
+		.offset = F_REG_RX_SYS_REVISION,
 #if FPGA_DEBUG
 		.name = "rxRevision",
 #endif
@@ -716,7 +717,7 @@ static FpgaVersionAddress _rxVerAddress =
 	.year = 
 	{
 		.device = &_fpgaDevRxSystem,
-		.offset = EXT_FPGA_REG_YEAR,
+		.offset = F_REG_RX_SYS_YEAR,
 #if FPGA_DEBUG
 		.name = "rxYear",
 #endif
@@ -724,7 +725,7 @@ static FpgaVersionAddress _rxVerAddress =
 	.month = 
 	{
 		.device = &_fpgaDevRxSystem,
-		.offset = EXT_FPGA_REG_MONTH,
+		.offset = F_REG_RX_SYS_MONTH,
 #if FPGA_DEBUG
 		.name = "rxMonth",
 #endif
@@ -732,7 +733,7 @@ static FpgaVersionAddress _rxVerAddress =
 	.day = 
 	{
 		.device = &_fpgaDevRxSystem,
-		.offset = EXT_FPGA_REG_DAY,
+		.offset = F_REG_RX_SYS_DAY,
 #if FPGA_DEBUG
 		.name = "rxDay",
 #endif
@@ -740,7 +741,7 @@ static FpgaVersionAddress _rxVerAddress =
 	.hour = 
 	{
 		.device = &_fpgaDevRxSystem,
-		.offset = EXT_FPGA_REG_HOUR,
+		.offset = F_REG_RX_SYS_HOUR,
 #if FPGA_DEBUG
 		.name = "rxHour",
 #endif
@@ -748,7 +749,7 @@ static FpgaVersionAddress _rxVerAddress =
 	.minute = 
 	{
 		.device = &_fpgaDevRxSystem,
-		.offset = EXT_FPGA_REG_MINUTE,
+		.offset = F_REG_RX_SYS_MINUTE,
 #if FPGA_DEBUG
 		.name = "rxMinute",
 #endif
@@ -833,12 +834,12 @@ static RxRegisterMap _RX_ADDRESS =
 
 	.media = &_rxMediaAddress,
 
-	.version = &_rxVerAddress,
 };
 
 
 FpgaConfig 	_fpgaConfig =
 {
+	.version = &_rxVerAddress,
 	.txAddress = &_TX_ADDRESS,
 	.rxAddress = &_RX_ADDRESS,
 

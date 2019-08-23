@@ -20,7 +20,7 @@
 #ifndef __SI5351B_REVB_REGS_H__
 #define __SI5351B_REVB_REGS_H__
 
-#if	(MUX_BOARD == MUX_BOARD_768)
+#if	(MUX_BOARD == MUX_BOARD_768 || MUX_BOARD == MUX_BOARD_774)
 
 #define NUM_REGS_MAX	100
 
@@ -133,7 +133,8 @@ Reg_Data const Reg_Store[NUM_REGS_MAX] = {
 {170,0x00},
 };
 
-#elif (MUX_BOARD == MUX_BOARD_774)
+//#elif (MUX_BOARD == MUX_BOARD_774)
+#elif	(MUX_BOARD == MUX_BOARD_767)
 
 #define SI5351B_REVB_REG_CONFIG_NUM_REGS				(73-1)
 

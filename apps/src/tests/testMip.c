@@ -2,8 +2,6 @@
 
 #include "libCmnSys.h"
 
-#include "muxDrv.h"
-
 int testIgmp(void)
 {
 	int index = 0;
@@ -84,6 +82,7 @@ int testDipSwitch(void)
 	return 0;		
 }
 
+#if 0
 int testLedVideo(void)
 {
 	int fd;
@@ -107,6 +106,7 @@ int testLedVideo(void)
 	close(fd);
 	return 0;		
 }
+#endif
 
 static int _testOneLed(LED_TYPE_T type)
 {

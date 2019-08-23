@@ -1076,14 +1076,21 @@
 				compatible = "atmel,at91rm9200-spi";
 				reg = <0xf8000000 0x100>;
 				interrupts = <33 IRQ_TYPE_LEVEL_HIGH 7>;
+				dmas = <&dma0
+					(AT91_XDMAC_DT_MEM_IF(0) | AT91_XDMAC_DT_PER_IF(1) |
+					 AT91_XDMAC_DT_PERID(6))>,
+				       <&dma0
+					(AT91_XDMAC_DT_MEM_IF(0) | AT91_XDMAC_DT_PER_IF(1) |
+					 AT91_XDMAC_DT_PERID(7))>;/* JL. 08.23,2019 */
 				dma-names = "tx", "rx";
 				clocks = <&spi0_clk>;
 				clock-names = "spi_clk";
 				atmel,fifo-size = <16>;
 				#address-cells = <1>;
 				#size-cells = <0>;
-				status = "disabled";
+				status = "okay";  /* JL. 08.23,2019 */
 			};
+
 
 			ssc0: ssc@f8004000 {
 				compatible = "atmel,at91sam9g45-ssc";

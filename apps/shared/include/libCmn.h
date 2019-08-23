@@ -546,6 +546,10 @@ char *strnstr(const char *haystack, const char *needle, size_t len);
 #define	CMN_THREAD_NAME_SDP_MANAGER		"muxSdpMngr"
 #define	CMN_THREAD_NAME_SDP_RECEIVER		"muxSdpRecv"
 #define	CMN_THREAD_NAME_BUTTON				"muxButton"
+#define	CMN_THREAD_NAME_LED					"muxLed"
+
+
+#define	WITH_ANCILLIARY_STREAM			0
 
 
 #ifdef __cplusplus

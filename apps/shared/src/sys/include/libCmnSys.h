@@ -206,7 +206,7 @@ int	cmnSysScRWMac(SecurityFiles *scf, unsigned char *page, int isRead);
 int	cmnSysScCrc(SecurityFiles *scf, int isEnable);
 
 char cmnSysScComputeMAC(SC_CTRL *sc);
-int cmnSysScChallegeInit(SC_CTRL *sc);
+int cmnSysScChallengeInit(SC_CTRL *sc);
 
 #if ARCH_ARM
 #define	SC_PAGE_READ(scf, data)	\
@@ -323,6 +323,9 @@ int	cmnSysI2cTest(void);
 
 cJSON *cmnMuxThreadsInfo(MuxMain *muxMain);
 
+
+int	sysFpgaReadVideoStatus(void);
+int	sysFpgaReadFpsStatus(void);
 
 #endif
 

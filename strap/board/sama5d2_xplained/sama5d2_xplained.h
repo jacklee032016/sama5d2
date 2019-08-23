@@ -166,8 +166,12 @@
 #define LED_ACT		AT91C_PIN_PB(4)
 #endif
 
-#define LED_POWER	AT91C_PIN_PB(5)
-#define LED_LINK	AT91C_PIN_PB(7)
+/* switch flash from FPGA to MCU. 08.22, 2019 */
+#define FPGA_FLASH_SWITCH		AT91C_PIN_PB(2)
+
+
+#define LED_POWER				AT91C_PIN_PB(5)
+#define LED_LINK					AT91C_PIN_PB(7)
 
 
 #endif

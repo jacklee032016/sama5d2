@@ -61,7 +61,7 @@ int cmnMuxObjectParseSecurity(struct DATA_CONN *dataConn, cJSON *dataObj);
 int cmnMuxObjectParseOthers(struct DATA_CONN *dataConn, cJSON *dataObj);
 
 
-int	cmnMuxObjectParseHexaData(struct DATA_CONN *dataConn, cJSON *dataObj, char *cmdName);
+int	cmnMuxObjectParseHexaData(struct DATA_CONN *dataConn, cJSON *dataObj, char *cmdName, int isMadidate);
 int	cmnMuxSendRsData(struct DATA_CONN *dataConn, cJSON *dataObj);
 int	cmnMuxSendIRData(struct DATA_CONN *dataConn, cJSON *dataObj);
 

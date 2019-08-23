@@ -335,14 +335,18 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-#if 1
 	res =  muxMain->initThread(muxMain, &threadButton, muxMain);
 	if(res < 0)
 	{
 		MUX_ERROR("failed when '%s' initializing", threadButton.name );
 		exit(1);
 	}
-#endif
+	res =  muxMain->initThread(muxMain, &threadLed, muxMain);
+	if(res < 0)
+	{
+		MUX_ERROR("failed when '%s' initializing", threadLed.name );
+		exit(1);
+	}
 
 	/* add polling timer */
 	if(muxMain->isClientPolling)

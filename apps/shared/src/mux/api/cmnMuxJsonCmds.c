@@ -51,8 +51,10 @@ static int _rs232StartRead(int timeout, char *buf)
 
 //	u32_t timeElapes = 0;
 #ifdef	ARM
-	int	timeElapes = sys_arch_sem_wait(&rs232Dev->rxSema, (timeout<= 0)?rs232Dev->timeoutMs:timeout);
-	if(timeElapes == SYS_ARCH_TIMEOUT)
+
+//	int	timeElapes = sys_arch_sem_wait(&rs232Dev->rxSema, (timeout<= 0)?rs232Dev->timeoutMs:timeout);
+//	if(timeElapes == SYS_ARCH_TIMEOUT)
+	if(1)
 #else
 	memset(readBuf, 0 , sizeof(struct DATA_BUFFER));
 	readBuf->size = sizeof(readBuf->buffer);
@@ -92,7 +94,7 @@ static int _rs232StartRead(int timeout, char *buf)
 }
 
 /* used by RS232 and IR */
-int	cmnMuxObjectParseHexaData(struct DATA_CONN *dataConn, cJSON *dataObj, char *cmdName)
+int	cmnMuxObjectParseHexaData(struct DATA_CONN *dataConn, cJSON *dataObj, char *cmdName, int isMadidate)
 {
 	int	intValue;
 	
@@ -101,7 +103,10 @@ int	cmnMuxObjectParseHexaData(struct DATA_CONN *dataConn, cJSON *dataObj, char *
 	
 	if(cmnJsonGetStrIntoString(dataObj, FIELD_RS232_DATA, rxCfg->setupData.hexData, sizeof(rxCfg->setupData.hexData)) == EXIT_FAILURE)
 	{/* no data, so no process is needed */
-		DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s' in %s item is not found", FIELD_RS232_DATA, cmdName );
+		if(isMadidate)
+		{
+			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s' in %s item is not found", FIELD_RS232_DATA, cmdName );
+		}
 		return EXIT_FAILURE;
 	}
 
@@ -230,8 +235,12 @@ static int _irStartRead(int timeout, char *buf)
 	struct DATA_BUFFER *readBuf = &_readBuf;
 	
 #ifdef	ARM
+#if 0
 	int	timeElapes = sys_arch_sem_wait(&rs232Dev->rxSema, (timeout<= 0)?rs232Dev->timeoutMs:timeout);
 	if(timeElapes == SYS_ARCH_TIMEOUT)
+#else
+	if(1)
+#endif	
 #else
 	memset(readBuf, 0 , sizeof(struct DATA_BUFFER));
 	readBuf->size = sizeof(readBuf->buffer);

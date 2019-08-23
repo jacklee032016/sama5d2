@@ -269,9 +269,8 @@ cJSON *cmnMuxClientConnReadReponse(struct CLIENT_CONN *clientConn)
 
 	if(CLIENT_TYPE_IS_IPCMD(clientConn->type) )
 	{
-	
-#if MUX_OPTIONS_DEBUG_IPC_CLIENT			
 		MUX_DEBUG("Received %d bytes packet from %s:%d", len, inet_ntoa(clientConn->peerAddr.sin_addr), ntohs(clientConn->peerAddr.sin_port));
+#if MUX_OPTIONS_DEBUG_IPC_CLIENT			
 		CMN_HEX_DUMP( (uint8_t *)&responseBuf, len, "client received data");
 #endif
 

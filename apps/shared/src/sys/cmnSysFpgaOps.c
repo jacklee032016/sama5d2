@@ -39,6 +39,8 @@ int	sysFpgaTxConfig(FpgaConfig *fpga)
 	_extFpgaWriteShort(&fpga->txAddress->localPortAuc, (unsigned char *)&runCfg->local.sport);
 #endif
 
+	EXT_DEBUGF(MUX_DEBUG_FPGA, "TX:IP:%s; portV:%d; portA:%d; portAnc:%d", cmnSysNetAddress(ip), runCfg->local.vport, runCfg->local.aport,runCfg->local.dport);
+
 	/* dest */
 	/* video */
 	if(cmnSysNetMulticastIP4Mac(runCfg->dest.ip, &destMac) == EXIT_SUCCESS)
@@ -331,9 +333,16 @@ int sysFpgaRxWriteParams(FpgaConfig *fpga)
 		
 		_extFpgaWriteByte(&fpga->rxAddress->media->framerate, &runCfg->runtime.vFrameRate);
 
+#if 0
 		_extFpgaWriteByte(&fpga->rxAddress->media->colorSpace, &runCfg->runtime.vColorSpace);
-
 		_extFpgaWriteByte(&fpga->rxAddress->media->vDepth, &runCfg->runtime.vDepth);
+#else
+		{
+			_chValue = (runCfg->runtime.vColorSpace<<2)|runCfg->runtime.vDepth;
+			_extFpgaWriteByte(&fpga->rxAddress->media->colorSpace, &_chValue);
+			EXT_DEBUGF(MUX_DEBUG_FPGA, "RX write CideoCfg 0x%x", _chValue );
+		}
+#endif
 
 		_extFpgaWriteByte(&fpga->rxAddress->media->intl, &runCfg->runtime.vIsInterlaced);
 
@@ -370,10 +379,20 @@ int fpgaReadParamRegisters(MediaRegisterAddress *addrMedia, EXT_RUNTIME_CFG *run
 	
 	_extFpgaReadByte(&addrMedia->framerate, &runCfg->runtime.vFrameRate);
 
+#if 0
 	_extFpgaReadByte(&addrMedia->colorSpace, &runCfg->runtime.vColorSpace);
 
 	_extFpgaReadByte(&addrMedia->vDepth, &runCfg->runtime.vDepth);
+#else
+	{
+//		unsigned char depth, unsigned char colorSpace;
+		_extFpgaReadByte(&addrMedia->colorSpace, &_chValue);
+		EXT_DEBUGF(MUX_DEBUG_FPGA, "VideoConfig is 0x%x", _chValue);
+		runCfg->runtime.vDepth = (_chValue&0x03);
+		runCfg->runtime.vColorSpace = ( (_chValue>>2) &0x07);
+	}
 
+#endif
 	_extFpgaReadByte(&addrMedia->intl, &runCfg->runtime.vIsInterlaced);
 
 	/* audio */	

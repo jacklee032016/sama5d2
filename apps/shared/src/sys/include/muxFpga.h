@@ -8,13 +8,13 @@
 
 #if (MUX_BOARD == MUX_BOARD_774)
 /* salve address */
-#define	EXT_FPAG_ADDRESS_SYSTEM				0x60	/* reset, video, audio, IR */
-#define	EXT_FPAG_ADDRESS_PCSPMA_2			0x62
-#define	EXT_FPAG_ADDRESS_PTP					0x66	/* Ptp timestamp */
-#define	EXT_FPAG_ADDRESS_NETWORK			0x68	/* ip/port and MAC */
-#define	EXT_FPAG_ADDRESS_DRP_PLL				0x6A	/* Dynamic Reconfiguration Port : Rx PLL; only RX */
-#define	EXT_FPAG_ADDRESS_DRP_XADC			0x6C	/* DRP */
-#define	EXT_FPAG_ADDRESS_PCSPMA_1			0x6E
+#define	EXT_FPAG_ADDRESS_SYSTEM				(0x60>>1)	/* reset, video, audio, IR */
+#define	EXT_FPAG_ADDRESS_PCSPMA_2			(0x62>>1)
+#define	EXT_FPAG_ADDRESS_PTP					(0x66>>1)	/* Ptp timestamp */
+#define	EXT_FPAG_ADDRESS_NETWORK			(0x68>>1)	/* ip/port and MAC */
+#define	EXT_FPAG_ADDRESS_DRP_PLL				(0x6A>>1)	/* Dynamic Reconfiguration Port : Rx PLL; only RX */
+#define	EXT_FPAG_ADDRESS_DRP_XADC			(0x6C>>1)	/* DRP */
+#define	EXT_FPAG_ADDRESS_PCSPMA_1			(0x6E>>1)
  
 /* registers */
 #define	EXT_FPGA_REG_ETHERNET_RESET			0
@@ -80,6 +80,162 @@
 
 
 /* for both TX/RX */
+/********************** TX *************/
+/* system device: 0x60 */
+#define	F_REG_TX_SYS_RESET						0x00
+#define	F_REG_TX_SYS_VIDEO_CTRL					0x01	/*color space and depth */
+#define	F_REG_TX_SYS_IR_CTRL						0x02
+#define	F_REG_TX_SYS_STREAM_ENABLE				0x03
+
+#define	F_REG_TX_SYS_X_ACTIVE						0x06	/* width */
+#define	F_REG_TX_SYS_Y_ACTIVE						0x08	/* height */
+
+
+#define	F_REG_TX_SYS_AUDIO_SELECT				0x1A
+#define	F_REG_TX_SYS_AUDIO_MASK					0x1B
+#define	F_REG_TX_SYS_AUDIO_INPUT					0x1C
+
+#define	F_REG_TX_SYS_VERSION						0x1D
+#define	F_REG_TX_SYS_REVISION						0x1E
+
+#define	F_REG_TX_SYS_YEAR							INVALIDATE_VALUE_U8
+#define	F_REG_TX_SYS_MONTH						INVALIDATE_VALUE_U8
+#define	F_REG_TX_SYS_DAY							INVALIDATE_VALUE_U8
+#define	F_REG_TX_SYS_HOUR						INVALIDATE_VALUE_U8
+#define	F_REG_TX_SYS_MINUTE						INVALIDATE_VALUE_U8
+
+
+#define	F_REG_TX_SYS_MB_VIDEO_COLOR_DEPTH		0x2C	/* 10/12/14/16 */
+#define	F_REG_TX_SYS_MB_VIDEO_COLOR_FORMAT	0x2D	/* RGB/YCbCr */
+
+/* RTP specific: 0x66 */
+#define	F_REG_TX_RTP_VIDEO_PAYLOAD_TYPE			0x00
+#define	F_REG_TX_RTP_XAUI_CTRL					0x05
+#define	F_REG_TX_RTP_XAUI_STATUS					0x07
+#define	F_REG_TX_RTP_TIMESTAMP					0x08	/* 4 bytes, 32 bits */
+
+#define	F_REG_TX_RTP_AUDIO_PAYLOAD_TYPE			INVALIDATE_VALUE_U8
+#define	F_REG_TX_RTP_ANC_PAYLOAD_TYPE			INVALIDATE_VALUE_U8
+#define	F_REG_TX_RTP_AUX_PAYLOAD_TYPE			INVALIDATE_VALUE_U8
+
+
+/* Network specific: 0x68 */
+#define	F_REG_TX_NET_LOCAL_MAC					0x04	/* 6 bytes */	
+#define	F_REG_TX_NET_DEST_MAC					0x0A	/* 6 bytes */	
+
+#define	F_REG_TX_NET_LOCAL_VIDEO_IP				0x10
+#define	F_REG_TX_NET_DEST_VIDEO_IP				0x14
+
+#define	F_REG_TX_NET_DEST_AUDIO_IP				0x18
+
+#define	F_REG_TX_NET_DEST_ANC_IP					INVALIDATE_VALUE_U8
+#define	F_REG_TX_NET_DEST_AUX_IP					INVALIDATE_VALUE_U8
+
+#define	F_REG_TX_NET_LOCAL_VIDEO_PORT			0x20
+#define	F_REG_TX_NET_DEST_VIDEO_PORT				0x22
+
+#define	F_REG_TX_NET_LOCAL_AUDIO_PORT			0x24
+#define	F_REG_TX_NET_DEST_AUDIO_PORT			0x26
+
+#define	F_REG_TX_NET_LOCAL_ANC_PORT				0x28
+#define	F_REG_TX_NET_DEST_ANC_PORT				0x2A
+
+#define	F_REG_TX_NET_LOCAL_AUX_PORT				INVALIDATE_VALUE_U8
+#define	F_REG_TX_NET_DEST_AUX_PORT				INVALIDATE_VALUE_U8
+
+#define	F_REG_TX_NET_QOS_OFS						0x2C
+
+#define	F_REG_TX_NET_MCAST_VIDEO					0x2E	/* 3 bytes, not in border of 16 bytes */
+#define	F_REG_TX_NET_MCAST_AUDIO					0x31
+#define	F_REG_TX_NET_MCAST_ANC					0x34
+#define	F_REG_TX_NET_MCAST_AUX					0x37
+
+#define	F_REG_TX_NET_DEST_MAC_ANC				0x3A
+#define	F_REG_TX_NET_DEST_IP_ANC					0x40
+
+#define	F_REG_TX_NET_DEST_MAC_AUX				0x44
+#define	F_REG_TX_NET_DEST_IP_AUX					0x4A
+
+
+/********************** RX *************/
+/* system device: 0x60 */
+#define	F_REG_RX_SYS_RESET						0x00
+#define	F_REG_RX_SYS_VIDEO_CTRL					0x01	/* mode, and depth */
+#define	F_REG_RX_SYS_IR_CTRL						0x02
+#define	F_REG_RX_SYS_STREAM_ENABLE				0x03	
+
+/* read only ??? */
+#define	F_REG_RX_SYS_X_ACTIVE					0x06	/* width */
+#define	F_REG_RX_SYS_Y_ACTIVE					0x08	/* height */
+
+
+#define	F_REG_RX_SYS_AUDIO_SELECT				0x1A
+#define	F_REG_RX_SYS_AUDIO_MASK					0x1B
+#define	F_REG_RX_SYS_AUDIO_INPUT					0x1C
+
+#define	F_REG_RX_SYS_VERSION						0x1D
+#define	F_REG_RX_SYS_REVISION						0x1E
+
+#define	F_REG_RX_SYS_YEAR							INVALIDATE_VALUE_U8
+#define	F_REG_RX_SYS_MONTH						INVALIDATE_VALUE_U8
+#define	F_REG_RX_SYS_DAY							INVALIDATE_VALUE_U8
+#define	F_REG_RX_SYS_HOUR						INVALIDATE_VALUE_U8
+#define	F_REG_RX_SYS_MINUTE						INVALIDATE_VALUE_U8
+
+
+#define	F_REG_RX_SYS_MB_VIDEO_COLOR_DEPTH		0x2C	/* 10/12/14/16 */
+#define	F_REG_RX_SYS_MB_VIDEO_COLOR_FORMAT	0x2D	/* RGB/YCbCr */
+
+/* RTP specific: 0x66 */
+#define	F_REG_RX_RTP_VIDEO_PAYLOAD_TYPE			0x00
+#define	F_REG_RX_RTP_XAUI_CTRL					0x05
+#define	F_REG_RX_RTP_XAUI_STATUS					0x07
+#define	F_REG_RX_RTP_TIMESTAMP					0x08	/* 4 bytes, 32 bits */
+
+#define	F_REG_RX_RTP_AUDIO_PAYLOAD_TYPE			INVALIDATE_VALUE_U8
+#define	F_REG_RX_RTP_ANC_PAYLOAD_TYPE			INVALIDATE_VALUE_U8
+#define	F_REG_RX_RTP_AUX_PAYLOAD_TYPE			INVALIDATE_VALUE_U8
+
+
+/* Network specific: 0x68 */
+#define	F_REG_RX_NET_LOCAL_MAC					0x04	/* 6 bytes */	
+#define	F_REG_RX_NET_DEST_MAC					0x0A	/* 6 bytes */	
+
+#define	F_REG_RX_NET_LOCAL_VIDEO_IP				0x10
+#define	F_REG_RX_NET_DEST_VIDEO_IP				0x14
+
+#define	F_REG_RX_NET_LOCAL_AUDIO_IP				F_REG_TX_NET_LOCAL_VIDEO_IP
+#define	F_REG_RX_NET_DEST_AUDIO_IP				0x18
+
+
+#define	F_REG_RX_NET_LOCAL_VIDEO_PORT			0x20
+#define	F_REG_RX_NET_DEST_VIDEO_PORT			0x22
+
+#define	F_REG_RX_NET_LOCAL_AUDIO_PORT			0x24
+#define	F_REG_RX_NET_DEST_AUDIO_PORT			0x26
+
+#define	F_REG_RX_NET_LOCAL_ANC_PORT				0x28
+#define	F_REG_RX_NET_DEST_ANC_PORT				0x2A
+
+#define	F_REG_RX_NET_DEST_AUX_PORT				INVALIDATE_VALUE_U8
+
+#define	F_REG_RX_NET_QOS_OFS						0x2C
+
+#define	F_REG_RX_NET_MCAST_VIDEO					0x2E	/* 3 bytes, not in border of 16 bytes */
+#define	F_REG_RX_NET_MCAST_AUDIO				0x31
+#define	F_REG_RX_NET_MCAST_ANC					0x34
+#define	F_REG_RX_NET_MCAST_AUX					0x37
+
+
+#define	F_REG_RX_NET_DEST_MAC_ANC				0x3A
+#define	F_REG_RX_NET_DEST_IP_ANC					0x40
+#define	F_REG_RX_NET_DEST_MAC_AUX				0x44
+#define	F_REG_RX_NET_DEST_IP_AUX					0x4A
+
+
+
+
+
 #define	EXT_FPGA_REG_VERSION						29
 
 #define	EXT_FPGA_TX_FLAGS							0x80	/* in version info */
@@ -229,7 +385,6 @@ typedef	struct
 
 	MediaRegisterAddress		*media;
 
-	FpgaVersionAddress		*version;
 }RxRegisterMap;
 
 struct	_FpgaConfig;
@@ -241,6 +396,8 @@ typedef	struct	_FpgaConfig
 {
 	EXT_RUNTIME_CFG				*runCfg;
 
+	FpgaVersionAddress			*version;
+	
 	TxRegisterMap				*txAddress;
 	RxRegisterMap					*rxAddress;
 
@@ -279,7 +436,7 @@ typedef	struct	_FpgaConfig
 
 #define	FPGA_READ(addr, val, size)		\
 		do{int ret; EXT_ASSERT( (((addr)!=NULL) && ((addr)->device != NULL)), "FPGA address ' %s' is null", #addr); ret = I2C_EXT_READ((addr)->device->bus, (addr)->device->channel, (addr)->device->slaveAddress, (addr)->offset, 1, (val), (size)); \
-			MUX_DEBUG("FPGA read on %d.%d.0x%x(%s), offset 0x%x(%s): %s", (addr)->device->bus, (addr)->device->channel, (addr)->device->slaveAddress, (addr)->device->name, (addr)->offset, (addr)->name, (ret==EXIT_SUCCESS)?"OK":"Failed");\
+			MUX_DEBUG("FPGA read on %d.%d.0x%x(%s), offset 0x%x(%s): %s :0x%x", (addr)->device->bus, (addr)->device->channel, (addr)->device->slaveAddress, (addr)->device->name, (addr)->offset, (addr)->name, (ret==EXIT_SUCCESS)?"OK":"Failed", *val);\
 			}while(0)
 
 
@@ -333,9 +490,6 @@ typedef	struct	_FpgaConfig
 	{	unsigned int _value = ntohl(*((unsigned int *)(intVal))); FPGA_WRITE((address), (unsigned char *)&_value, 4); }
 
 
-
-void _fpgaRegisterRead(unsigned char address, unsigned char *data, unsigned char size);
-void	_fpgaRegisterWrite(unsigned char baseAddr, unsigned char *data, unsigned char size);
 
 int fpgaReadParamRegisters(MediaRegisterAddress *addrMedia, EXT_RUNTIME_CFG *runCfg);
 

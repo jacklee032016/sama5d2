@@ -17,7 +17,9 @@
 				EXT_INFOF("Reboot now!")
 #else
 #define		EXT_REBOOT()	\
-				reboot(LINUX_REBOOT_CMD_CAD_OFF)
+			{sync(); reboot(RB_AUTOBOOT); EXT_INFOF("Reboot now!");}
+
+//				reboot(LINUX_REBOOT_CMD_CAD_OFF)
 #endif
 
 int cmnSysCfgRead(EXT_RUNTIME_CFG *cfg, EXT_CFG_TYPE cfgType)
@@ -85,7 +87,7 @@ int cmnSysEthernetConfig( EXT_RUNTIME_CFG *cfg )
 		return EXIT_FAILURE;
 	}
 
-	if( fprintf(f, "# /etc/network/interfaces by %s\n%s\n\n", CMN_MODULE_MAIN_NAME, cmnTimestampStr() ) <= 0)
+	if( fprintf(f, "# /etc/network/interfaces by %s\n# %s\n\n", CMN_MODULE_MAIN_NAME, cmnTimestampStr() ) <= 0)
 	{
 		EXT_ERRORF("Write "SYS_NET_CONFIG_FILE" failed: %m");
 		goto writeError;
@@ -101,9 +103,10 @@ int cmnSysEthernetConfig( EXT_RUNTIME_CFG *cfg )
 
 	/* eth0 */
 	res = fprintf(f, "# wire interface %s\n", MUX_ETH_DEVICE);
+	res += fprintf(f, "auto %s\n", MUX_ETH_DEVICE);
 	if(EXT_DHCP_IS_ENABLE(cfg) )
 	{
-		res += fprintf(f, "auto %s\niface %s inet dhcp\n", MUX_ETH_DEVICE, MUX_ETH_DEVICE);
+		res += fprintf(f, "iface %s inet dhcp\n", MUX_ETH_DEVICE);
 		
 		char cmd[CMN_NAME_LENGTH];
 		sprintf(cmd, DHCP_CLIENT" -R -b -p /var/run/udhcpc.eth0.pid -i %s ", MUX_ETH_DEVICE );
@@ -119,6 +122,8 @@ int cmnSysEthernetConfig( EXT_RUNTIME_CFG *cfg )
 		res += fprintf(f, "\tnetwork %s\n",  cmnSysNetAddress(netAddress) );
 		res += fprintf(f, "\tgateway %s\n", cmnSysNetAddress(cfg->ipGateway) );
 
+		/* even new ip address and gateway can be used at once, but muxMgr can't work at once */
+#if 1
 		/* kill process udhcpc */
 		cmnSysKillProcess(DHCP_CLIENT);
 
@@ -127,7 +132,7 @@ int cmnSysEthernetConfig( EXT_RUNTIME_CFG *cfg )
 		cmnSysForkCmd(cmd);
 
 		cmnSysNetSetGateway(cmnSysNetAddress(cfg->ipGateway), MUX_ETH_DEVICE);
-		
+#endif		
 	}
 	res += fprintf(f, "\n\n" );
 	if(res <= 0)
@@ -271,12 +276,12 @@ int cmnSysGetPidByName(char *progName)
 	EXT_DEBUGF(_DEBUG_THREAD_LOOK, "Number: %d", n);
 	while(n--)
 	{
-		sprintf(file,"/proc/%s/status", namelist[n]->d_name);		
+		snprintf(file, sizeof(file), "/proc/%s/status", namelist[n]->d_name);		
 		EXT_DEBUGF(_DEBUG_THREAD_LOOK, "\tOpen: %s", file);
 		
 		if((fp=fopen(file,"r"))==NULL)
 		{
-			MUX_ERROR("open status file '%s' fail: %m", file );
+			MUX_ERROR("find process ID of %s: open status file '%s' fail: %m", progName, file );
 			continue;
 		}
 	

@@ -187,8 +187,8 @@
 				pinctrl-0 = <&pinctrl_spi0_default>;
 				status = "okay";
 
-				m25p80@0 { 
-/*				spidev@0 {*/
+/*				m25p80@0 {*/ 
+				spidev@0 {
 					#compatible = "atmel,at25df321a";
 					compatible = "spidev";
 					reg = <0>;

@@ -189,13 +189,15 @@
 			};
 
 			spi0: spi@f8000000 {
+				/*cs-gpios = <&pioA PIN_PB2 0>, <0>, <0>, <0>; max 4 CS, so 4 GPIOs */
+				funm-gpio = <&pioA PIN_PB2 GPIO_ACTIVE_HIGH>;	/* for 774 */
 				pinctrl-names = "default";
 				pinctrl-0 = <&pinctrl_spi0_default>;
 				status = "okay";
 
 				m25p80@0 { 
-					//compatible = "atmel,at25df321a";
-					compatible = "atmel,n25q512ax3";
+					compatible = "atmel,at25df321a";
+					#compatible = "spidev";
 					reg = <0>;
 					spi-max-frequency = <50000000>;
 				};
@@ -582,6 +584,7 @@
 
 				pinctrl_led_gpio_default: led_gpio_default {
 					pinmux = <PIN_PB0__GPIO>,	/* VIDEO */
+						 /*<PIN_PB2__GPIO>,	 FUNM */
 						 <PIN_PB5__GPIO>,	/* POWER */
 						 /* Mux774 */
 						 // <PIN_PB6__GPIO>;
@@ -814,6 +817,13 @@
 			gpios = <&pioA PIN_PB0 GPIO_ACTIVE_HIGH>; /* high level is ON */
 			linux,default-trigger = "";		/* trigger : heartbeat|timer */
 		};
+/*
+		funm {
+			label = "funm";
+			gpios = <&pioA PIN_PB2 GPIO_ACTIVE_HIGH>; 
+			default-state = "on";	
+		};
+*/		
 	};
 	
 	onewire_device {

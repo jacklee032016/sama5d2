@@ -28,6 +28,9 @@
 #include <linux/pinctrl/consumer.h>
 #include <linux/pm_runtime.h>
 
+#define	__EXT_RELEASE__
+#include "mux7xxCompact.h"
+
 /* SPI register offsets */
 #define SPI_CR					0x0000
 #define SPI_MR					0x0004
@@ -1529,6 +1532,47 @@ static void atmel_spi_init(struct atmel_spi *as)
 	spi_writel(as, CR, SPI_BIT(SPIEN));
 }
 
+
+
+static int atmel_spi_gpio_funm(struct platform_device *pdev)
+{
+	struct spi_master	*master = platform_get_drvdata(pdev);
+	struct atmel_spi	*as = spi_master_get_devdata(master);
+	struct device_node	*np = master->dev.of_node;
+	int			i;
+	int			ret = 0;
+	int			nb = 0;
+
+	if (!np)
+	{
+		EXT_ERRORF("Device node is null for SPI Flash");
+		return 0;
+	}
+
+	unsigned int cs_gpio = of_get_named_gpio(pdev->dev.of_node, "funm-gpio", 0);
+	if (cs_gpio == -EPROBE_DEFER)
+	{
+		return cs_gpio;
+	}
+
+	EXT_INFOF("GPIO of FUNM is 0x%d", cs_gpio);
+	if (gpio_is_valid(cs_gpio))
+	{
+		if(gpio_direction_output(cs_gpio, 0) )
+		{
+			EXT_ERRORF("FUMN set failed!");
+			return -1;
+		}
+
+		EXT_INFOF("FUMN has been set successfully!");
+		return 0;
+	}
+
+	EXT_ERRORF("GPIO of FUNM is not validate GPIO");
+	return -1;
+}
+
+
 static int atmel_spi_probe(struct platform_device *pdev)
 {
 	struct resource		*regs;
@@ -1603,6 +1647,9 @@ static int atmel_spi_probe(struct platform_device *pdev)
 	ret = atmel_spi_gpio_cs(pdev);
 	if (ret)
 		goto out_unmap_regs;
+
+	atmel_spi_gpio_funm(pdev);
+	msleep(1000);
 
 	as->use_dma = false;
 	as->use_pdc = false;
