@@ -41,8 +41,8 @@ JLinkConnection {
 		applet.erase(0, 0x10000)
 
 		// write files
-		//var strapBinary = "Mux768-bootStrap-3.8.10.bin"
-		var strapBinary = "Mux774-bootStrap-3.8.10.bin"
+		var strapBinary = "Sama5d2Xpld-bootStrap-3.8.10.bin"
+		//var strapBinary = "Mux774-bootStrap-3.8.10.bin"
 		// this for uray code testing
 		///var strapBinary = "muxlab_500774-dataflashboot--1.0.2.bin"
 		print("-- Write strap '", strapBinary, "' --" )

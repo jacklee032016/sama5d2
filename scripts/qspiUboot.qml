@@ -32,7 +32,8 @@ JLinkConnection {
 		//applet.write(0x30000, "Mux774.u-boot.bin", true)//
 		
 		//var ubootBinary = "Mux768.u-boot.bin"
-		var ubootBinary = "Mux774.u-boot.bin"
+		//var ubootBinary = "Mux774.u-boot.bin"
+		var ubootBinary = "Sama5d2Xpld.u-boot.bin"
 		
 		print("-- Write u-boot '", ubootBinary, "' --" )
 		

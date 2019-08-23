@@ -211,5 +211,6 @@ syscall_list() {
 	done
 }
 
-(ignore_list && syscall_list $(dirname $0)/../arch/x86/entry/syscalls/syscall_32.tbl) | \
-$* -E -x c - > /dev/null
+# JL. 08.23,2019
+# (ignore_list && syscall_list $(dirname $0)/../arch/x86/entry/syscalls/syscall_32.tbl) | \
+# $* -E -x c - > /dev/null
