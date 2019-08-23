@@ -1,0 +1,122 @@
+{
+# all managed objects are in array; Simplify to send in JSON format directly. 04.02, 2019
+      		"system": 
+   			{
+ 				"model": "744-TX/RX",
+				"product": "SdiOverIP-774",
+				"name": "774-TX01",
+				"ver": "01.01-001",
+				"built": "Aug  8 2019 10:54:54",
+				"isTx":1,
+
+      			"ip": "192.168.168.181",
+      			"mask": "255.255.255.0",
+      			"gateway": "192.168.168.1",
+				"mac":"02:01:03:04:05:06",
+      			"isDhcp" : 1,
+					
+				"isDipOn": 0,
+				"reset": 0,
+				"reboot": 0,
+      			"blinkLed": 0,
+				"mediaMode": "Auto"
+  			},
+		
+			"video": 
+			[
+				{
+					"ip": "239.0.0.100",
+					"port": 36000,
+					"sdp":"sdp",
+					"height": 1080,
+					"width": 1920,
+					"fps": "59.94",
+					"colorSpace": "YCbCr-4:2:2",
+					"depth": 16,
+					"payloadType":96,
+					"intlce": 1
+				}
+			],
+
+			"audio": 
+			[
+				{
+					"ip": "239.0.0.101",
+					"port": 36010,
+					"sdp":"sdp",
+					"sample": "48000",
+					"channels": 16,
+					"depth": 24,
+					"payloadType":97,
+					"pktSize": "1ms"
+				}
+			],
+				
+			"anc": 
+			[
+				{
+					"ip": "239.0.0.101",
+					"port": 36020,
+					"sdp":"sdp",
+					"payloadType":100,
+					"vpId":132
+				}
+			],
+
+			"sdp": 
+			[
+				{
+					"media":"video",
+					"ip": "192.168.168.181",
+					"port": 80,
+					"uri": "/video/sdp"
+				},
+				{
+					"media":"audio",
+					"ip": "192.168.168.181",
+					"port": 80,
+					"uri": "/audio/sdp"
+				},
+				{
+					"media":"anc",
+					"ip": "192.168.168.181",
+					"port": 80,
+					"uri": "/anc/sdp"
+				}
+			],
+		
+      		"rs232": 
+      		{
+				"baudrate": 115200,
+				"databit": 8,
+				"parity": "none",
+				"stopbit": 1,
+				"data": "1234567980abcdef",
+				"isFeedback": 1,
+				"waitTime": 1000
+      		},
+
+      		"IR": 
+      		{
+				"data": "1234567980abcdef",
+				"isFeedback": 1,
+				"waitTime": 1000
+      		},
+			
+      		"security": 
+      		{
+				"get_id": "ab12",
+				"get_status": 1,
+				"set_key": "0987654321fedcba"
+      		},
+		
+      		"others": 
+      		{
+				"authen": 0,
+				"debugRest": 0,
+				"debugCmd": 0,
+				"debugSdp": 0,
+				"sdpc":[],
+				"threads":[]
+      		}
+}
