@@ -60,7 +60,7 @@ static void _usage(char* base)
 #define SPI_CMD_WRITE_ENABLE			0x06
 #define SPI_CMD_CHIP_ERASE				0xC7
 #define SPI_CMD_CLEAR_AREA					0xD8
-#define SPI_CMD_READ_DEVICE_ID				0x9E
+#define SPI_CMD_READ_DEVICE_ID				0x9F
 #define SPI_CMD_ENTER_4BYTE_AD_MODE		0xB7
 #define SPI_CMD_EXIT_4BYTE_AD_MODE 		0xE9
 #define SPI_CMD_READ_4BYTE 				0x13

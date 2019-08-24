@@ -3,7 +3,7 @@ ifeq ($(CONFIG_OF),y)
 
 ifeq ($(MUX_BOARD), MUX_ATMEL_XPLAINED)
 	dtb-$(CONFIG_SOC_SAM_V7) += \
-		at91-sama5d2_xplained.dtb 
+		xplained.dtb 
 else 
 	ifeq ($(MUX_BOARD), MUX_BOARD_768)
 		dtb-$(CONFIG_SOC_SAM_V7) += \

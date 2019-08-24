@@ -187,10 +187,11 @@
 				pinctrl-0 = <&pinctrl_spi0_default>;
 				status = "okay";
 
+				/* device name can be any name */
 				m25p80@0 {
 /*				spidev@0 {*/ 
-					compatible = "atmel,at25df321a";	/* this SPI in xplained board */
-					#compatible = "spidev";
+					#compatible = "atmel,at25df321a";/* this SPI in xplained board and load mtd driver for it */
+					compatible = "spidev";	/* this will load spidev(userspace access for SPI device) */
 					reg = <0>;
 					spi-max-frequency = <50000000>;
 				};
