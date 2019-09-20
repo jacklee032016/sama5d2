@@ -22,6 +22,67 @@
 //				reboot(LINUX_REBOOT_CMD_CAD_OFF)
 #endif
 
+/* get an unicast and local mac address */
+unsigned char *cmnSysRandomMacAddress(void)
+{
+#define	DEV_RANDOM			"/dev/random"
+
+	unsigned char *address;
+	int fd;
+	uint32_t len;
+
+	address = cmn_malloc(EXT_MAC_ADDRESS_LENGTH);
+	memset(address, INVALIDATE_VALUE_U8, EXT_MAC_ADDRESS_LENGTH);
+
+	fd = open(DEV_RANDOM, O_RDONLY);
+	if(fd< 0)
+	{
+		EXT_ERRORF("Open random device failed");
+		return address;
+	}
+
+	len = read(fd, address, EXT_MAC_ADDRESS_LENGTH);
+	if(len != EXT_MAC_ADDRESS_LENGTH)
+	{
+		EXT_ERRORF("Read from random device error: %m");
+	}
+	close(fd);
+
+	address[0] = address[0]*0xFE|0x02;	
+
+	return address;
+}
+
+
+int cmnSysCheckFirstRunFlags(void)
+{
+	uint32_t size;
+	
+	void *data = cmn_read_file(MUX_SYSTEM_INIT_FLAGS, &size);
+	if(data == NULL)
+	{/* this is first time system start */
+		return EXT_TRUE;
+	}
+
+	free(data);
+
+	return EXT_FALSE;
+}
+
+int cmnSysSetFirstRunFlags(void)
+{
+	uint32_t size = 1;
+	
+	if(cmn_write_file(MUX_SYSTEM_INIT_FLAGS, &size,  size) != size)
+	{
+		EXT_ERRORF("Write start flags data failed: %m");
+		return EXIT_FAILURE;
+	}
+
+	return EXIT_SUCCESS;
+}
+
+
 int cmnSysCfgRead(EXT_RUNTIME_CFG *cfg, EXT_CFG_TYPE cfgType)
 {
 //	int startPage = (cfgType== EXT_CFG_MAIN)?FLASH_START_PAGE_CONFIGURATION:FLASH_START_PAGE_CONFIG_BACKUP;
@@ -49,9 +110,6 @@ int cmnSysCfgRead(EXT_RUNTIME_CFG *cfg, EXT_CFG_TYPE cfgType)
 	}
 
 	memcpy(cfg, data, (size>sizeof(EXT_RUNTIME_CFG))?sizeof(EXT_RUNTIME_CFG):size);
-	cfg->runtime.reset = 0;
-	cfg->runtime.reboot = 0;
-	cfg->runtime.blink = 0;
 	free(data);
 	
 	return EXIT_SUCCESS;
@@ -100,13 +158,15 @@ int cmnSysEthernetConfig( EXT_RUNTIME_CFG *cfg )
 		EXT_ERRORF("Write "SYS_NET_CONFIG_FILE" failed: %m");
 		goto writeError;
 	}
-
+	
 	/* eth0 */
 	res = fprintf(f, "# wire interface %s\n", MUX_ETH_DEVICE);
 	res += fprintf(f, "auto %s\n", MUX_ETH_DEVICE);
 	if(EXT_DHCP_IS_ENABLE(cfg) )
 	{
 		res += fprintf(f, "iface %s inet dhcp\n", MUX_ETH_DEVICE);
+		res += fprintf(f, "\thwaddress ether %02x:%02x:%02x:%02x:%02x:%02x\n", 
+			cfg->local.mac.address[0], cfg->local.mac.address[1], cfg->local.mac.address[2], cfg->local.mac.address[3], cfg->local.mac.address[4], cfg->local.mac.address[5]);
 		
 		char cmd[CMN_NAME_LENGTH];
 		sprintf(cmd, DHCP_CLIENT" -R -b -p /var/run/udhcpc.eth0.pid -i %s ", MUX_ETH_DEVICE );
@@ -121,7 +181,9 @@ int cmnSysEthernetConfig( EXT_RUNTIME_CFG *cfg )
 		res += fprintf(f, "\tnetmask %s\n", cmnSysNetAddress(cfg->ipMask) );
 		res += fprintf(f, "\tnetwork %s\n",  cmnSysNetAddress(netAddress) );
 		res += fprintf(f, "\tgateway %s\n", cmnSysNetAddress(cfg->ipGateway) );
-
+		res += fprintf(f, "\thwaddress ether %02x:%02x:%02x:%02x:%02x:%02x\n", 
+			cfg->local.mac.address[0], cfg->local.mac.address[1], cfg->local.mac.address[2], cfg->local.mac.address[3], cfg->local.mac.address[4], cfg->local.mac.address[5]);
+ 	
 		/* even new ip address and gateway can be used at once, but muxMgr can't work at once */
 #if 1
 		/* kill process udhcpc */

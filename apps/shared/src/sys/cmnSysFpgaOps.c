@@ -34,12 +34,20 @@ int	sysFpgaTxConfig(FpgaConfig *fpga)
 	_extFpgaWriteShort(&fpga->txAddress->localPortV, (unsigned char *)&runCfg->local.vport);
 	
 	_extFpgaWriteShort(&fpga->txAddress->localPortA, (unsigned char *)&runCfg->local.aport);
+#if WITH_ANCILLIARY_STREAM
 	_extFpgaWriteShort(&fpga->txAddress->localPortAnc, (unsigned char *)&runCfg->local.dport);
+#endif
+
 #if EXT_FPGA_AUX_ON	
 	_extFpgaWriteShort(&fpga->txAddress->localPortAuc, (unsigned char *)&runCfg->local.sport);
 #endif
 
+#if WITH_ANCILLIARY_STREAM
 	EXT_DEBUGF(MUX_DEBUG_FPGA, "TX:IP:%s; portV:%d; portA:%d; portAnc:%d", cmnSysNetAddress(ip), runCfg->local.vport, runCfg->local.aport,runCfg->local.dport);
+#else
+	EXT_DEBUGF(MUX_DEBUG_FPGA, "TX Local:MAC:%02x:%02x:%02x:%02x:%02x:%02x; IP:%s; portV:%d; portA:%d", 
+		address[0], address[1], address[2], address[3], address[4], address[5], cmnSysNetAddress(ip), runCfg->local.vport, runCfg->local.aport);
+#endif
 
 	/* dest */
 	/* video */
@@ -56,6 +64,9 @@ int	sysFpgaTxConfig(FpgaConfig *fpga)
 
 	_extFpgaWriteInteger(&fpga->txAddress->streamVideo->ip, &runCfg->dest.ip);
 	_extFpgaWriteShort(&fpga->txAddress->streamVideo->port, (unsigned char *)&runCfg->dest.vport);
+
+	EXT_DEBUGF(MUX_DEBUG_FPGA, "Video:MAC:%02x:%02x:%02x:%02x:%02x:%02x; IP:%s; port:%d", 
+		address[0], address[1], address[2], address[3], address[4], address[5], cmnSysNetAddress(runCfg->dest.ip), runCfg->dest.vport);
 	
 	/* audio */
 	if(cmnSysNetMulticastIP4Mac(runCfg->dest.audioIp, &destMac) == EXIT_SUCCESS)
@@ -72,6 +83,10 @@ int	sysFpgaTxConfig(FpgaConfig *fpga)
 	_extFpgaWriteInteger(&fpga->txAddress->streamAudio->ip, &runCfg->dest.audioIp);
 	_extFpgaWriteShort(&fpga->txAddress->streamAudio->port, (unsigned char *)&runCfg->dest.aport);
 
+	EXT_DEBUGF(MUX_DEBUG_FPGA, "Audio:MAC:%02x:%02x:%02x:%02x:%02x:%02x; IP:%s; port:%d", 
+		address[0], address[1], address[2], address[3], address[4], address[5], cmnSysNetAddress(runCfg->dest.audioIp), runCfg->dest.aport);
+
+#if WITH_ANCILLIARY_STREAM
 	/* ANC */
 	if(cmnSysNetMulticastIP4Mac(runCfg->dest.ancIp, &destMac) == EXIT_SUCCESS)
 	{/* dest MAC is multicast MAC address */
@@ -86,6 +101,9 @@ int	sysFpgaTxConfig(FpgaConfig *fpga)
 
 	_extFpgaWriteInteger(&fpga->txAddress->streamAnc->ip, &runCfg->dest.ancIp);
 	_extFpgaWriteShort(&fpga->txAddress->streamAnc->port, (unsigned char *)&runCfg->dest.dport);
+	EXT_DEBUGF(MUX_DEBUG_FPGA, "ANC:MAC:%02x:%02x:%02x:%02x:%02x:%02x; IP:%s; port:%d", 
+		address[0], address[1], address[2], address[3], address[4], address[5], cmnSysNetAddress(runCfg->dest.ancIp), runCfg->dest.dport);
+#endif
 
 	/* AUX */
 #if EXT_FPGA_AUX_ON	
@@ -104,6 +122,12 @@ int	sysFpgaTxConfig(FpgaConfig *fpga)
 	_extFpgaWriteShort(&fpga->txAddress->streamAux->port, (unsigned char *)&runCfg->dest.sport);
 #endif/* AUX */
 
+	TRACE();
+	/* enable all streams */
+	address[0] = INVALIDATE_VALUE_U8;
+	_extFpgaWriteByte(&fpga->txAddress->enable, address);
+
+	TRACE();
 	return EXIT_SUCCESS;
 }
 
@@ -145,8 +169,10 @@ int	sysFpgaRxConfig(FpgaConfig *fpga)
 	_extFpgaWriteShort(&fpga->rxAddress->streamAudio->port, (unsigned char *)&vCfg->aport );
 
 	/* dest multi Anx */
+#if WITH_ANCILLIARY_STREAM
 	_extFpgaWrite3Bytes(&fpga->rxAddress->streamAnc->ip, &vCfg->ancIp);
 	_extFpgaWriteShort(&fpga->rxAddress->streamAnc->port, (unsigned char *)&vCfg->dport );
+#endif
 
 #if EXT_FPGA_AUX_ON	
 	/* dest multi Aux */
@@ -214,6 +240,7 @@ int	sysFpgaRxConfig(FpgaConfig *fpga)
 		}
 	}
 
+#if WITH_ANCILLIARY_STREAM
 	if(fpga->groupAncMgr)
 	{
 		if(fpga->groupAncMgr->changeGroup(fpga->groupAncMgr, cmnSysNetAddress(runCfg->dest.ancIp) ) )
@@ -221,8 +248,14 @@ int	sysFpgaRxConfig(FpgaConfig *fpga)
 			EXT_ERRORF("Join ANC multicast group '%s' failed", cmnSysNetAddress(runCfg->dest.ancIp));
 		}
 	}
+#endif
 
 //		EXT_DELAY_MS(5000);
+
+	/* enable all streams */
+	chValue = INVALIDATE_VALUE_U8;
+	_extFpgaWriteByte(&fpga->rxAddress->enable, &chValue);
+
 
 	EXT_DEBUGF(MUX_DEBUG_FPGA,  "FPGA RX Configuration ended!");
 	return EXIT_SUCCESS;
@@ -232,8 +265,11 @@ int sysFpgaTxReadParams(FpgaConfig *fpga)
 {
 	unsigned char _chValue;
 	
-	 EXT_RUNTIME_CFG *runCfg = fpga->runCfg;
+	EXT_RUNTIME_CFG *runCfg = fpga->runCfg;
 
+	EXT_INFOF("Read cfg:%p", runCfg);
+
+#if 0
 	FPGA_I2C_READ(EXT_FPGA_REG_SDI_STATUS, (unsigned char *)&_chValue, 1);
 #if 0
 	if(_chValue == 0x0f)
@@ -246,6 +282,8 @@ int sysFpgaTxReadParams(FpgaConfig *fpga)
 
 	EXT_DEBUGF(MUX_DEBUG_FPGA, "Lock %02x from register 0x%x", _chValue, EXT_FPGA_REG_SDI_STATUS);
 	if(!_chValue)
+#endif
+
 	{
 		FIELD_INVALIDATE_U16(runCfg->runtime.vWidth);
 		FIELD_INVALIDATE_U16(runCfg->runtime.vHeight);
@@ -265,7 +303,7 @@ int sysFpgaTxReadParams(FpgaConfig *fpga)
 
 		FIELD_INVALIDATE_U8(runCfg->runtime.vpid );
 		
-		return EXIT_SUCCESS;
+//		return EXIT_SUCCESS;
 	}
 
 
@@ -275,9 +313,11 @@ int sysFpgaTxReadParams(FpgaConfig *fpga)
 	_extFpgaReadByte(&fpga->txAddress->streamAudio->rtpPayload, &_chValue);
 	runCfg->runtime.rtpTypeAudio = (_chValue&0x7F);
 
+#if WITH_ANCILLIARY_STREAM
 	_extFpgaReadByte(&fpga->txAddress->streamAnc->rtpPayload, &_chValue);
 	runCfg->runtime.rtpTypeAnc = (_chValue&0x7F);
-	
+#endif
+
 	return fpgaReadParamRegisters(fpga->txAddress->media, runCfg);
 }
 
@@ -314,6 +354,7 @@ int sysFpgaRxWriteParams(FpgaConfig *fpga)
 		return EXIT_FAILURE;
 	}
 
+#if WITH_ANCILLIARY_STREAM
 	if(runCfg->fpgaAuto == FPGA_CFG_AUTO )
 	{
 		EXT_DEBUGF(MUX_DEBUG_FPGA, "RX is in auto mode");
@@ -321,6 +362,7 @@ int sysFpgaRxWriteParams(FpgaConfig *fpga)
 		FPGA_I2C_WRITE(EXT_FPGA_REG_ENABLE, &_chValue, 1);
 	}
 	else
+#endif
 	{
 		/* first, enable manual configuration */
 		_chValue = EXT_FPGA_FLAGS_MCU_ENABLE;
@@ -333,7 +375,7 @@ int sysFpgaRxWriteParams(FpgaConfig *fpga)
 		
 		_extFpgaWriteByte(&fpga->rxAddress->media->framerate, &runCfg->runtime.vFrameRate);
 
-#if 0
+#if 1
 		_extFpgaWriteByte(&fpga->rxAddress->media->colorSpace, &runCfg->runtime.vColorSpace);
 		_extFpgaWriteByte(&fpga->rxAddress->media->vDepth, &runCfg->runtime.vDepth);
 #else
@@ -354,11 +396,18 @@ int sysFpgaRxWriteParams(FpgaConfig *fpga)
 
 		_extFpgaWriteByte(&fpga->rxAddress->streamVideo->rtpPayload, &runCfg->runtime.rtpTypeVideo);
 		_extFpgaWriteByte(&fpga->rxAddress->streamAudio->rtpPayload, &runCfg->runtime.rtpTypeAudio);
-		_extFpgaWriteByte(&fpga->rxAddress->streamAnc->rtpPayload, &runCfg->runtime.rtpTypeAnc);
 
+#if WITH_ANCILLIARY_STREAM
+		_extFpgaWriteByte(&fpga->rxAddress->streamAnc->rtpPayload, &runCfg->runtime.rtpTypeAnc);
+#endif
 		
 		/* third, start it */
-		FPGA_I2C_WRITE(EXT_FPGA_REG_PARAM_STATUS, &_chValue, 1);
+		//FPGA_I2C_WRITE(EXT_FPGA_REG_PARAM_STATUS, &_chValue, 1);
+		_chValue = INVALIDATE_VALUE_U8;
+		_extFpgaWriteByte(&fpga->rxAddress->media->paramStatus, &_chValue);
+
+		EXT_DEBUGF(MUX_DEBUG_FPGA, "RX write:%dx%d, fps:%d; cs:%d; depth:%d; intlc:%d; ", 
+			runCfg->runtime.vWidth, runCfg->runtime.vHeight, runCfg->runtime.vFrameRate, runCfg->runtime.vColorSpace, runCfg->runtime.vDepth, runCfg->runtime.vIsInterlaced);
 
 	}
 
@@ -379,24 +428,32 @@ int fpgaReadParamRegisters(MediaRegisterAddress *addrMedia, EXT_RUNTIME_CFG *run
 	
 	_extFpgaReadByte(&addrMedia->framerate, &runCfg->runtime.vFrameRate);
 
-#if 0
-	_extFpgaReadByte(&addrMedia->colorSpace, &runCfg->runtime.vColorSpace);
+	EXT_DEBUGF(MUX_DEBUG_FPGA, "Video:Width:%d; Height:%d; fps:%d", 
+		runCfg->runtime.vWidth, runCfg->runtime.vHeight, runCfg->runtime.vFrameRate);
 
+#if 1
+	_extFpgaReadByte(&addrMedia->colorSpace, &runCfg->runtime.vColorSpace);
 	_extFpgaReadByte(&addrMedia->vDepth, &runCfg->runtime.vDepth);
+	EXT_DEBUGF(MUX_DEBUG_FPGA, "depth:%d(0x%x); ColorSpace:%s(0x%x)", 
+		CMN_INT_FIND_NAME_V_DEPTH(runCfg->runtime.vDepth), runCfg->runtime.vDepth, 
+		CMN_FIND_V_COLORSPACE(runCfg->runtime.vColorSpace), runCfg->runtime.vColorSpace);
 #else
 	{
 //		unsigned char depth, unsigned char colorSpace;
 		_extFpgaReadByte(&addrMedia->colorSpace, &_chValue);
-		EXT_DEBUGF(MUX_DEBUG_FPGA, "VideoConfig is 0x%x", _chValue);
 		runCfg->runtime.vDepth = (_chValue&0x03);
 		runCfg->runtime.vColorSpace = ( (_chValue>>2) &0x07);
 	}
-
+	EXT_DEBUGF(MUX_DEBUG_FPGA, "VideoConfig is 0x%x; depth:%d(0x%x); ColorSpace:%s(0x%x)", 
+		_chValue, CMN_INT_FIND_NAME_V_DEPTH(runCfg->runtime.vDepth), runCfg->runtime.vDepth, 
+		CMN_FIND_V_COLORSPACE(runCfg->runtime.vColorSpace), runCfg->runtime.vColorSpace);
 #endif
+
 	_extFpgaReadByte(&addrMedia->intl, &runCfg->runtime.vIsInterlaced);
 
 	/* audio */	
 	_extFpgaReadByte(&addrMedia->channels, &_chValue);
+	EXT_DEBUGF(MUX_DEBUG_FPGA, "AudioChannel is 0x%x", _chValue);
 	runCfg->runtime.aChannels = 0;
 	for(i=0; i< 4; i++)
 	{
@@ -409,8 +466,11 @@ int fpgaReadParamRegisters(MediaRegisterAddress *addrMedia, EXT_RUNTIME_CFG *run
 	_extFpgaReadByte(&addrMedia->audioRate, &runCfg->runtime.aSampleRate);
 	
 	_extFpgaReadByte(&addrMedia->pktSize, &runCfg->runtime.aPktSize);
+	EXT_DEBUGF(MUX_DEBUG_FPGA, "Audio: Rate: %d; PktSize:%d", runCfg->runtime.aSampleRate, runCfg->runtime.aPktSize);
 
+#if 0
 	FPGA_I2C_READ(EXT_FPGA_REG_ANC_VPID, &runCfg->runtime.vpid, 1);
+#endif
 
 	return EXIT_SUCCESS;
 }

@@ -1558,7 +1558,8 @@ static int atmel_spi_gpio_funm(struct platform_device *pdev)
 	EXT_INFOF("GPIO of FUNM is 0x%d", cs_gpio);
 	if (gpio_is_valid(cs_gpio))
 	{
-		if(gpio_direction_output(cs_gpio, 0) )
+//		if(gpio_direction_output(cs_gpio, 0) )
+		if(gpio_direction_output(cs_gpio, 1) )
 		{
 			EXT_ERRORF("FUMN set failed!");
 			return -1;

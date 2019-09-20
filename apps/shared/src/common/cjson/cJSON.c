@@ -2212,37 +2212,37 @@ void cJSON_InsertItemInArray(cJSON *array, int which, cJSON *newitem)
 
 cJSON_bool cJSON_ReplaceItemViaPointer(cJSON * const parent, cJSON * const item, cJSON * replacement)
 {
-    if ((parent == NULL) || (replacement == NULL) || (item == NULL))
-    {
-        return false;
-    }
+	if ((parent == NULL) || (replacement == NULL) || (item == NULL))
+	{
+		return false;
+	}
 
-    if (replacement == item)
-    {
-        return true;
-    }
+	if (replacement == item)
+	{
+		return true;
+	}
 
-    replacement->next = item->next;
-    replacement->prev = item->prev;
+	replacement->next = item->next;
+	replacement->prev = item->prev;
 
-    if (replacement->next != NULL)
-    {
-        replacement->next->prev = replacement;
-    }
-    if (replacement->prev != NULL)
-    {
-        replacement->prev->next = replacement;
-    }
-    if (parent->child == item)
-    {
-        parent->child = replacement;
-    }
+	if (replacement->next != NULL)
+	{
+		replacement->next->prev = replacement;
+	}
+	if (replacement->prev != NULL)
+	{
+		replacement->prev->next = replacement;
+	}
+	if (parent->child == item)
+	{
+		parent->child = replacement;
+	}
 
-    item->next = NULL;
-    item->prev = NULL;
-    cJSON_Delete(item);
+	item->next = NULL;
+	item->prev = NULL;
+	cJSON_Delete(item);
 
-    return true;
+	return true;
 }
 
 void cJSON_ReplaceItemInArray(cJSON *array, int which, cJSON *newitem)
@@ -2270,14 +2270,14 @@ static cJSON_bool replace_item_in_object(cJSON *object, const char *string, cJSO
     replacement->string = (char*)cJSON_strdup((const unsigned char*)string, &global_hooks);
     replacement->type &= ~cJSON_StringIsConst;
 
-    cJSON_ReplaceItemViaPointer(object, get_object_item(object, string, case_sensitive), replacement);
+    return cJSON_ReplaceItemViaPointer(object, get_object_item(object, string, case_sensitive), replacement);
 
-    return true;
+//    return true;
 }
 
-void cJSON_ReplaceItemInObject(cJSON *object, const char *string, cJSON *newitem)
+cJSON_bool cJSON_ReplaceItemInObject(cJSON *object, const char *string, cJSON *newitem)
 {
-    replace_item_in_object(object, string, newitem, false);
+	return replace_item_in_object(object, string, newitem, false);
 }
 
 void cJSON_ReplaceItemInObjectCaseSensitive(cJSON *object, const char *string, cJSON *newitem)

@@ -375,6 +375,47 @@ void safe_read (int fd,const char *filename,void *buf,size_t count, int verbose)
 }
 
 
+int cmn_count_file(const char *filename)
+{
+	FILE *file = NULL;
+	long length = -1;
+
+	/* open in read binary mode */
+	file = fopen(filename, "rb");
+	if (file == NULL)
+	{
+		MUX_ERROR("fopen file '%s' failed : %s",filename, strerror(errno));
+		goto cleanup;
+	}
+
+	/* get the length */
+	if (fseek(file, 0, SEEK_END) != 0)
+	{
+		MUX_ERROR("fseek file '%s' failed : %s",filename, strerror(errno));
+		goto cleanup;
+	}
+	
+	length = ftell(file);
+	if (length < 0)
+	{
+		MUX_ERROR("ftell file '%s' failed : %s",filename, strerror(errno));
+		goto cleanup;
+	}
+	if (fseek(file, 0, SEEK_SET) != 0)
+	{
+		MUX_ERROR("fseek file '%s' failed : %s",filename, strerror(errno));
+		goto cleanup;
+	}
+
+cleanup:
+	if (file != NULL)
+	{
+		fclose(file);
+	}
+
+	return length;
+}
+
 char *cmn_read_file(const char *filename, uint32_t *size)
 {
 	FILE *file = NULL;

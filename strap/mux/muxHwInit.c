@@ -233,9 +233,12 @@ int muxHwInit(void)
 	pio_set_value(LED_LINK, 0);
 
 	/* flash from FPGA to MUC, 08.22, 2019 */
+#if 0
 	EXT_INFOF("Flash switch to MCU");
 	pio_set_gpio_output(FPGA_FLASH_SWITCH, 1);
 	pio_set_value(FPGA_FLASH_SWITCH, 1);
+#endif
+
 #endif
 	
 

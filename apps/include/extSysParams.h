@@ -150,7 +150,7 @@
 #if 1//EXTLAB_BOARD
 #define ETHERNET_CONF_IPADDR2_TX				168
 #define ETHERNET_CONF_IPADDR2_RX				168
-#define ETHERNET_CONF_IPADDR3_TX				101
+#define ETHERNET_CONF_IPADDR3_TX				102
 #else
 #define ETHERNET_CONF_IPADDR2_TX				169
 #define ETHERNET_CONF_IPADDR2_RX				169
@@ -779,7 +779,15 @@ typedef	enum
 	EXT_RS232_STOP_BITS_15,
 }EXT_RS232_STOP_BITS;
 
-#define	EXT_BAUDRATE_9600		9600
+
+
+#define	EXT_BAUDRATE_300			300
+#define	EXT_BAUDRATE_600			600
+#define	EXT_BAUDRATE_1200			1200
+#define	EXT_BAUDRATE_2400			2400
+#define	EXT_BAUDRATE_4800			4800
+
+#define	EXT_BAUDRATE_9600			9600
 #define	EXT_BAUDRATE_19200		19200
 #define	EXT_BAUDRATE_38400		38400
 #define	EXT_BAUDRATE_57600		57600
@@ -822,6 +830,17 @@ typedef	enum
 #elif (MUX_BOARD == MUX_BOARD_774)
 typedef	enum
 {/* value definitions are from FPGA */
+	EXT_V_COLORSPACE_YCBCR_422		= 0,
+	EXT_V_COLORSPACE_YCBCR_444 		= 1,
+	EXT_V_COLORSPACE_RGB			= 2,
+	EXT_V_COLORSPACE_YCBCR_420		= 3,
+	EXT_V_COLORSPACE_XYZ			= 4,
+	EXT_V_COLORSPACE_KEY			= 5,
+	EXT_V_COLORSPACE_CL_YCBCR_422	= 8,
+	EXT_V_COLORSPACE_CL_YCBCR_444	= 9,
+	EXT_V_COLORSPACE_CL_YCBCR_420	= 11
+
+/*
 	EXT_V_COLORSPACE_YCBCR_444 		= 0,
 	EXT_V_COLORSPACE_YCBCR_422		= 1,
 	EXT_V_COLORSPACE_YCBCR_420		= 2,
@@ -830,6 +849,7 @@ typedef	enum
 	EXT_V_COLORSPACE_RESERVED		= 5,
 	EXT_V_COLORSPACE_Y4K_420		= 6,
 	EXT_V_COLORSPACE_RGB_RAW		= 7
+*/	
 }EXT_V_COLORSPACE;
 #else
 #error 	Not support board definition
@@ -1354,7 +1374,10 @@ char cmnCmdLineProcess( const char * const cmdInput, char *outBuffer, unsigned i
 char cmnCmdHelp(const struct _EXT_CLI_CMD *cmd,  char *outBuffer,  unsigned int bufferLen);
 char cmnCmdVersion(const struct _EXT_CLI_CMD *cmd,  char *outBuffer,  unsigned int bufferLen);
 
+unsigned char *cmnSysRandomMacAddress(void);
 
+int cmnSysCheckFirstRunFlags(void);
+int cmnSysSetFirstRunFlags(void);
 
 int cmnSysCfgSave( EXT_RUNTIME_CFG *cfg, EXT_CFG_TYPE cfgType );
 int cmnSysCfgRead( EXT_RUNTIME_CFG *cfg, EXT_CFG_TYPE cfgType);

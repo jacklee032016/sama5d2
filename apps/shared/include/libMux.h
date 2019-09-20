@@ -45,6 +45,8 @@
 
 #define	MUX_SYSTEM_CONFIG_DATA			CONFIG_FILE_HOME_PROJECT"muxConfig.dat"
 
+#define	MUX_SYSTEM_INIT_FLAGS			CONFIG_FILE_HOME_PROJECT"flags.dat"
+
 
 #define	CRON_TASK_FILE						"/var/spool/cron/crontabs/root"
 
@@ -229,6 +231,9 @@ typedef	enum _CMD_TYPE
 #define	FIELD_SYS_CFG_VERSION						"ver"
 #define	FIELD_SYS_CFG_BUILT_DATA					"built"
 #define	FIELD_SYS_CFG_IS_TX						"isTx"
+
+#define	FIELD_SYS_CFG_FPGA_VERSION				"fpgaVer"
+#define	FIELD_SYS_CFG_FPGA_BUILT					"fpgaBuilt"
 
 #define	FIELD_SYS_CFG_ADDRESS					"ip"
 #define	FIELD_SYS_CFG_NETMASK					"mask"
@@ -983,6 +988,7 @@ extern	const 	TYPE_NAME_T _mediaModes[];
 #define	CMN_FIND_STR_V_FRAME_RATE(str)		\
 	cmnMuxTypeFindType(_videoFramerates, (str) )
 
+/* for REST API/IpCmd */
 #define	CMN_FIND_V_FPS_4_REST(type)		\
 	cmnMuxTypeFindName(_videoFps4Rest, (type) )
 

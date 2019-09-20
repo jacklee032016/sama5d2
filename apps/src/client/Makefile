@@ -16,7 +16,9 @@ CODE_SUBDIRS = .
 
 LOCAL_ALL := \
 		apiClient \
-		scKey
+		scKey \
+		regRead \
+		fwUpdate \
 		
 
 include $(ROOT_DIR)/Makefile.post
@@ -35,7 +37,15 @@ apiClient:$(OBJS)
 	$(CC) -s -o $@ $^ $(LDFLAGS)
 	$(MOVE) $@ $(BIN_DIR)/usr/bin  
 
-
 scKey:$(OBJ_DIR)/scKey.o
 	$(CC) -s -o $@ $^ $(LDFLAGS) 
 	$(MOVE) $@ $(BIN_DIR)/usr/bin  
+
+regRead:$(OBJ_DIR)/regRead.o
+	$(CC) -s -o $@ $^ $(LDFLAGS) 
+	$(MOVE) $@ $(BIN_DIR)/usr/bin  
+
+fwUpdate:$(OBJ_DIR)/flashUpdate.o
+	$(CC) -s -o $@ $^ $(LDFLAGS) 
+	$(MOVE) $@ $(BIN_DIR)/usr/bin  
+	

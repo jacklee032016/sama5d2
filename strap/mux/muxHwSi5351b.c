@@ -1,5 +1,4 @@
 
-
 #include "common.h"
 #include "hardware.h"
 #include "board.h"
@@ -9,8 +8,10 @@
 
 #include "mux7xx.h"
 
-#if	(MUX_BOARD == MUX_BOARD_768 || MUX_BOARD == MUX_BOARD_774 )
+#if	(MUX_BOARD == MUX_BOARD_768 )
 #include "si5351bRegs.h"
+#elif ( MUX_BOARD == MUX_BOARD_774)
+#include "si5351bRegister500774.h"
 #elif (MUX_BOARD == MUX_BOARD_767)
 #include "si5351bRegisters.h"
 #endif
@@ -23,7 +24,7 @@ int  muxSi5351bHwInit(void)
 	unsigned int bus;
 
 	bus = muxHwTwiSetMuxChannel(MUX_BUS_SI5351B);
-#if	(MUX_BOARD == MUX_BOARD_768 || MUX_BOARD == MUX_BOARD_774)
+#if	(MUX_BOARD == MUX_BOARD_768 )// || MUX_BOARD == MUX_BOARD_774)
 	buffer[0] = 0xff;
 	twi_write(bus, EXT_I2C_DEV_SI5351B, 3, 1, buffer, 1);
 
@@ -61,6 +62,53 @@ int  muxSi5351bHwInit(void)
 	}
 	dbg_info("SI5351B status: %x, %s\n", buffer[0], (buffer[0]==0x11)?"OK":"Failed");
 #endif
+
+#elif (MUX_BOARD == MUX_BOARD_774 )
+	// Turn off the clocks
+	buffer[0] = 0xff;
+	if(twi_write(bus, EXT_I2C_DEV_SI5351B, 3, 1, buffer, 1) )
+	{
+		EXT_ERRORF("SI5351B, 3.1 failed");
+	}
+
+	for (i=0; i<SI5351B_REVB_REG_CONFIG_NUM_REGS; i++)
+	{
+		buffer[0] = si5351b_revb_registers_m774[i].value;
+		reg_addr = (unsigned char )si5351b_revb_registers_m774[i].address;
+		if(twi_write(bus, EXT_I2C_DEV_SI5351B, reg_addr, 1, buffer, 1) )
+		{
+			EXT_ERRORF("SI5351B, %x. failed", reg_addr);
+		}
+		
+	}
+
+	EXT_INFOF("SI5351B(Mux774) total %d regsiters have been written", i);
+
+	// adjust crystal capacitante register
+	buffer[0] = 0x12;
+	twi_write(bus, EXT_I2C_DEV_SI5351B, 183, 1, buffer, 1);
+	// reset PLL
+	buffer[0] = 0xAC;
+	twi_write(bus, EXT_I2C_DEV_SI5351B, 177, 1, buffer, 1);
+	buffer[0] = 0x00;
+	twi_write(bus, EXT_I2C_DEV_SI5351B, 3, 1, buffer, 1);
+
+
+  // Turn on the clocks 
+	buffer[0] = 0x00;
+	if(twi_write(bus, EXT_I2C_DEV_SI5351B, 3, 1, buffer, 1) )
+	{
+		EXT_ERRORF("SI5351B, 3.1 again failed");
+	}
+	
+	if(twi_read(bus, EXT_I2C_DEV_SI5351B, 0, 1, buffer, 1))
+	{
+		dbg_info("SI5351B read failed\n");
+		return -1;
+	}
+	
+	dbg_info("SI5351B status: %x, %s\n", buffer[0], (buffer[0]==0x11)?"OK":"Failed");
+	EXT_INFOF("SI5351B(Mux774) has been turn on");
 
 #elif (MUX_BOARD == MUX_BOARD_767 )
 	// Turn off the clocks

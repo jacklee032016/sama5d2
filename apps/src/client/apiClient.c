@@ -17,7 +17,7 @@ send JSON request from json file and parse JSON response, used in CGI and other 
 */
 
 //#define	CLIENT_TIMEOUT_SECONDS		15
-#define	CLIENT_TIMEOUT_SECONDS		2
+#define	CLIENT_TIMEOUT_SECONDS		2*3
 
 static void usage(char* base, struct API_PARAMETERS *params)
 {

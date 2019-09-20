@@ -94,12 +94,15 @@ int muxFpgaInit(FPGA_CTRL *fpgaCtrl)
 	unsigned char	_chArray[16];
 	unsigned short port;
 
+#if 0	
 	_chData =FPAG_VIDEO_CONFIG_REG(EXT_VIDEO_MODE_RGB_RAW, EXT_VIDEO_DEPTH_8BIT);
+#else
+	_chData = 0; /* write 0 to it as told by Vitali. 09.11, 2019 */
+#endif
 	// Set the video format as: bits(4:2) = RGB Raw, bits(1:0) = 8-bits per pixel
 	FPGA_WRITE_SYSTM_REG(fpgaCtrl, MUX_FPGA_REG_VIDEO_CTRL, 1, &_chData, 1);
-	
 
-  // for debug
+// for debug
 //	twi_addr = 0;
 //	data[0] = 0xff;
 //	data[1] = 0xfe;
@@ -296,6 +299,10 @@ int muxFpgaReset(FPGA_CTRL *fpgaCtrl)
 		muxTxInitHdmi();
 	}
 #endif
+
+	_chData = 0x00;
+	EXT_INFOF("FPGA write SPI_PATH_SEL 0x%x...", _chData);
+	FPGA_WRITE_SYSTM_REG(fpgaCtrl, MUX_FPGA_REG_SPI_PATH_SEL, 1, &_chData, 1);
 
 	return 0;
 }

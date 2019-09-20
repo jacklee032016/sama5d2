@@ -8,6 +8,8 @@
 
 #include "extSysParams.h"
 
+#define	_DEFAULT_API_ROOT			"api"
+
 static unsigned char		_readBuffer[EXT_RW_BUFFER_SIZE];
 static unsigned char		_writeBuffer[EXT_RW_BUFFER_SIZE];
 
@@ -83,17 +85,17 @@ void cmnSysCfgFromFactory( EXT_RUNTIME_CFG *cfg )
 		cfg->sdpUriAudio.type = HC_REQ_SDP_AUDIO;
 		cfg->sdpUriAudio.ip = CFG_MAKE_IP_ADDRESS( ETHERNET_CONF_IPADDR0, ETHERNET_CONF_IPADDR1, ETHERNET_CONF_IPADDR2_TX, ETHERNET_CONF_IPADDR3_TX);
 		cfg->sdpUriAudio.port = EXT_SDP_SVR_PORT;
-		snprintf(cfg->sdpUriAudio.uri, sizeof(cfg->sdpUriAudio.uri), "%s", EXT_WEBPAGE_SDP_AUDIO);
+		snprintf(cfg->sdpUriAudio.uri, sizeof(cfg->sdpUriAudio.uri), _DEFAULT_API_ROOT"/%s", EXT_WEBPAGE_SDP_AUDIO);
 
 		cfg->sdpUriVideo.type = HC_REQ_SDP_VIDEO;
 		cfg->sdpUriVideo.ip = CFG_MAKE_IP_ADDRESS( ETHERNET_CONF_IPADDR0, ETHERNET_CONF_IPADDR1, ETHERNET_CONF_IPADDR2_TX, ETHERNET_CONF_IPADDR3_TX );
 		cfg->sdpUriVideo.port = EXT_SDP_SVR_PORT;
-		snprintf(cfg->sdpUriVideo.uri, sizeof(cfg->sdpUriVideo.uri), "%s", EXT_WEBPAGE_SDP_VIDEO);
+		snprintf(cfg->sdpUriVideo.uri, sizeof(cfg->sdpUriVideo.uri), _DEFAULT_API_ROOT"/%s", EXT_WEBPAGE_SDP_VIDEO);
 
 		cfg->sdpUriAnc.type = HC_REQ_SDP_ANC;
 		cfg->sdpUriAnc.ip = CFG_MAKE_IP_ADDRESS(ETHERNET_CONF_IPADDR0, ETHERNET_CONF_IPADDR1, ETHERNET_CONF_IPADDR2_TX, ETHERNET_CONF_IPADDR3_TX );
 		cfg->sdpUriAnc.port = EXT_SDP_SVR_PORT;
-		snprintf(cfg->sdpUriAnc.uri, sizeof(cfg->sdpUriAnc.uri), "%s", EXT_WEBPAGE_SDP_ANC);
+		snprintf(cfg->sdpUriAnc.uri, sizeof(cfg->sdpUriAnc.uri), _DEFAULT_API_ROOT"/%s", EXT_WEBPAGE_SDP_ANC);
 
 
 		cfg->restUrl.type = HC_REQ_JSON;
@@ -153,17 +155,17 @@ void cmnSysCfgFromFactory( EXT_RUNTIME_CFG *cfg )
 		cfg->sdpUriAudio.type = HC_REQ_SDP_AUDIO;
 		cfg->sdpUriAudio.ip = CFG_MAKE_IP_ADDRESS(ETHERNET_CONF_IPADDR0, ETHERNET_CONF_IPADDR1, ETHERNET_CONF_IPADDR2_TX, ETHERNET_CONF_IPADDR3_TX);
 		cfg->sdpUriAudio.port = EXT_SDP_SVR_PORT;
-		snprintf(cfg->sdpUriAudio.uri, sizeof(cfg->sdpUriAudio.uri), "%s", EXT_WEBPAGE_SDP_AUDIO);
+		snprintf(cfg->sdpUriAudio.uri, sizeof(cfg->sdpUriAudio.uri), _DEFAULT_API_ROOT"/%s", EXT_WEBPAGE_SDP_AUDIO);
 
 		cfg->sdpUriVideo.type = HC_REQ_SDP_VIDEO;
 		cfg->sdpUriVideo.ip = CFG_MAKE_IP_ADDRESS(ETHERNET_CONF_IPADDR0, ETHERNET_CONF_IPADDR1, ETHERNET_CONF_IPADDR2_TX, ETHERNET_CONF_IPADDR3_TX);
 		cfg->sdpUriVideo.port = EXT_SDP_SVR_PORT;
-		snprintf(cfg->sdpUriVideo.uri, sizeof(cfg->sdpUriVideo.uri), "%s", EXT_WEBPAGE_SDP_VIDEO);
+		snprintf(cfg->sdpUriVideo.uri, sizeof(cfg->sdpUriVideo.uri), _DEFAULT_API_ROOT"/%s", EXT_WEBPAGE_SDP_VIDEO);
 
 		cfg->sdpUriAnc.type = HC_REQ_SDP_ANC;
 		cfg->sdpUriAnc.ip = CFG_MAKE_IP_ADDRESS(ETHERNET_CONF_IPADDR0, ETHERNET_CONF_IPADDR1, ETHERNET_CONF_IPADDR2_TX, ETHERNET_CONF_IPADDR3_TX );
 		cfg->sdpUriAnc.port = EXT_SDP_SVR_PORT;
-		snprintf(cfg->sdpUriAnc.uri, sizeof(cfg->sdpUriAnc.uri), "%s", EXT_WEBPAGE_SDP_ANC);
+		snprintf(cfg->sdpUriAnc.uri, sizeof(cfg->sdpUriAnc.uri), _DEFAULT_API_ROOT"/%s", EXT_WEBPAGE_SDP_ANC);
 
 
 		cfg->restUrl.type = HC_REQ_JSON;

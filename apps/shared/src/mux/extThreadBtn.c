@@ -251,6 +251,14 @@ static int _muxThLedMain(CmnThread *th)
 //	MuxMain *muxMain = (MuxMain *)btn->data;
 	int status = EXT_FALSE;
 
+	status = sysFpgaReadVideoStatus();
+	led->videoStatus = status;
+	CMN_SYS_LED_POWER_CTRL((led->videoStatus==EXT_TRUE)?LED_MODE_ON: LED_MODE_OFF);
+
+	status = sysFpgaReadFpsStatus();
+	led->actStatus = status;
+	CMN_SYS_LED_ACT_CTRL((led->actStatus==EXT_TRUE)?LED_MODE_ON: LED_MODE_OFF);
+
 	while(1)
 	{
 		_ledDelay(led);

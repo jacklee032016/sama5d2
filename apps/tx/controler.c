@@ -179,31 +179,6 @@ unsigned int crc32b(unsigned char *message)
 	return ~crc;
 }
 
-int udp_config(void) 
-{
-	struct sockaddr_in addr;
-	int sockCtrl;
-
-	sockCtrl = socket(AF_INET, SOCK_DGRAM, 0);
-	if (sockCtrl < 0) 
-	{
-		fprintf(stderr, "Socket Error:%s\n", strerror(errno));
-		return -1;
-	}
-
-	bzero(&addr, sizeof(struct sockaddr_in));
-	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	addr.sin_port = htons(SERVER_PORT);
-
-	if (bind(sockCtrl, (struct sockaddr *) &addr, sizeof(struct sockaddr_in)) < 0) {
-		fprintf(stderr, "UDP communication Bind Error:%s\n", strerror(errno));
-	//	exit(0);
-		return -2;
-	}
-
-	return sockCtrl;
-}
 
 cJSON *parameter_list_json_create() 
 {

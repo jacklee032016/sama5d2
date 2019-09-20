@@ -43,21 +43,22 @@ int _rs232SendHexStr(char *str )
 }
 
 /* return buffer length */
-static int _rs232StartRead(int timeout, char *buf)
+static int _rs232StartRead(int timeoutMs, char *buf)
 {/* init IRQ, index of buffer */
 	int ret = 0;
 	int	i;
 	struct DATA_BUFFER *readBuf = &_readBuf;
 
-//	u32_t timeElapes = 0;
-#ifdef	ARM
-
-//	int	timeElapes = sys_arch_sem_wait(&rs232Dev->rxSema, (timeout<= 0)?rs232Dev->timeoutMs:timeout);
-//	if(timeElapes == SYS_ARCH_TIMEOUT)
-	if(1)
-#else
 	memset(readBuf, 0 , sizeof(struct DATA_BUFFER));
 	readBuf->size = sizeof(readBuf->buffer);
+//	u32_t timeElapes = 0;
+#ifdef	ARM
+	i = cmnSysRs232Read(readBuf->buffer, sizeof(readBuf->buffer), timeoutMs);
+	readBuf->writeIndex = i;
+//	int	timeElapes = sys_arch_sem_wait(&rs232Dev->rxSema, (timeout<= 0)?rs232Dev->timeoutMs:timeout);
+//	if(timeElapes == SYS_ARCH_TIMEOUT)
+	if( i>0)
+#else
 	readBuf->writeIndex = 10;
 	readBuf->buffer[0] = 0x09;
 	readBuf->buffer[1] = 0x87;
@@ -73,7 +74,7 @@ static int _rs232StartRead(int timeout, char *buf)
 #endif
 	{
 #if EXT_RS232_DEBUG
-		EXT_DEBUGF(EXT_RS232_DEBUG, "Timeout RS232, RX: Total %d rxed", readBuf->writeIndex );
+		EXT_DEBUGF(EXT_RS232_DEBUG, "Recv from RS232: Total %d bytes rxed", readBuf->writeIndex );
 #endif
 		for(i=0; i< readBuf->writeIndex; i++)
 		{
@@ -84,8 +85,8 @@ static int _rs232StartRead(int timeout, char *buf)
 	}
 	else
 	{
-		EXT_ERRORF("Wakeup RS232 RX" );
-		ret = EXIT_FAILURE;
+		EXT_ERRORF("Recv from RS232 failed after %d ms timeout", timeoutMs);
+		ret = -EXIT_FAILURE;
 	}
 
 	/* Disable interrupt  */
@@ -174,7 +175,7 @@ int	cmnMuxSendRsData(struct DATA_CONN *dataConn, cJSON *dataObj)
 	rs232StopRx();
 	if(size <= 0)
 	{
-		DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR,"No data is replied from RS232");
+		DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "No data is replied from RS232");
 		return EXIT_FAILURE;
 	}
 	

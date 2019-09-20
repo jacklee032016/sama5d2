@@ -57,6 +57,7 @@
 
 #define	MUX_FPGA_REG_VERSION					0x1D	/* 29 */
 
+#define	MUX_FPGA_REG_SPI_PATH_SEL			0x20	/* 32 */
 
 
 /* network registers */

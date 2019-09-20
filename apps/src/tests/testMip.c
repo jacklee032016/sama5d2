@@ -206,3 +206,50 @@ int testI2c(void)
 	return EXIT_SUCCESS;
 }
 
+
+int testRs232(void)
+{
+	EXT_INFOF("Test RS232...");
+	char *data = "1234567890abcdef";
+	char buf[256];
+	int len;
+
+	EXT_RUNTIME_CFG		_runCfg;
+	EXT_RUNTIME_CFG		*runCfg = &_runCfg;
+
+	memset(runCfg, 0, sizeof(EXT_RUNTIME_CFG));
+
+	cmnSysCfgFromFactory(runCfg);
+
+	if(cmnSysRs232Init(runCfg) == EXIT_FAILURE)
+	{
+		return EXIT_FAILURE;
+	}
+	
+	len = cmnSysRs232Write((unsigned char *)data, strlen(data));
+	if(len != strlen(data) )
+	{
+		EXT_ERRORF("RS232 write data failed, return %d", len);
+		return EXT_FALSE;
+	}
+
+	memset(buf, 0, sizeof(buf));
+	len = cmnSysRs232Read((unsigned char *)buf, sizeof(buf), 1000);
+	if( len <= 0)
+	{
+		EXT_ERRORF("RS232 read data failed, return %d", len);
+		return EXT_FALSE;
+	}
+	else
+	{
+		EXT_INFOF("received %d bytes: '%.*s'", len, len, buf);
+		if(len != strlen(data) )
+		{
+			EXT_INFOF("RS232 received %d, it should be %d", len, strlen(data) );
+		}
+	}
+
+	return EXIT_SUCCESS;
+}
+
+

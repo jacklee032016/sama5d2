@@ -86,7 +86,7 @@ static int _dataConnOutput(struct DATA_CONN *dataConn, void *buf, int size)
 {
 	int len = 0;
 
-#if 0//MUX_OPTIONS_DEBUG_IP_COMMAND			
+#if 1//MUX_OPTIONS_DEBUG_IP_COMMAND			
 	MUX_DEBUG("Reply %d bytes packet to %s", size, dataConn->name);
 	CMN_HEX_DUMP((const uint8_t *)buf, size, "send out data in data connection" );
 #endif

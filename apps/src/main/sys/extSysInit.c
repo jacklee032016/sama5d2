@@ -142,11 +142,35 @@ int32_t	extSystemInit(MuxMain		*muxMain)
 	if(ret == EXIT_FAILURE)
 	{/* TX/RX must be get before default condfiguration*/
 		cmnSysCfgFromFactory(runCfg);
+		
+		if(cmnSysCheckFirstRunFlags() )
+		{
+			unsigned char *address;
+			MUX_INFO("This is first startup after this %s board has been programmed. System will initialized based on hardware. ",  (EXT_IS_TX(runCfg))?"TX":"RX");
+			address = cmnSysRandomMacAddress();
+			MUX_INFO("New random MAC: %02x:%02x:%02x:%02x:%02x:%02x", address[0], address[1], address[2], address[3], address[4], address[5]);
+			memcpy(runCfg->local.mac.address, address, EXT_MAC_ADDRESS_LENGTH);
+			cmn_free(address);
+
+			cmnSysSetFirstRunFlags();
+
+			cmnSysEthernetConfig(runCfg);
+			cmnSysCfgSave(runCfg, EXT_CFG_MAIN);
+
+			MUX_INFO("Please reboot to make it effective after it finished"EXT_NEW_LINE );
+			return EXIT_FAILURE;	/* quit from running */
+		}
+
+		
 		cmnSysCfgSave(runCfg, EXT_CFG_MAIN);
-		MUX_ERROR("No "MUX_SYSTEM_CONFIG_DATA" is found, default %s factory configuration is used", (EXT_IS_TX(runCfg))?"TX":"RX");
+//		MUX_ERROR("No "MUX_SYSTEM_CONFIG_DATA" is found, default %s factory configuration is used", (EXT_IS_TX(runCfg))?"TX":"RX");
 	}
 	
+	runCfg->runtime.reset = 0;
+	runCfg->runtime.reboot = 0;
+	runCfg->runtime.blink = 0;
 	runCfg->isTx = isTx;
+	
 	memcpy(&runCfg->version, &muxMain->version, sizeof(muxMain->version));
 
 	if(_extSysNetInit(muxMain)== EXIT_FAILURE)
@@ -165,6 +189,11 @@ int32_t	extSystemInit(MuxMain		*muxMain)
 	if(sysFpgaInit(runCfg)== EXIT_FAILURE)
 	{
 		MUX_ERROR("FPGA failed");
+	}
+
+	if(cmnSysRs232Init(runCfg)== EXIT_FAILURE)
+	{
+		MUX_ERROR("Initialization of RS232 failed");
 	}
 	
 	return EXIT_SUCCESS;

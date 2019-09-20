@@ -49,7 +49,7 @@ static FpgaI2cDevice	_fpgaDevRxSystem =
 	.channel	= EXT_I2C_PCA9554_CS_NONE,
 	.slaveAddress = EXT_FPAG_ADDRESS_SYSTEM,
 #if FPGA_DEBUG
-	.name = "RxSysten",
+	.name = "RxSystem",
 #endif
 };
 
@@ -108,7 +108,17 @@ static StreamRegisterAddress _txStreamVideo =
 #if FPGA_DEBUG
 		.name = "txVideoRtpPayload",
 #endif
-	}	
+	},
+
+	.count = 
+	{
+		.device = &_fpgaDevTxSystem,
+		.offset = F_REG_TX_SYS_STATISTICS_VIDEO,
+#if FPGA_DEBUG
+		.name = "txVideoCount",
+#endif
+	}
+
 };
 
 
@@ -145,7 +155,17 @@ static StreamRegisterAddress _txStreamAudio =
 #if FPGA_DEBUG
 		.name = "txAudioRtpPayload",
 #endif
-	}	
+	},
+
+	.count = 
+	{
+		.device = &_fpgaDevTxSystem,
+		.offset = F_REG_TX_SYS_STATISTICS_AUDIO,
+#if FPGA_DEBUG
+		.name = "txAudioCount",
+#endif
+	}
+	
 };
 
 
@@ -182,7 +202,17 @@ static StreamRegisterAddress _txStreamAnc =
 #if FPGA_DEBUG
 		.name = "txAncRtpPayload",
 #endif
-	}	
+	},
+
+	.count = 
+	{
+		.device = &_fpgaDevTxSystem,
+		.offset = F_REG_TX_SYS_STATISTICS_ANC,
+#if FPGA_DEBUG
+		.name = "txAncCount",
+#endif
+	}
+
 };
 
 #if EXT_FPGA_AUX_ON	
@@ -219,7 +249,17 @@ static StreamRegisterAddress _txStreamAux =
 #if FPGA_DEBUG
 		.name = "txAuxRtpPayload",
 #endif
-	}	
+	},
+
+	.count = 
+	{
+		.device = &_fpgaDevTxSystem,
+		.offset = F_REG_TX_SYS_STATISTICS_AUX,
+#if FPGA_DEBUG
+		.name = "txAuxCount",
+#endif
+	}
+	
 };
 #endif
 
@@ -228,7 +268,7 @@ static MediaRegisterAddress _txMediaAddress =
 	.width = 
 	{
 		.device = &_fpgaDevTxSystem,
-		.offset = F_REG_TX_SYS_X_ACTIVE,
+		.offset = F_REG_TX_SYS_V_WIDTH,
 #if FPGA_DEBUG
 		.name = "txMediaWidth",
 #endif
@@ -237,7 +277,7 @@ static MediaRegisterAddress _txMediaAddress =
 	.height = 
 	{
 		.device = &_fpgaDevTxSystem,
-		.offset = F_REG_TX_SYS_Y_ACTIVE,
+		.offset = F_REG_TX_SYS_V_HEIGHT,
 #if FPGA_DEBUG
 		.name = "txMediaHeight",
 #endif
@@ -246,7 +286,7 @@ static MediaRegisterAddress _txMediaAddress =
 	.framerate = 
 	{
 		.device = &_fpgaDevTxSystem,
-		.offset = EXT_FPGA_REG_FRAMERATE,
+		.offset = F_REG_TX_SYS_V_FRAMERATE,
 #if FPGA_DEBUG
 		.name = "txMediaFrameRate",
 #endif
@@ -255,7 +295,7 @@ static MediaRegisterAddress _txMediaAddress =
 	.colorSpace = 
 	{
 		.device = &_fpgaDevTxSystem,
-		.offset = F_REG_TX_SYS_VIDEO_CTRL,
+		.offset = F_REG_TX_SYS_V_COLORSPACE,
 #if FPGA_DEBUG
 		.name = "txMediaColorSpace",
 #endif
@@ -264,7 +304,7 @@ static MediaRegisterAddress _txMediaAddress =
 	.vDepth = 
 	{
 		.device = &_fpgaDevTxSystem,
-		.offset = EXT_FPGA_REG_DEPTH,
+		.offset = F_REG_TX_SYS_V_DEPTH,
 #if FPGA_DEBUG
 		.name = "txMediaVDepth",
 #endif
@@ -273,7 +313,7 @@ static MediaRegisterAddress _txMediaAddress =
 	.intl = 
 	{
 		.device = &_fpgaDevTxSystem,
-		.offset = EXT_FPGA_REG_INTLC_SEGM,
+		.offset = F_REG_TX_SYS_V_INTLC_SEGM,
 #if FPGA_DEBUG
 		.name = "txMediaIntlc",
 #endif
@@ -306,31 +346,22 @@ static MediaRegisterAddress _txMediaAddress =
 #if FPGA_DEBUG
 		.name = "txMediaPktSize",
 #endif
+	},
+	
+	.paramStatus = 
+	{
+		.device = &_fpgaDevTxSystem,
+		.offset = F_REG_TX_SYS_PARAM_STATUS,
+#if FPGA_DEBUG
+		.name = "txMediaParams",
+#endif
 	}
 	
 };
 
 
-static FpgaVersionAddress _txVerAddress = 
+static FpgaBuildTimeAddress _txBuildTimeAddress = 
 {
-	.version = 
-	{
-		.device = &_fpgaDevTxSystem,
-		.offset = F_REG_TX_SYS_VERSION,
-#if FPGA_DEBUG
-		.name = "txVersion",
-#endif
-	},
-
-	.revision = 
-	{
-		.device = &_fpgaDevTxSystem,
-		.offset = F_REG_TX_SYS_REVISION,
-#if FPGA_DEBUG
-		.name = "txRevision",
-#endif
-	},
-	
 	.year = 
 	{
 		.device = &_fpgaDevTxSystem,
@@ -383,6 +414,52 @@ static TxRegisterMap _TX_ADDRESS =
 		.name = "txReset",
 #endif
 	},
+	
+	.enable = 
+	{
+		.device = &_fpgaDevTxSystem,
+		.offset = F_REG_TX_SYS_STREAM_ENABLE,
+#if FPGA_DEBUG
+		.name = "txStreamEnable",
+#endif
+	},
+
+	.irCtrl = 
+	{
+		.device = &_fpgaDevTxSystem,
+		.offset = F_REG_TX_SYS_IR_CTRL,
+#if FPGA_DEBUG
+		.name = "txIrCtrl",
+#endif
+	},
+	
+	.irCtrl = 
+	{
+		.device = &_fpgaDevTxSystem,
+		.offset = F_REG_TX_SYS_IR_DEMODULATION,
+#if FPGA_DEBUG
+		.name = "txIrDemodulation",
+#endif
+	},
+	
+	.gbeRxCount = 
+	{
+		.device = &_fpgaDevTxSystem,
+		.offset = F_REG_TX_SYS_GBE_RX_COUNT,
+#if FPGA_DEBUG
+		.name = "txGbeRxCount",
+#endif
+	},
+
+	.gbeTxCount = 
+	{
+		.device = &_fpgaDevTxSystem,
+		.offset = F_REG_TX_SYS_GBE_TX_COUNT,
+#if FPGA_DEBUG
+		.name = "txGbeTxCount",
+#endif
+	},
+	
 	
 	.localMac =
 	{
@@ -450,7 +527,7 @@ static TxRegisterMap _TX_ADDRESS =
 
 	.media = &_txMediaAddress,
 
-//	.version = &_txVerAddress,
+	.buildTime = &_txBuildTimeAddress,
 };
 
 
@@ -461,13 +538,13 @@ static StreamRegisterAddress _rxStreamVideo =
 	.ip = 
 	{
 		.device = &_fpgaDevRxNetwork,
-		.offset = F_REG_RX_NET_DEST_VIDEO_IP,
+		.offset = F_REG_RX_NET_MCAST_VIDEO,
 #if FPGA_DEBUG
-		.name = "rxVideoIp",
+		.name = "rxVideoMcIp",
 #endif
 	},
 	.mac =
-	{
+	{/* not used */
 		.device = &_fpgaDevRxNetwork,
 		.offset = F_REG_RX_NET_DEST_MAC,
 #if FPGA_DEBUG
@@ -475,9 +552,9 @@ static StreamRegisterAddress _rxStreamVideo =
 #endif
 	},
 	.port = 
-	{
+	{/* local port, eg. dest port of RTP stream */
 		.device = &_fpgaDevRxNetwork,
-		.offset = F_REG_RX_NET_DEST_VIDEO_PORT,
+		.offset = F_REG_RX_NET_LOCAL_VIDEO_PORT,
 #if FPGA_DEBUG
 		.name = "rxVideoPort",
 #endif
@@ -489,7 +566,17 @@ static StreamRegisterAddress _rxStreamVideo =
 #if FPGA_DEBUG
 		.name = "rxVideoRtpPayload",
 #endif
-	}	
+	},
+
+	.count = 
+	{
+		.device = &_fpgaDevRxSystem,
+		.offset = F_REG_RX_SYS_STATISTICS_VIDEO,
+#if FPGA_DEBUG
+		.name = "rxVideoCount",
+#endif
+	},
+
 };
 
 
@@ -498,9 +585,9 @@ static StreamRegisterAddress _rxStreamAudio =
 	.ip = 
 	{
 		.device = &_fpgaDevRxNetwork,
-		.offset = F_REG_RX_NET_DEST_AUDIO_IP,
+		.offset = F_REG_RX_NET_MCAST_AUDIO,
 #if FPGA_DEBUG
-		.name = "rxAudioIp",
+		.name = "rxAudioMcIp",
 #endif
 	},
 	.mac =
@@ -514,7 +601,7 @@ static StreamRegisterAddress _rxStreamAudio =
 	.port = 
 	{
 		.device = &_fpgaDevRxNetwork,
-		.offset = F_REG_RX_NET_DEST_AUDIO_PORT,
+		.offset = F_REG_RX_NET_LOCAL_AUDIO_PORT,
 #if FPGA_DEBUG
 		.name = "rxAudioPort",
 #endif
@@ -526,7 +613,17 @@ static StreamRegisterAddress _rxStreamAudio =
 #if FPGA_DEBUG
 		.name = "rxAudioRtpPayload",
 #endif
-	}	
+	},
+
+	.count = 
+	{
+		.device = &_fpgaDevRxSystem,
+		.offset = F_REG_RX_SYS_STATISTICS_AUDIO,
+#if FPGA_DEBUG
+		.name = "rxAudioCount",
+#endif
+	}
+	
 };
 
 
@@ -563,7 +660,17 @@ static StreamRegisterAddress _rxStreamAnc =
 #if FPGA_DEBUG
 		.name = "rxAncRtpPayload",
 #endif
-	}	
+	},
+
+	.count = 
+	{
+		.device = &_fpgaDevRxSystem,
+		.offset = F_REG_RX_SYS_STATISTICS_ANC,
+#if FPGA_DEBUG
+		.name = "rxAncCount",
+#endif
+	}
+	
 };
 
 
@@ -601,7 +708,17 @@ static StreamRegisterAddress _rxStreamAux =
 #if FPGA_DEBUG
 		.name = "rxAuxRtpPayload",
 #endif
-	}	
+	},
+
+	.count = 
+	{
+		.device = &_fpgaDevRxSystem,
+		.offset = F_REG_RX_SYS_STATISTICS_AUX,
+#if FPGA_DEBUG
+		.name = "rxAuxCount",
+#endif
+	}
+	
 };
 #endif
 
@@ -611,7 +728,7 @@ static MediaRegisterAddress _rxMediaAddress =
 	.width = 
 	{
 		.device = &_fpgaDevRxSystem,
-		.offset = F_REG_RX_SYS_X_ACTIVE,
+		.offset = F_REG_RX_SYS_V_WIDTH,
 #if FPGA_DEBUG
 		.name = "rxMediaWidth",
 #endif
@@ -620,7 +737,7 @@ static MediaRegisterAddress _rxMediaAddress =
 	.height = 
 	{
 		.device = &_fpgaDevRxSystem,
-		.offset = F_REG_RX_SYS_Y_ACTIVE,
+		.offset = F_REG_RX_SYS_V_HEIGHT,
 #if FPGA_DEBUG
 		.name = "rxMediaHeight",
 #endif
@@ -629,7 +746,7 @@ static MediaRegisterAddress _rxMediaAddress =
 	.framerate = 
 	{
 		.device = &_fpgaDevRxSystem,
-		.offset = EXT_FPGA_REG_FRAMERATE,
+		.offset = F_REG_RX_SYS_V_FRAMERATE,
 #if FPGA_DEBUG
 		.name = "rxMediaFrameRate",
 #endif
@@ -638,7 +755,7 @@ static MediaRegisterAddress _rxMediaAddress =
 	.colorSpace = 
 	{
 		.device = &_fpgaDevRxSystem,
-		.offset = F_REG_RX_SYS_VIDEO_CTRL,
+		.offset = F_REG_RX_SYS_V_COLORSPACE,
 #if FPGA_DEBUG
 		.name = "rxMediaColorSpace",
 #endif
@@ -647,7 +764,7 @@ static MediaRegisterAddress _rxMediaAddress =
 	.vDepth = 
 	{
 		.device = &_fpgaDevRxSystem,
-		.offset = F_REG_RX_SYS_VIDEO_CTRL,
+		.offset = F_REG_RX_SYS_V_DEPTH,
 #if FPGA_DEBUG
 		.name = "rxMediaVDepth",
 #endif
@@ -656,7 +773,7 @@ static MediaRegisterAddress _rxMediaAddress =
 	.intl = 
 	{
 		.device = &_fpgaDevRxSystem,
-		.offset = EXT_FPGA_REG_INTLC_SEGM,
+		.offset = F_REG_RX_SYS_V_INTLC_SEGM,
 #if FPGA_DEBUG
 		.name = "rxMediaIntlc",
 #endif
@@ -689,31 +806,22 @@ static MediaRegisterAddress _rxMediaAddress =
 #if FPGA_DEBUG
 		.name = "rxMediaPktSize",
 #endif
+	},
+
+	/* params update */	
+	.paramStatus = 
+	{
+		.device = &_fpgaDevRxSystem,
+		.offset = F_REG_RX_SYS_V_PARAM_UPDATE,
+#if FPGA_DEBUG
+		.name = "rxMediaParams",
+#endif
 	}
-	
 };
 
 
-static FpgaVersionAddress _rxVerAddress = 
+static FpgaBuildTimeAddress _rxBuildTimeAddress = 
 {
-	.version = 
-	{
-		.device = &_fpgaDevRxSystem,
-		.offset = F_REG_RX_SYS_VERSION,
-#if FPGA_DEBUG
-		.name = "rxVersion",
-#endif
-	},
-
-	.revision = 
-	{
-		.device = &_fpgaDevRxSystem,
-		.offset = F_REG_RX_SYS_REVISION,
-#if FPGA_DEBUG
-		.name = "rxRevision",
-#endif
-	},
-	
 	.year = 
 	{
 		.device = &_fpgaDevRxSystem,
@@ -762,16 +870,61 @@ static RxRegisterMap _RX_ADDRESS =
 	.reset = 
 	{
 		.device = &_fpgaDevRxSystem,
-		.offset = 0,
+		.offset = F_REG_RX_SYS_RESET,
 #if FPGA_DEBUG
 		.name = "rxReset",
+#endif
+	},
+
+	.enable = 
+	{
+		.device = &_fpgaDevRxSystem,
+		.offset = F_REG_RX_SYS_STREAM_ENABLE,
+#if FPGA_DEBUG
+		.name = "rxStreamEnable",
+#endif
+	},
+
+	.irCtrl = 
+	{
+		.device = &_fpgaDevRxSystem,
+		.offset = F_REG_RX_SYS_IR_CTRL,
+#if FPGA_DEBUG
+		.name = "rxIrCtrl",
+#endif
+	},
+
+	.irDemodulation = 
+	{
+		.device = &_fpgaDevRxSystem,
+		.offset = F_REG_RX_SYS_IR_DEMODULATION,
+#if FPGA_DEBUG
+		.name = "rxIrDemodulation",
+#endif
+	},
+
+	.gbeRxCount = 
+	{
+		.device = &_fpgaDevRxSystem,
+		.offset = F_REG_RX_SYS_GBE_RX_COUNT,
+#if FPGA_DEBUG
+		.name = "rxGbeRxCount",
+#endif
+	},
+
+	.gbeTxCount = 
+	{
+		.device = &_fpgaDevRxSystem,
+		.offset = F_REG_RX_SYS_GBE_TX_COUNT,
+#if FPGA_DEBUG
+		.name = "rxGbeTxCount",
 #endif
 	},
 	
 	.localMac =
 	{
 		.device = &_fpgaDevRxNetwork,
-		.offset = 56,
+		.offset = F_REG_RX_NET_LOCAL_MAC,
 #if FPGA_DEBUG
 		.name = "rxLocalMac",
 #endif
@@ -780,7 +933,7 @@ static RxRegisterMap _RX_ADDRESS =
 	.localIp = 
 	{
 		.device = &_fpgaDevRxNetwork,
-		.offset = 52,
+		.offset = F_REG_RX_NET_LOCAL_VIDEO_IP,
 #if FPGA_DEBUG
 		.name = "rxLocalIp",
 #endif
@@ -834,14 +987,40 @@ static RxRegisterMap _RX_ADDRESS =
 
 	.media = &_rxMediaAddress,
 
+	.buildTime = &_rxBuildTimeAddress,
+};
+
+
+/* to determine TX/RX, so same address for both TX and RX */
+static FpgaVersionAddress _fpgaVerAddress = 
+{
+	.version = 
+	{
+		.device = &_fpgaDevTxSystem,
+		.offset = F_REG_TX_SYS_VERSION,
+#if FPGA_DEBUG
+		.name = "fpgaVersion",
+#endif
+	},
+
+	.revision = 
+	{
+		.device = &_fpgaDevTxSystem,
+		.offset = F_REG_TX_SYS_REVISION,
+#if FPGA_DEBUG
+		.name = "fpgaRevision",
+#endif
+	}
 };
 
 
 FpgaConfig 	_fpgaConfig =
 {
-	.version = &_rxVerAddress,
+	.runCfg = NULL,
+	.version = &_fpgaVerAddress,
 	.txAddress = &_TX_ADDRESS,
 	.rxAddress = &_RX_ADDRESS,
+	.opProtocolCtrl = NULL;
 
 };
 

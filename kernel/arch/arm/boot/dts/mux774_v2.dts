@@ -195,8 +195,11 @@
 				pinctrl-0 = <&pinctrl_spi0_default>;
 				status = "okay";
 
-				m25p80@0 { 
-					compatible = "atmel,at25df321a";
+				m25p80@0 {
+/*				spidev@0 {*/ 
+					/*compatible = "atmel,n25q512ax4";*/
+					/*compatible = "atmel,at25df321a";*/	/* this SPI in xplained board */
+					compatible = "spidev";	/* this will load spidev(userspace access for SPI device) */
 					#compatible = "spidev";
 					reg = <0>;
 					spi-max-frequency = <50000000>;
@@ -587,7 +590,7 @@
 						 /*<PIN_PB2__GPIO>,	 FUNM */
 						 <PIN_PB5__GPIO>,	/* POWER */
 						 /* Mux774 */
-						 // <PIN_PB6__GPIO>;
+						 <PIN_PB7__GPIO>, /* LINK. 09.15, 2019. JL */
 						 <PIN_PB9__GPIO>; /* ACT on 774 */
 					bias-pull-up;
 				};
@@ -695,8 +698,11 @@
 				};
 
 				pinctrl_uart3_default: uart3_default {
-					pinmux = <PIN_PB11__URXD3>,
+/*					pinmux = <PIN_PB11__URXD3>,
 						 <PIN_PB12__UTXD3>;
+*/						 
+					pinmux = <PIN_PC31__URXD3>,
+						 <PIN_PD0__UTXD3>;		/* RS232 control, 09.15,2019 JL */
 					bias-disable;
 				};
 
@@ -817,13 +823,14 @@
 			gpios = <&pioA PIN_PB0 GPIO_ACTIVE_HIGH>; /* high level is ON */
 			linux,default-trigger = "";		/* trigger : heartbeat|timer */
 		};
-/*
-		funm {
-			label = "funm";
-			gpios = <&pioA PIN_PB2 GPIO_ACTIVE_HIGH>; 
-			default-state = "on";	
+
+		/* add 09.13, 2019 */
+		link {
+			label = "link";
+			gpios = <&pioA PIN_PB7 GPIO_ACTIVE_HIGH>; 
+			/*default-state = "on";	*/
 		};
-*/		
+		
 	};
 	
 	onewire_device {
@@ -841,4 +848,14 @@
 		tRdDelta = /bits/ 16 <500>;
 	
 	};
+	
+	mux_ir@ffdf0000 {
+		compatible = "mux_irc";
+		reg = <0xffdf0000 0x1000>;
+    /* 
+     * reg = address of device and size 
+     * (Minimum is System's Pagesize = 0x1000 Byte in my case
+     */
+	};
+	
 };

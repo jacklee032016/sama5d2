@@ -4,13 +4,22 @@
 
 #include "libCmnSys.h"
 
+#if 1
+#define	CJSON_REPLACE_STRING(obj, strKey, strValue)	\
+	{if(cJSON_ReplaceItemInObject((obj), (strKey), cJSON_CreateString((strValue)) )==0){MUX_ERROR("Replace string with key '%s', value '%s' failed", (strKey), (strValue));} }
+
+
+#define	CJSON_REPLACE_INTEGRE(obj, strKey, intValue)	\
+	{if(cJSON_ReplaceItemInObject((obj), (strKey), cJSON_CreateNumber((intValue)) ) == 0){MUX_ERROR("Replace integer with key '%s', value '%d' failed", (strKey), (intValue));}}
+#else
+
 #define	CJSON_REPLACE_STRING(obj, strKey, strValue)	\
 	cJSON_ReplaceItemInObject((obj), (strKey), cJSON_CreateString((strValue)) )
 
 
 #define	CJSON_REPLACE_INTEGRE(obj, strKey, intValue)	\
 	cJSON_ReplaceItemInObject((obj), (strKey), cJSON_CreateNumber((intValue)) )
-
+#endif
 
 static int _cmnSysJsonUpdateOthers(EXT_RUNTIME_CFG *runCfg, cJSON *obj)
 {
@@ -177,6 +186,7 @@ static int _cmnSysJsonUpdateAudio(EXT_RUNTIME_CFG *runCfg, cJSON *obj)
 
 static int _cmnSysJsonUpdateVideo(EXT_RUNTIME_CFG *runCfg, cJSON *obj)
 {
+	EXT_INFOF("Update cfg:%p:%p", runCfg, obj);
 	/* protocol */
 	CJSON_REPLACE_STRING(obj, FIELD_VIDEO_IP, cmnSysNetAddress(runCfg->dest.ip) );
 	CJSON_REPLACE_INTEGRE(obj, FIELD_VIDEO_PORT, runCfg->dest.vport );
@@ -186,12 +196,20 @@ static int _cmnSysJsonUpdateVideo(EXT_RUNTIME_CFG *runCfg, cJSON *obj)
 	CJSON_REPLACE_INTEGRE(obj, FIELD_VIDEO_WIDTH, runCfg->runtime.vWidth);
 	CJSON_REPLACE_INTEGRE(obj, FIELD_VIDEO_HEIGHT, runCfg->runtime.vHeight);
 
-	CJSON_REPLACE_STRING(obj, FIELD_VIDEO_FRAME_RATE, CMN_FIND_V_FRAME_RATE(runCfg->runtime.vFrameRate) );
+	/* all interface: Ip Cmd, REST, SDP all use the format of SDP */
+#if 1
+	CJSON_REPLACE_STRING(obj, FIELD_VIDEO_FRAME_RATE, CMN_FIND_V_FRAME_RATE(runCfg->runtime.vFrameRate) );	/* foR SDP format */
+#else	
+	CJSON_REPLACE_STRING(obj, FIELD_VIDEO_FRAME_RATE, CMN_FIND_V_FPS_4_REST(runCfg->runtime.vFrameRate) );		/* for REST API/IpCmd */
+#endif
 	CJSON_REPLACE_STRING(obj, FIELD_VIDEO_COLOR_SPACE, CMN_FIND_V_COLORSPACE(runCfg->runtime.vColorSpace) );
 
-	CJSON_REPLACE_INTEGRE(obj, FIELD_VIDEO_DEPTH, runCfg->runtime.vDepth);
+	CJSON_REPLACE_INTEGRE(obj, FIELD_VIDEO_DEPTH, CMN_INT_FIND_NAME_V_DEPTH(runCfg->runtime.vDepth));
 	CJSON_REPLACE_INTEGRE(obj, FIELD_VIDEO_INTERLACE, runCfg->runtime.vIsInterlaced );
 
+	EXT_INFOF("Update cfg:%p; %dx%d; fps:%d; cs:%d; depth:%d; intlc:%d", 
+		runCfg, runCfg->runtime.vWidth, runCfg->runtime.vHeight, runCfg->runtime.vFrameRate, runCfg->runtime.vColorSpace, runCfg->runtime.vDepth, runCfg->runtime.vIsInterlaced);
+	
 	CJSON_REPLACE_INTEGRE(obj, FIELD_ANC_VP_ID, runCfg->runtime.rtpTypeVideo);
 	return EXIT_SUCCESS;
 }
@@ -215,6 +233,9 @@ static int _cmnSysJsonUpdateSystem(EXT_RUNTIME_CFG *runCfg, cJSON *systemObj)
 	CJSON_REPLACE_STRING(systemObj, FIELD_SYS_CFG_VERSION, macAddress);
 	CJSON_REPLACE_STRING(systemObj, FIELD_SYS_CFG_BUILT_DATA, runCfg->muxMain->builtDate);
 	CJSON_REPLACE_INTEGRE(systemObj, FIELD_SYS_CFG_IS_TX, (runCfg->isTx==0)?0:1 );
+
+	CJSON_REPLACE_STRING(systemObj, FIELD_SYS_CFG_FPGA_VERSION, sysFgpaVersion() );
+	CJSON_REPLACE_STRING(systemObj, FIELD_SYS_CFG_FPGA_BUILT, sysFgpaBuilt());
 
 	/* network */
 	newObj = cJSON_CreateString(cmnSysNetAddress(runCfg->local.ip) );
@@ -265,58 +286,57 @@ int cmnSysJsonUpdate(MuxMain *muxMain)
 		MUX_ERROR("Update '%s' JSON failed", MUX_REST_URI_SYSTEM);
 	}
 
+	sysFpgaRefresh();
 
-	itemObj = cmnJsonSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_VIDEO, INVALIDATE_VALUE_U32);
-	if(_cmnSysJsonUpdateVideo(&muxMain->runCfg, itemObj))
+	itemObj = cmnJsonSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_VIDEO, 0);
+	if(!itemObj || _cmnSysJsonUpdateVideo(&muxMain->runCfg, itemObj))
 	{
 		MUX_ERROR("Update '%s' JSON failed", MUX_REST_URI_VIDEO);
 	}
 
-	itemObj = cmnJsonSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_AUDIO, INVALIDATE_VALUE_U32);
-	if(_cmnSysJsonUpdateAudio(&muxMain->runCfg, itemObj))
+	itemObj = cmnJsonSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_AUDIO, 0);
+	if(!itemObj ||_cmnSysJsonUpdateAudio(&muxMain->runCfg, itemObj))
 	{
 		MUX_ERROR("Update '%s' JSON failed", MUX_REST_URI_AUDIO);
 	}
 
 #if WITH_ANCILLIARY_STREAM
-	itemObj = cmnJsonSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_ANC, INVALIDATE_VALUE_U32);
-	if(_cmnSysJsonUpdateAnc(&muxMain->runCfg, itemObj))
+	itemObj = cmnJsonSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_ANC, 0);
+	if(!itemObj ||_cmnSysJsonUpdateAnc(&muxMain->runCfg, itemObj))
 	{
 		MUX_ERROR("Update '%s' JSON failed", MUX_REST_URI_ANC);
 	}
 #endif
 
 	itemObj = cmnJsonSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_SDP, INVALIDATE_VALUE_U32);
-	if(_cmnSysJsonUpdateSdp(&muxMain->runCfg, itemObj))
+	if(!itemObj ||_cmnSysJsonUpdateSdp(&muxMain->runCfg, itemObj))
 	{
 		MUX_ERROR("Update '%s' JSON failed", MUX_REST_URI_SDP);
 	}
 
 	itemObj = cmnJsonSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_RS232, INVALIDATE_VALUE_U32);
-	if(_cmnSysJsonUpdateRs232(&muxMain->runCfg, itemObj))
+	if(!itemObj ||_cmnSysJsonUpdateRs232(&muxMain->runCfg, itemObj))
 	{
 		MUX_ERROR("Update '%s' JSON failed", MUX_REST_URI_RS232);
 	}
 
 	itemObj = cmnJsonSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_SECURITY, INVALIDATE_VALUE_U32);
-	if(_cmnSysJsonUpdateSecurity(&muxMain->runCfg, itemObj))
+	if(!itemObj ||_cmnSysJsonUpdateSecurity(&muxMain->runCfg, itemObj))
 	{
 		MUX_ERROR("Update '%s' JSON failed", MUX_REST_URI_SECURITY);
 	}
 
 	itemObj = cmnJsonSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_IR, INVALIDATE_VALUE_U32);
-	if(_cmnSysJsonUpdateIR(&muxMain->runCfg, itemObj))
+	if(!itemObj ||_cmnSysJsonUpdateIR(&muxMain->runCfg, itemObj))
 	{
 		MUX_ERROR("Update '%s' JSON failed", MUX_REST_URI_IR);
 	}
 
 	itemObj = cmnJsonSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_OTHERS, INVALIDATE_VALUE_U32);
-	if(_cmnSysJsonUpdateOthers(&muxMain->runCfg, itemObj))
+	if(!itemObj ||_cmnSysJsonUpdateOthers(&muxMain->runCfg, itemObj))
 	{
 		MUX_ERROR("Update '%s' JSON failed", MUX_REST_URI_OTHERS);
 	}
-
-
 	
 	return EXIT_SUCCESS;
 }

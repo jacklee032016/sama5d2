@@ -1277,14 +1277,21 @@ static const struct flash_info spi_nor_ids[] = {
 
 	{ "n25q512a",    INFO(0x20bb20, 0, 64 * 1024, 1024, SECT_4K | USE_FSR | SPI_NOR_QUAD_READ) },
 	/* MUX774 */
-#if 0
+#if (MUX_BOARD == MUX_BOARD_774)
+
+//	{ "n25q512ax34",  INFO(0x20ba20, 0, 64 * 1024, 1024, SECT_4K ) },	/* specs. p.43 */
+
+	/* 4K will be ignored, so remove it; not use SFDP(Serial Flash Discovery Parameter ). 06.17, 2019   */
+	/* with this configuration, fixing the problem of reboot from OS, 09.15,2019. JL */
+	{ "n25q512ax3Sfdp",  INFO(0x20ba20, 0, 64 * 1024, 1024, /*SECT_4K |*/ USE_FSR | SPI_NOR_QUAD_READ|SPI_NOR_SKIP_SFDP| SPI_NOR_4B_OPCODES) },	/* specs. p.43 */
+//	{ "n25q512ax3spi",  INFO(0x20ba20, 0, 64 * 1024, 1024, /*SECT_4K |*/ USE_FSR |SPI_NOR_SKIP_SFDP) },	/* specs. p.43 */
+	
+	{ "n25q512ax3",  INFO(0x20ba20, 0, 64 * 1024, 1024, /*SECT_4K |*/ USE_FSR | SPI_NOR_QUAD_READ|SPI_NOR_SKIP_SFDP) },	/* specs. p.43 */
+#else	
 	/*                             J id,    extId, sector_size  n_sector  flags */
 	/* 64 * 1024, 1024: one sector is 64*1024=64KB, total 1024 sectors. page 7. specs */
 	{ "n25q512ax3",  INFO(0x20ba20, 0, 64 * 1024, 1024, SECT_4K | USE_FSR | SPI_NOR_QUAD_READ) },
-#else	
-	/* 4K will be ignored, so remove it; not use SFDP. 06.17, 2019   */
-	{ "n25q512ax3",  INFO(0x20ba20, 0, 64 * 1024, 1024, /*SECT_4K |*/ USE_FSR | SPI_NOR_QUAD_READ|SPI_NOR_SKIP_SFDP) },	/* specs. p.43 */
-//	{ "n25q512ax3",  INFO(0x20ba20, 0, 64 * 1024, 1024, SECT_4K ) },	/* specs. p.43 */
+
 #endif	
 	{ "n25q00",      INFO(0x20ba21, 0, 64 * 1024, 2048, SECT_4K | USE_FSR | SPI_NOR_QUAD_READ | NO_CHIP_ERASE) },
 	{ "n25q00a",     INFO(0x20bb21, 0, 64 * 1024, 2048, SECT_4K | USE_FSR | SPI_NOR_QUAD_READ | NO_CHIP_ERASE) },
@@ -1456,12 +1463,17 @@ static const struct flash_info *spi_nor_read_id(struct spi_nor *nor)
 	int			tmp;
 	u8			id[SPI_NOR_MAX_ID_LEN];
 	const struct flash_info	*info;
+	int count = 0;
 
+retry:
+	EXT_INFOF("Read Flash ID#%d...", count+1);
 	tmp = nor->read_reg(nor, SPINOR_OP_RDID, id, SPI_NOR_MAX_ID_LEN);
 	if (tmp < 0) {
 		dev_dbg(nor->dev, "error %d reading JEDEC ID\n", tmp);
 		return ERR_PTR(tmp);
 	}
+
+	EXT_INFOF("tmp:%d; JEDEC id bytes: %02x, %02x, %02x", tmp, id[0], id[1], id[2]);
 
 	for (tmp = 0; tmp < ARRAY_SIZE(spi_nor_ids) - 1; tmp++) {
 		info = &spi_nor_ids[tmp];
@@ -1473,8 +1485,14 @@ static const struct flash_info *spi_nor_read_id(struct spi_nor *nor)
 			}
 		}
 	}
-	dev_err(nor->dev, "unrecognized JEDEC id bytes: %02x, %02x, %02x\n",
-		id[0], id[1], id[2]);
+	dev_err(nor->dev, "unrecognized JEDEC id bytes: %02x, %02x, %02x\n", id[0], id[1], id[2]);
+	
+	count++;
+	if(count<100)
+	{
+		goto retry;
+	}
+	
 	return ERR_PTR(-ENODEV);
 }
 

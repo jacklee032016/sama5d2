@@ -6,6 +6,18 @@
 
 #define	FPGA_DEBUG			1
 
+typedef	enum
+{
+	IR_MOD_FREQ_30K = 0,
+	IR_MOD_FREQ_33K = 1,
+	IR_MOD_FREQ_36K = 2,
+	IR_MOD_FREQ_38K = 3,
+	IR_MOD_FREQ_40K = 4,
+	IR_MOD_FREQ_56K = 5,
+	IR_MOD_FREQ_INVALIDATE= 0x0F,
+}IR_MOD_FREQ_T;
+
+
 #if (MUX_BOARD == MUX_BOARD_774)
 /* salve address */
 #define	EXT_FPAG_ADDRESS_SYSTEM				(0x60>>1)	/* reset, video, audio, IR */
@@ -87,8 +99,61 @@
 #define	F_REG_TX_SYS_IR_CTRL						0x02
 #define	F_REG_TX_SYS_STREAM_ENABLE				0x03
 
+#define	F_REG_TX_SYS_IR_DEMODULATION			0x05
+
 #define	F_REG_TX_SYS_X_ACTIVE						0x06	/* width */
 #define	F_REG_TX_SYS_Y_ACTIVE						0x08	/* height */
+
+/* statistics */
+#define	F_REG_TX_SYS_STATISTICS_VIDEO			0x16
+#define	F_REG_TX_SYS_STATISTICS_AUDIO			0x18
+
+#define	F_REG_TX_SYS_STATISTICS_ANC				INVALIDATE_VALUE_U8
+#define	F_REG_TX_SYS_STATISTICS_AUX				INVALIDATE_VALUE_U8
+
+#define	F_REG_TX_SYS_GBE_RX_COUNT				0x22
+#define	F_REG_TX_SYS_GBE_TX_COUNT				0x24
+
+
+/* from email */
+#define	F_REG_TX_SYS_V_WIDTH						0x2E
+#define	F_REG_TX_SYS_V_HEIGHT					0x30
+
+#define	F_REG_TX_SYS_V_FRAMERATE					0x32
+/*-- x"2"   24/1.001
+-- x"3"   24
+-- x"5"   25
+-- x"6"   30/1.001
+-- x"7"   30
+-- x"9"   50
+-- x"A"   60/1.001
+-- x"B"   60
+*/
+
+#define	F_REG_TX_SYS_V_DIV_1001					0x33
+
+#define	F_REG_TX_SYS_V_COLORSPACE				0x34	/* sampling */
+/*-- "0000" YCbCr-4:2:2
+-- "0001" YCbCr-4:4:4
+-- "0010" RGB
+-- "0011" YCbCr-4:2:0
+-- "0100" XYZ
+-- "0101" KEY
+-- "1000" CLYCbCr-4:2:2
+-- "1001" CLYCbCr-4:4:4
+-- "1011" CLYCbCr-4:2:0
+*/
+#define	F_REG_TX_SYS_V_DEPTH						0x35
+/*-- b"00" 8                             bits
+-- b"01" 10          bits
+-- b"10" 12          bits
+-- b"11" 16          bits
+*/
+#define	F_REG_TX_SYS_V_INTLC_SEGM				0x36
+
+#define	F_REG_TX_SYS_PARAM_STATUS				0x37	/* new params is active */
+
+#define	F_REG_TX_SYS_V_FRAMERATE_INT			0x38
 
 
 #define	F_REG_TX_SYS_AUDIO_SELECT				0x1A
@@ -98,11 +163,11 @@
 #define	F_REG_TX_SYS_VERSION						0x1D
 #define	F_REG_TX_SYS_REVISION						0x1E
 
-#define	F_REG_TX_SYS_YEAR							INVALIDATE_VALUE_U8
-#define	F_REG_TX_SYS_MONTH						INVALIDATE_VALUE_U8
-#define	F_REG_TX_SYS_DAY							INVALIDATE_VALUE_U8
-#define	F_REG_TX_SYS_HOUR						INVALIDATE_VALUE_U8
-#define	F_REG_TX_SYS_MINUTE						INVALIDATE_VALUE_U8
+#define	F_REG_TX_SYS_YEAR							0x3C
+#define	F_REG_TX_SYS_MONTH						0x3D
+#define	F_REG_TX_SYS_DAY							0x3E
+#define	F_REG_TX_SYS_HOUR						0x3F
+#define	F_REG_TX_SYS_MINUTE						0x40
 
 
 #define	F_REG_TX_SYS_MB_VIDEO_COLOR_DEPTH		0x2C	/* 10/12/14/16 */
@@ -164,9 +229,21 @@
 #define	F_REG_RX_SYS_IR_CTRL						0x02
 #define	F_REG_RX_SYS_STREAM_ENABLE				0x03	
 
-/* read only ??? */
+#define	F_REG_RX_SYS_IR_DEMODULATION			0x05
+
+/* read only , not used now */
 #define	F_REG_RX_SYS_X_ACTIVE					0x06	/* width */
 #define	F_REG_RX_SYS_Y_ACTIVE					0x08	/* height */
+
+/* statistics */
+#define	F_REG_RX_SYS_STATISTICS_VIDEO			0x16
+#define	F_REG_RX_SYS_STATISTICS_AUDIO			0x18
+
+#define	F_REG_RX_SYS_STATISTICS_ANC				INVALIDATE_VALUE_U8
+#define	F_REG_RX_SYS_STATISTICS_AUX				INVALIDATE_VALUE_U8
+
+#define	F_REG_RX_SYS_GBE_RX_COUNT				0x22
+#define	F_REG_RX_SYS_GBE_TX_COUNT				0x24
 
 
 #define	F_REG_RX_SYS_AUDIO_SELECT				0x1A
@@ -176,11 +253,20 @@
 #define	F_REG_RX_SYS_VERSION						0x1D
 #define	F_REG_RX_SYS_REVISION						0x1E
 
-#define	F_REG_RX_SYS_YEAR							INVALIDATE_VALUE_U8
-#define	F_REG_RX_SYS_MONTH						INVALIDATE_VALUE_U8
-#define	F_REG_RX_SYS_DAY							INVALIDATE_VALUE_U8
-#define	F_REG_RX_SYS_HOUR						INVALIDATE_VALUE_U8
-#define	F_REG_RX_SYS_MINUTE						INVALIDATE_VALUE_U8
+#define	F_REG_RX_SYS_YEAR							66
+#define	F_REG_RX_SYS_MONTH						67
+#define	F_REG_RX_SYS_DAY							68
+#define	F_REG_RX_SYS_HOUR						69
+#define	F_REG_RX_SYS_MINUTE						70
+
+#define	F_REG_RX_SYS_V_WIDTH						71
+#define	F_REG_RX_SYS_V_HEIGHT					73
+
+#define	F_REG_RX_SYS_V_FRAMERATE				75
+#define	F_REG_RX_SYS_V_COLORSPACE				76		/* sampling */
+#define	F_REG_RX_SYS_V_DEPTH						77
+#define	F_REG_RX_SYS_V_INTLC_SEGM				78
+#define	F_REG_RX_SYS_V_PARAM_UPDATE				79
 
 
 #define	F_REG_RX_SYS_MB_VIDEO_COLOR_DEPTH		0x2C	/* 10/12/14/16 */
@@ -197,7 +283,10 @@
 #define	F_REG_RX_RTP_AUX_PAYLOAD_TYPE			INVALIDATE_VALUE_U8
 
 
-/* Network specific: 0x68 */
+/******** Network specific: 0x68 ********************/
+/*
+*  For RX, only local MAC, local IP, local video port, local audio port, and multicast video/audio IP/port are configured 
+*/
 #define	F_REG_RX_NET_LOCAL_MAC					0x04	/* 6 bytes */	
 #define	F_REG_RX_NET_DEST_MAC					0x0A	/* 6 bytes */	
 
@@ -299,6 +388,9 @@ typedef struct
 	FpgaI2cAddress		mac;	/* this field not used in RX */
 	FpgaI2cAddress		port;
 	FpgaI2cAddress		rtpPayload;
+
+	FpgaI2cAddress		count;	/* RX or TX packet */
+
 }StreamRegisterAddress;
 
 
@@ -316,6 +408,8 @@ typedef struct
 	FpgaI2cAddress		channels;
 	FpgaI2cAddress		audioRate;
 	FpgaI2cAddress		pktSize;
+
+	FpgaI2cAddress		paramStatus;	/* for TX, this is Params Status; for RX, this is Params Update */
 	
 }MediaRegisterAddress;
 
@@ -325,17 +419,30 @@ typedef	struct
 	FpgaI2cAddress			version;
 	FpgaI2cAddress			revision;
 
+}FpgaVersionAddress;
+
+
+typedef	struct
+{
 	FpgaI2cAddress			year;
 	FpgaI2cAddress			month;
 	FpgaI2cAddress			day;
 	FpgaI2cAddress			hour;
 	FpgaI2cAddress			minute;
-}FpgaVersionAddress;
+}FpgaBuildTimeAddress;
+
 
 
 typedef	struct 
 {
 	FpgaI2cAddress			reset;
+	FpgaI2cAddress			enable;
+
+	FpgaI2cAddress			irCtrl;
+	FpgaI2cAddress			irDemodulation;
+
+	FpgaI2cAddress			gbeRxCount;
+	FpgaI2cAddress			gbeTxCount;
 	
 	/* local address and port */
 	FpgaI2cAddress			localMac;
@@ -358,13 +465,20 @@ typedef	struct
 
 	MediaRegisterAddress		*media;
 
-	FpgaVersionAddress		*version;
+	FpgaBuildTimeAddress		*buildTime;
 }TxRegisterMap;
 
 
 typedef	struct 
 {
 	FpgaI2cAddress			reset;
+	FpgaI2cAddress			enable;
+	
+	FpgaI2cAddress			irCtrl;
+	FpgaI2cAddress			irDemodulation;
+
+	FpgaI2cAddress			gbeRxCount;
+	FpgaI2cAddress			gbeTxCount;
 	
 	FpgaI2cAddress			localMac;
 	FpgaI2cAddress			localIp;
@@ -385,6 +499,7 @@ typedef	struct
 
 	MediaRegisterAddress		*media;
 
+	FpgaBuildTimeAddress		*buildTime;
 }RxRegisterMap;
 
 struct	_FpgaConfig;
@@ -429,7 +544,7 @@ typedef	struct	_FpgaConfig
 /* can be used to implment on different boards */
 #define	FPGA_WRITE(addr, val, size)		\
 	do{int ret; EXT_ASSERT( (((addr)!=NULL) && ((addr)->device != NULL)), "FPGA address ' %s' is null", #addr); ret = I2C_EXT_WRITE((addr)->device->bus, (addr)->device->channel, (addr)->device->slaveAddress, (addr)->offset, 1, (val), (size)); \
-		MUX_DEBUG("FPGA write on %d.%d.0x%x(%s), offset 0x%x(%s): %s",(addr)->device->bus, (addr)->device->channel, (addr)->device->slaveAddress, (addr)->device->name, (addr)->offset, (addr)->name, (ret==EXIT_SUCCESS)?"OK":"Failed");\
+		MUX_DEBUG("FPGA write on %d.%d.0x%x(%s), offset 0x%x(%s), value:%d: %s",(addr)->device->bus, (addr)->device->channel, (addr)->device->slaveAddress, (addr)->device->name, (addr)->offset, (addr)->name, *val, (ret==EXIT_SUCCESS)?"OK":"Failed");\
 		}while(0)
 		
 

@@ -32,7 +32,7 @@
 #define	DEBUG_CONFIG_FILE						0
 
 
-#define	MUX_OPTIONS_DEBUG_IP_COMMAND		0
+#define	MUX_OPTIONS_DEBUG_IP_COMMAND		1
 
 #define	MUX_OPTIONS_DEBUG_IPC_CLIENT		0
 
@@ -521,6 +521,7 @@ extern volatile int recvSigalTerminal;
 
 char *cmn_read_file(const char *filename, uint32_t *size);
 int cmn_write_file(const char *filename, void *data, uint32_t size);
+int cmn_count_file(const char *filename);
 
 
 char *cmnTimestampStr(void);

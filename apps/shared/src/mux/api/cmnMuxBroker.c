@@ -427,10 +427,15 @@ static struct DATA_CONN *_findDataConn(CMN_MUX_BROKER *broker, int *isTimer, int
 	return NULL;
 }
 
-#define	POLL_TIMEOUT			500 /* ms */
+#ifndef   __CMN_RELEASE__
+#define	POLL_TIMEOUT			500*8 /* ms */
+#define	TIMER_FD_TIMEOUT		250*8 /* ms, must be less than POLL_TIMEOUT */
 
+#else
+#define	POLL_TIMEOUT			500 /* ms */
 #define	TIMER_FD_TIMEOUT		250 /* ms, must be less than POLL_TIMEOUT */
 
+#endif
 
 static int _cmnMuxBrokerReceive(CMN_MUX_BROKER *broker)
 {

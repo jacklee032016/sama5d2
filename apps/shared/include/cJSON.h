@@ -242,7 +242,8 @@ void cJSON_DeleteItemFromObjectCaseSensitive(cJSON *object, const char *string);
 void cJSON_InsertItemInArray(cJSON *array, int which, cJSON *newitem); /* Shifts pre-existing items to the right. */
 cJSON_bool cJSON_ReplaceItemViaPointer(cJSON * const parent, cJSON * const item, cJSON * replacement);
 void cJSON_ReplaceItemInArray(cJSON *array, int which, cJSON *newitem);
-void cJSON_ReplaceItemInObject(cJSON *object,const char *string,cJSON *newitem);
+//void cJSON_ReplaceItemInObject(cJSON *object,const char *string,cJSON *newitem);
+cJSON_bool cJSON_ReplaceItemInObject(cJSON *object,const char *string,cJSON *newitem);
 void cJSON_ReplaceItemInObjectCaseSensitive(cJSON *object,const char *string,cJSON *newitem);
 
 /* Duplicate a cJSON item */

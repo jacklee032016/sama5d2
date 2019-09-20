@@ -36,7 +36,8 @@
 
 #define		MAX_SPI_WRITE 64
 
-#define		SPI_0_FILENAME					DEV_HOME"/spidev32766.0"
+//#define		SPI_0_FILENAME					DEV_HOME"/spidev32766.0"
+#define		SPI_0_FILENAME					DEV_HOME"/spidev0.0"
 
 #define SPI_TST_ADDR 0x0001
 #define SPI_TST_D0 0x5A
@@ -130,10 +131,18 @@ void rs232StopRx(void);
 int cmnSysRs232Init(EXT_RUNTIME_CFG *runCfg);
 int cmnSysRs232Config(EXT_RUNTIME_CFG *runCfg);
 int cmnSysRs232Write(unsigned char *data, unsigned short size);
+int cmnSysRs232Read(unsigned char *data, unsigned short size, int timeoutMs);
 
 int	sysFpgaCheck(EXT_RUNTIME_CFG *runCfg );
 
 int	sysFpgaInit(EXT_RUNTIME_CFG *runCfg );
+
+int	sysFpgaRefresh(void );
+
+char *sysFgpaVersion(void);
+char *sysFgpaBuilt(void);
+
+int	sysFpgaReadIrDemodulation(unsigned char *freq);
 
 
 int cmnSysJsonUpdate(MuxMain *muxMain);
@@ -185,6 +194,19 @@ int cmnSysLedCtrl(LED_TYPE_T type, LED_MODE_T mode);
 
 #define	CMN_SYS_LED_ACT_BLINK( mode)	\
 			CMN_SYS_LED_ACT_CTRL(LED_MODE_BLINK)
+
+/* LED link */
+#define	CMN_SYS_LED_LINK_CTRL( mode)	\
+			CMN_SYS_LED_CTRL(LED_TYPE_LINK, (mode))
+
+#define	CMN_SYS_LED_LINK_OFF( mode)	\
+			CMN_SYS_LED_LINK_CTRL(LED_MODE_OFF)
+
+#define	CMN_SYS_LED_LINK_ON( mode)	\
+			CMN_SYS_LED_LINK_CTRL(LED_MODE_ON)
+
+#define	CMN_SYS_LED_LINK_BLINK( mode)	\
+			CMN_SYS_LED_LINK_CTRL(LED_MODE_BLINK)
 
 
 
@@ -326,6 +348,21 @@ cJSON *cmnMuxThreadsInfo(MuxMain *muxMain);
 
 int	sysFpgaReadVideoStatus(void);
 int	sysFpgaReadFpsStatus(void);
+
+#define	MAC_DEBUG_FORMAT(address)	\
+			(" %02x:%02x:%02x:%02x:%02x:%02x:", address[0], address[1], address[2], address[3], address[4], address[5])
+
+
+#define	SPI_FLASH_SECTOR_SIZE						0x10000	/* 65536, 64K */
+
+int	cmnSysSpiTest(void);
+
+int	cmnSysRawSpiFlashInit(void);
+void	cmnSysRawSpiFlashClose(int fd);
+int	cmnSysRawSpiFlashWriteFile(int flashFd, char *filename, uint32_t startAddr);
+int	cmnSysRawSpiFlashRead(int flashFd, uint32_t startAddr, uint32_t pageCount);
+
+
 
 #endif
 

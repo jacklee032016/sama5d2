@@ -464,6 +464,57 @@ const	TYPE_NAME_T	_videoColorSpaces[] =
 	},
 #endif		
 #elif (MUX_BOARD == MUX_BOARD_774)
+
+	{
+		.type = EXT_V_COLORSPACE_YCBCR_422,
+		.name = "YCbCr-4:2:2",
+		.value = NULL,
+	},
+	{
+		.type = EXT_V_COLORSPACE_YCBCR_444,
+		.name = "YCbCr-4:4:4",
+		.value = NULL,
+	},
+	
+	{
+		.type = EXT_V_COLORSPACE_RGB,
+		.name = "RGB",
+		value : NULL,
+	},
+
+	{
+		.type = EXT_V_COLORSPACE_YCBCR_420,
+		.name = "YCbCr-4:2:0",
+		.value = NULL,
+	},
+	{
+		.type = EXT_V_COLORSPACE_XYZ,
+		.name = "XYZ",
+		.value = NULL,
+	},
+	{
+		.type = EXT_V_COLORSPACE_KEY,
+		.name = "KEY",
+		.value = NULL,
+	},
+	{
+		.type = EXT_V_COLORSPACE_CL_YCBCR_422,
+		.name = "CLYCbCr-4:2:2",
+		.value = NULL,
+	},
+	{
+		.type = EXT_V_COLORSPACE_CL_YCBCR_444,
+		.name = "CLYCbCr-4:4:4",
+		.value = NULL,
+	},
+
+	{
+		.type = EXT_V_COLORSPACE_CL_YCBCR_420,
+		.name = "CLYCbCr-4:2:0",
+		.value = NULL,
+	},
+
+/*
 	{
 		type	: EXT_V_COLORSPACE_YCBCR_444,
 		name	: "YCbCr-4:4:4",
@@ -501,6 +552,7 @@ const	TYPE_NAME_T	_videoColorSpaces[] =
 		name	: "RGB-RAW",
 		value : NULL,
 	},
+*/
 
 #else
 #error 	Not support board definition

@@ -40,7 +40,7 @@ Steps:
 
    tftpboot 0x21000000 at91-sama5d2_xplained.dtb;   sf probe 1:0; sf erase 0x20000 0x10000; sf write 0x21000000 0x20000 0x10000
   * 
-   tftpboot 0x21000000 mux774_v2.dtb;sf probe 1:0; sf erase 0x20000 0x10000; sf write 0x21000000 0x20000 0x10000
+   tftpboot 0x21000000 m774/mux774_v2.dtb;sf probe 1:0; sf erase 0x20000 0x10000; sf write 0x21000000 0x20000 0x10000
    tftpboot 0x21000000 mux768.dtb;sf probe 1:0; sf erase 0x20000 0x10000; sf write 0x21000000 0x20000 0x10000
 
    
@@ -50,8 +50,7 @@ Steps:
 #. **Program kernel in u-boot**
 ::
 
-   tftpboot 0x21000000 m774/zImage; sf probe 1:0; sf erase 0x100000 0x400000; sf write 0x21000000 0x100000 0x400000
-   tftpboot 0x21000000 zImage.Mux774; sf probe 1:0; sf erase 0x100000 0x400000; sf write 0x21000000 0x100000 0x400000
+   tftpboot 0x21000000 m774/zImage.Mux774; sf probe 1:0; sf erase 0x100000 0x400000; sf write 0x21000000 0x100000 0x400000
    tftpboot 0x21000000 zImage.Mux768; sf probe 1:0; sf erase 0x100000 0x400000; sf write 0x21000000 0x100000 0x400000
    tftpboot 0x21000000 zImage; sf probe 1:0; sf erase 0x100000 0x400000; sf write 0x21000000 0x100000 0x400000
 
@@ -81,6 +80,7 @@ Clear environment:
 ::
 
    tftpboot 0x21000000 root.jffs2.2019_04_10
+   tftpboot 0x21000000 m774/root.jffs2.2019_05_29
    sf probe 1:0; sf erase 0x500000 0x3000000; 
    
    sf write 0x21000000 0x500000 0x3000000

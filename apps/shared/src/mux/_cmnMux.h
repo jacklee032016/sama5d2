@@ -28,7 +28,7 @@
 			REPLY_DATACONN_OK((dataConn), (dataConn)->dataObj);
 
 
-#define	__DEBUG_CONNECTION		0
+#define	__DEBUG_CONNECTION		1
 
 
 int cmnMuxManagerAddEvent(char *cmd, 	int method, void *dataConn);

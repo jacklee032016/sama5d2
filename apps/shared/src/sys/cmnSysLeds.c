@@ -30,6 +30,9 @@
 #define	LED_VIDEO				LED_HOME"/""video"
 #define	LED_ACT				LED_HOME"/""act"
 
+#define	LED_LINK				LED_HOME"/""link"
+
+
 struct _SysLedCtrl
 {
 	LED_TYPE_T		led;
@@ -63,6 +66,13 @@ static struct _SysLedCtrl  _sysLeds[] =
 		.brightness = 	LED_ACT"/"LED_BRIGHTNESS,
 		.trigger = 	LED_ACT"/"LED_TRIGGER,
 		.triggerCheck = 	LED_ACT"/"LED_DELAY_ON
+	},
+	{
+		.led = LED_TYPE_LINK,
+		.name = "LINK",	
+		.brightness = 	LED_LINK"/"LED_BRIGHTNESS,
+		.trigger = 	LED_LINK"/"LED_TRIGGER,
+		.triggerCheck = 	LED_LINK"/"LED_DELAY_ON
 	},
 	{
 		.led = LED_TYPE_UNKNOWN,
