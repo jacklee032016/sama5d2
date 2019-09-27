@@ -460,7 +460,7 @@ int	sysFpgaReadIrDemodulation(unsigned char *freq)
 	FpgaConfig 	*fpga =  &_fpgaConfig;
 	FpgaI2cAddress		*regIrDemodulation;
 
-	if(fpga.opProtocolCtrl == NULL)
+	if(fpga->opProtocolCtrl == NULL)
 	{
 		EXT_ERRORF("FPGA is not initialized");
 
@@ -488,7 +488,7 @@ int	sysFpgaWriteIrCtrl(unsigned char isIrPowerOn, unsigned char isIrOut, unsigne
 	FpgaI2cAddress		*regIrCtrl;
 	unsigned char value, tmp;
 
-	if(fpga.opProtocolCtrl == NULL)
+	if(fpga->opProtocolCtrl == NULL)
 	{
 		EXT_ERRORF("FPGA is not initialized");
 		return EXIT_FAILURE;

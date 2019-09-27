@@ -49,6 +49,8 @@ static char _compareSystemCfg(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 	if( rxCfg->local.ip != INVALIDATE_VALUE_U32 )
 	{
 		runCfg->local.ip = rxCfg->local.ip;
+
+		cmnSysEthernetConfig(runCfg );/* 09.23, 2019 */
 		ret = EXT_TRUE;
 	}
 	

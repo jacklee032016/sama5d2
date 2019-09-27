@@ -872,6 +872,7 @@ typedef	enum
 }EXT_VIDEO_INTLC;
 
 
+#if (MUX_BOARD == MUX_BOARD_767 )
 typedef	enum
 {
 	EXT_A_RATE_48K		= 0,
@@ -879,6 +880,23 @@ typedef	enum
 	EXT_A_RATE_96K		= 8,
 	EXT_A_RATE_NONE
 }EXT_A_RATE;
+#elif (MUX_BOARD == MUX_BOARD_774)
+typedef	enum
+{
+	EXT_A_RATE_HEADER		= 0,	/** stream header */
+	EXT_A_RATE_32K			= 1,
+	EXT_A_RATE_44K			= 2,	/* 44.1 K */
+	EXT_A_RATE_48K			= 3,
+	EXT_A_RATE_88K			= 4,	/* 88.2 K */
+	EXT_A_RATE_96K			= 5,
+	EXT_A_RATE_176K		= 6,	/* 176.4 K*/
+	EXT_A_RATE_192K		= 7,
+//	EXT_A_RATE_768K		= 7,
+	EXT_A_RATE_NONE
+}EXT_A_RATE;
+#else
+#error 	Not support board definition
+#endif
 
 
 typedef	enum
@@ -999,7 +1017,7 @@ typedef	struct
 
 	unsigned char			aSampleRate;
 	unsigned char			aChannels;	/* 4/8/12/16 */
-	unsigned char			aDepth;		/* 16, 24 bits, etc.  not configurable, 12.07, 2018 */
+	unsigned char			aDepth;		/* 16, 24 bits, etc.  not configurable, 12.07, 2018; for HDMI-->2110, it is changable. 09.25, 2019 */
 	unsigned char			aPktSize;	/* 1ms or 125ms. */
 
 	unsigned char			rtpTypeVideo;

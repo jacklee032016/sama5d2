@@ -701,8 +701,8 @@ const	TYPE_NAME_T	_audioPktSizes[] =
 const	TYPE_NAME_T	_audioRates[] =
 {
 	{
-		type	: EXT_A_RATE_48K,
-		name	: "48000",
+		type	: EXT_A_RATE_32K,
+		name	: "32000",
 		value : NULL,
 	},
 	{
@@ -711,10 +711,37 @@ const	TYPE_NAME_T	_audioRates[] =
 		value : NULL,
 	},
 	{
+		type	: EXT_A_RATE_48K,
+		name	: "48000",
+		value : NULL,
+	},
+	{
+		type	: EXT_A_RATE_88K,
+		name	: "88200",
+		value : NULL,
+	},
+	{
 		type	: EXT_A_RATE_96K,
 		name	: "96000",
 		value : NULL,
 	},
+	{
+		type	: EXT_A_RATE_176K,
+		name	: "176400",
+		value : NULL,
+	},
+	{
+		type	: EXT_A_RATE_192K,
+		name	: "192000",
+		value : NULL,
+	},
+/*
+	{
+		type	: EXT_A_RATE_768K,
+		name	: "768000",
+		value : NULL,
+	},
+*/	
 	{
 		type	: -1,
 		name	: NULL,

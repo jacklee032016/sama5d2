@@ -127,6 +127,12 @@ int	sysFpgaTxConfig(FpgaConfig *fpga)
 	address[0] = INVALIDATE_VALUE_U8;
 	_extFpgaWriteByte(&fpga->txAddress->enable, address);
 
+	address[0] = 0x07;
+	FPGA_I2C_WRITE(0x1A, address, 1);
+
+	address[0] = INVALIDATE_VALUE_U8;
+	FPGA_I2C_WRITE(0x1B, address, 1);
+
 	TRACE();
 	return EXIT_SUCCESS;
 }
@@ -419,9 +425,11 @@ int sysFpgaRxWriteParams(FpgaConfig *fpga)
 /* fpgaXXX is name used in fpga module only */
 int fpgaReadParamRegisters(MediaRegisterAddress *addrMedia, EXT_RUNTIME_CFG *runCfg)
 {
+#if (MUX_BOARD == MUX_BOARD_767 )
 	unsigned char _chValue;
 	int i;
-	
+#endif
+
 	_extFpgaReadShort(&addrMedia->width, (unsigned char *)&runCfg->runtime.vWidth);
 	
 	_extFpgaReadShort(&addrMedia->height, (unsigned char *)&runCfg->runtime.vHeight);
@@ -451,6 +459,7 @@ int fpgaReadParamRegisters(MediaRegisterAddress *addrMedia, EXT_RUNTIME_CFG *run
 
 	_extFpgaReadByte(&addrMedia->intl, &runCfg->runtime.vIsInterlaced);
 
+#if (MUX_BOARD == MUX_BOARD_767 )
 	/* audio */	
 	_extFpgaReadByte(&addrMedia->channels, &_chValue);
 	EXT_DEBUGF(MUX_DEBUG_FPGA, "AudioChannel is 0x%x", _chValue);
@@ -465,7 +474,26 @@ int fpgaReadParamRegisters(MediaRegisterAddress *addrMedia, EXT_RUNTIME_CFG *run
 	
 	_extFpgaReadByte(&addrMedia->audioRate, &runCfg->runtime.aSampleRate);
 	
-	_extFpgaReadByte(&addrMedia->pktSize, &runCfg->runtime.aPktSize);
+#elif (MUX_BOARD == MUX_BOARD_774)
+	if(EXT_IS_TX(runCfg))
+	{
+		cmnSysI2cTxReadAudioParams(&runCfg->runtime.aSampleRate, &runCfg->runtime.aChannels, &runCfg->runtime.aDepth);
+	}
+	else
+	{
+		EXT_ERRORF("RX not support audio read now!!!");
+	}
+
+#else
+#error 	Not support board definition
+#endif
+	
+#if 0
+	/* only for test, 09.26. 2019 */
+	_extFpgaReadByte(&addrMedia->pktSize, &runCfg->runtime.aPktSize );
+#else
+	runCfg->runtime.aPktSize = EXT_A_PKT_SIZE_1MS;
+#endif
 	EXT_DEBUGF(MUX_DEBUG_FPGA, "Audio: Rate: %d; PktSize:%d", runCfg->runtime.aSampleRate, runCfg->runtime.aPktSize);
 
 #if 0

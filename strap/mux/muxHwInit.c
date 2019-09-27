@@ -195,7 +195,6 @@ int muxHwInit(void)
 
 	muxSi5351bHwInit();
 
-	TRACE();
 	
 //	RTL8307H_hw_reset();
 #if	(MUX_BOARD == MUX_BOARD_768)

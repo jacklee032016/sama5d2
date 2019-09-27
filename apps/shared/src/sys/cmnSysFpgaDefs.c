@@ -1020,7 +1020,7 @@ FpgaConfig 	_fpgaConfig =
 	.version = &_fpgaVerAddress,
 	.txAddress = &_TX_ADDRESS,
 	.rxAddress = &_RX_ADDRESS,
-	.opProtocolCtrl = NULL;
+	.opProtocolCtrl = NULL,
 
 };
 

@@ -5,6 +5,7 @@
 #include "libCmn.h"
 #include "libMux.h"
 
+#define	EXT_CMN_SYS_HW_DEBUG			EXT_DBG_ON
 
 #define	EXT_DELAY_S(sec)		cmn_delay((sec)*1000)
 #define	EXT_DELAY_MS(ms)		cmn_delay((ms))
@@ -39,9 +40,9 @@
 //#define		SPI_0_FILENAME					DEV_HOME"/spidev32766.0"
 #define		SPI_0_FILENAME					DEV_HOME"/spidev0.0"
 
-#define SPI_TST_ADDR 0x0001
-#define SPI_TST_D0 0x5A
-#define SPI_TST_D1 0xC3
+#define SPI_TST_ADDR		0x0001
+#define SPI_TST_D0			0x5A
+#define SPI_TST_D1			0xC3
 
 
 #define    INPUT_EVENT_SW1    				DEV_HOME"/input/event0"
@@ -325,6 +326,14 @@ int cmnSysI2cSensor(void);
 #define	SI5351B_WRITE(reg, value, length)	\
 		I2C_EXT_WRITE(0, I2C_CHAN_4_SI5351B, EXT_I2C_DEV_SI5351B, (reg), 1, (value), (length) )
 
+
+#define	EP91A6_READ(reg, value, length)	\
+		I2C_EXT_READ(0, I2C_CHAN_4_EP91A6, EXT_I2C_DEV_EP91A6, (reg), 1, (value), (length) )
+
+#define	EP91A6_WRITE(reg, value, length)	\
+		I2C_EXT_WRITE(0, I2C_CHAN_4_EP91A6, EXT_I2C_DEV_EP91A6, (reg), 1, (value), (length) )
+
+
 /* MCP47716 DAC with EEPROM*/
 #define	MCP4716_READ(reg, value, length)	\
 		I2C_EXT_READ(0, I2C_CHAN_4_MCP4716, EXT_I2C_DEV_MCP4617, (reg), 1, (value), (length) )
@@ -362,6 +371,11 @@ void	cmnSysRawSpiFlashClose(int fd);
 int	cmnSysRawSpiFlashWriteFile(int flashFd, char *filename, uint32_t startAddr);
 int	cmnSysRawSpiFlashRead(int flashFd, uint32_t startAddr, uint32_t pageCount);
 
+
+int	cmnSysI2cTxReadAudioParams(unsigned char *sampleRate, unsigned char *channels , unsigned char *depth);
+
+int cmnSysI2cSi5351VcxoPllCheck(void);
+int cmnSysI2cSi5351VcxoControl(unsigned long clkFreq);
 
 
 #endif

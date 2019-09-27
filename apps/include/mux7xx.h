@@ -92,7 +92,7 @@
 
 	#define	EXT_I2C_DEV_MCP4617			(0xC0 >> 1)					/* MCP4716 */
 	#define	EXT_I2C_DEV_SI5351B			(0xC0 >> 1)					/* Si5351B Clock generator */
-	#define	EXT_I2C_DEV_EP91A6			(0xCB >> 1)					/* EP91A6SQ, HDMI repeator */
+	#define	EXT_I2C_DEV_EP91A6			(0xC8 >> 1)					/* EP91A6SQ, HDMI repeator, 0x64  */
 
 	#define	EXT_I2C_EEPROM_ADDRESS		EEPROM_24LC32A_ADDRESS		/* 24LC32A */
 

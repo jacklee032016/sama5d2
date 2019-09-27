@@ -602,13 +602,13 @@ int	cmnSysI2cTestSi5351B(void)
 		
 		if(SI5351B_READ(regAddr, &value, 1) == EXIT_FAILURE)
 		{
-			EXT_ERRORF("SI5351B read register #%d failed", regAddr);
+			EXT_ERRORF("SI5351B read register #%d at address 0x%X failed", i, regAddr);
 			return EXIT_FAILURE;
 		}
 		
 		if(value != _si5351bRegCfgs[i].val)
 		{
-			EXT_ERRORF("Register should be 0x%x, but is 0x%x", _si5351bRegCfgs[i].val, value);
+			EXT_ERRORF("Register#%d should be 0x%x, but is 0x%x", i, _si5351bRegCfgs[i].val, value);
 			return EXIT_FAILURE;
 		}
 		printf(".");
@@ -620,6 +620,26 @@ int	cmnSysI2cTestSi5351B(void)
 	return EXIT_SUCCESS;
 }
 
+
+int	cmnSysI2cTestEp91a6(void)
+{
+	unsigned int ID=0xA3947A17;	/* */
+	unsigned int readId;
+	int ret;
+
+	EXT_INFOF("");
+	EXT_INFOF("\tCheck EP91A6SQ...");
+	ret = EP91A6_READ(0, &readId, sizeof(int));
+	if(ret == EXIT_FAILURE)
+	{
+		EXT_ERRORF("EP91A6SQ read failed");
+		return EXIT_FAILURE;
+	}
+
+	EXT_INFOF("\t\tEP91A6SQ check %s: ID is 0x%8X", (readId==ID)?"OK":"Failed", readId);
+	
+	return EXIT_SUCCESS;
+}
 
 
 int	cmnSysI2cTestMcp4716(void)
@@ -662,6 +682,7 @@ int	cmnSysI2cTestMcp4716(void)
 
 int	cmnSysI2cTest(void)
 {
+	unsigned char audioRate, audioChannel, audioDepth;
 	cmnSysI2cSensor();
 
 	i2cTestEeprom();
@@ -670,6 +691,14 @@ int	cmnSysI2cTest(void)
 
 	cmnSysI2cTestMcp4716();
 
+	cmnSysI2cTestEp91a6();
+
+	EXT_DEBUGF(EXT_DBG_ON, "\tRead audio parameters from HDMI repeater....");
+	cmnSysI2cTxReadAudioParams(&audioRate, &audioChannel, &audioDepth );
+
+	EXT_DEBUGF(EXT_DBG_ON, "\t\tTest SI5351B registers....");
+	cmnSysI2cSi5351VcxoPllCheck();
 	return EXIT_SUCCESS;
 }
+
 

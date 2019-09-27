@@ -8,10 +8,22 @@
 
 #include "mux7xx.h"
 
+#define	SI5351_READ(addr, value) \
+	{ if(twi_read(bus, EXT_I2C_DEV_SI5351B, (addr), 1, (value), 1)){ \
+		EXT_ERRORF("SI5351B read reg 0x%02x failed", (addr));  return -1;} }
+
+
+#define	SI5351_WRITE(addr, value)	\
+	{ if(twi_write(bus, EXT_I2C_DEV_SI5351B, (addr), 1, (value), 1) ){ \
+		EXT_ERRORF("SI5351B write reg 0x%02x failed", (addr)); return 1;} }
+
+
 #if	(MUX_BOARD == MUX_BOARD_768 )
 #include "si5351bRegs.h"
 #elif ( MUX_BOARD == MUX_BOARD_774)
-#include "si5351bRegister500774.h"
+//#include "si5351bRegister500774.h"
+//#include "si5351bRegisters.09.27.h"
+#include "Si5351B-RevB-RegistersTest.h"
 #elif (MUX_BOARD == MUX_BOARD_767)
 #include "si5351bRegisters.h"
 #endif
@@ -26,107 +38,94 @@ int  muxSi5351bHwInit(void)
 	bus = muxHwTwiSetMuxChannel(MUX_BUS_SI5351B);
 #if	(MUX_BOARD == MUX_BOARD_768 )// || MUX_BOARD == MUX_BOARD_774)
 	buffer[0] = 0xff;
-	twi_write(bus, EXT_I2C_DEV_SI5351B, 3, 1, buffer, 1);
+	SI5351_WRITE(3, buffer);
 
 	buffer[0] = 0x80;
-	twi_write(bus, EXT_I2C_DEV_SI5351B, 16, 1, buffer, 1);
-	twi_write(bus, EXT_I2C_DEV_SI5351B, 17, 1, buffer, 1);
-	twi_write(bus, EXT_I2C_DEV_SI5351B, 18, 1, buffer, 1);
-	twi_write(bus, EXT_I2C_DEV_SI5351B, 19, 1, buffer, 1);
-	twi_write(bus, EXT_I2C_DEV_SI5351B, 20, 1, buffer, 1);
-	twi_write(bus, EXT_I2C_DEV_SI5351B, 21, 1, buffer, 1);
-	twi_write(bus, EXT_I2C_DEV_SI5351B, 22, 1, buffer, 1);
-	twi_write(bus, EXT_I2C_DEV_SI5351B, 23, 1, buffer, 1);
+	SI5351_WRITE(16, buffer);
+	SI5351_WRITE(17, buffer);
+	SI5351_WRITE(18, buffer);
+	SI5351_WRITE(19, buffer);
+	SI5351_WRITE(20, buffer);
+	SI5351_WRITE(21, buffer);
+	SI5351_WRITE(22, buffer);
+	SI5351_WRITE(23, buffer);
 
 
 	for (i=0; i<NUM_REGS_MAX; i++)
 	{
 		buffer[0] = Reg_Store[i].Reg_Val;
-		twi_write(bus, EXT_I2C_DEV_SI5351B, Reg_Store[i].Reg_Addr, 1, buffer, 1);
+		SI5351_WRITE(Reg_Store[i].Reg_Addr, buffer);
 	}
 
 	// adjust crystal capacitante register
 	buffer[0] = 0x12;
-	twi_write(bus, EXT_I2C_DEV_SI5351B, 183, 1, buffer, 1);
+	SI5351_WRITE(183, buffer);
 	// reset PLL
 	buffer[0] = 0xAC;
-	twi_write(bus, EXT_I2C_DEV_SI5351B, 177, 1, buffer, 1);
+	SI5351_WRITE(177, buffer);
 	buffer[0] = 0x00;
-	twi_write(bus, EXT_I2C_DEV_SI5351B, 3, 1, buffer, 1);
+	SI5351_WRITE(3, buffer);
 	
 #if 0
-	if(twi_read(bus, EXT_I2C_DEV_SI5351B, 0, 1, buffer, 1))
-	{
-		dbg_info("SI5351B read failed\n");
-		return -1;
-	}
-	dbg_info("SI5351B status: %x, %s\n", buffer[0], (buffer[0]==0x11)?"OK":"Failed");
+	SI5351_WRITE(0, buffer);
+	EXT_INFOF("SI5351B status: %x, %s\n", buffer[0], (buffer[0]==0x11)?"OK":"Failed");
 #endif
 
 #elif (MUX_BOARD == MUX_BOARD_774 )
 	// Turn off the clocks
 	buffer[0] = 0xff;
-	if(twi_write(bus, EXT_I2C_DEV_SI5351B, 3, 1, buffer, 1) )
-	{
-		EXT_ERRORF("SI5351B, 3.1 failed");
-	}
+	SI5351_WRITE(3, buffer);
 
 	for (i=0; i<SI5351B_REVB_REG_CONFIG_NUM_REGS; i++)
 	{
 		buffer[0] = si5351b_revb_registers_m774[i].value;
 		reg_addr = (unsigned char )si5351b_revb_registers_m774[i].address;
-		if(twi_write(bus, EXT_I2C_DEV_SI5351B, reg_addr, 1, buffer, 1) )
-		{
-			EXT_ERRORF("SI5351B, %x. failed", reg_addr);
-		}
-		
+		SI5351_WRITE(reg_addr, buffer);
 	}
 
-	EXT_INFOF("SI5351B(Mux774) total %d regsiters have been written", i);
+	EXT_INFOF("SI5351B("BOARD_NAME") total %d regsiters have been written", i);
 
 	// adjust crystal capacitante register
 	buffer[0] = 0x12;
-	twi_write(bus, EXT_I2C_DEV_SI5351B, 183, 1, buffer, 1);
+	SI5351_WRITE(183, buffer);
 	// reset PLL
 	buffer[0] = 0xAC;
-	twi_write(bus, EXT_I2C_DEV_SI5351B, 177, 1, buffer, 1);
+//	buffer[0] = 0xA0;
+	SI5351_WRITE(177, buffer);
 	buffer[0] = 0x00;
-	twi_write(bus, EXT_I2C_DEV_SI5351B, 3, 1, buffer, 1);
-
+	SI5351_WRITE(3, buffer);
 
   // Turn on the clocks 
 	buffer[0] = 0x00;
-	if(twi_write(bus, EXT_I2C_DEV_SI5351B, 3, 1, buffer, 1) )
-	{
-		EXT_ERRORF("SI5351B, 3.1 again failed");
-	}
+	SI5351_WRITE(3, buffer);
 	
-	if(twi_read(bus, EXT_I2C_DEV_SI5351B, 0, 1, buffer, 1))
+	SI5351_READ(0, buffer);
+#if 0	
+	if(buffer[0]!= 0x11)
 	{
-		dbg_info("SI5351B read failed\n");
-		return -1;
+#if 0
+		/* for output format, this format will make no output */
+		EXT_ERRORF("SI5351B status failed, status: 0x%02x"EXT_NEW_LINE, buffer[0] );
+#else
+		EXT_ERRORF("SI5351B status failed, status: 0x%x"EXT_NEW_LINE, buffer[0] );
+#endif
 	}
-	
-	dbg_info("SI5351B status: %x, %s\n", buffer[0], (buffer[0]==0x11)?"OK":"Failed");
-	EXT_INFOF("SI5351B(Mux774) has been turn on");
+	else
+#endif		
+	{
+		EXT_INFOF("SI5351B has been turn on successfully, status:0x%x"EXT_NEW_LINE, buffer[0] );
+	}
 
 #elif (MUX_BOARD == MUX_BOARD_767 )
 	// Turn off the clocks
 	buffer[0] = 0xff;
-	if(twi_write(bus, EXT_I2C_DEV_SI5351B, 3, 1, buffer, 1) )
-	{
-		EXT_ERRORF("SI5351B, 3.1 failed");
-	}
+	SI5351_WRITE(3, buffer);
 
 	for (i=0; i<SI5351B_REVB_REG_CONFIG_NUM_REGS; i++)
 	{
 		buffer[0] = si5351b_revb_registers[i].value;
 		reg_addr = (unsigned char )si5351b_revb_registers[i].address;
-		if(twi_write(bus, EXT_I2C_DEV_SI5351B, reg_addr, 1, buffer, 1) )
-		{
-			EXT_ERRORF("SI5351B, %x. failed", reg_addr);
-		}
-		
+		SI5351_WRITE(reg_addr, buffer);
 	}
 
 	EXT_INFOF("SI5351B total %d regsiters have been written", i);
@@ -136,10 +135,7 @@ int  muxSi5351bHwInit(void)
 
   // Turn on the clocks 
 	buffer[0] = 0x00;
-	if(twi_write(bus, EXT_I2C_DEV_SI5351B, 3, 1, buffer, 1) )
-	{
-		EXT_ERRORF("SI5351B, 3.1 again failed");
-	}
+	SI5351_WRITE(3, buffer );
 #endif
 
 	return 0;
@@ -153,12 +149,14 @@ int  si5351bTxCfg(void)
 
 	bus = muxHwTwiSetMuxChannel(MUX_BUS_SI5351B);
 
+#if 1
   // Disable the clock 6
 	buffer[0] = 0x8C;
-	twi_write(bus, EXT_I2C_DEV_SI5351B, 0x16, 1, buffer, 1);
+	SI5351_WRITE(0x16, buffer);	/* 22, power down */
 	buffer[0] = 0x00;
-	twi_write(bus, EXT_I2C_DEV_SI5351B, 0x5A, 1, buffer, 1);
-	
+	SI5351_WRITE(0x5A, buffer);	/* 90, MS6  */
+#endif	
+	EXT_INFOF("SI5351B("BOARD_NAME") Clock6 is disabled on TX");
 	return 0;
 }
 

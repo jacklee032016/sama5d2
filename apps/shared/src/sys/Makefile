@@ -21,6 +21,7 @@ endif
 
 MUX_SRC += \
 		cmnSysI2c.c \
+		cmnSysI2cCtrl.c \
 		cmnSysRawSpi.c \
 		cmnSysSpi.c \
 		cmnSysNet.c \

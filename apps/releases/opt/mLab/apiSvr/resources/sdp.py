@@ -154,8 +154,9 @@ class AudioSdp(SdpResource):
             self.payloadType
         )
         str += "c=IN IP4 %s/64\n"%(media.get("ip","0.0.0.0") )    ## IP/TTL
-        str += "a=rtpmap:%d L24/%s/%d\n"%(
+        str += "a=rtpmap:%d L%d/%s/%d\n"%(
             self.payloadType, 
+            media.get("depth", 24), 
             media.get("sample", "48000"), 
             media.get("channels", 16) 
         ) 

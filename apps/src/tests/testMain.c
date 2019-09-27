@@ -19,6 +19,9 @@
 
 #define	TEST_CMD_RS232				"rs"
 
+#define	TEST_CMD_CLOCK				"clk"
+
+
 int testIgmp(void);
 int testDipSwitch(void);
 int testLedVideo(void);
@@ -39,11 +42,32 @@ static void _usage(char* base)
 	printf("%s: \n\tTest command line utility.\n"\
 		"\t%s -c command "
 		"\t\t Current command:  " \
-		"\n\t\t\t"TEST_CMD_IGMP", "TEST_CMD_DIP_SWITCH", "TEST_CMD_LEDS", "TEST_CMD_SW1", "TEST_CMD_SECURE_CHIP", "TEST_CMD_I2C ", "TEST_CMD_SPI" \n", 
+		"\n\t\t\t"TEST_CMD_IGMP", "TEST_CMD_DIP_SWITCH", "TEST_CMD_LEDS", "TEST_CMD_SW1", "TEST_CMD_SECURE_CHIP", "TEST_CMD_I2C ", "TEST_CMD_SPI ", "TEST_CMD_CLOCK" \n", 
 		  base, base);
 
 	exit(-1);
 }
+
+unsigned int testFreq = 20;
+
+int testClock(void)
+{
+	EXT_INFOF("Test Clock of %d MHz...", testFreq);
+	
+	if(testFreq <= 0 )
+	{
+		EXT_ERRORF("Test frequency must be defined in MHz and larger than 1");
+		return EXIT_FAILURE;
+	}
+
+	if(cmnSysI2cSi5351VcxoControl((unsigned long)testFreq*UNIT_M_HZ )  == EXIT_SUCCESS)
+	{
+		EXT_INFOF("Frequency of CLK6 has been changed into %d MHz, please check with oscilloscope", testFreq);
+	}
+
+	return EXIT_SUCCESS;
+}
+
 
 
 int main(int argc, char *argv[])
@@ -51,13 +75,17 @@ int main(int argc, char *argv[])
 	int opt;
 	char		cmd[CMN_NAME_LENGTH];
 
-	while ((opt = getopt (argc, argv, "c:")) != -1)
+	while ((opt = getopt (argc, argv, "c:f:")) != -1)
 	{
 		switch (opt)
 		{
 
 			case 'c': /* command */
 				snprintf(cmd, sizeof(cmd), "%s", optarg);
+				break;
+
+			case 'f': /* MHz Frequency of CLOCK */
+				testFreq = atoi(optarg);
 				break;
 
 			default:
@@ -108,6 +136,11 @@ int main(int argc, char *argv[])
 	else if(IS_STRING_EQUAL(cmd, TEST_CMD_RS232))
 	{
 		testRs232();
+	}
+	else if(IS_STRING_EQUAL(cmd, TEST_CMD_CLOCK))
+	{
+	
+		testClock();
 	}
 	else
 	{

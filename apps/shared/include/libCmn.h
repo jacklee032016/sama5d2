@@ -129,6 +129,8 @@
 #define	UNIT_OF_MEGA					(UNIT_OF_KILO*UNIT_OF_KILO)
 #define	UNIT_OF_GIGA					(UNIT_OF_KILO*UNIT_OF_MEGA)
 
+#define	UNIT_K_HZ						1000
+#define	UNIT_M_HZ						((UNIT_K_HZ)*(UNIT_K_HZ))
 
 
 #define	CMNLIB_OPS_DEBUG						0x01

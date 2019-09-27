@@ -51,7 +51,7 @@
 #define _SPI_DEVICE								"/dev/spidev0.0"
 
 
-#define	SPI_CLOCK_FREQUENCY					 	40*1000*1000
+#define	SPI_CLOCK_FREQUENCY					 	40*UNIT_M_HZ
 
 typedef	struct 
 {
