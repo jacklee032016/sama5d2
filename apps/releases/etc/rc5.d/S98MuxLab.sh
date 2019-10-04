@@ -14,6 +14,10 @@ echo "install w1 DS28e15 driver..."
 insmod $MUX_LAB_HOME/drv/w1Ds28e15.ko
 echo ""
 
+echo "start PTP service..."
+# ptp4l
+echo ""
+
 echo "start REST API service..."
 # LOG_DIR=/var/volatile
 LOG_DIR=/run
@@ -23,5 +27,5 @@ echo ""
 
 
 echo "start MuxLab service..."
-# muxMgr
+muxMgr
 echo ""

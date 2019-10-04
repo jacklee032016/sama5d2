@@ -58,6 +58,12 @@ endif
 	APP_DIRS += src/tests
 
 
+# PTP related
+	APP_DIRS += ptp/src
+	APP_DIRS += ptp/programs
+	APP_DIRS += ptp/phc
+
+
 SUBDIRS += $(SHARED_DIRS)
 
 SUBDIRS += $(APP_DIRS)

@@ -16,6 +16,9 @@
 #include <linux/rtnetlink.h>
 
 #include "sysNetlinkW1.h"
+#include "libCmnSys.h"
+
+#define	__DEBUG_W1		EXT_DBG_OFF
 
 #define	_W1_DEFAULT_TIMEOUT			5 /* seconds */
 
@@ -103,7 +106,7 @@ char *cmnSysW1CommandName(int type)
 	return "W1-CMD-Unknown";
 }
 
-
+#if __DEBUG_W1
 static void _sysW1DebugMsg(struct netlink_parse *w1Master )
 {
 	if ( w1Master->nlm )
@@ -143,7 +146,7 @@ static void _sysW1DebugMsg(struct netlink_parse *w1Master )
 		_HEX_DUMP("DATA:", w1Master->data, w1Master->data_size);
 	}
 }
-
+#endif
 
 int __sysW1Receive(struct netlink_parse *w1Master)
 {
@@ -152,17 +155,17 @@ int __sysW1Receive(struct netlink_parse *w1Master)
 
 	// first peek at message to get length and details
 	int recv_len = recv(w1Master->socket, &peek_nlm, sizeof(peek_nlm), MSG_PEEK );
-	printf("Pre-parse header: %d bytes len=%d type=%d seq=%d pid=%d (our pid=%d)\n",recv_len,peek_nlm.nlmsg_len,peek_nlm.nlmsg_type,peek_nlm.nlmsg_seq,peek_nlm.nlmsg_pid,getpid());
+	EXT_DEBUGF(__DEBUG_W1, "Pre-parse header: %d bytes len=%d type=%d seq=%d pid=%d (our pid=%d)\n",recv_len,peek_nlm.nlmsg_len,peek_nlm.nlmsg_type,peek_nlm.nlmsg_seq,peek_nlm.nlmsg_pid,getpid());
 	if (recv_len == -1)
 	{
-		perror("recv header error\n");
+		MUX_ERROR("recv header error");
 		return -errno ;
 	}
 	
 	// test pid
 	if ( peek_nlm.nlmsg_pid != 0 )
 	{
-		printf("Not our pid on message\n");
+		MUX_ERROR("Not our pid on message");
 		// non-peek
 		recv(w1Master->socket, &peek_nlm, sizeof(peek_nlm), 0 );
 		return -EAGAIN ;
@@ -171,7 +174,7 @@ int __sysW1Receive(struct netlink_parse *w1Master)
 	// test type
 	if ( peek_nlm.nlmsg_type != NLMSG_DONE )
 	{
-		printf("Bad message type\n");
+		MUX_ERROR("Bad message type");
 		// non-peek
 		recv(w1Master->socket, &peek_nlm, sizeof(peek_nlm), 0 );
 		return -EINVAL ;
@@ -180,7 +183,7 @@ int __sysW1Receive(struct netlink_parse *w1Master)
 	// test length
 	if ( peek_nlm.nlmsg_len < sizeof(struct nlmsghdr) + sizeof(struct cn_msg) + sizeof(struct w1_netlink_msg) )
 	{
-		printf("Bad message length (%d)\n",peek_nlm.nlmsg_len);
+		MUX_ERROR("Bad message length (%d)",peek_nlm.nlmsg_len);
 		// non-peek
 		recv(w1Master->socket, &peek_nlm, sizeof(peek_nlm), 0 );
 		return -EMSGSIZE ;
@@ -190,7 +193,7 @@ int __sysW1Receive(struct netlink_parse *w1Master)
 	buffer = malloc( peek_nlm.nlmsg_len ) ;
 	if ( buffer == NULL )
 	{
-		printf("Cannot allocate %d byte buffer for netlink data\n",peek_nlm.nlmsg_len) ;
+		MUX_ERROR("Cannot allocate %d byte buffer for netlink data", peek_nlm.nlmsg_len) ;
 		return -ENOMEM ;
 	}
 
@@ -198,7 +201,7 @@ int __sysW1Receive(struct netlink_parse *w1Master)
 	recv_len = recv(w1Master->socket, buffer, peek_nlm.nlmsg_len, 0 );
 	if (recv_len == -1)
 	{
-		perror("recv body error\n");
+		MUX_ERROR("recv body error: %m");
 		free(buffer);
 		return -EIO ;
 	}
@@ -229,9 +232,11 @@ int __sysW1Receive(struct netlink_parse *w1Master)
 	{
 		w1Master->data = NULL ;
 	}
-	
+
+#if __DEBUG_W1
 	_sysW1DebugMsg( w1Master) ;
-	
+#endif
+
 	return 0 ;
 }
 
@@ -278,7 +283,7 @@ static int _sysW1SendCmd(struct netlink_parse *w1Master, struct w1_netlink_msg *
 
 	if (err == -1)
 	{
-		perror("Failed to send W1_LIST_MASTERS\n");
+		MUX_ERROR("Failed to send W1_LIST_MASTERS: %m");
 		return -1;
 	}
 	
@@ -303,26 +308,26 @@ static int _sysW1Poll(struct netlink_parse *w1Master)
 	{
 		if (errno != EINTR)
 		{
-			perror("Select returned -1\n");
+			MUX_ERROR("Select returned -1");
 			return -ret;
 		}
 	}
 	else if ( select_value == 0 )
 	{
-		printf("Select returned zero (timeout)\n");
+		MUX_ERROR("Select returned zero (timeout)");
 		return -ret;
 	}
 	else
 	{
 		if( __sysW1Receive(w1Master ) )
 		{
-			printf("Receiving and parsing netlink packet failed\n");
+			MUX_ERROR("Receiving and parsing netlink packet failed");
 		}
 		else
 		{
 			if( w1Master->nlm->nlmsg_seq != w1Master->seq )
 			{
-				printf("Non-matching netlink packet\n");
+				MUX_ERROR("Non-matching netlink packet");
 			}
 			else
 			{
@@ -351,7 +356,7 @@ int cmnSysW1Init( struct netlink_parse *w1Master)
 	w1Master->socket = socket(PF_NETLINK, SOCK_DGRAM, NETLINK_CONNECTOR);
 	if (w1Master->socket == -1)
 	{
-		perror("socket of W1");
+		MUX_ERROR("socket of W1: %m");
 		return -1;
 	}
 	
@@ -361,7 +366,7 @@ int cmnSysW1Init( struct netlink_parse *w1Master)
 	
 	if (bind(w1Master->socket, (struct sockaddr *)&l_local, sizeof(struct sockaddr_nl)) == -1)
 	{
-		perror("bind W1");
+		MUX_ERROR("bind W1: %m");
 		close(w1Master->socket);
 		w1Master->socket = -1 ;
 		return -1;
@@ -404,7 +409,7 @@ static void _w1_masters(struct netlink_parse * nlp)
 int cmnSysW1FindMaster(struct netlink_parse *w1Master)
 {
 	struct w1_netlink_msg w1lm;
-	printf("Send list master command...\n");
+	EXT_DEBUGF(__DEBUG_W1, "Send list master command...");
 	
 	memset(&w1lm, 0, sizeof(w1lm));
 	w1lm.type = W1_LIST_MASTERS;
@@ -413,13 +418,13 @@ int cmnSysW1FindMaster(struct netlink_parse *w1Master)
 	
 	if(_sysW1SendCmd(w1Master, &w1lm) < 0 )
 	{
-		printf("Couldn't send the W1_LIST_MASTERS request\n");
+		MUX_ERROR("Couldn't send the W1_LIST_MASTERS request");
 		return -1;
 	}
 
 	if(_sysW1Poll(w1Master) )
 	{
-		printf("Couldn't recevie or parse the W1_LIST_MASTERS response\n");
+		MUX_ERROR("Couldn't recevie or parse the W1_LIST_MASTERS response");
 		return -1;
 	}
 
@@ -430,15 +435,15 @@ int cmnSysW1FindMaster(struct netlink_parse *w1Master)
 	{
 		for ( i=0; i < w1Master->data_size/4 ; ++i )
 		{
-			printf("Add #%d w1_bus_master#%d\n", i, bus_master[i]) ;
+			EXT_DEBUGF(__DEBUG_W1,"Add #%d w1_bus_master#%d", i, bus_master[i]) ;
 		}
 		w1Master->masterId = bus_master[0];
 
-		printf("Master ID:%d\n", w1Master->masterId );
+		EXT_DEBUGF(__DEBUG_W1,"Master ID:%d", w1Master->masterId );
 	}
 	else
 	{
-		printf("W1 MSG type is not LIST MASTERn" );
+		MUX_ERROR("W1 MSG type is not LIST MASTER" );
 	}
 
 	W1_MASTER_DESTROY(w1Master);
@@ -451,7 +456,7 @@ int cmnSysW1FindSlave(struct netlink_parse *w1Master)
 	struct w1_netlink_msg	*w1Msg;
 	struct w1_netlink_cmd	*w1Cmd;
 
-	printf("Send list slave command to master...\n");
+	EXT_DEBUGF(__DEBUG_W1,"Send list slave command to master...");
 
 	int size = sizeof(struct w1_netlink_msg) +sizeof(struct w1_netlink_cmd);
 	w1Msg = malloc(size);
@@ -471,13 +476,13 @@ int cmnSysW1FindSlave(struct netlink_parse *w1Master)
 	
 	if(_sysW1SendCmd(w1Master, w1Msg) < 0 )
 	{
-		printf("Couldn't send the LIST_SLAVE request\n");
+		MUX_ERROR("Couldn't send the LIST_SLAVE request");
 		return -1;
 	}
 
 	if(_sysW1Poll(w1Master) )
 	{
-		printf("Couldn't recevie or parse the W1_LIST_MASTERS response\n");
+		MUX_ERROR("Couldn't recevie or parse the W1_LIST_MASTERS response");
 		return -1;
 	}
 
@@ -490,17 +495,19 @@ int cmnSysW1FindSlave(struct netlink_parse *w1Master)
 		
 		if( w1Master->w1c->len != W1_SLACE_ID_LENGTH)
 		{
-			printf("Slave ID length is wrong: %d", w1Master->w1c->len) ;
+			MUX_ERROR("Slave ID length is wrong: %d", w1Master->w1c->len) ;
 		}
 		else
 		{
 			memcpy(w1Master->slaveId, w1Master->w1c->data, w1Master->w1c->len);
+#if __DEBUG_W1			
 			_HEX_DUMP("Slave ID:", w1Master->slaveId, sizeof(w1Master->slaveId) );
+#endif
 		}
 	}
 	else
 	{
-		printf("W1 MSG type is not LIST MASTERn" );
+		MUX_ERROR("W1 MSG type is not LIST MASTERn" );
 	}
 #endif
 
@@ -519,19 +526,19 @@ int cmnSysW1GetRomId(unsigned char *romId)
 
 	if ( cmnSysW1Init(w1Master) )
 	{
-		printf("Cannot access netlink to get w1 data\n");
+		MUX_ERROR("Cannot access netlink to get w1 data");
 		return EXIT_FAILURE;
 	}
 
 	if(cmnSysW1FindMaster(w1Master) )
 	{
-		printf("Cannot get w1 master\n");
+		MUX_ERROR("Cannot get w1 master");
 		return EXIT_FAILURE;
 	}
 	
 	if(cmnSysW1FindSlave(w1Master) )
 	{
-		printf("Cannot get w1 salve from master#%d\n", w1Master->masterId);
+		MUX_ERROR("Cannot get w1 salve from master#%d", w1Master->masterId);
 		return EXIT_FAILURE;
 	}
 
@@ -550,19 +557,19 @@ int testDs2815(void )
 
 	if ( cmnSysW1Init(w1Master) )
 	{
-		printf("Cannot access netlink to get w1 data\n");
+		MUX_ERROR("Cannot access netlink to get w1 data");
 		exit(1) ;
 	}
 
 	if(cmnSysW1FindMaster(w1Master) )
 	{
-		printf("Cannot get w1 master\n");
+		MUX_ERROR("Cannot get w1 master");
 		exit(1) ;
 	}
 	
 	if(cmnSysW1FindSlave(w1Master) )
 	{
-		printf("Cannot get w1 salve from master#%d\n", w1Master->masterId);
+		MUX_ERROR("Cannot get w1 salve from master#%d", w1Master->masterId);
 		exit(1) ;
 	}
 

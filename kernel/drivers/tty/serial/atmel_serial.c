@@ -1072,8 +1072,7 @@ static int atmel_prepare_tx_dma(struct uart_port *port)
 	atmel_port->chan_tx = dma_request_slave_channel(mfd_dev, "tx");
 	if (atmel_port->chan_tx == NULL)
 		goto chan_err;
-	dev_info(port->dev, "using %s for tx DMA transfers\n",
-		dma_chan_name(atmel_port->chan_tx));
+//	dev_info(port->dev, "using %s for tx DMA transfers\n", dma_chan_name(atmel_port->chan_tx)); /* Jack Lee*/
 
 	spin_lock_init(&atmel_port->lock_tx);
 	sg_init_table(&atmel_port->sg_tx, 1);
@@ -1255,8 +1254,7 @@ static int atmel_prepare_rx_dma(struct uart_port *port)
 	atmel_port->chan_rx = dma_request_slave_channel(mfd_dev, "rx");
 	if (atmel_port->chan_rx == NULL)
 		goto chan_err;
-	dev_info(port->dev, "using %s for rx DMA transfers\n",
-		dma_chan_name(atmel_port->chan_rx));
+//	dev_info(port->dev, "using %s for rx DMA transfers\n", dma_chan_name(atmel_port->chan_rx));/* Jack Lee*/
 
 	spin_lock_init(&atmel_port->lock_rx);
 	sg_init_table(&atmel_port->sg_rx, 1);

@@ -542,6 +542,9 @@ typedef	struct	_FpgaConfig
 
 
 /* can be used to implment on different boards */
+
+
+#if 0//FPGA_DEBUG
 #define	FPGA_WRITE(addr, val, size)		\
 	do{int ret; EXT_ASSERT( (((addr)!=NULL) && ((addr)->device != NULL)), "FPGA address ' %s' is null", #addr); ret = I2C_EXT_WRITE((addr)->device->bus, (addr)->device->channel, (addr)->device->slaveAddress, (addr)->offset, 1, (val), (size)); \
 		MUX_DEBUG("FPGA write on %d.%d.0x%x(%s), offset 0x%x(%s), value:%d: %s",(addr)->device->bus, (addr)->device->channel, (addr)->device->slaveAddress, (addr)->device->name, (addr)->offset, (addr)->name, *val, (ret==EXIT_SUCCESS)?"OK":"Failed");\
@@ -554,8 +557,20 @@ typedef	struct	_FpgaConfig
 			MUX_DEBUG("FPGA read on %d.%d.0x%x(%s), offset 0x%x(%s): %s :0x%x", (addr)->device->bus, (addr)->device->channel, (addr)->device->slaveAddress, (addr)->device->name, (addr)->offset, (addr)->name, (ret==EXIT_SUCCESS)?"OK":"Failed", *val);\
 			}while(0)
 
+#else
+#define	FPGA_WRITE(addr, val, size)		\
+	do{int ret; ret = I2C_EXT_WRITE((addr)->device->bus, (addr)->device->channel, (addr)->device->slaveAddress, (addr)->offset, 1, (val), (size)); \
+		if(ret==EXIT_FAILURE){ MUX_ERROR("FPGA write on %d.%d.0x%x(%s), offset 0x%x(%s), value:%d: FAILED",(addr)->device->bus, (addr)->device->channel, (addr)->device->slaveAddress, (addr)->device->name, (addr)->offset, (addr)->name, *val);} \
+		}while(0)
+		
 
-#if FPGA_DEBUG
+
+#define	FPGA_READ(addr, val, size)		\
+		do{int ret;  ret = I2C_EXT_READ((addr)->device->bus, (addr)->device->channel, (addr)->device->slaveAddress, (addr)->offset, 1, (val), (size)); \
+			if(ret==EXIT_FAILURE) {MUX_ERROR("FPGA read on %d.%d.0x%x(%s), offset 0x%x(%s): FAILED", (addr)->device->bus, (addr)->device->channel, (addr)->device->slaveAddress, (addr)->device->name, (addr)->offset, (addr)->name);}\
+			}while(0)
+
+
 #endif
 
 
