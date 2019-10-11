@@ -9,8 +9,18 @@
 #    exit 1
 #fi
 
+# $#==1, eg. first argument of this command
+if [[ $# -lt 1 ]]
+then
+    echo "Usage: $0 FSNAME.JFFS2 MOUNTPOINT [ERASEBLOCK_SIZE] $#"
+    exit 1
+fi
+
+
 DIR_SRC=`dirname "$0"`
 source $DIR_SRC/params.sh
+
+SRC_FILE=$DIR_SRC/$1
 
 
 if [ "$(whoami)" != "root" ]

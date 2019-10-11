@@ -1,0 +1,359 @@
+<DIV id="forms">
+    <DIV id="titleDiv" class="title">
+        <H2>Layouts Supported</H2>
+    </DIV>
+    <div class="container">
+        <div class="form-group row">
+            <div class="col"> 
+                <label class="form-text text-dark">Click over the layout to apply</label>
+            </div>
+        </div>
+        <!-- <div class="form-group row">
+            <div class="col-2"> 
+                <label class="form-text text-dark">Screen Resolution:</label>
+                <input type=>
+            </div>
+        </div>  -->
+	    <div class="row" style="height: 150px;">
+            <div class="col"> 
+		        <canvas id="canvas1" width="150" height="76" style="border:1px solid #000;">
+		            Your browser does not support the HTML5 canvas tag.
+		        </canvas>
+		        <small class="form-text text-muted">Layout 1</small>
+                <small id="smLayout1" class="form-text text-danger" style="display: none;">Layout 1 Applied</small>
+	        </div>
+            <div class="col"> 
+                <canvas id="canvas2" width="150" height="76" style="border:1px solid #000;">
+                    Your browser does not support the HTML5 canvas tag.
+                </canvas>
+                <small class="form-text text-muted">Layout 2</small>
+                <small id="smLayout2" class="form-text text-danger" style="display: none;">Layout 2 Applied</small>
+            </div>
+            <div class="col"> 
+                <canvas id="canvas3" width="150" height="76" style="border:1px solid #000;">
+                    Your browser does not support the HTML5 canvas tag.
+                </canvas>
+                <small class="form-text text-muted">Layout 3</small>
+                <small id="smLayout3" class="form-text text-danger" style="display: none;">Layout 3 Applied</small>
+            </div>
+            <div class="col">
+                <canvas id="canvas4" width="150" height="76" style="border:1px solid #000;">
+                    Your browser does not support the HTML5 canvas tag.
+                </canvas>
+                <small class="form-text text-muted">Layout 4</small>
+                <small id="smLayout4" class="form-text text-danger" style="display: none;">Layout 4 Applied</small>
+            </div>
+            <div class="col">
+                <canvas id="canvas5" width="150" height="76" style="border:1px solid #000;">
+                    Your browser does not support the HTML5 canvas tag.
+                </canvas>
+                <small class="form-text text-muted">Layout 5</small>
+                <small id="smLayout5" class="form-text text-danger" style="display: none;">Layout 5 Applied</small>
+            </div>
+            
+	    </div>
+	    <div class="row">
+            <div class="col">
+                <canvas id="canvas6" width="135" height="75" style="border:1px solid #000;">
+                    Your browser does not support the HTML5 canvas tag.
+                </canvas>
+                <small class="form-text text-muted">Layout 6</small>
+                <small id="smLayout6" class="form-text text-danger" style="display: none;" >Layout 6 Applied</small>
+            </div>
+            <!-- <div class="col">
+                <canvas id="canvas7" width="135" height="75" style="border:1px solid #000;">
+                    Your browser does not support the HTML5 canvas tag.
+                </canvas>
+                <small class="form-text text-muted">Layout 7</small>
+                <small id="smLayout7" class="form-text text-danger d-none">Layout 7 Applied</small>
+            </div>
+            <div class="col">
+                <canvas id="canvas8" width="135" height="75" style="border:1px solid #000;">
+                    Your browser does not support the HTML5 canvas tag.
+                </canvas>
+                <small class="form-text text-muted">Layout 8</small>
+                <small id="smLayout8" class="form-text text-danger d-none">Layout 8 Applied</small>
+            </div>
+            <div class="col">
+                <canvas id="canvas9" width="135" height="75" style="border:1px solid #000;">
+                    Your browser does not support the HTML5 canvas tag.
+                </canvas>
+                <small class="form-text text-muted">Layout 9</small>
+                <small id="smLayout9" class="form-text text-danger d-none">Layout 9 Applied</small>
+            </div>
+            <div class="col">
+                <canvas id="canvas10" width="135" height="75" style="border:1px solid #000;">
+                    Your browser does not support the HTML5 canvas tag.
+                </canvas>
+                <small class="form-text text-muted">Layout 10</small>
+                <small id="smLayout10" class="form-text text-danger d-none">Layout 10 Applied</small>
+            </div>  -->
+            <!-- <div class="col">
+                <canvas id="canvas9" width="135" height="75" style="border:1px solid #000;">
+                    Your browser does not support the HTML5 canvas tag.
+                </canvas>
+                <small class="form-text text-muted">Layout 9</small>
+                <small id="smLayout9" class="form-text text-danger d-none">Layout 9 Applied</small>
+            </div>  -->
+	    </div>
+    </div>
+</DIV>
+	
+<script type="text/javascript">
+
+//*****   canvas   *****//
+//Layout 1
+var c = document.getElementById("canvas1");
+var ctx = c.getContext("2d");
+ctx.strokeRect(0, 0, 100, 76);
+ctx.textAlign="center";
+ctx.fillText("main", 50, 40);
+ctx.strokeRect(100, 0, 50, 38);
+ctx.textAlign="center";
+ctx.fillText("pip 1", 125, 23);
+ctx.strokeRect(100, 38, 50, 38);
+ctx.textAlign="center";
+ctx.fillText("pip 2", 125, 60);
+
+//Layout 2
+c = document.getElementById("canvas2");
+ctx = c.getContext("2d");
+ctx.strokeRect(0, 0, 50, 38);
+ctx.textAlign="center";
+ctx.fillText("pip 1", 25, 23);
+ctx.strokeRect(0, 38, 50, 38);
+ctx.textAlign="center";
+ctx.fillText("pip 2", 25, 60);
+ctx.strokeRect(50, 0, 100, 76);
+ctx.textAlign="center";
+ctx.fillText("main", 95, 40);
+
+//Layout 3
+c = document.getElementById("canvas3");
+ctx = c.getContext("2d");
+ctx.strokeRect(0, 0, 50, 38);
+ctx.textAlign="center";
+ctx.fillText("main", 72, 60);
+ctx.strokeRect(0, 38, 150, 38);
+ctx.textAlign="center";
+ctx.fillText("pip 1", 25, 23);
+ctx.strokeRect(50, 0, 50, 38);
+ctx.textAlign="center";
+ctx.fillText("pip 2", 75, 23);
+ctx.strokeRect(100, 0, 50, 38);
+ctx.textAlign="center";
+ctx.fillText("pip 3", 125, 23);
+
+//Layout 4
+c = document.getElementById("canvas4");
+ctx = c.getContext("2d");
+ctx.strokeRect(0, 0, 25, 76);
+ctx.textAlign="center";
+ctx.fillText("main", 75, 40);
+ctx.strokeRect(25, 0, 100, 76);
+ctx.textAlign="center";
+ctx.fillText("pip1", 12, 40);
+ctx.strokeRect(125, 0, 25, 76);
+ctx.textAlign="center";
+ctx.fillText("pip2", 136, 40);
+
+//Layout 5
+c = document.getElementById("canvas5");
+ctx = c.getContext("2d");
+ctx.strokeRect(0, 57, 150, 76);
+ctx.textAlign="center";
+ctx.fillText("main", 75, 70);
+ctx.strokeRect(0, 0, 75, 57);
+ctx.textAlign="center";
+ctx.fillText("pip1", 32, 35);
+ctx.strokeRect(75, 0, 150, 57);
+ctx.textAlign="center";
+ctx.fillText("pip2", 116, 35);
+
+//Layout 6
+c = document.getElementById("canvas6");
+ctx = c.getContext("2d");
+ctx.strokeRect(0, 0, 135, 76);
+ctx.textAlign="center";
+ctx.fillText("main", 68, 40);
+
+//Layout 7
+/*c = document.getElementById("canvas7");
+ctx = c.getContext("2d");
+ctx.strokeRect(0, 0, 101, 56);
+ctx.textAlign="center";
+ctx.fillText("main", 45, 30);
+ctx.strokeRect(101, 0, 34, 75);
+ctx.textAlign="center";
+ctx.fillText("pip2", 119, 40);
+ctx.strokeRect(0, 56, 101, 19);
+ctx.textAlign="center";
+ctx.fillText("pip1", 45, 70);
+
+//Layout 8
+c = document.getElementById("canvas8");
+ctx = c.getContext("2d");
+ctx.strokeRect(34, 0, 101, 56);
+ctx.textAlign="center";
+ctx.fillText("main", 80, 30);
+ctx.strokeRect(0, 0, 34, 75);
+ctx.textAlign="center";
+ctx.fillText("pip1", 17, 40);
+ctx.strokeRect(34, 56, 101, 19);
+ctx.textAlign="center";
+ctx.fillText("pip2", 80, 70);
+
+//Layout 9
+c = document.getElementById("canvas9");
+ctx = c.getContext("2d");
+ctx.strokeRect(0, 9, 101, 56);
+ctx.textAlign="center";
+ctx.fillText("main", 45, 40);
+ctx.strokeRect(101, 0, 34, 75);
+ctx.textAlign="center";
+ctx.fillText("pip1", 119, 40);
+
+//Layout 10
+c = document.getElementById("canvas10");
+ctx = c.getContext("2d");
+ctx.strokeRect(34, 9, 101, 56);
+ctx.textAlign="center";
+ctx.fillText("main", 80, 40);
+ctx.strokeRect(0, 0, 34, 75);
+ctx.textAlign="center";
+ctx.fillText("pip1", 17, 40);*/
+
+//Layout 9
+/*c = document.getElementById("canvas9");
+ctx = c.getContext("2d");
+ctx.strokeRect(0, 0, 34, 75);
+ctx.textAlign="center";
+ctx.fillText("pip1", 17, 40);
+ctx.strokeRect(34, 0, 67, 56);
+ctx.textAlign="center";
+ctx.fillText("main", 70, 30);
+ctx.strokeRect(34, 56, 67, 19);
+ctx.textAlign="pip3";
+ctx.fillText("pip3", 70, 70);
+ctx.strokeRect(101, 0, 34, 75);
+ctx.textAlign="pip3";
+ctx.fillText("pip3", 119, 40);
+*/
+//*****  end canvas   *****//
+getParam();
+
+$("#canvas1").click(function() {
+    setLayout("layout1");
+});
+
+$("#canvas2").click(function() {
+    setLayout("layout2");
+});
+
+$("#canvas3").click(function() {
+    setLayout("layout3");
+});
+
+$("#canvas4").click(function() {
+    setLayout("layout4");
+});
+
+$("#canvas5").click(function() {
+    setLayout("layout5");
+});
+
+$("#canvas6").click(function() {
+    setLayout("layout6");
+});
+
+$("#canvas7").click(function() {
+    setLayout("layout7");
+});
+
+$("#canvas8").click(function() {
+    setLayout("layout8");
+});
+
+$("#canvas9").click(function() {
+    setLayout("layout9");
+});
+
+$("#canvas10").click(function() {
+    setLayout("layout10");
+});
+
+//** ajax functions **//
+//set layout. Options: layout1 - 8
+function setLayout(layout)
+{
+    var token = $.cookie("token");
+
+    $.ajax({
+        type: 'PUT',
+        url: apiUrl + "/playmedia/layout",
+        dataType: "json",
+        headers: {"Authorization": token},
+        data: {"layout":layout},
+        success: function(response){
+            if(response.status == "success")
+            {
+                switch(String(layout)) {
+	                case "layout1":
+	                    $("#smLayout1").show();
+	                    $("#smLayout1").fadeOut(1500);
+	                    break;
+	                case "layout2":
+	                    $("#smLayout2").show();
+	                    $("#smLayout2").fadeOut(1500);
+	                    break;
+	                case "layout3":
+	                    $("#smLayout3").show();
+	                    $("#smLayout3").fadeOut(1500);
+	                    break;
+	                case "layout4":
+	                    $("#smLayout4").show();
+	                    $("#smLayout4").fadeOut(1500);
+	                    break;
+                    case "layout5":
+                        $("#smLayout5").show();
+                        $("#smLayout5").fadeOut(1500);
+                        break;
+                    case "layout6":
+                        $("#smLayout6").show();
+                        $("#smLayout6").fadeOut(1500);
+                        break;
+                    case "layout7":
+                        $("#smLayout7").show();
+                        $("#smLayout7").fadeOut(1500);
+                        break;
+                    case "layout8":
+                        $("#smLayout8").show();
+                        $("#smLayout8").fadeOut(1500);
+                        break;
+                    case "layout9":
+                        $("#smLayout9").show();
+                        $("#smLayout9").fadeOut(1500);
+                        break;
+                    case "layout10":
+                        $("#smLayout10").show();
+                        $("#smLayout10").fadeOut(1500);
+                        break;
+	                default:
+	                    alert("layout not found");
+                }
+            }
+            else if(response.status == "failed")
+            {
+                alert("failed to set layout");
+            }
+        },
+        error: function (jqXHR, status) {
+            if (jqXHR.status == 401)
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });
+}
+
+</SCRIPT>

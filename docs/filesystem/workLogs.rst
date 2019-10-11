@@ -2,6 +2,37 @@ Work Logs for File System
 ################################
 April 17th, 2019
 
+
+* ntpd and busybos configuration: 10.07, 2019
+-------------------------------------------------
+
+::
+
+	enter `$POKY/build-microchip`:
+	export OEROOT=../
+	source ../scripts/oe-buildenv-internal
+
+    bitbake -c menuconfig busybox: execure command `menuconfig` on package 'busybox';
+    bitbake busybox : build package `busybox`;
+    bitbake core-image-minimal: rebuild image from packages;  
+		: core-image-minimal-sama5d2-xplained-20191007184529.rootfs.tar.gz in tmp/deploy/images/sama5d2-xplained
+
+
+	file system:
+		copy tar.gz into fs/;
+		remove other tar.gz files and mimimal in fs;
+		run ``loadTar.sh`` to uncompress tar file into minimal;
+		Modify or update files in ``minimal`` as wish:
+			Remove usr/bin/phpdbgroot
+			
+			for example: in minimal, ``unzip ../mux7xxApp_7.3.0_arm_debug_2019_10_07.zip``;
+		``mkJffs.sh`` to make new JFFS2 image which is updated onboard by tftp in u-boot;
+		
+		Test file system:
+			sudo ./load.sh root.jffs2.2019_10_07 : mount file system into minimal
+
+
+
 06.16, 2019
 ==============================
 Add scripts of runlevel-5 in /etc/rc5.d/S95Led

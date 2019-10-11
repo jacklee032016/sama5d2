@@ -1,0 +1,24 @@
+#!/bin/sh
+
+cd /tmp
+
+while :
+do
+	if [ -f /tmp/upgrade ]; then
+		sleep 1
+		/usr/bin/unzip -l /tmp/upgrade > /dev/null #check validation of zip file
+		if [ $? -eq 0 ]; then
+		    /usr/bin/unzip -o /tmp/upgrade -d /
+		    rm /tmp/upgrade
+			reboot
+		fi
+	fi
+	if [ -f /tmp/upgradeFPGA ]; then
+		sleep 1
+        fwUpdate -f /tmp/upgradeFPGA -w
+	    rm /tmp/upgradeFPGA
+	fi
+	sleep 0.5
+done
+
+cd /

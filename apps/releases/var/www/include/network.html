@@ -1,0 +1,260 @@
+<div class="container">
+    <DIV class="row">
+        <H2>Network</H2>
+    </DIV>
+    <form id="fmNetwork">
+    <div class="form-group row pl-2">
+        <label for="isDhcp" class="col-2 col-form-label">DHCP:</label>
+        <div class="col-3">
+            <SELECT id="isDhcp" class="form-control" name="isDhcp" onchange="dhcpEnable()">
+                <OPTION value="1">Enabled</OPTION>
+                <OPTION value="0">Disabled</OPTION>
+            </SELECT>
+        </div>
+    </div>
+    <div class="form-group row pl-2">
+        <label for="ip" class="col-2 col-form-label">IP Address:</label>
+        <div class="col-3">
+            <input type="text" class="form-control" maxlength="18" autocomplete=off name="ip" id="ip" required>
+        </div>
+    </div>
+    <div class="form-group row pl-2">
+        <label for="mask" class="col-2 col-form-label">Netmask:</label>
+        <div class="col-3">
+            <input type="text" class="form-control" maxlength="18" autocomplete=off name="mask" id="mask" required>
+        </div>
+    </div>
+    <div class="form-group row pl-2">
+        <label for="gateway" class="col-2 col-form-label">Gateway:</label>
+        <div class="col-3">
+            <input type="text" class="form-control" maxlength="18" autocomplete=off name="gateway" id="gateway" required>
+        </div>
+    </div>
+    <div class="form-group row pl-2">
+        <label for="dns1" class="col-2 col-form-label">DNS 1:</label>
+        <div class="col-3">
+            <input type="text" class="form-control" maxlength="18" autocomplete=off name="dns1" id="dns1" required>
+        </div>
+    </div>
+    <div class="form-group row pl-2">
+        <label for="dns2" class="col-2 col-form-label">DNS 2:</label>
+        <div class="col-3">
+            <input type="text" class="form-control" maxlength="18" autocomplete=off name="dns2" id="dns2" required>
+        </div>
+    </div>
+    <div class="form-group row pl-2">
+        <label for="mac" class="col-2 col-form-label">MAC Address:</label>
+        <div class="col-3">
+            <input type="text" class="form-control" maxlength="18" autocomplete=off name="mac" id="mac" disabled>
+        </div>
+    </div>
+    <div class="form-group row pl-2 pt-2">
+        <div class="col-3 offset-2">
+            <!-- <INPUT name="submit" type="button" class="btnSubmit" id="btnSubmitNetwork" value="Apply" />  -->
+            <button type="submit" class="btn btn-secondary">Apply</button><!-- id="btnSubmitNetwork"  -->
+            <button type="button" class="btn btn-secondary" id="btnResetNetwork" name="ResetButton">Reset</button>
+        </div>
+    </div>
+    </form>
+</div>
+
+ 
+<script type="text/javascript">
+    completeNetworkPage();
+    dhcpEnable();
+    
+    $("#btnResetNetwork").click(function() {
+        completeNetworkPage();
+        dhcpEnable();
+    });
+
+    $("#fmNetwork").submit(function(event) {
+        var data = {};
+        data["isDhcp"]  = $("select#isDhcp").val();
+        data["ip"]      = $("input#ip").val();
+        data["mask"]    = $("input#mask").val();
+        data["gateway"] = $("input#gateway").val();
+        data["mac"]     = $("input#mac").val();
+        data["dns1"]    = $("input#dns1").val();
+        data["dns2"]    = $("input#dns2").val();
+
+        setNetwork(data);
+
+        event.preventDefault();
+        return false;
+    });
+    
+    function completeNetworkPage()
+    {
+        getNetwork();
+/*        if (!!$.cookie('device'))
+        {
+            var data = $.cookie("device");
+
+            //set page options
+            $("select#isDhcp").val(data.isDhcp);
+            $("input#ip").val(data.ip);
+            $("input#mask").val(data.mask);
+            $("input#gateway").val(data.gateway);
+            $("input#mac").val(data.mac);
+            //$("input#dns1").val(data.dns1);
+            //$("input#dns2").val(data.dns2);
+        }*/
+    }
+    
+	function IsValidated() {
+
+		var validated = true;
+
+		var isDhcp = $("#isDhcp").val();
+		var ip = $("#ip").val();
+		var mask = $("#mask").val();
+		var gateway = $("#gateway").val();
+		var dns1 = $("#dns1").val();
+		var dns2 = $("#dns2").val();
+
+		if (isDhcp == "" || ip == "" || mask == "" || gateway == "" || dns1 == "" || dns2 == "")
+		{
+			alert('Content cannot be empty!');
+			validated = false;
+		} 
+		else if (!checkIp(ip)) 
+		{
+			alert('IP format is not correct!');
+			validated = false;
+		} 
+		else if (!checkNetmask(mask)) 
+		{
+			alert('Netmask format is not correct!');
+			validated = false;
+		} 
+		else if (!checkIp(gateway)) 
+		{
+			alert('Gateway format is not correct!');
+			validated = false;
+		}
+		else if (!checkIp(dns1)) 
+		{
+			alert('DNS IP format is not correct!');
+			validated = false;
+		} 
+		else if (!checkIp(dns2)) 
+		{
+			alert('DNS IP format is not correct!');
+			validated = false;
+		} 
+		return validated;
+	}
+
+	function dhcpEnable() 
+	{
+		var dhcp = $("#isDhcp").val();
+		if (dhcp == 0) {
+			$("#ip").removeAttr("disabled");
+			$("#mask").removeAttr("disabled");
+			$("#gateway").removeAttr("disabled");
+		} else {
+			$("#ip").attr("disabled", "disabled");
+			$("#mask").attr("disabled", "disabled");
+			$("#gateway").attr("disabled", "disabled");
+		}
+	}
+
+	function checkIp(str) {
+		var ss = /^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/;
+		return ss.test(str);
+	}
+
+	function checkNetmask(str) {
+		var ss = /^(254|252|248|240|224|192|128|0)\.0\.0\.0|255\.(254|252|248|240|224|192|128|0)\.0\.0|255\.255\.(254|252|248|240|224|192|128|0)\.0|255\.255\.255\.(254|252|248|240|224|192|128|0)$/;
+		return ss.test(str);
+	}
+
+	
+	// get device parameters
+	function getNetwork()
+	{
+	    var token = $.cookie("token");
+	    $.ajax({
+	        type: 'GET',
+	        url: apiUrl + "/device/network",
+	        headers: {"Authorization": token},
+	        async: false,
+	        success: function(response){
+	            data = response.data; 
+	            $("select#isDhcp").val(data.isDhcp);
+	            $("input#ip").val(data.ip);
+	            $("input#mask").val(data.mask);
+	            $("input#gateway").val(data.gateway);
+	            $("input#mac").val(data.mac);
+                $("input#dns1").val(data.dns1);
+                $("input#dns2").val(data.dns2);
+	        },
+	        error: function (jqXHR, status) {
+	            if (jqXHR.status == 401) //token not valid or expired
+	            {
+	                loadContent('userlogin.html', 'Please login');
+	            }
+	        }
+	    });
+	}
+	
+	//set device parameters
+	function setNetwork(data)
+	{
+	    var token     = $.cookie("token");
+	    //var oldDevice = $.cookie("device");
+	    $.ajax({
+	        type: 'POST',
+	        url: apiUrl + "/device/network",
+	        headers: {"Authorization": token},
+	        data: data,
+	        async: false,
+	        success: function(response){
+	            if (response.status == "success")
+	            {
+	                    $('#message').css("display", "block");
+	                    $('#message').html("Saving&nbsp;&nbsp;&nbsp;");
+	                    $("#content").html("");
+	                    var dots = 0;
+	                    var threeDots = window.setInterval( function() 
+	                    {
+	                        if ( dots == 1 )
+	                            $('#message').html("Saving.&nbsp;&nbsp;");
+	                        else if ( dots == 2 )
+	                            $('#message').html("Saving..&nbsp;");
+	                        else if (dots == 3)
+	                            $('#message').html("Saving...");
+	                        else{
+	                            $('#message').html("Saving&nbsp;&nbsp;&nbsp;");
+	                            dots = 0;
+	                        }
+	                        
+	                        dots++;
+	                    }, 200);
+	                    
+	                    window.setTimeout( function()
+	                    {
+	                        window.clearInterval(threeDots);
+	                        loadContent('network.html');
+	                        completeNetworkPage();
+	                        dhcpEnable();
+	                    }, 30000);
+	            }
+	            else
+	            {
+	                $('#message').css("display", "block");
+	                $('#message').html("Save Error");
+	            }
+	        },
+	        error: function (jqXHR, status) {
+	            if (jqXHR.status == 401) //token not valid or expired
+	            {
+	                loadContent('userlogin.html', 'Please login');
+	            }
+	        }
+	    });
+	}
+
+	
+</SCRIPT>

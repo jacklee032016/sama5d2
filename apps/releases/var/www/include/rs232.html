@@ -1,0 +1,82 @@
+<div class="container">
+    <DIV class="row mb-2">
+        <H2>RS-232 data transmission</H2>
+    </DIV>
+    <form id="fmSendData">
+	    <div class="form-group pl-2 pr-1">
+	        <label for="data-send">Data to send in HEX (ex: A013B155C5):</label>
+            <input type="text" class="form-control" autocomplete=off name="data-send" id="data-send" required>
+	    </div>
+	    <div class="form-group pl-2 pr-1">
+		    <div class="form-check">
+	           <input class="form-check-input ml-0" type="checkbox" value="" id="check-feedback">
+	           <label class="form-check-label" for="check-feedback">Check for feedback data</label>
+		    </div>
+	    </div>
+	    <div class="form-group pl-2">
+           <label for="data-received">Data feedback received in HEX:</label>
+           <input type="text" class="form-control" autocomplete=off name="data-received" id="data-received">
+	    </div>
+	    <div class="form-group pl-2 pr-1">
+           <button type="submit" id="bntSendRs232Data" class="btn btn-secondary">Send</button>
+	    </div>
+     </form>  
+</div>
+
+ 
+<script type="text/javascript">
+
+    $("form#fmSendData").submit(function(event)
+    {
+        $("#data-received").val("");
+        var isFeedback = $("#check-feedback").is(':checked')?1:0;   
+        var hexData = $("#data-send").val();
+        hexData = hexData.trim();
+        
+        if (hexData.match(/^[a-fA-F0-9]+$/) !== null)
+        {
+            if( (hexData.length%2) != 0)
+            {
+                alert("Invalid hexadecimal data");
+                event.preventDefault();
+                return false;
+            }
+        } else {
+            alert("Invalid hexadecimal data");
+            event.preventDefault();
+            return false;
+        }
+        
+        data = {};
+        data.data = hexData;
+        data.isFeedback = isFeedback;
+        
+        var token = $.cookie("token");
+        $.ajax({
+            method: "PUT",
+            url: apiUrl + "/rs232/sendData",
+            headers: {"Authorization": token},
+            data: data,
+            success: function(response) {
+                if (response.status != "success")
+                {
+                    alert("error while sending rs-232 data");
+                } else {
+                    if (isFeedback)
+                    {
+                        $("#data-received").val(response.data.feedbackdata)
+                    }
+                }
+            },
+            error: function (jqXHR, status) {
+                if (jqXHR.status == 401) //token not valid or expired
+                {
+                    loadContent('userlogin.html', 'Please login');
+                }
+            }
+        });
+        event.preventDefault();
+        return false;
+    });
+	
+</SCRIPT>

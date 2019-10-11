@@ -1,0 +1,502 @@
+<div class="container">
+    <DIV class="row">
+        <H2>video/audio settings</H2>
+    </DIV>
+    <div class="form-group row pl-2">
+        <label for="input-type" class="col-2 col-form-label">Input Type:</label>
+        <div class="col-3">
+            <SELECT id="input-type" class="form-control" name="input-type" onchange="changeInputType()">
+                <OPTION value="manual">Manual</OPTION>
+                <OPTION value="sdp">SDP</OPTION>
+            </SELECT>
+        </div>
+    </div>
+    <form id="fmSDP" style="display:none;">
+        <div class="form-group row pl-2 mb-1">
+            <label for="sdp-video" class="col-2 col-form-label">SDP Video:</label>
+            <div class="col-10">
+	            <div class="row">
+                    <div class="col-0 pl-3">
+                        <label class="col-0 col-form-label">http://</label>
+	                </div>
+                    <div class="col-0">
+                        <input type="text" class="form-control p-1" maxlength="18" style="width: 150px;" id="sdp-video-ip" required>
+                    </div>
+                    <div class="col-0 col-form-label">
+                        <label>:</label>
+                    </div>
+                    <div class="col-0">
+                        <input type="text" class="form-control p-1" maxlength="5" style="width: 65px;" id="sdp-video-port" required>
+                    </div>
+                    <div class="col-0 col-form-label">
+                        <label>/</label>
+                    </div>
+                    <div class="col-0">
+                        <input type="text" class="form-control p-1" maxlength="18" style="width: 150px;" id="sdp-video-uri" required> 
+                    </div>
+	            </div>
+            </div>
+        </div>
+        <div class="form-group row pl-2 mb-1">
+            <label for="sdp-audio" class="col-2 col-form-label">SDP Audio:</label>
+            <div class="col-8">
+                <div class="row">
+                    <div class="col-0 pl-3">
+                        <label class="col-0 col-form-label">http://</label>
+                    </div>
+                    <div class="col-0">
+                        <input type="text" class="form-control p-1" maxlength="18" style="width: 150px;" id="sdp-audio-ip" required>
+                    </div>
+                    <div class="col-0 col-form-label">
+                        <label>:</label>
+                    </div>
+                    <div class="col-0">
+                        <input type="text" class="form-control p-1" maxlength="5" style="width: 65px;" id="sdp-audio-port" required>
+                    </div>
+                    <div class="col-0 col-form-label">
+                        <label>/</label>
+                    </div>
+                    <div class="col-0">
+                        <input type="text" class="form-control p-1" maxlength="18" style="width: 150px;" id="sdp-audio-uri" required> 
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- <div class="form-group row pl-2 mb-1">
+            <label for="sdp-anc" class="col-2 col-form-label">SDP ANC:</label>
+            <div class="col-8">
+                <div class="row">
+                    <div class="col-0 pl-3">
+                        <label class="col-0 col-form-label">http://</label>
+                    </div>
+                    <div class="col-0">
+                        <input type="text" class="form-control p-1" maxlength="18" style="width: 150px;" id="sdp-anc-ip" required>
+                    </div>
+                    <div class="col-0">
+                        <label>:</label>
+                    </div>
+                    <div class="col-0">
+                        <input type="text" class="form-control p-1" maxlength="4" style="width: 55px;" id="sdp-anc-port" required>
+                    </div>
+                    <div class="col-0 col-form-label">
+                        <label>/</label>
+                    </div>
+                    <div class="col-0">
+                        <input type="text" class="form-control p-1" maxlength="18" style="width: 150px;" id="sdp-anc-uri" required> 
+                    </div>
+                </div>
+            </div>
+        </div>  -->
+        <div class="form-group row pl-2 pt-2">
+            <div class="col-3 offset-2">
+                <button type="submit" class="btn btn-secondary">Apply</button>
+                <button type="button" class="btn btn-secondary" id="btnResetSDP" name="btnResetSDP">Reset</button>
+            </div>
+        </div>
+    </form>
+    <form id="fmSettings">
+	    <div class="form-group row pl-2 mb-1">
+	        <label for="video-address" class="col-2 col-form-label">Video Address:</label>
+	        <div class="col-3">
+	            <input type="text" class="form-control" maxlength="18" autocomplete=off name="video-address" id="video-address" required>
+	        </div>
+	    </div>
+	    <div class="form-group row pl-2 mb-1">
+	        <label for="audio-address" class="col-2 col-form-label">Audio Address:</label>
+	        <div class="col-3">
+	            <input type="text" class="form-control" maxlength="18" autocomplete=off name="audio-address" id="audio-address" required>
+	        </div>
+	    </div>
+	    <!-- <div class="form-group row pl-2 mb-1">
+	        <label for="anc-address" class="col-2 col-form-label">ANC Address:</label>
+	        <div class="col-3">
+	            <input type="text" class="form-control" maxlength="18" autocomplete=off name="anc-address" id="anc-address" required>
+	        </div>
+	    </div>  -->
+	    <div class="form-group row pl-2 mb-1">
+	        <label for="video-port" class="col-2 col-form-label">Video Port:</label>
+	        <div class="col-3">
+	            <input type="text" class="form-control" maxlength="18" autocomplete=off name="video-port" id="video-port" required>
+	        </div>
+	    </div>
+	    <div class="form-group row pl-2 mb-3">
+	        <label for="audio-port" class="col-2 col-form-label">Audio Port:</label>
+	        <div class="col-3">
+	            <input type="text" class="form-control" maxlength="18" autocomplete=off name="audio-port" id="audio-port" required>
+	        </div>
+	    </div>
+	   <!--  <div class="form-group row pl-2 mb-1">
+	        <label for="anc-port" class="col-2 col-form-label">ANC Port:</label>
+	        <div class="col-3">
+	            <input type="text" class="form-control" maxlength="18" autocomplete=off name="anc-port" id="anc-port" required>
+	        </div>  
+	    </div> -->
+        <div class="form-group row pl-2 mb-1">
+	        <label for="input-type" class="col-2 col-form-label">Resolution:</label>
+	        <div class="col-3">
+	            <SELECT id="resolution" class="form-control" name="resolution">
+	            </SELECT>
+	        </div>
+        </div>
+        <div class="form-group row pl-2 mb-1">
+            <label for="fps" class="col-2 col-form-label">FPS:</label>
+            <div class="col-3">
+                <input type="text" class="form-control" maxlength="18" autocomplete=off name="fps" id="fps" required>
+            </div>
+        </div>
+        <div class="form-group row pl-2 mb-1">
+            <label for="color-depth" class="col-2 col-form-label">Color Depth:</label>
+            <div class="col-3">
+                <SELECT id="color-depth" class="form-control" name="color-depth">
+                </SELECT>
+            </div>
+        </div>
+        <div class="form-group row pl-2 mb-1">
+            <label for="color-space" class="col-2 col-form-label">Color Space:</label>
+            <div class="col-3">
+                <SELECT id="color-space" class="form-control" name="color-space">
+                </SELECT>
+            </div>
+        </div>
+        <div class="form-group row pl-2 mb-3">
+            <label for="intlce" class="col-2 col-form-label">Interlaced:</label>
+            <div class="col-3">
+                <SELECT id="intlce" class="form-control" name="intlce">
+                </SELECT>
+            </div>
+        </div>	    
+        <div class="form-group row pl-2 mb-1">
+            <label for="audio-channels" class="col-2 col-form-label">Audio Channels:</label>
+            <div class="col-3">
+                <SELECT id="audio-channels" class="form-control" name="audio-channels">
+                </SELECT>
+            </div>
+        </div>
+        <div class="form-group row pl-2 mb-1">
+            <label for="audio-rate" class="col-2 col-form-label">Audio Rate:</label>
+            <div class="col-3">
+                <SELECT id="audio-rate" class="form-control" name="audio-rate">
+                </SELECT>
+            </div>
+        </div>
+        <div class="form-group row pl-2 mb-2">
+            <label for="audio-pkt" class="col-2 col-form-label">Audio PKT Size:</label>
+            <div class="col-3">
+                <SELECT id="audio-pkt" class="form-control" name="audio-pkt">
+                </SELECT>
+            </div>
+        </div>       
+        
+        <div class="form-group row pl-2 pt-2">
+	        <div class="col-3 offset-2">
+	            <button type="submit" class="btn btn-secondary">Apply</button>
+	            <button type="button" class="btn btn-secondary" id="btnResetSettings" name="btnResetSettings">Reset</button>
+	        </div>
+	    </div>
+    </form>
+</div>
+
+ 
+<script type="text/javascript">
+    completeMediaPage();
+    
+    $("#btnResetSettings").click(function() {
+        completeSettingsForm();
+    });
+    
+    $("#btnResetSDP").click(function() {
+        completeSDPForm();
+    });
+
+    function  changeInputType()
+    {
+        type = $("#input-type").val();
+        if (type == "manual")
+        {
+            $("#fmSettings").show();
+            $("#fmSDP").hide();
+        } else {
+            $("#fmSettings").hide();
+            $("#fmSDP").show();
+        }
+    }
+
+    $("form#fmSDP").submit(function(event)
+    {
+        var data = {};
+        data.video = {};
+        data.audio = {};
+        
+        $.each(device.sdp, function (i, item)
+        {
+            if (item.media == "video")
+            {
+                if ($("#sdp-video-ip").val() != item.ip)
+                {
+                    data.video.ip = $("#sdp-video-ip").val();
+                }
+                if ($("#sdp-video-port").val() != item.port)
+                {
+                    data.video.port = $("#sdp-video-port").val();
+                }
+                if ($("#sdp-video-uri").val() != item.uri)
+                {
+                    data.video.uri = $("#sdp-video-uri").val();
+                }
+            }
+            if (item.media == "audio")
+            {
+                if ($("#sdp-audio-ip").val() != item.ip)
+                {
+                    data.audio.ip = $("#sdp-audio-ip").val();
+                }
+                if ($("#sdp-audio-port").val() != item.port)
+                {
+                    data.audio.port = $("#sdp-audio-port").val();
+                }
+                if ($("#sdp-audio-uri").val() != item.uri)
+                {
+                    data.audio.uri = $("#sdp-audio-uri").val();
+                }
+            }
+         });
+
+        if (jQuery.isEmptyObject(data.audio) && jQuery.isEmptyObject(data.video))
+        {
+            alert("No changes made");
+            return false;
+        }
+        
+        var token = $.cookie("token");
+        $.ajax({
+            method: "PUT",
+            url: apiUrl + "/device/sdp",
+            headers: {"Authorization": token},
+            data: data,
+            success: function(response) {
+                if (response.status != "success")
+                {
+                    alert("error while applying sdp settings");
+                } else {
+                    getParam();
+                }
+                completeSDPForm();
+            },
+            error: function (jqXHR, status) {
+                if (jqXHR.status == 401) //token not valid or expired
+                {
+                    loadContent('userlogin.html', 'Please login');
+                }
+            }
+        });
+        event.preventDefault();
+        return false;
+    });
+
+    
+    $("form#fmSettings").submit(function(event) {
+        var data  = {};
+        var video = device.video[0];
+        var audio = device.audio[0];
+        
+        if ($("#video-address").val() != video.ip)
+        {
+            data.videoip = $("#video-address").val();
+        }
+        if ($("#video-port").val() != video.port)
+        {
+            data.videoport = $("#video-port").val();  
+        }
+        if ($("#audio-address").val() != audio.ip)
+        {
+            data.audioip = $("#audio-address").val();
+        }
+        if ($("#audio-port").val() != audio.port)
+        {
+            data.audioport = $("#audio-port").val();  
+        }
+        if ($("#resolution").val() != resolution)
+        {
+            data.resolution = $("#resolution").val();
+        }
+        if ($("#fps").val() != video.fps)
+        {
+            data.fps = $("#fps").val();
+        }
+        if ($("#color-space").val() != video.colorSpace)
+        {
+            data.colorSpace = $("#color-space").val();
+        }
+        if ($("#color-depth").val() != video.depth)
+        {
+            data.colorDepth = $("#color-depth").val();
+        }
+        if ($("#intlce").val() != video.intlce)
+        {
+            data.intlce = $("#intlce").val();
+        }
+        if ($("#audio-channels").val() != audio.channels)
+        {
+            data.channels = $("#audio-channels").val();
+        }
+        if ($("#audio-rate").val() != audio.sample)
+        {
+            data.sample = $("#audio-rate").val();
+        }
+        if ($("#audio-pkt").val() != audio.pktSize)
+        {
+            data.pktSize = $("#audio-pkt").val();
+        }
+        
+        if (jQuery.isEmptyObject(data))
+        {
+            alert("No changes made");
+            return false;
+        }
+        
+        var token = $.cookie("token");
+        $.ajax({
+            method: "PUT",
+            url: apiUrl + "/device/manual-settings",
+            headers: {"Authorization": token},
+            data: data,
+            success: function(response) {
+                if (response.status != "success")
+                {
+                    alert("error while applying settings");
+                } else {
+                    getParam();
+                }
+                completeSettingsForm();
+            },
+            error: function (jqXHR, status) {
+                if (jqXHR.status == 401) //token not valid or expired
+                {
+                    loadContent('userlogin.html', 'Please login');
+                }
+            }
+        });
+        
+        event.preventDefault();
+        return false;        
+    });
+    
+    function completeSettingsForm()
+    {
+        video = device.video[0];
+        audio = device.audio[0];
+        
+        $("#video-address").val(video.ip);
+        $("#video-port").val(video.port);
+        $("#audio-address").val(audio.ip);
+        $("#audio-port").val(audio.port);
+        //$("#anc-address").val(anc.ip);
+        //$("#anc-port").val(anc.port);
+        
+        resolution = video.width+"x"+video.height;
+        $("#resolution").val(resolution);
+        $("#fps").val(video.fps);
+        $("#color-space").val(video.colorSpace);
+        $("#color-depth").val(video.depth);
+        $("#intlce").val(video.intlce);
+        $("#audio-channels").val(audio.channels);
+        $("#audio-rate").val(audio.sample);
+        $("#audio-pkt").val(audio.pktSize);
+    }
+    
+    function completeSDPForm()
+    {
+        // sdp info
+        $.each(device.sdp, function (i, item)
+        {
+            if (item.media == "video")
+            {
+                $("#sdp-video-ip").val(item.ip);
+                $("#sdp-video-port").val(item.port);
+                $("#sdp-video-uri").val(item.uri);
+            }
+            if (item.media == "audio")
+            {
+                $("#sdp-audio-ip").val(item.ip);
+                $("#sdp-audio-port").val(item.port);
+                $("#sdp-audio-uri").val(item.uri);
+            }
+            /*if (item.media == "anc")
+            {
+                $("#sdp-anc-ip").val(item.ip);
+                $("#sdp-anc-port").val(item.port);
+                $("#sdp-anc-uri").val(item.uri);
+            }*/
+        });
+    }
+    
+    function completeMediaPage()
+    {
+        $.each(device.videoList.resolution, function (i, item) { $('#resolution').append($('<option>', {value: item,text : item }));});
+        $.each(device.videoList.colorDepth, function (i, item) { $('#color-depth').append($('<option>', {value: item,text : item }));});
+        $.each(device.videoList.colorSpace, function (i, item) { $('#color-space').append($('<option>', {value: item,text : item }));});
+        $.each(device.videoList.intlce, function (i, item) { $('#intlce').append($('<option>', {value: item,text : item }));});
+        
+        $.each(device.audioList.audioChs, function (i, item) { $('#audio-channels').append($('<option>', {value: item,text : item }));});
+        $.each(device.audioList.audioRate, function (i, item) { $('#audio-rate').append($('<option>', {value: item,text : item }));});
+        $.each(device.audioList.audioPKT, function (i, item) { $('#audio-pkt').append($('<option>', {value: item,text : item }));});
+
+        completeSDPForm();
+        completeSettingsForm();
+    }
+    
+	function IsValidated() {
+
+		var validated = true;
+
+		var isDhcp = $("#isDhcp").val();
+		var ip = $("#ip").val();
+		var mask = $("#mask").val();
+		var gateway = $("#gateway").val();
+		var dns1 = $("#dns1").val();
+		var dns2 = $("#dns2").val();
+
+		if (isDhcp == "" || ip == "" || mask == "" || gateway == "" || dns1 == "" || dns2 == "")
+		{
+			alert('Content cannot be empty!');
+			validated = false;
+		} 
+		else if (!checkIp(ip)) 
+		{
+			alert('IP format is not correct!');
+			validated = false;
+		} 
+		else if (!checkNetmask(mask)) 
+		{
+			alert('Netmask format is not correct!');
+			validated = false;
+		} 
+		else if (!checkIp(gateway)) 
+		{
+			alert('Gateway format is not correct!');
+			validated = false;
+		}
+		else if (!checkIp(dns1)) 
+		{
+			alert('DNS IP format is not correct!');
+			validated = false;
+		} 
+		else if (!checkIp(dns2)) 
+		{
+			alert('DNS IP format is not correct!');
+			validated = false;
+		} 
+		return validated;
+	}
+
+	function checkIp(str) {
+		var ss = /^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/;
+		return ss.test(str);
+	}
+
+	function checkNetmask(str) {
+		var ss = /^(254|252|248|240|224|192|128|0)\.0\.0\.0|255\.(254|252|248|240|224|192|128|0)\.0\.0|255\.255\.(254|252|248|240|224|192|128|0)\.0|255\.255\.255\.(254|252|248|240|224|192|128|0)$/;
+		return ss.test(str);
+	}
+	
+</SCRIPT>

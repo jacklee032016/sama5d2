@@ -81,9 +81,14 @@ static int _cmnSysJsonUpdateRs232(EXT_RUNTIME_CFG *runCfg, cJSON *obj)
 	return EXIT_SUCCESS;
 }
 
-static int __cmnSysJsonUpdateOneSdp(cJSON *sdpObj, HttpClientReq *sdpUri)
+static int __cmnSysJsonUpdateOneSdp(EXT_RUNTIME_CFG *runCfg, cJSON *sdpObj, HttpClientReq *sdpUri)
 {
-	CJSON_REPLACE_STRING(sdpObj, FIELD_SDP_IP, cmnSysNetAddress(sdpUri->ip) );
+	uint32_t ip = sdpUri->ip;
+	if(EXT_IS_TX(runCfg) )
+	{
+		ip = runCfg->local.ip;
+	}
+	CJSON_REPLACE_STRING(sdpObj, FIELD_SDP_IP, cmnSysNetAddress(ip) );
 	CJSON_REPLACE_INTEGRE(sdpObj, FIELD_SDP_PORT, sdpUri->port );
 	CJSON_REPLACE_STRING(sdpObj, FIELD_SDP_URI, sdpUri->uri );
 	
@@ -92,7 +97,7 @@ static int __cmnSysJsonUpdateOneSdp(cJSON *sdpObj, HttpClientReq *sdpUri)
 
 
 
-cJSON *cmnSysJsonGetSdpObject(cJSON *dataArray, char *sdpName, HttpClientReq *sdpUri)
+cJSON *cmnSysJsonGetSdpObject(EXT_RUNTIME_CFG *runCfg, cJSON *dataArray, char *sdpName, HttpClientReq *sdpUri)
 {
 	cJSON *obj;
 	int count, index;
@@ -114,7 +119,7 @@ cJSON *cmnSysJsonGetSdpObject(cJSON *dataArray, char *sdpName, HttpClientReq *sd
 		{
 			if( IS_STRING_EQUAL(keyStr, sdpName) )
 			{
-				__cmnSysJsonUpdateOneSdp(obj, sdpUri);
+				__cmnSysJsonUpdateOneSdp(runCfg, obj, sdpUri);
 				return obj;
 			}
 		}
@@ -131,19 +136,20 @@ cJSON *cmnSysJsonGetSdpObject(cJSON *dataArray, char *sdpName, HttpClientReq *sd
 
 static int _cmnSysJsonUpdateSdp(EXT_RUNTIME_CFG *runCfg, cJSON *objArray)
 {
-	if(cmnSysJsonGetSdpObject(objArray, MUX_REST_URI_VIDEO, &runCfg->sdpUriVideo) == NULL)
+
+	if(cmnSysJsonGetSdpObject(runCfg, objArray, MUX_REST_URI_VIDEO, &runCfg->sdpUriVideo) == NULL)
 	{
 		MUX_ERROR("SDP of '%s' update failed", MUX_REST_URI_VIDEO);
 		return EXIT_FAILURE;
 	}
-	if(cmnSysJsonGetSdpObject(objArray, MUX_REST_URI_AUDIO, &runCfg->sdpUriAudio) == NULL)
+	if(cmnSysJsonGetSdpObject(runCfg, objArray, MUX_REST_URI_AUDIO, &runCfg->sdpUriAudio) == NULL)
 	{
 		MUX_ERROR("SDP of '%s' update failed", MUX_REST_URI_AUDIO);
 		return EXIT_FAILURE;
 	}
 	
 #if WITH_ANCILLIARY_STREAM
-	if(cmnSysJsonGetSdpObject(objArray, MUX_REST_URI_ANC, &runCfg->sdpUriAnc) == NULL)
+	if(cmnSysJsonGetSdpObject(runCfg, objArray, MUX_REST_URI_ANC, &runCfg->sdpUriAnc ) == NULL)
 	{
 		MUX_ERROR("SDP of '%s' update failed", MUX_REST_URI_ANC);
 		return EXIT_FAILURE;

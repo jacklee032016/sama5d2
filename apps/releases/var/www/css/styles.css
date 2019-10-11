@@ -6,7 +6,7 @@ a, img {
 body {
 	margin: 0px;
 	font-family: 'Open Sans', sans-serif;
-	font-size: 16px;
+	font-size: 15px;
 }
 
 #body {
@@ -36,6 +36,14 @@ body {
 	width:75px;
 }
 
+.noresize {
+  resize: none; 
+}
+
+#slPlaylist{
+  height:117px !important;
+}
+
 #logo {
 	position: absolute;
 	top: 0px;
@@ -53,14 +61,14 @@ body {
 	color: #FFF;
 	float: left;
 	margin: 25px 0 0 0;
-	padding: 0 40px 0 40px;
+	padding: 0 20px 0 20px;
 	font-size: 18px;
 	text-decoration: none;
 	border-right: 1px solid #ffffff;
 }
 
 #nav a:last-child {
-	padding: 0 0 0 40px;
+	padding: 0 0 0 25px;
 	border-right: none;
 }
 
@@ -115,7 +123,8 @@ body {
 	margin: 0 0 0 0;
 	padding: 20px 0 5px 20px;
 	text-transform: uppercase;
-	font-size: 20px
+	font-size: 20px;
+	font-weight: bold;
 }
 
 .center {
@@ -168,7 +177,7 @@ body {
 	font-size: 16px
 }
 
-.highlight {
+#highlight {
 	font-weight: bolder;
 }
 
@@ -317,22 +326,105 @@ div.field-right input{
 }
 
 
-input {
-	width: 213px;
-	display: inline-block;
-	vertical-align: baseline;
-	margin: 0px;
-	padding: 0px;
+div.mainwrap {
+	margin: 0 30px 30px 30px;
+	background: #d3d3d3 none repeat scroll 0 0;
 }
 
-label {
+div.mainwraposd {
+    margin: 0 30px 30px 30px;
+    background: #d3d3d3 none repeat scroll 0 0;
+}
+
+.left{
+	float:left;
+}
+
+.right{
+    float:right;
+}
+
+.cell{
+	padding:10px;
+}
+
+.plheader1{
+    padding:10px;
+}
+
+.plhead{
+	list-style: none;
+	padding: 5px;
+	margin:0;
+}
+
+.plList li, .plhead li{
+    margin: 0;
+}
+
+input.playButton{
+	color:red; 
+	width:30; 
+	padding:2px;
+	background: #d3d3d3 none repeat scroll 0 0;
+}
+
+input.btnCreatePlayList{
+    width: 100px;
+    margin-left: 40%;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+input.btnUpdatePlaylist{
+	background: url( ../images/pencil-red-icon.png ); 
+	width:30;
+}
+
+input.btnPlaylistPause{
+	background: url( ../images/Media-Controls-Pause-icon24.png );
+	width:30;
+}
+
+input.btnPlaylistStop{
+    background: url( ../images/Media-Controls-Stop-icon24.png );
+    width:30;
+}
+
+input.btnPlaylistResume{
+    background: url( ../images/media_play_pause_resume24.png );
+    width:30;
+}
+
+input.btnPlaylistPlay{
+    background: url( ../images/Media-Controls-Play-icon24.png );
+    width:30;
+}
+
+.plItem{
+	border-top: 1px solid black;
+	padding: 10px 5px 15px 5px;
+}
+
+.plItemLeft {
+    position: relative;
+    height:22px;
+}
+
+.plItemRight{
+	position: absolute; 
+	right: 5; 
+	top: 0;
+}
+
+/*label {
 	width: 200px;
 	display: inline-block;
 	vertical-align: baseline;
 	margin: 0px;
 	padding: 0px;
 
-}
+}*/
 
 label.input_fpsgop {
 	width: 70px;
@@ -392,18 +484,18 @@ select.input_audio {
 	float:none;
 }
 
-label {
+/*label {
 	margin: 0;
 	padding: 0 0 0 0;
 	float: left;
-}
+}*/
 
-input {
+/*input {
 	background: rgb(255, 255, 255);
 	margin: 0px;
 	padding: 5px 5px 4px;
-
-}
+	font-size: 14px;
+}*/
 
 input[type="text"]:disabled{
 	background: #dddddd;
@@ -415,10 +507,37 @@ input[type="file"]{
 	
 }
 
-select {
+input.btnImage{
+    padding: 0px 0px 3.5px 0px;
+}
+
+input.addPlayListButton{
+    width: 70px;
+    margin-left: 450px;
+}
+
+input.scriptButton{
+	margin-left: 5px;
+	margin-right: 5px;
+}
+
+input#btnPause{
+	width:80px;
+	margin-left: 270px;
+}
+
+input#btnContinue{
+    width:120px;
+}
+
+input#btnAddScript{
+	width:120px;
+}
+
+/*select {
 	margin: 0px;
 	padding: 4px 5px 3px;
-}
+}*/
 
 #formEncoder {
 	width:730px;
@@ -477,6 +596,36 @@ form, input {
 animation:         blinker 0.5s infinite; /* IE 10+, Fx 29+ */
 }
 
+.grid {}
+
+.one-one {
+    display: inline-block;
+    float: left;
+    width: 500px;
+    height: 200px;
+}
+
+.one-two {
+    display: inline-block;
+    float: left;
+    width: 500px;
+    height: 200px;
+}
+
+.two-one {
+    display: inline-block;
+    float: left;
+    margin-top: 10px;
+    width: 500px;
+}
+
+.two-two {
+    display: inline-block;
+    float: left;
+    margin-top: 10px;
+    width: 500px;
+}
+
 @-webkit-keyframes blinker {
 	0%, 49% {
 		background-color: #FF4500;
@@ -488,28 +637,19 @@ animation:         blinker 0.5s infinite; /* IE 10+, Fx 29+ */
 	}
 }
 
-.tooltip {
-    position: relative;
-    display: inline-block;
-    border-bottom: none;
+div.bd-example {
+	padding: 1.5rem;
+}
+    
+.form-control::placeholder {
+    color: #e6e6e6;
+    opacity: 1; /* Firefox */
 }
 
-.tooltip .tooltiptext {
-	font-family: 'Courier New', Courier, monospace;
-	font-size: 90%;
-    visibility: hidden;
-    width: auto;
-    background-color: black;
-    color: #fff;
-    text-align: left;
-    border-radius: 6px;
-    padding: 10px;
-
-    /* Position the tooltip */
-    position: absolute;
-	z-index: 2;	
+.form-control:-ms-input-placeholder { /* Internet Explorer 10-11 */
+   color: #e6e6e6;
 }
 
-.tooltip:hover .tooltiptext {
-    visibility: visible;
-}
+.form-control::-ms-input-placeholder { /* Microsoft Edge */
+   color: #e6e6e6;
+}   

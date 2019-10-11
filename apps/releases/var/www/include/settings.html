@@ -1,0 +1,702 @@
+    <div class="container">
+    	<div class="row">
+          <div class="form-group col">
+                <DIV class="row">
+                    <H2>Upgrade FPGA Firmware</H2>
+                </DIV>
+                <FORM method="post" enctype="multipart/form-data" id="formUpgradeFPGA"> <!--  action="http://angelica.api/device/upload">  -->
+                    <div class="row pl-2">
+                        <label for="fileToUpload" class="col col-form-label">Select File to Upload:</label>
+                    </div>
+                    <div class="row pl-2">
+                        <div class="col">
+                            <label class="custom-file">
+                                <input type="file" name="fileToUploadFPGA" id="fileToUploadFPGA" class="custom-file-input">
+                                <span class="custom-file-control form-control-file"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="row pl-3">
+                        <div class="col p-2">
+                            <label>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="row pl-2 pt-3">
+                        <div class="col">
+                            <button type="submit" name="submit" id="btnUpgradeFPGA" class="btn btn-secondary">Upload</button>
+                        </div>
+                    </div>
+                </FORM>
+          </div>
+          <div class="form-group col">
+                <DIV class="row">
+                    <H2>Upgrade MCU Firmware</H2>
+                </DIV>
+                <FORM method="post" enctype="multipart/form-data" id="formUpgrade"> <!--  action="http://angelica.api/device/upload">  -->
+                    <div class="row pl-2">
+                        <label for="fileToUpload" class="col col-form-label">Select File to Upload:</label>
+                    </div>
+                    <div class="row pl-2">
+                        <div class="col">
+                            <label class="custom-file">
+                                <input type="file" name="fileToUpload" id="fileToUpload" class="custom-file-input">
+                                <span class="custom-file-control form-control-file"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="row pl-3">
+                        <div class="col p-2">
+                            <label>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="row pl-2 pt-3">
+                        <div class="col">
+                            <button type="submit" name="submit" id="btnUpgrade" class="btn btn-secondary">Upload</button>
+                        </div>
+                    </div>
+                </FORM>
+          </div>
+        </div>
+        
+        <div class="row">
+            <div class="form-group col">
+                <DIV class="row">
+                    <H2>Network</H2>
+                </DIV>
+                <div class="row pl-2 mb-2">
+                    <label for="isDhcp" class="col-5 col-form-label">DHCP:</label>
+                    <div class="col-6 pl-0">
+                        <SELECT id="isDhcp" class="form-control" name="isDhcp" onchange="dhcpEnable()">
+                            <OPTION value="1">Enabled</OPTION>
+                            <OPTION value="0">Disabled</OPTION>
+                        </SELECT>
+                    </div>
+                </div>
+                <div class="row pl-2">
+                    <label for="ip" class="col-5 col-form-label">Ip Address:</label>
+                    <div class="col-6 pl-0">
+                        <input name="ip" class="form-control" type="text" maxlength="18" autocomplete=off id="ip" required>
+                    </div>
+                </div>
+                <div class="row pl-2">
+                    <label for="mask" class="col-5 col-form-label">Netmask:</label>
+                    <div class="col-6 pl-0">
+                        <input name="mask" class="form-control" type="text" maxlength="18" autocomplete=off id="mask" required>
+                    </div>
+                </div>
+                <div class="row pl-2">
+                    <label for="gateway" class="col-5 col-form-label">Gateway:</label>
+                    <div class="col-6 pl-0">
+                        <input name="gateway" class="form-control" type="text" maxlength="18" autocomplete=off id="gateway" required>
+                    </div>
+                </div>
+                <div class="row pl-2">
+                    <label for="mac" class="col-5 col-form-label">MAC Address:</label>
+                    <div class="col-6 pl-0">
+                        <input name="mac" class="form-control" type="text" maxlength="18" autocomplete=off id="mac" disabled>
+                    </div>
+                </div>
+                <div class="row pl-2 pt-3">
+                    <div class=" col-2"> <!-- offset-5 col-2 pl-0 -->
+                        <button type="submit" class="btn btn-secondary" id="btnApplyNetwork" name="btnApplyNetwork">Apply</button>
+                    </div>
+                    <div class="col-2">
+                        <button type="button" class="btn btn-secondary" id="btnResetNetwork" name="btnResetNetwork">Reset</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group col">
+                <DIV class="row">
+                    <H2>Rs232</H2>
+                </DIV>
+                <div class="row pl-2 mb-2">
+                    <label for="baudrate" class="col-4 col-form-label">Baudrate:</label>
+                    <div class="col-4 pl-0">
+                        <SELECT id="baudrate" class="form-control" name="baudrate">
+                        </SELECT>
+                    </div>
+                </div>
+                <div class="row pl-2 mb-2">
+                    <label for="databits" class="col-4 col-form-label">Databits:</label>
+                    <div class="col-4 pl-0">
+                        <SELECT id="databits" class="form-control" name="databits">
+                        </SELECT>
+                    </div>
+                </div>
+                <div class="row pl-2 mb-2">
+                    <label for="parity" class="col-4 col-form-label">Parity:</label>
+                    <div class="col-4 pl-0">
+                        <SELECT id="parity" class="form-control" name="parity">
+                        </SELECT>
+                    </div>
+                </div>
+                <div class="row pl-2 mb-4">
+                    <label for="stopbits" class="col-4 col-form-label">Stopbits:</label>
+                    <div class="col-4 pl-0">
+                        <SELECT id="stopbits" class="form-control" name="stopbits">
+                        </SELECT>
+                    </div>
+                </div>
+                <div class="row pl-2 pt-3">
+                    <div class=" col-2"> <!-- offset-5 col-2 pl-0 -->
+                        <button type="submit" id="btnApplyRs232" name="btnApplyRs232" class="btn btn-secondary">Apply</button>
+                    </div>
+                    <div class="col-2">
+                        <button type="button" class="btn btn-secondary" id="btnResetRs232" name="btnResetRs232">Reset</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>        
+        
+        <div class="row">
+            <div class="form-group col">
+		        <DIV class="row">
+                    <H2>Factory Reset</H2>
+                </DIV>
+                <div class="row pl-2">
+                    <label class="col col-form-label">Restore the device to factory settings.</label>
+                </div>
+                <div class="row pl-2 pt-3">
+                    <div class="col">
+                        <button type="button" name="submit" id="btnReset" class="btn btn-secondary">Reset</button>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group col">
+	            <DIV class="row">
+	                <H2>Reboot</H2>
+	            </DIV>
+	            <div class="row pl-2">
+	                <label class="col col-form-label">Reboot the device.</label>
+	            </div>
+	            <div class="row pl-2 pt-3">
+	                <div class="col">
+	                    <button type="button" name="submit" id="btnReboot" class="btn btn-secondary">Reboot</button>
+	                </div>
+	            </div>
+            </div>
+	    </div>
+<!-- 	    <div class="row">
+	        <div class="form-group col">
+                <DIV class="row">
+                    <H2>Change Password</H2>
+                </DIV>
+                <div class="row pl-2">
+                    <label for="oldPassword" class="col-6 col-form-label">Old password:</label>
+                    <div class="col-5 pl-0">
+                        <input name="oldPassword" class="form-control" type="password" value="" maxlength="32" id="oldPassword">
+                    </div>
+                </div>
+                <div class="row pl-2">
+                    <label for="newPassword1" class="col-6 col-form-label">New password:</label>
+                    <div class="col-5 pl-0">
+                        <input name="newPassword1" class="form-control" type="password" value="" maxlength="32" id="newPassword1">
+                    </div>
+                </div>
+                <div class="row pl-2">
+                    <label for="newPassword2" class="col-6 col-form-label">Confirm new password:</label>
+                    <div class="col-5 pl-0">
+                        <input name="newPassword2" class="form-control" type="password" value="" maxlength="32" id="newPassword2">
+                    </div>
+                </div>
+                <div class="row pl-2 pt-3">
+                    <div class="col-3"> 
+                        <button type="button" name="submit" id="btnChangePassword" class="btn btn-secondary">Apply</button>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group col">
+            </div>
+	    </div> -->
+    </div> 
+<script type="text/javascript">
+checkDevice();
+completeSettingsPage();
+dhcpEnable();
+
+$("#btnResetNetwork").click(function() {
+    completeNetworkForm();
+    dhcpEnable();
+});
+
+$("#btnResetRs232").click(function() {
+    completeRs232Form();
+});
+
+function completeSettingsPage()
+{
+    $.each(device.rs232List.baudrate, function (i, item) { $('#baudrate').append($('<option>', {value: item,text : item }));});
+    $.each(device.rs232List.databits, function (i, item) { $('#databits').append($('<option>', {value: item,text : item }));});
+    $.each(device.rs232List.parity, function (i, item) { $('#parity').append($('<option>', {value: item,text : item }));});
+    $.each(device.rs232List.stopbits, function (i, item) { $('#stopbits').append($('<option>', {value: item,text : item }));});
+    completeNetworkForm();
+    completeRs232Form();
+}
+
+function completeRs232Form()
+{
+    $("#baudrate").val(device.rs232.baudrate);
+    $("#databits").val(device.rs232.databit);
+    $("#parity").val(device.rs232.parity);
+    $("#stopbits").val(device.rs232.stopbit);
+}
+
+function completeNetworkForm() 
+{
+    $("select#isDhcp").val(device.system.isDhcp);
+    $("#ip").val(device.system.ip);
+    $("#mask").val(device.system.mask);
+    $("#gateway").val(device.system.gateway);
+    $("#mac").val(device.system.mac);
+}
+
+function dhcpEnable() 
+{
+    var dhcp = $("#isDhcp").val();
+    if (dhcp == 0) {
+        $("#ip").removeAttr("disabled");
+        $("#mask").removeAttr("disabled");
+        $("#gateway").removeAttr("disabled");
+    } else {
+        $("#ip").attr("disabled", "disabled");
+        $("#mask").attr("disabled", "disabled");
+        $("#gateway").attr("disabled", "disabled");
+    }
+}
+
+$("#btnApplyRs232").click(function() {
+    setRs232();
+});
+
+$("#btnApplyNetwork").click(function() {
+    if (confirm("The device will reboot for the new settings be effective"))
+        setNetwork();
+});
+
+$("#btnChangePassword").click(function() {
+    changePassword();
+});
+
+$("form#formUpgrade").submit(function(e) {
+    upgradeDevice(this, e);
+});
+
+$("form#formUpgradeFPGA").submit(function(e) {
+    upgradeDeviceFPGA(this, e);
+});
+
+$("#btnReboot").click(function() {
+    if (confirm("Are you sure you want to reboot?"))
+        rebootDevice();
+});
+
+$("#btnReset").click(function() {
+    if (confirm("Do you want to restore the device to factory settings"))
+        resetDevice();
+});
+
+/* show file value after file select */
+$('.custom-file-input').on('change',function(){
+    path = $(this).val();
+    $(this).next('.form-control-file').addClass("selected").html(path.replace("C:\\fakepath\\", ""));
+})
+
+function rebootMessage()
+{
+    $('#message').css("display", "block");
+    $('#message').html("Rebooting&nbsp;&nbsp;&nbsp;");
+    $("#content").html("");
+    var dots = 0;
+    var threeDots = window.setInterval( function() 
+    {
+        if ( dots == 1 )
+            $('#message').html("Rebooting.&nbsp;&nbsp;");
+        else if ( dots == 2 )
+            $('#message').html("Rebooting..&nbsp;");
+        else if (dots == 3)
+            $('#message').html("Rebooting...");
+        else{
+            $('#message').html("Rebooting&nbsp;&nbsp;&nbsp;");
+            dots = 0;
+        }
+        
+        dots++;
+    }, 200);
+    
+    window.setTimeout( function()
+    {
+        window.clearInterval(threeDots);
+        loadContent('settings.html');
+    }, 40000);
+}
+
+//ajax functions
+function setNetwork()
+{
+    var data  = {};
+    var system = device.system;
+    
+    if ($("#ip").val() != system.ip)
+    {
+        data.ip = $("#ip").val();  
+    }
+    if ($("#mask").val() != system.mask)
+    {
+        data.mask = $("#mask").val();  
+    }
+    if ($("#gateway").val() != system.gateway)
+    {
+        data.gateway = $("#gateway").val();
+    }
+    if ($("#isDhcp").val() != system.isDhcp)
+    {
+        data.isDhcp = $("#isDhcp").val();
+    }
+    
+    if (jQuery.isEmptyObject(data))
+    {
+        alert("No changes made");
+        return false;
+    }
+    
+    var token = $.cookie("token");
+    $.ajax({
+        method: "POST",
+        url: apiUrl + "/device/network",
+        headers: {"Authorization": token},
+        data: data,
+        success: function(response) {
+            if (response.status != "success")
+            {
+                alert("error while applying network settings");
+            } else {
+                getParam();
+            }
+            completeNetworkForm();
+        },
+        error: function (jqXHR, status) {
+            if (jqXHR.status == 401) //token not valid or expired
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });
+}
+
+function setRs232()
+{
+    var data  = {};
+    var rs232 = device.rs232;
+    
+    if ($("#baudrate").val() != rs232.baudrate)
+    {
+        data.baudrate = $("#baudrate").val();  
+    }
+    if ($("#databits").val() != rs232.databit)
+    {
+        data.databit = $("#databits").val();  
+    }
+    if ($("#parity").val() != rs232.parity)
+    {
+        data.parity = $("#parity").val();  
+    }
+    if ($("#stopbits").val() != rs232.stopbit)
+    {
+        data.stopbit = $("#stopbits").val();
+    }
+    
+    if (jQuery.isEmptyObject(data))
+    {
+        alert("No changes made");
+        return false;
+    }
+    
+    var token = $.cookie("token");
+    $.ajax({
+        method: "PUT",
+        url: apiUrl + "/rs232/configuration",
+        headers: {"Authorization": token},
+        data: data,
+        success: function(response) {
+            if (response.status != "success")
+            {
+                alert("error while applying rs232 settings");
+            } else {
+                getParam();
+            }
+            completeRs232Form();
+        },
+        error: function (jqXHR, status) {
+            if (jqXHR.status == 401) //token not valid or expired
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });
+}
+
+function rebootDevice()
+{
+    var token = $.cookie("token");
+    $.ajax({
+        method: "POST",
+        url: apiUrl + "/device/reboot",
+        headers: {"Authorization": token},
+        success: function(response) {
+            if (response.status == "success")
+            {
+                rebootMessage();
+            }
+            else
+            {
+                $('#message').css("display", "block");
+                $('#message').html("Unable to communicate correctly");
+                $("#content").html("");
+            }
+        },
+        error: function (jqXHR, status) {
+            if (jqXHR.status == 401) //token not valid or expired
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });
+}
+
+function resetDevice()
+{
+    var token = $.cookie("token");
+    $.ajax({
+        method: "POST",
+        url: apiUrl + "/device/reset",
+        headers: {"Authorization": token},
+        success: function(response) {
+            if (response.status == "success")
+            {
+                $('#message').css("display", "block");
+                $('#message').html("Reseting&nbsp;&nbsp;&nbsp;");
+                $("#content").html("");
+                var dots = 0;
+                var threeDots = window.setInterval( function() 
+                {
+                    if ( dots == 1 )
+                        $('#message').html("Reseting.&nbsp;&nbsp;");
+                    else if ( dots == 2 )
+                        $('#message').html("Reseting..&nbsp;");
+                    else if (dots == 3)
+                        $('#message').html("Reseting...");
+                    else{
+                        $('#message').html("Reseting&nbsp;&nbsp;&nbsp;");
+                        dots = 0;
+                    }
+                    
+                    dots++;
+                }, 200);
+                
+                window.setTimeout( function()
+                {
+                    window.clearInterval(threeDots);
+                    loadContent('settings.html');
+                }, 40000);
+            }
+            else
+            {
+                $('#message').css("display", "block");
+                $('#message').html("Unable to communicate correctly");
+                //$("#content").html("");
+            }
+        },
+        error: function (jqXHR, status) {
+            if (jqXHR.status == 401) //token not valid or expired
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });
+}
+
+function changePassword()
+{
+    var newPassword1 = $("#newPassword1").val();
+    var newPassword2 = $("#newPassword2").val();
+    var old_password = $("#oldPassword").val();
+    if (newPassword1 == "" || newPassword2 == "" || old_password == "")
+    {
+        alert("Password cannot be empty!");
+    } 
+    else if (newPassword1 != newPassword2)
+    {
+        alert("Passwords do not match!");
+    }
+    else
+    {
+        var token = $.cookie("token");
+        $.ajax({
+            type: 'POST',
+            url: apiUrl + "/auth/change-password",
+            headers: {"Authorization": token},
+            data: { "password_old" : old_password, "password" : newPassword1},
+            success: function(response){
+                if (response.status == "success")
+                {
+                    data = response.data;
+                    $.cookie("token", data.token);
+                    $('#message').css("display", "block");
+                    $('#message').html("Password changed");
+                }
+                else
+                {
+                    $('#message').css("display", "block");
+                    $('#message').html("Unable to change the password");
+                }
+            },
+            error: function (jqXHR, status) {
+                if (jqXHR.status == 401) //token not valid or expired
+                {
+                    loadContent('userlogin.html', 'Please login');
+                }
+            }
+        });
+    }
+}
+
+function upgradeDeviceFPGA(element, event)
+{
+    var formData   = new FormData(element);
+    var token      = $.cookie("token");
+    var urlUpgrade = apiUrl + "/device/upgrade";
+    if (element.id == "formUpgradeFPGA"){
+        urlUpgrade = apiUrl + "/device/upgradeFPGA";
+    }
+    $('#message').css("display", "block");
+    $('#message').html("Uploading upgrade file");
+
+    $.ajax({
+        url: urlUpgrade,
+        type: 'POST',
+        headers: {"Authorization": token},
+        data: formData,
+        success: function (response) {
+            if (response.status == "success")
+            {
+                $('#message').css("display", "none");
+                $('#message').css("display", "block");
+                $('#message').html("Upgrading&nbsp;&nbsp;&nbsp;");
+                $("#content").html("");
+                var dots = 0;
+                var threeDots = window.setInterval( function() 
+                {
+                    if ( dots == 1 )
+                        $('#message').html("Upgrading.&nbsp;&nbsp;");
+                    else if ( dots == 2 )
+                        $('#message').html("Upgrading..&nbsp;");
+                    else if (dots == 3)
+                        $('#message').html("Upgrading...");
+                    else{
+                        $('#message').html("Upgrading&nbsp;&nbsp;&nbsp;");
+                        dots = 0;
+                    }
+                    
+                    dots++;
+                }, 200);
+                
+                window.setTimeout( function()
+                {
+                    window.clearInterval(threeDots);
+                    //$('#message').html("Upgrade done");
+                    location.reload();
+                    //$('#message').css("display", "none");
+                }, 65000);
+            }
+            else
+            {
+                if (response.data.fileToUpload)
+                    alert(response.data.fileToUpload);
+                else
+                    alert('Upgrade Error '+response.data);
+            }
+        },     
+        error: function (jqXHR, status) {
+            if (jqXHR.status == 401) //token not valid or expired
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        },
+        cache: false,
+        contentType: false,
+        processData: false
+    });
+    event.preventDefault();
+    return false;
+}
+
+function upgradeDevice(element, event)
+{
+    var formData   = new FormData(element);
+    var token      = $.cookie("token");
+    $.ajax({
+        url: apiUrl + "/device/upgrade",
+        type: 'POST',
+        headers: {"Authorization": token},
+        data: formData,
+        success: function (response) {
+            if (response.status == "success")
+            {
+                $('#message').css("display", "block");
+                $('#message').html("Upgrading&nbsp;&nbsp;&nbsp;");
+                $("#content").html("");
+                var dots = 0;
+                var threeDots = window.setInterval( function() 
+                {
+                    if ( dots == 1 )
+                        $('#message').html("Upgrading.&nbsp;&nbsp;");
+                    else if ( dots == 2 )
+                        $('#message').html("Upgrading..&nbsp;");
+                    else if (dots == 3)
+                        $('#message').html("Upgrading...");
+                    else{
+                        $('#message').html("Upgrading&nbsp;&nbsp;&nbsp;");
+                        dots = 0;
+                    }
+                    
+                    dots++;
+                }, 200);
+                
+                window.setTimeout( function()
+                {
+                    window.clearInterval(threeDots);
+                    //$('#message').html("Upgrade done");
+                    location.reload();
+                    //$('#message').css("display", "none");
+                }, 80000);
+            }
+            else
+            {
+                if (response.data.fileToUpload){
+                    alert(response.data.fileToUpload);
+                    $('#message').css("display", "none");
+                }else{
+                    alert('Upgrade Error '+response.data);
+                    $('#message').css("display", "none");
+                }
+            }
+        },     
+        error: function (jqXHR, status) {
+            if (jqXHR.status == 401) //token not valid or expired
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        },
+        cache: false,
+        contentType: false,
+        processData: false
+    });
+    event.preventDefault();
+    return false;
+}
+
+</script>

@@ -1,0 +1,141 @@
+<DIV id="forms">
+	<DIV class="title">
+	   <H2>Device</H2>
+	</DIV>
+    <div class="container">
+	    <div class="row pl-2">
+	        <label for="product-name" class="col-3 col-form-label">Product Name:</label>
+	        <div class="col-9">
+                <input type="text" readonly class="form-control-plaintext" id="product-name">
+            </div>
+	    </div>
+        <div class="row pl-2">
+            <label for="model" class="col-3 col-form-label">Model:</label>
+            <div class="col-9">
+                <input type="text" readonly class="form-control-plaintext" id="model">
+            </div>
+        </div>
+        <div class="row pl-2">
+            <label for="custom-name" class="col-3 col-form-label">Custom Name:</label>
+            <div class="col-9">
+                <input type="text" readonly class="form-control-plaintext" id="custom-name">
+            </div>
+        </div>
+        <div class="row pl-2">
+            <label for="firmware-version" class="col-3 col-form-label">Firmware Version:</label>
+            <div class="col-9">
+                <input type="text" readonly class="form-control-plaintext" id="firmware-version" size="30">
+            </div>
+        </div>
+        <div class="row pl-2">
+            <label for="fpga-version" class="col-3 col-form-label">FPGA Version:</label>
+            <div class="col-9">
+                <input type="text" readonly class="form-control-plaintext" id="fpga-version" size="30">
+            </div>
+        </div>
+        <div class="row pl-2">
+            <label for="security-check" class="col-3 col-form-label">Security Check:</label>
+            <div class="col-9">
+                <input type="text" readonly class="form-control-plaintext" id="security-check">
+            </div>
+        </div>
+    </div>
+    <DIV class="title">
+       <H2>Network</H2>
+    </DIV>
+    <div class="container">
+        <div class="row pl-2">
+            <label for="mac-address" class="col-3 col-form-label">MAC Address:</label>
+            <div class="col-9">
+                <input type="text" readonly class="form-control-plaintext" id="mac-address">
+            </div>
+        </div>
+        <div class="row pl-2">
+            <label for="ip-address" class="col-3 col-form-label">IP Address:</label>
+            <div class="col-9">
+                <input type="text" readonly class="form-control-plaintext" id="ip-address">
+            </div>
+        </div>
+        <div class="row pl-2">
+            <label for="subnet-mask" class="col-3 col-form-label">Subnet Mask:</label>
+            <div class="col-9">
+                <input type="text" readonly class="form-control-plaintext" id="subnet-mask">
+            </div>
+        </div>
+        <div class="row pl-2">
+            <label for="gateway" class="col-3 col-form-label">Gateway:</label>
+            <div class="col-9">
+                <input type="text" readonly class="form-control-plaintext" id="gateway">
+            </div>
+        </div>
+        <div class="row pl-2">
+            <label for="dhcp" class="col-3 col-form-label">DHCP:</label>
+            <div class="col-9">
+                <input type="text" readonly class="form-control-plaintext" id="dhcp">
+            </div>
+        </div>
+    </div>
+    <DIV class="title">
+       <H2>Rs232</H2>
+    </DIV>
+    <div class="container">
+        <div class="row pl-2">
+            <label for="baudrate" class="col-3 col-form-label">Baudrate:</label>
+            <div class="col-9">
+                <input type="text" readonly class="form-control-plaintext" id="baudrate">
+            </div>
+        </div>
+        <div class="row pl-2">
+            <label for="databits" class="col-3 col-form-label">Databits:</label>
+            <div class="col-9">
+                <input type="text" readonly class="form-control-plaintext" id="databits">
+            </div>
+        </div>
+        <div class="row pl-2">
+            <label for="parity" class="col-3 col-form-label">Parity:</label>
+            <div class="col-9">
+                <input type="text" readonly class="form-control-plaintext" id="parity">
+            </div>
+        </div>
+        <div class="row pl-2">
+            <label for="stop-bits" class="col-3 col-form-label">Stopbits:</label>
+            <div class="col-9">
+                <input type="text" readonly class="form-control-plaintext" id="stop-bits">
+            </div>
+        </div>
+    </div>
+</DIV>
+
+<script type="text/javascript">
+checkDevice();
+completeMediaPage();
+
+function completeMediaPage()
+{
+    $("#product-name").val(device.system.product);
+    $("#model").val(device.system.model);
+    $("#custom-name").val(device.system.name);
+    $("#firmware-version").val(device.system.ver+" ("+device.system.built+")");
+    $("#fpga-version").val(device.system.fpgaVer+" ("+device.system.fpgaBuilt+")");
+    if (device.security.get_status) {
+        $("#security-check").val("PASS");
+    } else {
+        $("#security-check").val("FAILED");
+    }
+    $("#mac-address").val(device.system.mac);
+    $("#ip-address").val(device.system.ip);
+    $("#subnet-mask").val(device.system.mask);
+    $("#gateway").val(device.system.gateway);
+    if (device.system.isDhcp){
+        $("#dhcp").val("YES");
+    } else {
+        $("#dhcp").val("NO");
+    }
+    $("#baudrate").val(device.rs232.baudrate);
+    $("#databits").val(device.rs232.databit);
+    $("#parity").val(device.rs232.parity);
+    $("#stop-bits").val(device.rs232.stopbit);
+}
+
+
+</script>

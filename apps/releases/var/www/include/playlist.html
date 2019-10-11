@@ -1,0 +1,850 @@
+<div class="container" id="plContainer">
+    <DIV class="row" id="titleDiv">
+        <H2>PlayList</H2>
+    </DIV>
+    <div id="" class="row justify-content-center mb-3">
+        <div class="form-group col-11 border border-secondary rounded bg-white">
+	        <div class="form-group row mt-3">
+		        <div class="col-5">
+		            <label for="slPlaylist">Select Playlist:</label>
+		            <select class="form-control" id="slPlaylist" size=6>
+		 	        </select>
+		        </div>
+		        <div class="col-5">
+		            <label for="taPlaylist">Playlist Description:</label>
+		            <textarea id="taDescription" class="form-control noresize" rows="4" disabled></textarea>
+		        </div>
+		        <div class="col-2">
+		            <div class="form-group row pt-5">
+		            <button type="button" class="btn btn-secondary" id="btnAddPlayList" data-toggle="modal" data-target="#playlistModal">New Playlist</button>
+		            </div>
+		            <div class="form-group row">
+		            <button type="button" class="btn btn-secondary" id="btnSelectPlayList" disabled>Load Playlist</button>
+		            </div>
+		        </div>
+	        </div>
+        </div>
+    </div>
+    <div id="anchor">
+    </div> 
+    <!-- div used to create or update a playlist -->
+    <div class="modal fade bd-example-modal-lg" id="playlistModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <form id="fmModal">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Add Playlist</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group row">
+                        <div class="col-3">
+                            <label for=inpName class="col-form-label">Playlist Name:</label>
+                        </div>
+                        <div class="col-9">
+                           <input id="inpName" class="form-control" maxlength="50" type="text" required>
+                           <input type="hidden" id="inpOrigName" value=""/>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-3">
+                            <label for=inpDescription class="col-form-label">Playlist Description:</label>
+                        </div>
+                        <div class="col-9">
+                           <textarea id="inpDescription" class="form-control noresize" maxlength="200" rows="3"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" id="btnCreatePlayList" class="btn btn-secondary">Save changes</button> 
+                </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+</div>
+
+<script type="text/javascript">
+
+var playListArray = new Array();
+
+listPlaylist();
+
+$(document).on("dblclick", "span#spDescription", function() {
+    $(this).attr('contentEditable', true);
+});
+
+$(document).on("blur", "span#spDescription", function() {
+    $(this).attr('contentEditable', false);
+    fileListUpdate();
+    $("#taDescription").val($.trim($("span#spDescription").html()));
+});
+
+$('#playlistModal').on('show.bs.modal', function (event) {
+    $("#inpName").val("");
+    $("#inpDescription").val("");
+});
+
+//playlist select html element  
+$("#slPlaylist").change(function(event) {
+    var plName = $("#slPlaylist option:selected").val();
+
+    $.each(playListArray, function(i, item) {
+        if (item.name == plName)
+        {
+            $("#taDescription").val(item.description);
+        }
+    });
+    $("#btnSelectPlayList").prop('disabled', false);
+});
+
+//playlist double click
+$("#slPlaylist").dblclick(function(event) {
+    var plName = $("#slPlaylist option:selected").val();
+    
+    listPlaylist();
+    
+    $.each(playListArray, function(i, item) {
+        if (item.name == plName)
+        {
+            $("#anchor").html(viewPlaylist(item.name, item.description, item.fileList));
+        }
+    });
+    getMedia('files');
+    
+    $('.list-group-sortable').sortable({
+        update: function( event, ui ) {fileListUpdate()}
+    });
+    
+    $("#divAccordion").on('show.bs.collapse hidden.bs.collapse', function () {
+        $(this).prev().find('.oi').toggleClass('oi-plus oi-minus');
+    })
+    
+    $('.timepicker').timepicker({
+        timeFormat: 'HH:mm:ss',
+        dynamic: false,
+        dropdown: false,
+        scrollbar: false
+    });
+});
+
+// When the user clicks the button, open the modal
+$("#btnAddPlayList").click(function() {
+    $("#inpName").val("");
+    $(".ulNewList").remove();
+    toggleModal("Create");
+});
+
+//load playlist button on click
+$("#btnSelectPlayList").click(function() {
+    var plName = $("#slPlaylist option:selected").val();
+    
+    listPlaylist();
+    
+    $.each(playListArray, function(i, item) {
+        if (item.name == plName)
+        {
+            $("#anchor").html(viewPlaylist(item.name, item.description, item.fileList));
+        }
+    });
+    getMedia('files');
+    
+    $('.list-group-sortable').sortable({
+        update: function( event, ui ) {fileListUpdate()}
+    });
+    
+    $("#divAccordion").on('show.bs.collapse hidden.bs.collapse', function () {
+        $(this).prev().find('.oi').toggleClass('oi-plus oi-minus');
+    })
+    
+    $('.timepicker').timepicker({
+        timeFormat: 'HH:mm:ss',
+        dynamic: false,
+        dropdown: false,
+        scrollbar: false
+    });
+});
+
+//modal create playlist button
+$("#fmModal").submit(function(event) {
+    var name        = $.trim($("#inpName").val());
+    var description = $.trim($("#inpDescription").val());
+    var plNames = getPlayListNames();
+    if ($.inArray(name, plNames) !== -1)
+    {
+        alert("play list name already exists");
+        return false;
+    }
+    
+    if (hasWhiteSpace(name))
+    {
+        alert("white spaces not allowed for play list name");
+        return false;
+    }
+    
+    createPlaylist(name, description);
+    
+    $("#anchor").html(viewPlaylist(name, description, {}));
+    getMedia('files');
+    
+    $('.list-group-sortable').sortable({
+        update: function( event, ui ) {fileListUpdate()}
+    });
+    
+    $("#divAccordion").on('show.bs.collapse hidden.bs.collapse', function () {
+        $(this).prev().find('.oi').toggleClass('oi-plus oi-minus');
+    })
+    
+    $('.timepicker').timepicker({
+        timeFormat: 'HH:mm:ss',
+        dynamic: false,
+        dropdown: false,
+        scrollbar: false
+    })
+
+    event.preventDefault();
+    return false;
+});
+
+/*$("#btnUpdatePlayList").click(function() {
+    var name = $.trim($("#inpName").val());
+    var nameOld = $("#inpOrigName").val();
+    var plNames = getPlayListNames();
+    
+    //remove original name from the names array
+    plNames.splice($.inArray(nameOld, plNames), 1);
+    
+    if (name == "")
+    {
+        alert("play list name cannot be empty");
+        return false;
+    }
+    else if ($.inArray(name, plNames) !== -1)
+    {
+        alert("play list name already exists");
+        return false;
+    }
+    updatePlaylist(name, $("#inpOrigName").val(), getModalFileList(), true);
+});*/
+
+//*** functions
+function fileListUpdate()
+{
+    var plName      = $.trim($("span#spName").html());
+    var description = $.trim($("span#spDescription").html());
+    var fileList    = getFileList();
+
+    updatePlaylist(plName, plName, description, fileList);
+}
+
+function hasWhiteSpace(s)
+{
+    return /\s/g.test(s);
+}
+
+function HMStoSeconds(time)
+{
+    var arTime = time.split(':');
+    return parseInt(arTime[0])*3600 + parseInt(arTime[1])*60 + parseInt(arTime[2]); 
+}
+
+function addVideoListView()
+{
+    var file = JSON.parse($('#selectFiles').val());
+    var ulContent = viewModalFileUl(file.name, file.duration);
+    var ulElement = $("div#divAnchor").find('ul');
+    if (ulElement.length == 0)
+    {
+        ulContent = '<ul class="list-group ulNewList">' + ulContent + '</ul>';
+        $("div#divAnchor").html(ulContent)
+    }
+    else
+    {
+        ulElement.append(ulContent);
+    }
+}
+
+function addUrlListView()
+{
+    var ulContent = viewModalFileUl($('#inUrl').val(), 0);
+    var ulElement = $("div#divAnchor").find('ul');
+    if (ulElement.length == 0)
+    {
+        ulContent = '<ul class="list-group ulNewList">' + ulContent + '</ul>';
+        $("div#divAnchor").html(ulContent)
+    }
+    else
+    {
+        ulElement.append(ulContent);
+    }
+    $("#inUrl").val("");
+}
+
+function addImageListView()
+{
+    var file      = JSON.parse($('#selectImageFiles').val());
+    var duration  = $("#inImageDuration").val();
+    var ulContent = viewModalFileUl(file.name, HMStoSeconds(duration));
+    var ulElement = $("div#divAnchor").find('ul');
+
+    if (ulElement.length == 0)
+    {
+        ulContent = '<ul class="list-group ulNewList">' + ulContent + '</ul>';
+        $("div#divAnchor").html(ulContent)
+    }
+    else
+    {
+        ulElement.append(ulContent);
+    }
+    $("#inImageDuration").val("");
+}
+
+function toggleModal(modalAction)
+{
+    switch(modalAction) {
+    case "Create":
+        $("#exampleModalLabel").html('Add Playlist');
+        $("#btnCreatePlayList").show();
+        //$("#btnUpdatePlayList").hide();
+        break;
+    case "Update":
+        $("#exampleModalLabel").html('Update Playlist');
+        $("#btnCreatePlayList").hide();
+        //$("#btnUpdatePlayList").show();
+        break;
+    default:
+    }
+}
+
+// create video/image list item view html 
+function viewModalFileUl(fileName, fileDuration)
+{
+    var ulContent = ' \
+    <li class="list-group-item"> \
+        <div class="d-flex justify-content-between"> \
+            <span>' + fileName + '</span> \
+            <input type="hidden" name="duration" value="' + fileDuration + '"> \
+            <div> \
+                <span class="pr-3 text-secondary">' + secondsTimeSpanToHMS(fileDuration) + '</span> \
+                <button type="button" class="btn btn-sm  btn-secondary btnMediaPlay" title="play"> \
+                    <span class="oi oi-media-play" aria-hidden="true"></span> \
+                </button> \
+                <button type="button" name="RemoveMedia" class="btn btn-sm btn-secondary btnRemoveMedia" title="remove"> \
+                    <span class="oi oi-x" aria-hidden="true"></span> \
+                </button> \
+            </div> \
+        </div> \
+    </li>';
+
+    return ulContent;
+}
+
+function getPlayListNames()
+{
+    var plNames = new Array();
+    $.each(playListArray, function(i, item) {
+        plNames.push(item.name);
+    });
+    
+    return plNames;
+}
+
+//check if file path+name is url/video/audio/image
+function checkFileTypeOrUrl(name)
+{
+    var type;
+    
+    if (name.indexOf("/media/usb") == -1 &&  name.indexOf("/media/sd") == -1)
+    {
+        type = "URL";
+    }
+    else if(name.toLowerCase().indexOf(".aac") != -1 || name.toLowerCase().indexOf(".mp3") != -1)
+    {
+        type = "AUDIO";
+    }
+    else if(name.toLowerCase().indexOf(".jpg") != -1 || name.toLowerCase().indexOf(".gif") != -1 ||
+            name.toLowerCase().indexOf(".png") != -1 || name.toLowerCase().indexOf(".bmp") != -1 ||
+            name.toLowerCase().indexOf(".jpeg") != -1)
+    {
+        type = "IMAGE";
+    }
+    else
+    {
+        type = "VIDEO";
+    }
+    
+    return type;
+}
+
+function viewPlaylist(name, description, files)
+{
+    //add playlist header
+    var plContent = '<div class="form-group row justify-content-center pb-4"> \
+    <div class="col-11 p-0 border border-secondary rounded bg-white plwrap" id="' + name + '"> \
+        <div class="d-flex justify-content-between"> \
+            <div class="p-2"> \
+                <span id="spName">' + name + '</span> \
+            </div> \
+            <div class="pt-2" style="padding-right: 20px"> \
+                <!--<button type="button" class="btn btn-sm  btn-secondary btnUpdatePlaylist" data-toggle="modal" data-target="#playlistModal" title="update playlist"> \
+                    <span class="oi oi-pencil" aria-hidden="true"></span> \
+                </button> -->\
+                <button type="button" id="btnDeletePlaylist" class="btn btn-sm  btn-secondary" title="delete playlist"> \
+                    <span class="oi oi-x" aria-hidden="true"></span> \
+                </button> \
+            </div> \
+        </div> \
+        <div class="form-group row pt-3 pl-2"> \
+            <div class="col-10 "> \
+                <span class="text-secondary" id="spDescription">' + description + '</span> \
+            </div> \
+        </div> \
+        <div class="form-group row pt-3 pl-2"> \
+        <div class="col-3 offset-4 "> \
+            <span class=""> Playlist Controllers </span> \
+        </div> \
+    </div> \
+        <div class="form-group row"> \
+        <div class="col-3 offset-4"> \
+            <div class="row"> \
+                <div class="col-0 pl-3"> \
+                    <button type="button" class="btn btn-sm  btn-secondary btnPlaylistPause" title="pause"> \
+                        <span class="oi oi-media-pause" aria-hidden="true"></span> \
+                    </button> \
+                </div> \
+                <div class="col-0 pl-2"> \
+                    <button type="button" class="btn btn-sm  btn-secondary btnPlaylistResume" title="resume"> \
+                        <span class="oi oi-play-circle" aria-hidden="true"></span> \
+                    </button> \
+                </div> \
+                <div class="col-0 pl-2"> \
+                    <button type="button" class="btn btn-sm  btn-secondary btnPlaylistStop" title="stop"> \
+                        <span class="oi oi-media-stop" aria-hidden="true"></span> \
+                    </button> \
+                </div> \
+                <div class="col-0 pl-2"> \
+                    <button type="button" class="btn btn-sm  btn-secondary btnPlaylistPlay" title="play all"> \
+                        <span class="oi oi-media-play" aria-hidden="true"></span> \
+                    </button> \
+                </div> \
+            </div> \
+        </div> \
+        <!--<div class="col-2 offset-3 pr-4"> \
+             <select id="selectWindow" class="custom-select form-control"> \
+             <option value="0">window 1</option> \
+             <option value="1">window 2</option> \
+             <option value="2">window 3</option> \
+             <option value="3">window 4</option> \
+             <option value="4">window 5</option> \
+             </select> \
+        </div> -->\
+        </div> \
+    <div id="divAnchor">';
+
+    //start the media list view (ul)
+    plContent += '<ul class="list-group list-group-sortable">';
+    //add playline files
+    $.each(files, function(i, file) {
+        plContent += ' \
+            <li class="list-group-item"> \
+                <div class="d-flex justify-content-between"> \
+                    <span>'+ file.name + '</span> \
+                    <input type="hidden" value="' + file.duration + '"> \
+                    <div> \
+                        <span class="pr-3 text-secondary">' + secondsTimeSpanToHMS(file.duration) + '</span> \
+                        <button type="button" class="btn btn-sm  btn-secondary btnMediaPlay" title="play"> \
+                            <span class="oi oi-media-play" aria-hidden="true"></span> \
+                        </button> \
+                        <button type="button" name="RemoveMedia" class="btn btn-sm btn-secondary btnRemoveMedia" title="remove file from the playlist"> \
+                            <span class="oi oi-x" aria-hidden="true"></span> \
+                        </button> \
+                    </div> \
+                </div> \
+            </li>';
+    });
+    
+    plContent += '</ul></div>';
+
+    //collapse add media
+    plContent += '<div class="form-group row pt-3 pl-2"> \
+            <div id="divAccordionParent" class="col" data-children=".item"> \
+                <div class="item"> \
+                    <a data-toggle="collapse" class="text-secondary" data-parent="#divAccordionParent" href="#divAccordion" aria-expanded="true" aria-controls="divAccordion"> \
+                    <span class="oi oi-plus" aria-hidden="true"></span>&nbsp;&nbsp;add media \
+                    </a> \
+                    <div id="divAccordion" class="collapse pt-3" role="tabpanel"> \
+                        <div class="form-group row"> \
+                            <div class="col-3"> \
+                                <label for="inUrl" class="col-form-label">Select Video File:</label> \
+                            </div> \
+                            <div class="col-7"> \
+                                <select id="selectFiles" class="custom-select form-control"></select> \
+                            </div> \
+                            <div class="col-1"> \
+                                <button type="button" class="btn btn-secondary btn-sm-3 btnAddFile">Add</button> \
+                            </div> \
+                        </div> \
+                        <div class="form-group row"> \
+                            <div class="col-3"> \
+                                <label for="inUrl" class="col-form-label">URL (streaming Video):</label> \
+                            </div> \
+                            <div class="col-7"> \
+                                <input type="text" id="inUrl" class="form-control" placeholder="http, https, rtsp, rtp, udp, wmsp, rtmp protocols"> \
+                            </div> \
+                            <div class="col-1"> \
+                                <button type="button" class="btn btn-secondary btn-sm-3 btnAddUrl">Add</button> \
+                            </div> \
+                        </div> \
+                        <div class="form-group row"> \
+                                <div class="col-3"> \
+                                    <label for="inUrl" class="col-form-label">Select Image File:</label> \
+                                </div> \
+                                <div class="col-7"> \
+                                    <select id="selectImageFiles" class="custom-select form-control"></select> \
+                                </div> \
+                        </div> \
+                        <div class="form-group row"> \
+                                <label for="inDuration" class="col-3 col-form-label">Image Display Duration:</label> \
+                                <div class="col-2"> \
+                                    <input class="timepicker form-control" id="inImageDuration" placeholder="00:00:00"/> \
+                                </div> \
+                                <div class="offset-5 col-1"> \
+                                    <button type="button" class="btn btn-secondary btn-sm-3 btnAddImage">Add</button> \
+                                </div> \
+                        </div> \
+                    </div> \
+                </div> \
+            </div> \
+       </div>';
+    
+    plContent += '</div></div>';
+            
+    return plContent;
+}
+
+function viewPlaylists(data)
+{
+    var formContent = '';
+    $.each(data, function(i, item){
+        formContent += viewPlaylist(item.name, item.fileList);
+    });
+
+    $("div#titleDiv").after(formContent);
+}
+
+function secondsTimeSpanToHMS(s)
+{
+    var h = Math.floor(s/3600); //Get whole hours
+    s -= h*3600;
+    var m = Math.floor(s/60); //Get remaining minutes
+    s -= m*60;
+    return h+":"+(m < 10 ? '0'+m : m)+":"+(s < 10 ? '0'+s : s); //zero padding on minutes and seconds
+}
+
+function loadDropDownSelect(data)
+{
+    var imageCount = 0;
+    var videoCount = 0;
+    
+    $.each(data, function(i, item) {
+        // not selecting audio file for while
+        if (item.name.toLowerCase().indexOf(".aac") == -1 && item.name.toLowerCase().indexOf(".mp3") == -1)
+        {
+            if (item.name.toLowerCase().indexOf(".jpg") == -1 && item.name.toLowerCase().indexOf(".gif") == -1 &&
+                item.name.toLowerCase().indexOf(".png") == -1 && item.name.toLowerCase().indexOf(".bmp") == -1 &&
+                item.name.toLowerCase().indexOf(".jpeg") == -1)
+            {
+                videoCount++;
+                if (item.duration > 0)
+                {
+                    $('#selectFiles').append($('<option>', {
+                        value: JSON.stringify(item),
+                        text : item.name + ' - ' + secondsTimeSpanToHMS(item.duration)
+                    }));
+                }
+                else
+                {
+                    $('#selectFiles').append($('<option>', {
+                        value: JSON.stringify(item),
+                        text : item.name
+                    }));
+                }
+            }
+            else
+            {
+                imageCount++;
+                $('#selectImageFiles').append($('<option>', {
+                    value: JSON.stringify(item),
+                    text : item.name
+                }));
+            }
+        }
+    });
+    if (videoCount == 0)
+    {
+        $('#selectFiles').append('<OPTION value="NONE">NONE</OPTION>');
+    }
+    
+    if (imageCount == 0)
+    {
+        $('#selectImageFiles').append('<OPTION value="NONE">NONE</OPTION>');
+    }
+}
+
+//** ajax functions  **//
+function listPlaylist()
+{
+    var token = $.cookie("token");
+
+    $.ajax({
+        type: 'GET',
+        url: apiUrl + "/playlist",
+        dataType: "json",
+        headers: {"Authorization": token},
+        success: function(response){
+            if(response.status == "success")
+            {
+                playListArray = new Array();
+                $('#slPlaylist').empty();
+                $.each(response.data, function(i, item) {
+                    playListArray.push(item);
+                    $('#slPlaylist').append($('<option>', {
+                        value: item.name,
+                        text : item.name
+                    }));
+                });
+                $("#btnSelectPlayList").prop('disabled', true);
+            }
+            else if(response.status == "failed")
+            {
+                alert("failed to list playlist");
+            }
+            
+        },
+        error: function (jqXHR, status) {
+            if (jqXHR.status == 401) 
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });    
+}
+
+function getMedia(action)
+{
+    var token = $.cookie("token");
+
+    $.ajax({
+        type: 'PUT',
+        url: apiUrl + "/getmedia/action",
+        dataType: "json",
+        headers: {"Authorization": token},
+        data: {"action":action},
+        success: function(response){
+            if (response.status == "failed")
+            {
+                alert("failed to get media");
+            }
+            else
+            {
+                $('#selectFiles').empty();
+                $('#selectImageFiles').empty();
+                if (response.data[0].objects.length > 0)
+                {
+                    loadDropDownSelect(response.data[0].objects);
+                }
+                else
+                {
+                    $('#selectFiles').append('<OPTION value="NONE">NONE</OPTION>');
+                    $('#selectImageFiles').append('<OPTION value="NONE">NONE</OPTION>');
+                }
+            }
+        },
+        error: function (jqXHR, status) {
+            $('.modal').modal('hide');
+            sleep(1000);
+            if (jqXHR.status == 401)
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });
+}
+
+function playMedia(action, mediaName)
+{
+    var token  = $.cookie("token");
+    
+    if (action == 'play')
+    {
+        $.ajax({
+            type: 'PUT',
+            url: apiUrl + "/playmedia/play-full-screen",
+            dataType: "json",
+            headers: {"Authorization": token},
+            data: {"media":mediaName},
+            success: function(response){
+                if (response.status == "failed")
+                {
+                    alert("failed to execute ".concat(action));
+                }
+            },
+            error: function (jqXHR, status) {
+                if (jqXHR.status == 401) 
+                {
+                    loadContent('userlogin.html', 'Please login');
+                }
+            }
+        });
+    } else {
+        $.ajax({
+            type: 'PUT',
+            url: apiUrl + "/playmedia/action",
+            dataType: "json",
+            headers: {"Authorization": token},
+            data: {"action":action, "window":0},
+            success: function(response){
+                if (response.status == "failed")
+                {
+                    alert("failed to execute ".concat(action));
+                }
+            },
+            error: function (jqXHR, status) {
+                if (jqXHR.status == 401) 
+                {
+                    loadContent('userlogin.html', 'Please login');
+                }
+            }
+        });
+    }
+    
+}
+
+function updatePlaylist(NewPlaylistName, OldPlaylistName, description, files, updateView = false)
+{
+    var token = $.cookie("token");
+
+    $.ajax({
+        type: 'PUT',
+        url: apiUrl + "/playlist/" + OldPlaylistName,
+        dataType: "json",
+        headers: {"Authorization": token},
+        data: {"name":NewPlaylistName, "description": description, "files":files},
+        success: function(response){
+            if(response.status == "success")
+            {
+                if (updateView)
+                {
+                    switch(updateView) {
+                    case "addVideo":
+                        addVideoListView();
+                        break;
+                    case "addUrl":
+                        addUrlListView();
+                        break;
+                    case "addImage":
+                        addImageListView();
+                        break;
+                    case "delete":
+                        $(".list-group-sortable").find('li.liRemove').each(function(){
+                            $(this).remove();
+                        });
+                        break;
+                    default:
+                        alert("add media view failed");
+                    }
+                }
+            }
+            else if(response.status == "failed")
+            {
+                alert("failed to update playlist");
+            }
+            
+        },
+        error: function (jqXHR, status) {
+            $(".modal").modal('hide');
+            sleep(1000);
+            if (jqXHR.status == 401) 
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });
+}
+
+function createPlaylist(plName, plDescription)
+{
+    var token = $.cookie("token");
+    //files = new Array();
+    $.ajax({
+        type: 'POST',
+        url: apiUrl + "/playlist",
+        dataType: "json",
+        headers: {"Authorization": token},
+        data: {"name":plName, "description": plDescription},
+        success: function(response){
+            $(".modal").modal('hide');
+            if(response.status == "success")
+            {
+                //refresh playlist list
+                listPlaylist();
+                $("#modal").css({ display: "none" });
+                $("#taDescription").val(plDescription);
+            }
+            else if(response.status == "failed")
+            {
+                alert("failed to create playlist");
+            }
+        },
+        error: function (jqXHR, status) {
+            $(".modal").modal('hide');
+            sleep(1000);
+            if (jqXHR.status == 401) 
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });
+}
+
+function deletePlaylist(playlistName)
+{
+    var token = $.cookie("token");
+
+    $.ajax({
+        type: 'DELETE',
+        url: apiUrl + "/playlist/" + playlistName,
+        dataType: "json",
+        headers: {"Authorization": token},
+        success: function(response){
+            if(response.status == "success")
+            {
+                var plSelected = $("#slPlaylist option:selected").val();
+                
+                //if (playlistName == plSelected)
+                //{
+                    $("#taDescription").val("");
+                //}
+                //refresh playlist list
+                listPlaylist();
+                $("#".concat(playlistName)).parent().remove();
+            }
+            else if(response.status == "failed")
+            {
+                alert("failed to delete playlist");
+            }
+            
+        },
+        error: function (jqXHR, status) {
+            if (jqXHR.status == 401) 
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });
+}
+
+</SCRIPT>

@@ -342,7 +342,7 @@ static MediaRegisterAddress _txMediaAddress =
 	.pktSize = 
 	{
 		.device = &_fpgaDevTxSystem,
-		.offset = EXT_FPGA_REG_AUDIO_PKT_SIZE,
+		.offset = F_REG_TX_AUDIO_PKT_SIZE,
 #if FPGA_DEBUG
 		.name = "txMediaPktSize",
 #endif
@@ -421,6 +421,15 @@ static TxRegisterMap _TX_ADDRESS =
 		.offset = F_REG_TX_SYS_STREAM_ENABLE,
 #if FPGA_DEBUG
 		.name = "txStreamEnable",
+#endif
+	},
+
+	.rtpTimestamp = 
+	{
+		.device = &_fpgaDevTxRtp,
+		.offset = F_REG_TX_RTP_TIMESTAMP,
+#if FPGA_DEBUG
+		.name = "txRtpTimestamp",
 #endif
 	},
 
@@ -884,6 +893,16 @@ static RxRegisterMap _RX_ADDRESS =
 		.name = "rxStreamEnable",
 #endif
 	},
+
+	.rtpTimestamp = 
+	{
+		.device = &_fpgaDevRxRtp,
+		.offset = F_REG_RX_RTP_TIMESTAMP,
+#if FPGA_DEBUG
+		.name = "rxRtpTimestamp",
+#endif
+	},
+
 
 	.irCtrl = 
 	{

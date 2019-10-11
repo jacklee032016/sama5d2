@@ -10,6 +10,11 @@
 
 MUX_LAB_HOME=/opt/mLab
 
+
+#detect if new upgrade firmware present, then reboot 
+/opt/mLab/firmware_detect &
+
+
 echo "install w1 DS28e15 driver..."
 insmod $MUX_LAB_HOME/drv/w1Ds28e15.ko
 echo ""

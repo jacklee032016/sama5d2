@@ -20,14 +20,15 @@ SRCDIR=`echo $2 | sed 's/\/\//\//g'`
 	mkdir -p $PKGDIR/sbin
 	mkdir -p $PKGDIR/lib
 	mkdir -p $PKGDIR/etc/apache2
+	mkdir -p $PKGDIR/etc/php/apache2-php7
 	mkdir -p $PKGDIR/etc/avahi
 	mkdir -p $PKGDIR/etc/mLab
 	mkdir -p $PKGDIR/etc/network
+	mkdir -p $PKGDIR/etc/init.d
 	mkdir -p $PKGDIR/etc/rc5.d
-	mkdir -p $PKGDIR/etc/sys
-	mkdir -p $PKGDIR/var/www/apis
-	mkdir -p $PKGDIR/var/www/cgi-bin
+	#mkdir -p $PKGDIR/etc/sys
 	mkdir -p $PKGDIR/opt
+	mkdir -p $PKGDIR/var/www
 
 	# muxConfig.dat: default no configurtion data. It is created with hardware detection
 	CONFIG_FILES="muxLab.png muxMain.conf  
@@ -40,12 +41,14 @@ SRCDIR=`echo $2 | sed 's/\/\//\//g'`
 	cp $VERBOSE $SRCDIR/etc/fw_env.config	$PKGDIR/etc/
 	cp $VERBOSE -r $SRCDIR/etc/avahi		$PKGDIR/etc
 	cp $VERBOSE -r $SRCDIR/etc/network		$PKGDIR/etc
+	cp $VERBOSE -r $SRCDIR/etc/init.d		$PKGDIR/etc
 	cp $VERBOSE -r $SRCDIR/etc/rc5.d		$PKGDIR/etc
-	cp $VERBOSE -r $SRCDIR/etc/sys			$PKGDIR/etc
+	#cp $VERBOSE -r $SRCDIR/etc/sys			$PKGDIR/etc
 	for cfg in $CONFIG_FILES; do
 		cp $VERBOSE -r $SRCDIR/etc/mLab/$cfg $PKGDIR/etc/mLab
 	done
 	cp $VERBOSE $SRCDIR/etc/apache2/httpd.conf	$PKGDIR/etc/apache2/
+	cp $VERBOSE $SRCDIR/etc/php/apache2-php7/php.ini	$PKGDIR/etc/php/apache2-php7/php.ini
 
 	#	cp $VERBOSE -r $SRCDIR/etc/mLab/muxWeb.conf $PKGDIR/etc/mLab/muxWeb.conf
 
@@ -93,14 +96,14 @@ SRCDIR=`echo $2 | sed 's/\/\//\//g'`
 
 
 	
-	echo ""
+	#echo ""
 #	echo "   Copy CGI into $PKGDIR..."
-	EXES=`find $DATDIR/var/www/apis/ -type f `
-	for p in $EXES; do
-			f=`basename $p`
-			echo "                  $f is copied..."
-			cp $VERBOSE $p $PKGDIR/var/www/apis/
-	done
+	#EXES=`find $DATDIR/var/www/apis/ -type f `
+	#for p in $EXES; do
+	#		f=`basename $p`
+	#		echo "                  $f is copied..."
+	#		cp $VERBOSE $p $PKGDIR/var/www/apis/
+	#done
 
 	
 		echo ""

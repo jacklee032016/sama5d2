@@ -1,0 +1,395 @@
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <form id="fmTimeConf">
+                <DIV class="row">
+                    <H2>Set Time Manually</H2>
+                </DIV>
+                <div class="form-group row pl-2">
+                    <div class="col pr-1">
+                        <label for="date">Date</label>
+                        <input class="form-control" type="date" id="date" required>
+                    </div>
+                    <div class="col pl-1 pr-1">
+                        <label for="time">Time</label>
+                        <input class="form-control" type="time" id="time" step="1" required>
+                    </div>
+                </div>
+                <div class="form-group row pl-2 ">
+                    <div class="col">
+                        <button type="submit" class="btn btn-secondary">Apply Changes</button>
+                        <label id="lblTimeManual" class="col-2 col-form-label ml-3 text-danger" style="display: none;">Applied</label>
+                    </div>
+                </div>
+                </form>
+            </div>
+            <div class="col">
+                <DIV class="row">
+                    <H2>Set Time Zone</H2>
+                </DIV>
+                <div class="form-group row pl-2">
+                    <div class="col-9 pr-1">
+                        <label for="select_time_zone">Time zone changes require device reboot.</label>
+                        <SELECT id="select_time_zone" class="form-control" name="select_time_zone">
+                        </SELECT>
+                    </div>
+                </div>
+
+                <div class="form-group row pl-2 ">
+                    <div class="col">
+                        <button type="button" id="bntTimezone" class="btn btn-secondary">Apply Changes</button>
+                        <label id="lblTimeZone" class="col-2 col-form-label ml-3 text-danger" style="display: none;">Applied</label>
+                    </div>
+                </div>                
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <DIV class="row">
+                    <H2>Browser Date Time</H2>
+                </DIV>
+                <div class="form-group row pl-2">
+                    <div class="col pr-1 pt-2">
+                        <label for="preview-date">Date Time retrieved from the browser. Click Apply to use Browser Date Time</label>
+                        <p id="preview-date" class="pt-3"> </p>
+                    </div>
+                </div>
+                <div class="form-group row pl-2">
+                    <div class="form-group col">
+                        <button type="button" id="btnBrowserDT" class="btn btn-secondary">Apply Date Time</button>
+                        <label id="lblBrowser" class="col-2 col-form-label ml-3 text-danger" style="display: none;">Applied</label>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <DIV class="row">
+                    <H2>SET NTP Server</H2>
+                </DIV>
+                <div class="form-group row pl-2">
+                    <div class="col-8 pr-1 pt-2">
+                       <label for="inpNTP">Current NTP Server</label>
+                       <input class="form-control" type="text" id="inpNTP" required>
+                    </div>
+                </div>
+                <div class="form-group row">
+                &nbsp
+                </div>
+                <div class="form-group row pl-2">
+                    <div class="col">
+                        <button type="button" id="btnNTP" class="btn btn-secondary">Apply Changes</button>
+                        <label id="lblNTP" class="col-2 col-form-label ml-3 text-danger" style="display: none;">Applied</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+	</div>
+<script type="text/javascript">
+
+getDate();
+getTimeZoneList();
+getNtpServer();
+startTime();
+
+function startTime() {
+    var today = new Date();
+    var y  = today.getFullYear();
+    var mt = today.getMonth()+1;
+    var d  = today.getDate();
+    var h  = today.getHours();
+    var m  = today.getMinutes();
+    var s  = today.getSeconds();
+    m = checkTime(m);
+    s = checkTime(s);
+    $("#preview-date").text(y + "-" + mt + "-" + d + " " + h + ":" + m + ":" + s);
+    var t = setTimeout(startTime, 500);
+}
+function checkTime(i) {
+    if (i < 10) {i = "0" + i};  // add zero in front of numbers < 10
+    return i;
+}
+
+$("#fmTimeConf").submit(function(event) {
+    date = new Date(document.getElementById("date").value+"T00:00:00");
+    
+    let [hour, minute, second] = $('#time').val().split(":");
+    day   = date.getDate();
+    month = date.getMonth() + 1;
+    year  = date.getFullYear();
+
+    if (typeof second === 'undefined' || second == null) {
+        second = '00';
+    }
+    
+    setDate(year, month, day, hour, minute, second, "manual");
+    event.preventDefault();
+    return false;
+});
+
+$("#btnNTP").click(function() {
+    setNtpServer($("#inpNTP").val());
+});
+
+$("#btnBrowserDT").click(function() {
+    var dt = new Date();
+    setDate(dt.getFullYear(), dt.getMonth() + 1, dt.getDate(), dt.getHours(), dt.getMinutes(), dt.getSeconds(), "browser");
+});
+
+$("#bntTimezone").click(function() {
+    if (confirm("Changing the timezome will reboot the system"))
+    {
+	    tzLocation = $("#select_time_zone option:selected").text();
+	    tzString   = $("#select_time_zone option:selected").val();
+	    setTimeZone(tzLocation, tzString);
+    }
+});
+
+//ajax functions
+function getDate()
+{
+    var token = $.cookie("token");
+    $.ajax({
+        method: "GET",
+        url: apiUrl + "/device/date",
+        headers: {"Authorization": token},
+        success: function(response) {
+            if (response.status == "success")
+            {
+                data = response.data;
+                $("#date").val(data['year']+"-"+data['month']+"-"+data['day']);
+                $("#time").val(data['hour']+":"+data['minute']+":"+data['second']);
+            }
+            else
+            {
+                $('#message').css("display", "block");
+                $('#message').html("Unable to communicate correctly");
+            }
+        },
+        error: function (jqXHR, status) {
+            if (jqXHR.status == 401) //token not valid or expired
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });
+}
+
+function setDate(year, month, day, hour, minute, second, section)
+{
+    var formData = {"year":parseInt(year), "month":parseInt(month), "day":parseInt(day), "hour":parseInt(hour), "minute":parseInt(minute), "second":parseInt(second)};
+
+    var token = $.cookie("token");
+    $.ajax({
+        method: "PUT",
+        url: apiUrl + "/device/date",
+        headers: {"Authorization": token},
+        data: formData,
+        success: function(response) {
+            if (response.status == "success")
+            {
+                data = response.data;
+                $("#date").val(data['year']+"-"+data['month']+"-"+data['day']);
+                $("#time").val(data['hour']+":"+data['minute']+":"+data['second']);
+                
+                if (section == "manual")
+                {
+                    $("#lblTimeManual").show();
+                    $("#lblTimeManual").fadeOut(1500);
+                } else {
+                    $("#lblBrowser").show();
+                    $("#lblBrowser").fadeOut(1500);
+                }
+            }
+            else
+            {
+                $('#message').css("display", "block");
+                $('#message').html("Unable to communicate correctly");
+            }
+        },
+        error: function (jqXHR, status) {
+            if (jqXHR.status == 401) //token not valid or expired
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });
+}
+
+
+function getTimeZoneList()
+{
+    var token = $.cookie("token");
+    $.ajax({
+        method: "GET",
+        url: apiUrl + "/device/timezone/list",
+        headers: {"Authorization": token},
+        success: function(response) {
+            if (response.status == "success")
+            {
+                data = response.data;
+                //time zone options
+                $.each(data, function(i, item) {
+                    $('#select_time_zone').append($('<option>', { 
+                        value: item['tz_string'],
+                        text : item['location'] 
+                    }));
+                });
+                
+                getTimeZone();
+            }
+            else
+            {
+                $('#message').css("display", "block");
+                $('#message').html("Unable to communicate correctly");
+            }
+        },
+        error: function (jqXHR, status) {
+            if (jqXHR.status == 401) //token not valid or expired
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });
+}
+
+function getTimeZone()
+{
+    var token = $.cookie("token");
+    $.ajax({
+        method: "GET",
+        url: apiUrl + "/device/timezone",
+        headers: {"Authorization": token},
+        success: function(response) {
+            if (response.status == "success")
+            {
+                data = response.data;
+                $("#select_time_zone").find('option:contains('+ data['location'] +')').attr("selected",true);
+            }
+            else
+            {
+                $('#message').css("display", "block");
+                $('#message').html("Unable to communicate correctly");
+            }
+        },
+        error: function (jqXHR, status) {
+            if (jqXHR.status == 401) //token not valid or expired
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });
+}
+
+function setTimeZone(tzLocation, tzString)
+{
+    var token = $.cookie("token");
+    $.ajax({
+        method: "PUT",
+        url: apiUrl + "/device/timezone",
+        headers: {"Authorization": token},
+        data: {"location":tzLocation, "tz_string":tzString},
+        success: function(response) {
+            if (response.status == "success")
+            {
+                data = response.data;
+                $("#select_time_zone").find('option:contains('+ data['location'] +')').attr("selected",true);
+                
+                $('#message').css("display", "block");
+                $('#message').html("Rebooting&nbsp;&nbsp;&nbsp;");
+                $("#content").html("");
+                var dots = 0;
+                var threeDots = window.setInterval( function() 
+                {
+                    if ( dots == 1 )
+                        $('#message').html("Rebooting.&nbsp;&nbsp;");
+                    else if ( dots == 2 )
+                        $('#message').html("Rebooting..&nbsp;");
+                    else if (dots == 3)
+                        $('#message').html("Rebooting...");
+                    else{
+                        $('#message').html("Rebooting&nbsp;&nbsp;&nbsp;");
+                        dots = 0;
+                    }
+                    
+                    dots++;
+                }, 200);
+                
+                window.setTimeout( function()
+                {
+                    window.clearInterval(threeDots);
+                    loadContent('time.html');
+                }, 40000);
+            }
+            else
+            {
+                $('#message').css("display", "block");
+                $('#message').html("Unable to communicate correctly");
+            }
+        },
+        error: function (jqXHR, status) {
+            if (jqXHR.status == 401) //token not valid or expired
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });
+}
+
+function getNtpServer()
+{
+    var token = $.cookie("token");
+    $.ajax({
+        method: "GET",
+        url: apiUrl + "/device/ntp",
+        headers: {"Authorization": token},
+        success: function(response) {
+            if (response.status == "success")
+            {
+                data = response.data;
+                $("#inpNTP").val(data['server']);
+            }
+            else
+            {
+                $('#message').css("display", "block");
+                $('#message').html("Unable to communicate correctly");
+            }
+        },
+        error: function (jqXHR, status) {
+            if (jqXHR.status == 401) //token not valid or expired
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });
+}
+
+function setNtpServer(server)
+{
+    var token = $.cookie("token");
+    $.ajax({
+        method: "PUT",
+        url: apiUrl + "/device/ntp",
+        headers: {"Authorization": token},
+        data: {"server":server},
+        success: function(response) {
+            if (response.status == "success")
+            {
+                $("#lblNTP").show();
+                $("#lblNTP").fadeOut(1500);
+            }
+            else
+            {
+                $('#message').css("display", "block");
+                $('#message').html("Unable to communicate correctly");
+            }
+        },
+        error: function (jqXHR, status) {
+            if (jqXHR.status == 401) //token not valid or expired
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });
+}
+
+</script>

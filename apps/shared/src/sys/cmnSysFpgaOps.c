@@ -10,6 +10,13 @@
 #include "muxFpga.h"
 
 
+#define	FPGA_UPDATE_PTP_TIMESTAMP(fpga) \
+	do{	/* write timestamp */ uint32_t fpgaTs = FPGA_GET_PTP_TIMESTAMP(); \
+		EXT_INFOF("Write RtpTimestamp: %lu(0x%x)", fpgaTs, fpgaTs); \
+		_extFpgaWriteIntegerChange(&fpga->txAddress->rtpTimestamp, &fpgaTs);	}while(0)
+
+
+
 int	sysFpgaTxConfig(FpgaConfig *fpga)
 {
 //	unsigned char		chValue;
@@ -324,6 +331,9 @@ int sysFpgaTxReadParams(FpgaConfig *fpga)
 	runCfg->runtime.rtpTypeAnc = (_chValue&0x7F);
 #endif
 
+	/* write timestamp */
+	FPGA_UPDATE_PTP_TIMESTAMP(fpga);
+
 	return fpgaReadParamRegisters(fpga->txAddress->media, runCfg);
 }
 
@@ -421,6 +431,24 @@ int sysFpgaRxWriteParams(FpgaConfig *fpga)
 }
 
 
+int	_txUpdateParams(EXT_RUNTIME_CFG *runCfg)
+{
+	unsigned char _audioSelect = 0, sampleFreq, depth;
+	cmnSysI2cTxReadAudioParams(&runCfg->runtime.aSampleRate, &runCfg->runtime.aChannels, &runCfg->runtime.aDepth);
+	
+	depth = (runCfg->runtime.aDepth==24)?3:(runCfg->runtime.aDepth==20)?2:(runCfg->runtime.aDepth==16)?1:INVALIDATE_VALUE_U8;
+	sampleFreq = runCfg->runtime.aSampleRate;
+	_audioSelect = (runCfg->runtime.aChannels-1) | (sampleFreq<<3) | (depth<<6);
+	EXT_INFOF("Audio Depth: %d; SampleRate:%d; Channel: %d; audioSelect:0x%x", 
+		runCfg->runtime.aDepth, runCfg->runtime.aSampleRate, runCfg->runtime.aChannels, _audioSelect);
+
+	FPGA_I2C_WRITE(F_REG_TX_SYS_AUDIO_SELECT, &_audioSelect, 1);
+
+	return EXIT_SUCCESS;
+}
+
+
+
 /* both for TX/RX */
 /* fpgaXXX is name used in fpga module only */
 int fpgaReadParamRegisters(MediaRegisterAddress *addrMedia, EXT_RUNTIME_CFG *runCfg)
@@ -477,7 +505,7 @@ int fpgaReadParamRegisters(MediaRegisterAddress *addrMedia, EXT_RUNTIME_CFG *run
 #elif (MUX_BOARD == MUX_BOARD_774)
 	if(EXT_IS_TX(runCfg))
 	{
-		cmnSysI2cTxReadAudioParams(&runCfg->runtime.aSampleRate, &runCfg->runtime.aChannels, &runCfg->runtime.aDepth);
+		_txUpdateParams(runCfg);
 	}
 	else
 	{
@@ -488,7 +516,7 @@ int fpgaReadParamRegisters(MediaRegisterAddress *addrMedia, EXT_RUNTIME_CFG *run
 #error 	Not support board definition
 #endif
 	
-#if 0
+#if 1
 	/* only for test, 09.26. 2019 */
 	_extFpgaReadByte(&addrMedia->pktSize, &runCfg->runtime.aPktSize );
 #else
@@ -499,6 +527,43 @@ int fpgaReadParamRegisters(MediaRegisterAddress *addrMedia, EXT_RUNTIME_CFG *run
 #if 0
 	FPGA_I2C_READ(EXT_FPGA_REG_ANC_VPID, &runCfg->runtime.vpid, 1);
 #endif
+
+	return EXIT_SUCCESS;
+}
+
+
+int sysFpgaTxPollUpdateParams(void *data)
+{
+#define	NEW_PARAM_AVAILABLE(chValue)		(chValue==0x01)
+
+	FpgaConfig 	*fpga =  (FpgaConfig 	*)data;
+
+	EXT_ASSERT((fpga != NULL), "FPAG failed: %p", data);
+		
+	unsigned char _chValue;
+	EXT_RUNTIME_CFG *runCfg = fpga->runCfg;
+
+
+	FPGA_UPDATE_PTP_TIMESTAMP(fpga);
+
+	if(! EXT_IS_TX(runCfg))
+	{
+		return EXIT_FAILURE;
+	}
+
+	_extFpgaReadByte(&fpga->txAddress->media->paramStatus, &_chValue);
+	if( NEW_PARAM_AVAILABLE(_chValue) )
+	{
+		EXT_DEBUGF(MUX_DEBUG_FPGA, "New params is available now");
+
+		/* update params */
+		_txUpdateParams(runCfg);
+
+		/* clear register */
+		_chValue = INVALIDATE_VALUE_U8;
+		_extFpgaWriteByte(&fpga->txAddress->media->paramStatus, &_chValue);
+
+	}
 
 	return EXIT_SUCCESS;
 }

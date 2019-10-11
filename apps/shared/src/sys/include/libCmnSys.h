@@ -145,6 +145,8 @@ char *sysFgpaBuilt(void);
 
 int	sysFpgaReadIrDemodulation(unsigned char *freq);
 
+int sysFpgaTxPollUpdateParams(void *data);
+
 
 int cmnSysJsonUpdate(MuxMain *muxMain);
 
@@ -376,6 +378,13 @@ int	cmnSysI2cTxReadAudioParams(unsigned char *sampleRate, unsigned char *channel
 
 int cmnSysI2cSi5351VcxoPllCheck(void);
 int cmnSysI2cSi5351VcxoControl(unsigned long clkFreq);
+
+
+/* in unit of micro second, eg. 1/90000 */
+#define	FPGA_TIMESTAMP_UNIT			11111
+
+#define	FPGA_GET_PTP_TIMESTAMP()		\
+		(uint32_t)(cmnGetTimeUs()/FPGA_TIMESTAMP_UNIT)
 
 
 #endif

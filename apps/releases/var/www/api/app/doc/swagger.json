@@ -1,0 +1,1571 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "500762 HDMI Digital Signage Media Player Api Documentation",
+        "version": "1.0.0"
+    },
+    "host": "device_ip:8888",
+    "basePath": "/",
+    "schemes": [
+        "http"
+    ],
+    "paths": {
+        "/auth/signin": {
+            "post": {
+                "tags": [
+                    "Login"
+                ],
+                "summary": "User login",
+                "description": "basic authentication by token, 1 hour idle token expiration.",
+                "operationId": "signin",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/UserLogin"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "properties": {
+                                "status": {
+                                    "type": "string",
+                                    "example": "success"
+                                },
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "token": {
+                                                "type": "string",
+                                                "example": "963c6f33e8d7643eb5301c6c630effce"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "authentication failed",
+                        "schema": {
+                            "$ref": "#/definitions/401_response"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/change-password": {
+            "post": {
+                "tags": [
+                    "Login"
+                ],
+                "summary": "Change user password",
+                "description": "Change user password",
+                "operationId": "change-password",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "Access token retrieved from the login API",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "required": [
+                                "password_old",
+                                "password"
+                            ],
+                            "properties": {
+                                "password_old": {
+                                    "type": "string",
+                                    "example": "admin2"
+                                },
+                                "password": {
+                                    "type": "string",
+                                    "example": "admin"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "properties": {
+                                "status": {
+                                    "type": "string",
+                                    "example": "success"
+                                },
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "token": {
+                                                "type": "string",
+                                                "example": "963c6f33e8d7643eb5301c6c630effce"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "201": {
+                        "description": "validation failed - OBS: the code response is 200 but swagger does not allow multiple response schemas for the same code",
+                        "schema": {
+                            "properties": {
+                                "status": {
+                                    "type": "string",
+                                    "example": "failed"
+                                },
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "password_old": {
+                                                "type": "string",
+                                                "example": "Old password does not match"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "authentication failed",
+                        "schema": {
+                            "$ref": "#/definitions/401_response"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/signout": {
+            "post": {
+                "tags": [
+                    "Login"
+                ],
+                "summary": "User logout",
+                "description": "User logout.",
+                "operationId": "sighout",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "Access token retrieved from the login API",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "properties": {
+                                "status": {
+                                    "type": "string",
+                                    "example": "success"
+                                },
+                                "data": {
+                                    "type": "array",
+                                    "items": {}
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "authentication failed",
+                        "schema": {
+                            "$ref": "#/definitions/401_response"
+                        }
+                    }
+                }
+            }
+        },
+        "/device/param": {
+            "get": {
+                "tags": [
+                    "Device"
+                ],
+                "summary": "Get system information",
+                "description": "Get system information.",
+                "operationId": "device_param_get",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "Access token retrieved from the login API",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "properties": {
+                                "status": {
+                                    "type": "string",
+                                    "example": "success"
+                                },
+                                "data": {
+                                    "properties": {
+                                        "system": {
+                                            "$ref": "#/definitions/system"
+                                        },
+                                        "video": {
+                                            "$ref": "#/definitions/video"
+                                        },
+                                        "audio": {
+                                            "$ref": "#/definitions/audio"
+                                        },
+                                        "anc": {
+                                            "$ref": "#/definitions/anc"
+                                        },
+                                        "sdp": {
+                                            "$ref": "#/definitions/sdp"
+                                        },
+                                        "rs232": {
+                                            "$ref": "#/definitions/rs232"
+                                        },
+                                        "IR": {
+                                            "$ref": "#/definitions/IR"
+                                        },
+                                        "security": {
+                                            "$ref": "#/definitions/security"
+                                        },
+                                        "rs232List": {
+                                            "$ref": "#/definitions/rs232List"
+                                        },
+                                        "videoList": {
+                                            "$ref": "#/definitions/videoList"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "authentication failed",
+                        "schema": {
+                            "$ref": "#/definitions/401_response"
+                        }
+                    }
+                }
+            }
+        },
+        "/device/security-check": {
+            "get": {
+                "tags": [
+                    "Device"
+                ],
+                "summary": "Get security status infomation",
+                "description": "Get security status infomation.",
+                "operationId": "device_security_get",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "Access token retrieved from the login API",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "properties": {
+                                "status": {
+                                    "type": "string",
+                                    "example": "success"
+                                },
+                                "data": {
+                                    "properties": {
+                                        "security_status": {
+                                            "description": "values: PASS, FAILED",
+                                            "type": "string",
+                                            "example": "PASS"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "authentication failed",
+                        "schema": {
+                            "$ref": "#/definitions/401_response"
+                        }
+                    }
+                }
+            }
+        },
+        "/device/network": {
+            "post": {
+                "tags": [
+                    "Device"
+                ],
+                "summary": "Set network infomation",
+                "description": "Set network infomation.",
+                "operationId": "device_network_Set",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "Access token retrieved from the login API",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "properties": {
+                                "ip": {
+                                    "type": "string",
+                                    "example": "192.168.168.205"
+                                },
+                                "mask": {
+                                    "type": "string",
+                                    "example": "255.255.255.0"
+                                },
+                                "getway": {
+                                    "type": "string",
+                                    "example": "192.168.168.1"
+                                },
+                                "isDhcp": {
+                                    "type": "string",
+                                    "example": "0"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "properties": {
+                                "status": {
+                                    "type": "string",
+                                    "example": "success"
+                                },
+                                "data": {
+                                    "items": {}
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "authentication failed",
+                        "schema": {
+                            "$ref": "#/definitions/401_response"
+                        }
+                    }
+                }
+            }
+        },
+        "/device/manual-settings": {
+            "post": {
+                "tags": [
+                    "Device"
+                ],
+                "summary": "Set device settings",
+                "description": "Set device settings.",
+                "operationId": "device_manual-settings",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "Access token retrieved from the login API",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "properties": {
+                                "videoip": {
+                                    "type": "string",
+                                    "example": "239.0.0.101"
+                                },
+                                "videoport": {
+                                    "type": "integer",
+                                    "example": 36000
+                                },
+                                "audioip": {
+                                    "type": "string",
+                                    "example": "239.0.0.100"
+                                },
+                                "audioport": {
+                                    "type": "integer",
+                                    "example": 36001
+                                },
+                                "fps": {
+                                    "type": "string",
+                                    "example": "60"
+                                },
+                                "colorSpace": {
+                                    "type": "string",
+                                    "example": "RGB"
+                                },
+                                "colorDepth": {
+                                    "type": "string",
+                                    "example": 16
+                                },
+                                "resolution": {
+                                    "type": "string",
+                                    "example": "1920x1080"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "properties": {
+                                "status": {
+                                    "type": "string",
+                                    "example": "success"
+                                },
+                                "data": {
+                                    "items": {}
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "authentication failed",
+                        "schema": {
+                            "$ref": "#/definitions/401_response"
+                        }
+                    }
+                }
+            }
+        },
+        "/device/sdp": {
+            "post": {
+                "tags": [
+                    "Device"
+                ],
+                "summary": "Set sdp parameters",
+                "description": "Set sdp parameters.",
+                "operationId": "device_sdp",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "Access token retrieved from the login API",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "properties": {
+                                "video": {
+                                    "properties": {
+                                        "ip": {
+                                            "type": "string",
+                                            "example": "192.168.168.101"
+                                        },
+                                        "port": {
+                                            "type": "integer",
+                                            "example": 36001
+                                        },
+                                        "uri": {
+                                            "type": "string",
+                                            "example": "video/sdp2"
+                                        }
+                                    }
+                                },
+                                "audio": {
+                                    "properties": {
+                                        "ip": {
+                                            "type": "string",
+                                            "example": "192.168.168.101"
+                                        },
+                                        "port": {
+                                            "type": "integer",
+                                            "example": 36001
+                                        },
+                                        "uri": {
+                                            "type": "string",
+                                            "example": "video/sdp2"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "properties": {
+                                "status": {
+                                    "type": "string",
+                                    "example": "success"
+                                },
+                                "data": {
+                                    "items": {}
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "authentication failed",
+                        "schema": {
+                            "$ref": "#/definitions/401_response"
+                        }
+                    }
+                }
+            }
+        },
+        "/device/notAuthParam": {
+            "get": {
+                "tags": [
+                    "Device"
+                ],
+                "summary": "Get some device information without authentication",
+                "description": "Get some device information without authentication.",
+                "operationId": "device_notAuthParam",
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "properties": {
+                                "status": {
+                                    "type": "string",
+                                    "example": "success"
+                                },
+                                "data": {
+                                    "properties": {
+                                        "isTX": {
+                                            "description": "1 for TX, 0 for RX",
+                                            "type": "integer",
+                                            "example": 0
+                                        },
+                                        "version": {
+                                            "type": "string",
+                                            "example": "1.0.0"
+                                        },
+                                        "built": {
+                                            "type": "string",
+                                            "example": "Aug 14 2019 16:09:55"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "authentication failed",
+                        "schema": {
+                            "$ref": "#/definitions/401_response"
+                        }
+                    }
+                }
+            }
+        },
+        "/device/reset": {
+            "post": {
+                "tags": [
+                    "Device"
+                ],
+                "summary": "Reset device",
+                "description": "Reset device.",
+                "operationId": "device_reset",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "Access token retrieved from the login API",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "properties": {
+                                "status": {
+                                    "type": "string",
+                                    "example": "success"
+                                },
+                                "data": {
+                                    "type": "array",
+                                    "items": {}
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "authentication failed",
+                        "schema": {
+                            "$ref": "#/definitions/401_response"
+                        }
+                    }
+                }
+            }
+        },
+        "/device/reboot": {
+            "post": {
+                "tags": [
+                    "Device"
+                ],
+                "summary": "Reboot device",
+                "description": "Reboot device.",
+                "operationId": "device_reboot",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "Access token retrieved from the login API",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "properties": {
+                                "status": {
+                                    "type": "string",
+                                    "example": "success"
+                                },
+                                "data": {
+                                    "type": "array",
+                                    "items": {}
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "authentication failed",
+                        "schema": {
+                            "$ref": "#/definitions/401_response"
+                        }
+                    }
+                }
+            }
+        },
+        "/device/blink": {
+            "put": {
+                "tags": [
+                    "Device"
+                ],
+                "summary": "Blink on/off",
+                "description": "Blink on/off.",
+                "operationId": "device_blink",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "Access token retrieved from the login API",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "required": [
+                                "blink"
+                            ],
+                            "properties": {
+                                "blink": {
+                                    "description": "true or false",
+                                    "type": "string",
+                                    "example": "true"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "properties": {
+                                "status": {
+                                    "type": "string",
+                                    "example": "success"
+                                },
+                                "data": {
+                                    "properties": {
+                                        "blink": {
+                                            "description": "0 - blink off, 1 - blink on",
+                                            "type": "integer",
+                                            "example": 0
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "authentication failed",
+                        "schema": {
+                            "$ref": "#/definitions/401_response"
+                        }
+                    }
+                }
+            }
+        },
+        "/device/upgrade": {
+            "put": {
+                "tags": [
+                    "Device"
+                ],
+                "summary": "Upgrade device",
+                "description": "Upgrade device.",
+                "operationId": "device_upgrade",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "Access token retrieved from the login API",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "fileToUpload",
+                        "in": "formData",
+                        "required": true,
+                        "type": "file"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "properties": {
+                                "status": {
+                                    "type": "string",
+                                    "example": "success"
+                                },
+                                "data": {
+                                    "items": {}
+                                }
+                            }
+                        }
+                    },
+                    "201": {
+                        "description": "validation failed - response code is 200 not 201, swagger limitation",
+                        "schema": {
+                            "properties": {
+                                "status": {
+                                    "type": "string",
+                                    "example": "failed"
+                                },
+                                "data": {
+                                    "properties": {
+                                        "fileTOUpload": {
+                                            "type": "string",
+                                            "example": "Firmware is not compatible!"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "authentication failed",
+                        "schema": {
+                            "$ref": "#/definitions/401_response"
+                        }
+                    }
+                }
+            }
+        },
+        "/rs232/sendData": {
+            "put": {
+                "tags": [
+                    "Rs232"
+                ],
+                "summary": "rs232 send hexadecimal data",
+                "description": "send hexadecimal data.",
+                "operationId": "rs232_sendData",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "Access token retrieved from the login API",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "required": [
+                                "data",
+                                "isFeedback"
+                            ],
+                            "properties": {
+                                "data": {
+                                    "type": "string",
+                                    "example": "A055B1FF"
+                                },
+                                "isFeedback": {
+                                    "description": "1 or 0",
+                                    "type": "string",
+                                    "example": "0"
+                                },
+                                "waitTime": {
+                                    "description": "in seconds",
+                                    "type": "string",
+                                    "example": "1000"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "properties": {
+                                "status": {
+                                    "type": "string",
+                                    "example": "success"
+                                },
+                                "data": {
+                                    "properties": {
+                                        "feedbackdata": {
+                                            "type": "string",
+                                            "example": ""
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "authentication failed",
+                        "schema": {
+                            "$ref": "#/definitions/401_response"
+                        }
+                    }
+                }
+            }
+        },
+        "/rs232/configuration": {
+            "put": {
+                "tags": [
+                    "Rs232"
+                ],
+                "summary": "Set rs232 configuration",
+                "description": "Set rs232 configuration",
+                "operationId": "rs232_setConfiguration",
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "Access token retrieved from the login API",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "properties": {
+                                "RS232Baudrate": {
+                                    "description": "9600, 19200, 38400, 57600, 115200",
+                                    "type": "integer",
+                                    "example": "9600"
+                                },
+                                "RS232Databits": {
+                                    "description": "7,8",
+                                    "type": "integer",
+                                    "example": "8"
+                                },
+                                "RS232Parity": {
+                                    "description": "none, odd, even",
+                                    "type": "string",
+                                    "example": "none"
+                                },
+                                "RS232Stopbits": {
+                                    "description": "1, 2",
+                                    "type": "integer",
+                                    "example": "1"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "properties": {
+                                "status": {
+                                    "type": "string",
+                                    "example": "success"
+                                },
+                                "data": {
+                                    "type": "array",
+                                    "items": {}
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "authentication failed",
+                        "schema": {
+                            "$ref": "#/definitions/401_response"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "401_response": {
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "example": "failed"
+                },
+                "data": {
+                    "type": "array",
+                    "items": {}
+                }
+            }
+        },
+        "system": {
+            "properties": {
+                "model": {
+                    "type": "string",
+                    "example": "500774"
+                },
+                "product": {
+                    "type": "string",
+                    "example": "HdmiOverIP-774"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "HdmiOverIP-774"
+                },
+                "ver": {
+                    "type": "string",
+                    "example": "1.0.0"
+                },
+                "built": {
+                    "type": "string",
+                    "example": "Aug 22 2019 17:45:41"
+                },
+                "isTx": {
+                    "description": "1 for TX, 0 for RX",
+                    "type": "integer",
+                    "example": 0
+                },
+                "ip": {
+                    "type": "string",
+                    "example": "192.168.168.100"
+                },
+                "mask": {
+                    "type": "string",
+                    "example": "255.255.255.0"
+                },
+                "gateway": {
+                    "type": "string",
+                    "example": "192.168.168.1"
+                },
+                "mac": {
+                    "type": "string",
+                    "example": "FC:C2:3D:0D:16:13"
+                },
+                "isDhcp": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "isDipOn": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "reset": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "reboot": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "blinkLed": {
+                    "type": "integer",
+                    "example": 0
+                }
+            }
+        },
+        "video": {
+            "items": {
+                "properties": {
+                    "ip": {
+                        "type": "string",
+                        "example": "192.168.168.100"
+                    },
+                    "port": {
+                        "type": "integer",
+                        "example": 36000
+                    },
+                    "sdp": {
+                        "type": "string",
+                        "example": "sdp"
+                    },
+                    "height": {
+                        "type": "integer",
+                        "example": 1080
+                    },
+                    "width": {
+                        "type": "integer",
+                        "example": 1920
+                    },
+                    "fps": {
+                        "type": "string",
+                        "example": "60"
+                    },
+                    "colorSpace": {
+                        "type": "string",
+                        "example": "YCbCr-4:2:2"
+                    },
+                    "depth": {
+                        "type": "integer",
+                        "example": 16
+                    },
+                    "payloadType": {
+                        "type": "integer",
+                        "example": 96
+                    },
+                    "intlce": {
+                        "type": "integer",
+                        "example": 1
+                    }
+                }
+            }
+        },
+        "audio": {
+            "items": {
+                "properties": {
+                    "ip": {
+                        "type": "string",
+                        "example": "192.168.168.100"
+                    },
+                    "port": {
+                        "type": "integer",
+                        "example": 36000
+                    },
+                    "sdp": {
+                        "type": "string",
+                        "example": "sdp"
+                    },
+                    "sample": {
+                        "type": "string",
+                        "example": "480000"
+                    },
+                    "channels": {
+                        "type": "integer",
+                        "example": 16
+                    },
+                    "depth": {
+                        "type": "integer",
+                        "example": 16
+                    },
+                    "payloadType": {
+                        "type": "integer",
+                        "example": 96
+                    },
+                    "pktSize": {
+                        "type": "string",
+                        "example": "1ms"
+                    }
+                }
+            }
+        },
+        "anc": {
+            "items": {
+                "properties": {
+                    "ip": {
+                        "type": "string",
+                        "example": "192.168.168.100"
+                    },
+                    "port": {
+                        "type": "integer",
+                        "example": 36000
+                    },
+                    "sdp": {
+                        "type": "string",
+                        "example": "sdp"
+                    },
+                    "payloadType": {
+                        "type": "integer",
+                        "example": 96
+                    },
+                    "vpId": {
+                        "type": "integer",
+                        "example": 132
+                    }
+                }
+            }
+        },
+        "sdp": {
+            "items": {
+                "properties": {
+                    "media": {
+                        "type": "string",
+                        "example": "video"
+                    },
+                    "ip": {
+                        "type": "string",
+                        "example": "192.168.168.100"
+                    },
+                    "port": {
+                        "type": "integer",
+                        "example": 36000
+                    },
+                    "uri": {
+                        "type": "string",
+                        "example": "videoSpd2"
+                    }
+                }
+            }
+        },
+        "rs232": {
+            "properties": {
+                "baudrate": {
+                    "type": "integer",
+                    "example": 19200
+                },
+                "databit": {
+                    "type": "integer",
+                    "example": 7
+                },
+                "parity": {
+                    "type": "string",
+                    "example": "odd"
+                },
+                "stopbit": {
+                    "type": "integer",
+                    "example": 2
+                },
+                "data": {
+                    "type": "string",
+                    "example": ""
+                },
+                "isFeedback": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "waitTime": {
+                    "type": "integer",
+                    "example": 0
+                }
+            }
+        },
+        "IR": {
+            "properties": {
+                "data": {
+                    "type": "string",
+                    "example": ""
+                },
+                "isFeedback": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "waitTime": {
+                    "type": "integer",
+                    "example": 0
+                }
+            }
+        },
+        "security": {
+            "properties": {
+                "get_id": {
+                    "type": "string",
+                    "example": ""
+                },
+                "get_status": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "set_key": {
+                    "type": "string",
+                    "example": ""
+                }
+            }
+        },
+        "rs232List": {
+            "properties": {
+                "baudrate": {
+                    "items": {
+                        "type": "integer",
+                        "example": "9600,19200,38400,57600,115200"
+                    }
+                },
+                "databits": {
+                    "items": {
+                        "type": "integer",
+                        "example": "7,8"
+                    }
+                },
+                "parity": {
+                    "items": {
+                        "type": "string",
+                        "example": "none,odd,even"
+                    }
+                },
+                "stopbits": {
+                    "items": {
+                        "type": "integer",
+                        "example": "1,2"
+                    }
+                }
+            }
+        },
+        "videoList": {
+            "properties": {
+                "resolution": {
+                    "items": {
+                        "type": "string",
+                        "example": "1920x1080,1280x720"
+                    }
+                },
+                "colorDepth": {
+                    "items": {
+                        "type": "integer",
+                        "example": "8,10,12,16"
+                    }
+                },
+                "colorSpace": {
+                    "items": {
+                        "type": "string",
+                        "example": "YCbCr-4:2:2,YCbCr-4:4:4,RGB"
+                    }
+                }
+            }
+        },
+        "File": {
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "example": "/media/usb/video.mp4"
+                },
+                "duration": {
+                    "description": "in seconds",
+                    "type": "string",
+                    "example": "290"
+                }
+            }
+        },
+        "Project": {
+            "properties": {
+                "project": {
+                    "properties": {
+                        "title": {
+                            "type": "string",
+                            "example": "project1"
+                        },
+                        "frames": {
+                            "type": "array",
+                            "items": {
+                                "properties": {
+                                    "weekDay": {
+                                        "description": "0-6 sunday=0",
+                                        "type": "string",
+                                        "example": "1"
+                                    },
+                                    "start": {
+                                        "description": "hour(0-23):min(0-59)",
+                                        "type": "string",
+                                        "example": "00:00"
+                                    },
+                                    "end": {
+                                        "description": "hour(0-23):min(0-59)",
+                                        "type": "string",
+                                        "example": "07:00"
+                                    },
+                                    "windows": {
+                                        "description": "the screen (layout) is considered always 1080x1920, the windows should fit this measure",
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "windowId": {
+                                                    "description": "1-5 are visible windows only for video and/or image playlists, window 6 is a hidden one (no size is demanded) just for audio playlist",
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "left": {
+                                                    "description": "window left position",
+                                                    "type": "integer",
+                                                    "maximum": 1840,
+                                                    "minimum": 0,
+                                                    "example": 0
+                                                },
+                                                "top": {
+                                                    "description": "window top position",
+                                                    "type": "integer",
+                                                    "maximum": 1000,
+                                                    "minimum": 0,
+                                                    "example": 0
+                                                },
+                                                "width": {
+                                                    "type": "integer",
+                                                    "maximum": 1920,
+                                                    "minimum": 0,
+                                                    "example": 500
+                                                },
+                                                "height": {
+                                                    "type": "integer",
+                                                    "maximum": 1080,
+                                                    "minimum": 0,
+                                                    "example": 500
+                                                },
+                                                "playlists": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "name": {
+                                                                "type": "string",
+                                                                "example": "playlist1"
+                                                            },
+                                                            "start": {
+                                                                "description": "hour(0-23):min(0-59)",
+                                                                "type": "string",
+                                                                "example": "00:00"
+                                                            },
+                                                            "duration": {
+                                                                "description": "just used in windows 6 audio playlists",
+                                                                "type": "string",
+                                                                "example": "01:30"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "images": {
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "media": {
+                                                    "type": "string",
+                                                    "example": "/media/usd/index.jpg"
+                                                },
+                                                "transparency": {
+                                                    "description": "1-100",
+                                                    "type": "integer",
+                                                    "example": 48
+                                                },
+                                                "left": {
+                                                    "description": "1-1920",
+                                                    "type": "integer",
+                                                    "example": 260
+                                                },
+                                                "top": {
+                                                    "description": "1-1080",
+                                                    "type": "integer",
+                                                    "example": 50
+                                                },
+                                                "width": {
+                                                    "description": "1-1920",
+                                                    "type": "integer",
+                                                    "example": 1400
+                                                },
+                                                "height": {
+                                                    "description": "1-1080",
+                                                    "type": "integer",
+                                                    "example": 220
+                                                },
+                                                "start": {
+                                                    "type": "string",
+                                                    "example": "12:00"
+                                                },
+                                                "duration": {
+                                                    "type": "string",
+                                                    "example": "00:05"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "texts": {
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "message1"
+                                                },
+                                                "transparency": {
+                                                    "description": "1-100",
+                                                    "type": "integer",
+                                                    "example": 48
+                                                },
+                                                "background": {
+                                                    "type": "string",
+                                                    "example": "7f7f7f"
+                                                },
+                                                "fontColor": {
+                                                    "type": "string",
+                                                    "example": "ff0600"
+                                                },
+                                                "fontSize": {
+                                                    "description": "1-130",
+                                                    "type": "integer",
+                                                    "example": 48
+                                                },
+                                                "left": {
+                                                    "description": "1-1920",
+                                                    "type": "integer",
+                                                    "example": 260
+                                                },
+                                                "top": {
+                                                    "description": "1-1080",
+                                                    "type": "integer",
+                                                    "example": 50
+                                                },
+                                                "width": {
+                                                    "description": "1-1920",
+                                                    "type": "integer",
+                                                    "example": 1400
+                                                },
+                                                "height": {
+                                                    "description": "1-1080",
+                                                    "type": "integer",
+                                                    "example": 220
+                                                },
+                                                "start": {
+                                                    "type": "string",
+                                                    "example": "12:00"
+                                                },
+                                                "duration": {
+                                                    "type": "string",
+                                                    "example": "00:05"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "soundSource": {
+                                        "description": "1-6, 6 audio hidden window",
+                                        "type": "integer",
+                                        "example": 6
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "UserLogin": {
+            "required": [
+                "username",
+                "password"
+            ],
+            "properties": {
+                "username": {
+                    "type": "string",
+                    "example": "admin"
+                },
+                "password": {
+                    "type": "string",
+                    "example": "admin"
+                }
+            },
+            "type": "object",
+            "xml": {
+                "name": "UserLogin"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Login",
+            "description": "Related to login, logout (authentication)"
+        },
+        {
+            "name": "Device",
+            "description": "Related to device settings"
+        },
+        {
+            "name": "Rs232",
+            "description": "Related to rs232 operations"
+        }
+    ]
+}

@@ -1,0 +1,991 @@
+<DIV id="forms">
+    <DIV id="form" class="form">
+        <div class="row justify-content-between mb-3">
+	        <DIV class="col-3 ml-2">
+	            <H2>Script schedule</H2>
+	        </DIV>
+	        <div class="col-6 pl-5">
+                <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
+				    <div class="btn-group mr-2" role="group" aria-label="First group">
+                        <button type="button" id="filterSunday" class="btn btn-secondary script-filter">Sun</button>
+				        <button type="button" id="filterMonday" class="btn btn-secondary script-filter">Mon</button>
+				        <button type="button" id="filterTuesday" class="btn btn-secondary script-filter">Tue</button>
+				        <button type="button" id="filterWednesday" class="btn btn-secondary script-filter">Wed</button>
+				        <button type="button" id="filterThursday"class="btn btn-secondary script-filter">Thu</button>
+                        <button type="button" id="filterFriday" class="btn btn-secondary script-filter">Fri</button>
+                        <button type="button" id="filterSaturday" class="btn btn-secondary script-filter">Sat</button>
+                        <button type="button" id="filterReset" class="btn btn-secondary script-filter">All</button>
+				    </div>
+                </div>
+	        </div>
+        </div>
+        <div class="row pb-3 pl-3" id="divScript">
+            <div class="col-3">
+                <button type="button" id="btnSchedule" class="btn active btn-toggle" data-toggle="button" aria-pressed="true" autocomplete="off">
+                <div class="handle"></div>
+                </button>
+            </div>
+        </div>
+        <div>
+	        <table class="table table-striped" id="scriptTable">
+	          <thead>
+	            <tr>
+                  <th scope="col">Type</th>
+	              <th scope="col">Name</th>
+                  <th scope="col">Window</th>
+	              <th scope="col">Week-Day</th>
+	              <th scope="col">Start</th>
+                  <!-- <th scope="col">Audio</th>  -->
+                  <th scope="col"></th>
+	            </tr>
+	          </thead>
+	          <tbody id="tb_main" class="table-sortable">
+	          </tbody>
+	        </table>
+	    </div>
+        <DIV class="row justify-content-center">
+            <div class="col-2 text-center">
+                <button type="button" id="btnAddScript" class="btn btn-secondary" data-toggle="modal" data-target="#scriptModal">Add Script</button>
+            </div>
+        </DIV>
+    </DIV>
+    <!-- div used to create or update a script -->
+    <!-- Modal -->
+	<div class="modal fade" id="scriptModal" tabindex="-1" role="dialog" aria-labelledby="modalTitle" aria-hidden="true">
+	    <div class="modal-dialog modal-lg" role="document">
+	        <div class="modal-content">
+	            <div class="modal-header">
+	                <h5 class="modal-title" id="modalTitle">Add Script Entry</h5>
+	                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+	                    <span aria-hidden="true">&times;</span>
+	                </button>
+	            </div>
+	            <div class="modal-body">
+                    <input type="hidden" id="inHiddenEntry">
+                    <div class="form-group row" id="divSelectEntry">
+                        <label for="slEntry" class="col-3 col-form-label">Select Entry Type:</label>
+                        <div class="col-sm-9">
+                            <select id="slEntry" class="custom-select form-control">
+                                <option selected></option>
+                                <option value="Playlist">Playlist</option>
+                                <option value="Layout">Layout</option>
+                                <option value="Stop">Stop</option>
+                                <!-- <option value="Repeat">Repeat</option>  -->
+                                <!-- <option value="Text">Text Overlay</option>  -->
+                            </select>
+                        </div>
+                    </div>
+	                <div class="form-group row" id="divSelectPlaylist">
+	                    <label for="slScriptPlaylist" id="laSlPlaylist" class="col-3 col-form-label">Select Playlist:</label>
+	                    <div class="col-9">
+                            <select id="slScriptPlaylist" class="custom-select form-control"></select>
+                            <label id="laPlaylist" class="col-form-label"></label>
+	                    </div>
+	                </div>
+                    <div class="form-group row" id="divSelectLayout">
+                        <label for="slLayout" class="col-3 col-form-label">Select Layout:</label>
+                        <div class="col-9">
+                            <select id="slLayout" class="custom-select form-control">
+                                <option value="layout1">Layout 1</option>
+                                <option value="layout2">Layout 2</option>
+                                <option value="layout3">Layout 3</option>
+                                <option value="layout4">Layout 4</option>
+                                <option value="layout5">Layout 5</option>
+                                <option value="layout6">Layout 6</option>
+                                <!-- <option value="layout7">Layout 7</option>
+                                <option value="layout8">Layout 8</option>
+                                <option value="layout9">Layout 9</option>
+                                <option value="layout10">Layout 10</option> -->
+                            </select>
+                        </div>
+                    </div>
+<!--                     <div class="form-group row" id="divSelectText">
+                        <label for="slTextOver" class="col-3 col-form-label">Select Text Overlay:</label>
+                        <div class="col-9">
+                            <select id="slTextOver" class="custom-select form-control"></select>
+                        </div>
+                    </div>  -->
+	                <div class="form-row" id="divWWT">
+	                    <div class="form-group col-4" id="divWindow">
+	                        <label for="slWindow">Window</label>
+                            <select id="slWindow" class="custom-select form-control">
+                                <option value="0">main</option>
+                                <option value="1">pip 1</option>
+                                <option value="2">pip 2</option>
+                                <option value="3">pip 3</option>
+                            </select>
+                            <input type="hidden" id="origWindow" value=""/>
+                        </div> 
+	                    <div class="form-group col-4">
+	                        <label for="weekDay">Day of Week</label>
+							<select id="weekDay" class="custom-select form-control">
+                                <option selected></option>
+							    <option value="0">Sunday</option>
+							    <option value="1">Monday</option>
+							    <option value="2">Tuesday</option>
+                                <option value="3">Wednesday</option>
+                                <option value="4">Thursday</option>
+                                <option value="5">Friday</option>
+                                <option value="5">Saturday</option>
+							</select>
+							<input type="hidden" id="origWeekDay" value=""/>
+	                    </div>
+	                    <div class="form-group col-4" id="divStartTime">
+	                        <label for="startTime" id="labelTime">Start Time</label>
+	                        <input class="timepicker form-control" id="startTime" placeholder="00:00"/>
+                            <input type="hidden" id="origStartTime" value=""/>
+	                    </div>
+	                </div>
+                   <!--  <div class="form-group row" id="divAudio">
+                        <label for="btnScriptAudio" class="col-3 col-form-label">Audio</label>
+                        <div class="col-3">
+                            <button type="button" id="btnScriptAudio" class="btn btn-toggle" data-toggle="button" aria-pressed="false" autocomplete="off">
+                                <div class="handle"></div>
+                            </button>
+                        </div>
+	               </div>  -->
+	            </div>   
+	            <div class="modal-footer">
+	                <button type="button" id="btnCreateScript" class="btn btn-secondary">Save changes</button>
+	                <button type="button" id="btnUpdateScript" class="btn btn-secondary">Save changes</button>
+	            </div>
+	        </div>
+	    </div>
+	</div>
+</DIV>
+
+<script type="text/javascript">
+$("#btnSchedule").hide();
+
+scheduleState();
+listScript();
+
+$("#btnSchedule").click(function(event) {
+   // from ON to OFF
+   if ($("#btnSchedule").attr("aria-pressed") == 'true') {
+       if (confirm("Are you sure you want to turn the schedule off?"))
+       {
+           scheduleDisable();
+       } else {
+           event.preventDefault();
+           return false;
+       }
+   } else { // from OFF to ON
+       scheduleEnable();
+   }
+});
+
+$('#scriptModal').on('show.bs.modal', function (event) {
+    $("#divSelectPlaylist").hide();
+    $("#divSelectLayout").hide();
+//    $("#divSelectText").hide();
+    $("#slEntry").val("");
+    $("#slWindow").val("main");
+    $("#laSlPlaylist").html("Select Playlist:");
+});
+
+$(document).ready(function(){
+    $('.timepicker').timepicker({
+        timeFormat: 'HH:mm',
+        interval: 30,
+        dynamic: false,
+        dropdown: false,
+        scrollbar: false
+    });
+});
+
+$(".script-filter").click(function(event) {
+    switch(event.currentTarget.id) {
+    case "filterSunday":
+        listScript(0);
+        break;
+    case "filterMonday":
+        listScript(1);
+        break;
+    case "filterTuesday":
+        listScript(2);
+        break;
+    case "filterWednesday":
+        listScript(3);
+        break;
+    case "filterThursday":
+        listScript(4);
+        break;
+    case "filterFriday":
+        listScript(5);
+        break;
+    case "filterSaturday":
+        listScript(6);
+        break;
+    case "filterReset":
+        listScript(-1);
+        break;
+    default:
+        alert("Filter type not found");
+    }
+});
+
+//main page
+$("#btnAddScript").click(function() {
+    $('#weekDay').val('');
+    $('#startTime').val('');
+    $("#divWWT").hide();
+//    $("#divAudio").hide();
+    
+    toggleModal('Create');
+    listPlaylist();
+    listTextCase();
+});
+
+$("#slEntry").change(function() {
+    var entryType = $("#slEntry option:selected").val();
+
+    $("#divWWT").show();
+//    $("#divAudio").show();
+
+    switch(entryType) {
+	    case "Playlist":
+	        $("#divSelectPlaylist").show();
+	        $("#divSelectLayout").hide();
+//	        $("#divSelectText").hide();
+            $("#divWindow").show();
+//            $("#divAudio").show();
+            $("#labelTime").text("Start Time");
+	        break;
+	    case "Layout":
+            $("#divSelectPlaylist").hide();
+            $("#divSelectLayout").show();
+//            $("#divSelectText").hide();
+            $("#divWindow").hide();
+//            $("#divAudio").hide();
+            $("#labelTime").text("Start Time");
+	        break;
+        case "Text":
+            $("#divSelectPlaylist").hide();
+            $("#divSelectLayout").hide();
+//            $("#divSelectText").show();
+            $("#divWindow").hide();
+//            $("#divAudio").hide();
+            break;
+        case "Repeat":
+            $("#divWWT").hide();
+//            $("#divAudio").hide();
+            break;
+        case "Stop":
+            $("#divSelectPlaylist").hide();
+            $("#divSelectLayout").hide();
+//            $("#divSelectText").show();
+            $("#divWindow").hide();
+            $("#labelTime").text("Stop Time");
+//            $("#divAudio").hide();
+            break;
+	    default:
+	        alert("no select option: " + entryType);
+    }
+});
+ 
+//modal page create
+$("#btnCreateScript").click(function() {
+    var type = $("#slEntry").val();
+
+    if(type == 'Repeat')
+    {
+        createScript(type, "repeat", -1, 6, "23:59");
+        return;
+    }
+    var name = $.trim($("#slScriptPlaylist").val());
+
+    
+    if (type == 'Layout')
+    {
+        name = $.trim($("#slLayout").val());
+    }
+    if (type == 'Text')
+    {
+        name = $.trim($("#slTextOver").val());
+    }
+    if (type == 'Stop')
+    {
+        name = "stop playlists";
+    }
+    var window = -1;
+    if ($("#slWindow").is(":visible"))
+    {
+        window = $("#slWindow").val();
+    }
+    var week      = $.trim($("#weekDay").val());
+    var startTime = $.trim($("#startTime").val());
+    
+    if (!validateForm(name, week, startTime))
+    {
+        return;
+    }
+    
+    createScript(type, name, window, week, startTime);
+});
+
+//modal page update
+$("#btnUpdateScript").click(function() {
+    var nvWindow = -1;
+    var ovWindow = -1;
+    if ($("#slWindow").is(":visible"))
+    {
+        nvWindow = $("#slWindow").val();
+        ovWindow = $("#origWindow").val();
+    }
+    
+    var newValues = {
+            "type"     :$("#inHiddenEntry").val(),
+            "name"     :$('#laPlaylist').html(),
+            "week"     :$.trim($("#weekDay").val()),
+            "startTime":$.trim($("#startTime").val()),
+            "window"   :nvWindow
+    };
+    
+    if (!validateForm(newValues.name, newValues.week, newValues.startTime))
+    {
+        return;
+    }
+    
+    var oldValues = {
+            "type"     :$("#inHiddenEntry").val(),
+            "name"     :$('#laPlaylist').html(),
+            "week"     :$.trim($("#origWeekDay").val()),
+            "startTime":$.trim($("#origStartTime").val()),
+            "window"   :ovWindow
+    };
+    
+    if (!validateForm(oldValues.name, oldValues.week, oldValues.startTime))
+    {
+        return;
+    }
+    
+    updateScript(newValues, oldValues);
+});
+
+
+//*** functions *****
+function toggleModal(modalAction)
+{
+    switch(modalAction) {
+    case "Create":
+        $('#laPlaylist').hide();//display: block;display: "none"
+        $('#slScriptPlaylist').show();
+        $('#divSelectEntry').show();
+
+        $("#modalTitle").html('Add Script Entry');
+        $("#btnCreateScript").show();
+        $("#btnUpdateScript").hide();
+        break;
+    case "Update":
+        $('#laPlaylist').show();//display: block;display: "none"
+        $('#slScriptPlaylist').hide();
+        $('#divSelectEntry').hide();
+        $('#divSelectPlaylist').show();
+
+        $("#modalTitle").html('Update Script Entry');
+        $("#btnCreateScript").hide();
+        $("#btnUpdateScript").show();
+        break;
+    default:
+    }
+}
+
+//validate form
+function validateForm(name, week, startTime, stopTime)
+{
+    var regexp = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    if (name == "")
+    {
+        alert("play list name cannot be empty");
+        return false;
+    }
+    
+    if (week == "")
+    {
+        alert("Day of week cannot be empty");
+        return false;
+    }
+
+    if (startTime == "")
+    {
+        alert("Start time cannot be empty");
+        return false;
+    }
+    else if (!regexp.test(startTime)) 
+    {
+        alert("Start time format must be HH:mm");
+        return false;
+    }
+    
+    return true;
+}
+
+function HMStoSeconds(time)
+{
+    var arTime = time.split(':');
+    return parseInt(arTime[0])*3600 + parseInt(arTime[1])*60 + parseInt(arTime[2]); 
+}
+
+
+// Adjust HH:mm time format
+function checkTime(i)
+{
+    if (i < 10) {
+      i = "0" + i;
+    }
+    return i;
+}
+
+// 
+function viewScripts(data)
+{
+     var formContent = '';
+     $.each(data, function(i, item) {
+         formContent += viewScript(item);
+     });
+
+     $("#tb_main").append(formContent);
+} 
+      
+function viewScript(data)
+{
+    days = getWeekDaysFullName(data.weekDay);
+    var plContent = '<tr> \
+        <td scope="row">' + data.type + '</td> \
+        <td>' + data.name + '</td> \
+        <td>' + getWindowName(data.window) + '</td> \
+        <td>' + days + '</td> \
+        <td>' + data.startHour + ':' + checkTime(data.startMin) +  '</td> \
+        <!--<td>Off</td>--> \
+        <td><button title="remove script" type="button" class="btn btn-secondary btnRemoveScript"><span class="oi oi-x" aria-hidden="true"></span></button> \
+        <button type="button" class="btn btn-secondary btnUpdateScript ml-3" title="update script" data-toggle="modal" data-target="#scriptModal"><span class="oi oi-pencil" aria-hidden="true"></span></button> \
+        </td> \
+        </tr>';
+    
+    if (data.type == "Repeat")
+    {
+        var plContent = '<tr> \
+            <td scope="row">' + data.type + '</td> \
+            <td> NA </td> \
+            <td> NA </td> \
+            <td> NA </td> \
+            <td> NA </td> \
+            <!--<td>Off</td>--> \
+            <td><button title="remove script" type="button" class="btn btn-secondary btnRemoveScript"><span class="oi oi-x" aria-hidden="true"></span></button> \
+            </td> \
+            </tr>';
+    }
+    
+    return plContent;
+}
+
+function getWindowName(code)
+{
+    var window = "";
+    switch($.trim(code)) {
+    case '-1':
+        window = "NA";
+        break;
+    case '0':
+        window = "Main";
+        break;
+    case '1':
+        window = "PIP 1";
+        break;
+    case '2':
+        window = "PIP 2";
+        break;
+    case '3':
+        window = "PIP 3";
+        break;
+    default:
+        alert("window code not found");
+    }
+    
+    return window;
+}
+
+function getWindowCode(name)
+{
+    var code = 0;
+    switch($.trim(name)) {
+    case 'NA':
+        code = -1;
+        break;
+    case 'Main':
+        code = 0;
+        break;
+    case 'PIP 1':
+        code = 1;
+        break;
+    case 'PIP 2':
+        code = 2;
+        break;
+    case 'PIP 3':
+        code = 3;
+        break;
+    default:
+        alert("window name not found");
+    }
+    
+    return code;
+}
+
+
+// get week from cront tab code
+function getWeekDays(codeList)
+{
+    var codes = codeList.split(',');
+    var days  = "";
+    $.each(codes, function(i, item) {
+	    switch($.trim(item)) {
+		    case '0':
+		        days += "Su ";
+		        break;
+		    case '1':
+		        days += "Mo ";
+		        break;
+		    case '2':
+		        days += "Tu ";
+		        break;
+		    case '3':
+		        days += "We ";
+		        break;
+		    case '4':
+		        days += "Th ";
+		        break;
+		    case '5':
+		        days += "Fr ";
+		        break;
+		    case '6':
+		        days += "Sa ";
+	    }
+    });
+    return days;
+}
+
+function getWeekDaysFullName(codeList)
+{
+    var codes = codeList.split(',');
+    var days  = "";
+    $.each(codes, function(i, item) {
+        switch($.trim(item)) {
+            case '0':
+                days += "Sunday";
+                break;
+            case '1':
+                days += "Monday";
+                break;
+            case '2':
+                days += "Tuesday";
+                break;
+            case '3':
+                days += "Wednesday";
+                break;
+            case '4':
+                days += "Thursday";
+                break;
+            case '5':
+                days += "Friday";
+                break;
+            case '6':
+                days += "Saturday";
+        }
+    });
+    return days;
+}
+
+// get cront tab week code
+function getCrontWeekCode(weekList)
+{
+    var weeks = weekList.split(' ');
+    var days  = "";
+    $.each(weeks, function(i, item) {
+        switch($.trim(item)) {
+            case 'Su':
+                days += "0,";
+                break;
+            case 'Mo':
+                days += "1,";
+                break;
+            case 'Tu':
+                days += "2,";
+                break;
+            case 'We':
+                days += "3,";
+                break;
+            case 'Th':
+                days += "4,";
+                break;
+            case 'Fr':
+                days += "5,";
+                break;
+            case 'Sa':
+                days += "6,";
+        }
+    });
+    //remove last ','
+    days = days.replace(/,\s*$/, "");
+    return days;
+}
+
+function getCrontWeekCodeFullName(weekList)
+{
+    var weeks = weekList.split(' ');
+    var days  = "";
+    $.each(weeks, function(i, item) {
+        switch($.trim(item)) {
+            case 'Sunday':
+                days += "0,";
+                break;
+            case 'Monday':
+                days += "1,";
+                break;
+            case 'Tuesday':
+                days += "2,";
+                break;
+            case 'Wednesday':
+                days += "3,";
+                break;
+            case 'Thursday':
+                days += "4,";
+                break;
+            case 'Friday':
+                days += "5,";
+                break;
+            case 'Saturday':
+                days += "6,";
+        }
+    });
+    //remove last ','
+    days = days.replace(/,\s*$/, "");
+    return days;
+}
+//** ajax functions  **//
+function listScript(filter=-1)
+{
+    var token = $.cookie("token");
+
+    $.ajax({
+        type: 'GET',
+        url: apiUrl + "/script",
+        dataType: "json",
+        headers: {"Authorization": token},
+        data:{"filterWD": filter},
+        success: function(response){
+            if(response.status == "success")
+            {
+                $("#tb_main").empty();
+                viewScripts(response.data);
+            }
+            else if(response.status == "failed")
+            {
+                alert("failed to list scripts");
+            }
+        },
+        error: function (jqXHR, status) {
+            if (jqXHR.status == 401) //bad username or password
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });    
+}
+
+function updateScript(NewValues, OldValues)
+{
+    var token = $.cookie("token");
+
+    var startTimeSplit = NewValues.startTime.split(':');
+    var arNewValues    = {
+            "type"      :NewValues.type,
+            "name"      :NewValues.name, 
+            "weekDay"   :NewValues.week, 
+            "startHour" :Number(startTimeSplit[0]),
+            "startMin"  :Number(startTimeSplit[1]),
+            "window"    :NewValues.window
+    };
+    
+    var origStartTimeSplit = OldValues.startTime.split(':');
+    var arOldValues        = {
+            "type"      :OldValues.type,
+            "name"      :OldValues.name, 
+            "weekDay"   :OldValues.week, 
+            "startHour" :Number(origStartTimeSplit[0]),
+            "startMin"  :Number(origStartTimeSplit[1]),
+            "window"    :OldValues.window
+    };
+    
+    $.ajax({
+        type: 'PUT',
+        url: apiUrl + "/script",
+        dataType: "json",
+        headers: {"Authorization": token},
+        data: {"newValues":arNewValues, "oldValues":arOldValues},
+        success: function(response){
+            $(".modal").modal('hide');
+            if(response.status == "success")
+            {
+                listScript();
+            }
+            else if(response.status == "failed")
+            {
+                alert("failed to update script");
+            }
+            
+        },
+        error: function (jqXHR, status) {
+            $('.modal').modal('hide');
+            sleep(1000);
+            if (jqXHR.status == 401)
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });
+}
+
+function createScript(type, name, window, week, startTime)
+{
+    var token = $.cookie("token");
+    
+    var startTimeSplit = startTime.split(':');
+    var arData = {
+        "type"      :type,
+        "name"      :name, 
+        "weekDay"   :week,
+        "window"    :window,
+        "startHour" :Number(startTimeSplit[0]),
+        "startMin"  :Number(startTimeSplit[1]),
+    };
+
+    $.ajax({
+        type: 'POST',
+        url: apiUrl + "/script",
+        dataType: "json",
+        headers: {"Authorization": token},
+        data: arData,
+        success: function(response){
+            $(".modal").modal('hide');
+            if(response.status == "success")
+            {
+                //script = viewScript(arData);
+                //$("#scriptTable tbody").append(script);
+                listScript();
+            }
+            else if(response.status == "failed")
+            {
+                alert(response.data);
+            }
+        },
+        error: function (jqXHR, status) {
+            $('.modal').modal('hide');
+            sleep(1000);
+            if (jqXHR.status == 401) 
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });
+}
+
+function deleteScript(type, name, window, week, startTime, row)
+{
+    var token = $.cookie("token");
+
+    var startTimeSplit = startTime.split(':');
+    var arData = {
+            "type"      :type,
+            "name"      :name, 
+            "weekDay"   :week,
+            "window"    :window,
+            "startHour" :Number(startTimeSplit[0]),
+            "startMin"  :Number(startTimeSplit[1]),
+    };
+
+    $.ajax({
+        type: 'DELETE',
+        url: apiUrl + "/script",
+        dataType: "json",
+        headers: {"Authorization": token},
+        data: arData,
+        success: function(response){
+            if(response.status == "success")
+            {
+                row.remove();
+            }
+            else if(response.status == "failed")
+            {
+                alert("failed to delete script");
+            }
+        },
+        error: function (jqXHR, status) {
+            if (jqXHR.status == 401)
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });
+}
+
+function listPlaylist()
+{
+    var token = $.cookie("token");
+
+    $.ajax({
+        type: 'GET',
+        url: apiUrl + "/playlist",
+        dataType: "json",
+        headers: {"Authorization": token},
+        success: function(response){
+            if(response.status == "success")
+            {
+                $('#slScriptPlaylist').empty();
+                $.each(response.data, function(i, item) {
+                    $('#slScriptPlaylist').append($('<option>', {
+                        value: item.name,
+                        text : item.name
+                    }));
+                });
+                $("#btnSelectPlayList").prop('disabled', true);
+            }
+            else if(response.status == "failed")
+            {
+                alert("failed to list playlist");
+            }
+            
+        },
+        error: function (jqXHR, status) {
+            if (jqXHR.status == 401) 
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });
+}
+
+//list text overlay cases
+function listTextCase()
+{
+    var token = $.cookie("token");
+    
+    $.ajax({
+        type: 'get',
+        url: apiUrl + "/osd/text-case",
+        dataType: "json",
+        headers: {"Authorization": token},
+        success: function(response){
+            if(response.status == "success")
+            {
+                $('#slTextOver').empty();
+                if (response.data.length > 0)
+                {
+                    $.each(response.data, function(i, item) {
+                        $('#slTextOver').append($('<option>', { 
+                            value: item,
+                            text : item 
+                        }));
+                    });
+                }
+                else
+                {
+                    $('#slTextOver').append('<OPTION value="NONE">NONE</OPTION>');
+                }
+            }
+            else if(response.status == "failed")
+            {
+                alert("failed to list cases");
+            }
+        },
+        error: function (jqXHR, status) {
+            if (jqXHR.status == 401)
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });
+}
+
+function scheduleState()
+{
+    var token = $.cookie("token");
+    
+    $.ajax({
+        type: 'get',
+        url: apiUrl + "/schedule/state",
+        dataType: "json",
+        headers: {"Authorization": token},
+        success: function(response){
+            if(response.status == "success")
+            {
+                data = response.data;
+                
+                switch(data['state']) {
+	                case 'ON':
+	                    $("#btnSchedule").addClass('active');
+	                    $("#btnSchedule").attr("aria-pressed", "true");
+	                    $("#btnSchedule").show();
+	                break;
+	                case 'OFF':
+	                    $("#btnSchedule").removeClass('active');
+	                    $("#btnSchedule").attr("aria-pressed", "false");
+                        $("#btnSchedule").show();
+	                break;
+	                default:
+	                    alert('state does not exist');
+                } 
+            }
+            else if(response.status == "failed")
+            {
+                alert("failed to get schedule state");
+            }
+        },
+        error: function (jqXHR, status) {
+            if (jqXHR.status == 401)
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });
+}
+
+function scheduleEnable()
+{
+    var token = $.cookie("token");
+    
+    $.ajax({
+        type: 'put',
+        url: apiUrl + "/schedule/enable-web",
+        dataType: "json",
+        headers: {"Authorization": token},
+        success: function(response){},
+        error: function (jqXHR, status) {
+            if (jqXHR.status == 401)
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });
+}
+
+function scheduleDisable()
+{
+    var token = $.cookie("token");
+    
+    $.ajax({
+        type: 'put',
+        url: apiUrl + "/schedule/disable-web",
+        dataType: "json",
+        headers: {"Authorization": token},
+        success: function(response){},
+        error: function (jqXHR, status) {
+            if (jqXHR.status == 401)
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });
+}
+
+</script>

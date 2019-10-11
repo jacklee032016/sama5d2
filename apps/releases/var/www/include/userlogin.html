@@ -1,0 +1,60 @@
+<div class="container">
+    <div class="row justify-content-center pt-5">
+        <div class="col-5">
+            <form id="fmSignIn">
+		    <label for="username" class="sr-only">Username</label>
+		    <input type="text" id="username" size="40" class="form-control" placeholder="Username" required autofocus>
+		    <label for="password" class="sr-only">Password</label>
+		    <input type="password" id="password" size="40" class="form-control" placeholder="Password" required>
+		    <button class="btn btn-lg btn-secondary btn-block mt-4" type="submit" id="btnSignIn" >Sign in</button>
+		    </form>
+	    </div>
+    </div>
+</div>
+<script type="text/javascript">
+$.removeCookie('token');
+
+$("#fmSignIn").submit(function(event) {
+    username = $.trim($('input#username').val());
+    password = $.trim($('input#password').val());
+
+    signIn(username, password);
+
+    event.preventDefault();
+    return false;    
+});
+
+
+//ajax function
+function signIn(username, password)
+{
+    $.ajax({
+        type: 'POST',
+        url: apiUrl + "/auth/signin",
+        dataType: "json",
+        data: {"username":username, "password":password},
+        success: function(response){
+            if (response.status == "failed")
+            {
+                loadContent('userlogin.html', 'Bad Username or Password'); //validation failed
+            }
+            else{
+                //get token and set in a cookie
+                if (typeof response.data !== 'undefined')
+                {
+                    data = response.data;
+                    $.cookie("token", data.token);
+                    setDeviceCookie();
+                }
+            }
+        },
+        error: function (jqXHR, status) {
+            if (jqXHR.status == 401) //bad username or password
+            {
+                loadContent('userlogin.html', 'Bad Username or Password');
+            }
+        }
+    });
+}
+
+</script>

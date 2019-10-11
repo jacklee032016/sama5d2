@@ -12,6 +12,7 @@ Keep only one tar.gz file in this directory;
 * ``loadTar.sh`` to uncompress tar file into minimal;
 * Modify or update files in ``minimal`` as wish;
 * ``mkJffs.sh`` to make new JFFS2 image which is updated onboard by tftp in u-boot;
+* Test file system:	sudo ./load.sh root.jffs2.2019_10_07 : mount file system into minimal
 
 
 Update logs

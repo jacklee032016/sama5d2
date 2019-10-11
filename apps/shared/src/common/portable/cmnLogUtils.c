@@ -202,21 +202,21 @@ int cmn_log_init(log_stru_t *lobj)
 }
 
 
-int64_t cmnGetTimeFromStartup(void)
+uint64_t cmnGetTimeFromStartup(void)
 {
 	struct timeval 	tv;
-	static int64_t 	_timeOffset;
+	static uint64_t 	_timeOffset;
 	static int		_initTimeOffset = 0;
 
 	gettimeofday(&tv,NULL);
 	if(_initTimeOffset == 0)
 	{
-		_timeOffset = (int64_t)tv.tv_sec * 1000000 + tv.tv_usec;
+		_timeOffset = (uint64_t)tv.tv_sec * 1000000 + tv.tv_usec;
 		_initTimeOffset = 1;
-		return (int64_t) 0;
+		return (uint64_t) 0;
 	}
 
-	return ((int64_t)tv.tv_sec * 1000000 + tv.tv_usec)-_timeOffset;
+	return ((uint64_t)tv.tv_sec * 1000000 + tv.tv_usec)-_timeOffset;
 }
 
 char *colorEscapes[] =

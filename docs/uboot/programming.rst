@@ -81,9 +81,11 @@ Clear environment:
 
    tftpboot 0x21000000 root.jffs2.2019_04_10
    tftpboot 0x21000000 m774/root.jffs2.2019_05_29
-   sf probe 1:0; sf erase 0x500000 0x3000000; 
+   sf probe 1:0; sf erase 0x500000 0x3000000;
    
    sf write 0x21000000 0x500000 0x3000000
    or
    sf write 0x21000000 0x500000 0xXXXX:  here XXXX is come from result of tftpboot command;
    
+   tftpboot 0x21000000 m774/root.jffs2.2019_10_07
+   sf probe 1:0; sf erase 0x500000 0x3700000;

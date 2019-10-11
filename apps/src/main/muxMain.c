@@ -245,16 +245,16 @@ int main(int argc, char **argv)
 	}
 
 	muxMain->scf = cmnSysScInit();
-	if( muxMain->scf == NULL )
+	if( muxMain->scf == NULL && muxMain->securityEnable )
 	{
 		MUX_ERROR("No Security Chip is found on board!");
-//		return 0;
+		return 0;
 	}
 	
-	if( cmnSysScValidate(muxMain->scf) == EXIT_FAILURE )
+	if( cmnSysScValidate(muxMain->scf) == EXIT_FAILURE && muxMain->securityEnable )
 	{/* enable run to configure key into security chip */
 		MUX_ERROR("Security validation failed, no authority to access!");
-//		return 0;
+		return 0;
 	}
 
 	if(extSystemInit(muxMain) == EXIT_FAILURE)
@@ -320,6 +320,17 @@ int main(int argc, char **argv)
 		}
 
 	}
+
+	if(EXT_IS_TX(&muxMain->runCfg) )
+	{
+		res =  muxMain->initThread(muxMain, &threadPoll, muxMain);
+		if(res < 0)
+		{
+			MUX_ERROR("failed when '%s' initializing", threadPoll.name );
+			exit(1);
+		}
+	}
+
 
 	res =  muxMain->initThread(muxMain, &threadBroker, muxMain);
 	if(res < 0)

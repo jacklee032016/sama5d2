@@ -449,7 +449,8 @@ void cmnLibDestroy(void);
 	cmnLibInit(options);}
 #endif	
 
-int64_t cmnGetTimeFromStartup(void);
+uint64_t cmnGetTimeFromStartup(void);
+uint64_t cmnGetTimeUs(void);
 
 long cmnGetTimeMs(void);
 char *cmnGetCtime1(char *buf2, size_t buf_size);
@@ -550,6 +551,7 @@ char *strnstr(const char *haystack, const char *needle, size_t len);
 #define	CMN_THREAD_NAME_SDP_RECEIVER		"muxSdpRecv"
 #define	CMN_THREAD_NAME_BUTTON				"muxButton"
 #define	CMN_THREAD_NAME_LED					"muxLed"
+#define	CMN_THREAD_NAME_POLL				"muxPoll"
 
 
 #define	WITH_ANCILLIARY_STREAM			0

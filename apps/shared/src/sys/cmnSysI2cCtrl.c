@@ -46,7 +46,8 @@ int	cmnSysI2cTxReadAudioParams(unsigned char *sampleRate, unsigned char *channel
 
 	EXT_DEBUGF(EXT_CMN_SYS_HW_DEBUG, "\t\tEP91A6SQ audio rate:%s; depth:%d(reg: 0x%02X); channels:%d", 
 		CMN_FIND_A_RATE(*sampleRate),  *depth,  readValue, *channels);
-	
+
+
 	return EXIT_SUCCESS;
 }
 

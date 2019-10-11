@@ -278,8 +278,8 @@ int sysFpgaRegistersDebug( char *data, unsigned int size)
 	index += snprintf(data+index, size-index, "ColorSpace:%s; ", CMN_FIND_V_COLORSPACE(runCfg->runtime.vColorSpace));
 	index += snprintf(data+index, size-index, "%s;"EXT_NEW_LINE, (runCfg->runtime.vIsInterlaced == EXT_VIDEO_INTLC_INTERLACED)?"Interlaced":"Progressive");
 
-	index += snprintf(data+index, size-index, "Audio :\tChannels:%d; Sample Rate:%d; Pkt Size: %s"EXT_NEW_LINE, 
-		runCfg->runtime.aChannels, runCfg->runtime.aSampleRate, CMN_FIND_A_PKTSIZE(runCfg->runtime.aPktSize) );
+	index += snprintf(data+index, size-index, "Audio :\tChannels:%d; Sample Rate:%d; Depth: %d; Pkt Size: %s"EXT_NEW_LINE, 
+		runCfg->runtime.aChannels, runCfg->runtime.aSampleRate, runCfg->runtime.aDepth, CMN_FIND_A_PKTSIZE(runCfg->runtime.aPktSize) );
 
 #if WITH_ANCILLIARY_STREAM
 	index += snprintf(data+index, size-index, "RTP Payload :\tVideo:%d; Audio:%d; ANC: %d"EXT_NEW_LINE, 

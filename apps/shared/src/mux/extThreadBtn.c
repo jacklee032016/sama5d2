@@ -296,3 +296,58 @@ CmnThread  threadLed =
 };
 
 
+static int _muxThPollInit(CmnThread *th, void *data)
+{
+	MuxMain *muxMain = (MuxMain *)data;
+
+	if(muxMain->pollTime < 0)
+	{
+		MUX_ERROR("Poll Timeout parameter is wrong, check your configuration: %d seconds", muxMain->pollTime);
+		return EXIT_FAILURE;
+	}
+
+	if(!muxMain->runCfg.fpgaCfg )
+	{
+		MUX_ERROR("FPGA is not initialized now");
+		return EXIT_FAILURE;
+	}
+
+	th->data = data;
+
+	return EXIT_SUCCESS;
+}
+
+static void _muxThPollDestory(struct _CmnThread *th)
+{
+}
+
+static int _muxThPollMain(CmnThread *th)
+{
+	MuxMain *muxMain = (MuxMain *)th->data;
+	int status = EXT_FALSE;
+
+	while(1)
+	{
+		cmn_delay(muxMain->pollTime*UNIT_K_HZ );
+
+		sysFpgaTxPollUpdateParams(muxMain->runCfg.fpgaCfg);
+	}
+
+	return EXIT_SUCCESS;
+}
+
+
+/* Poll media from FPGA */
+CmnThread  threadPoll =
+{
+	name		:	CMN_THREAD_NAME_POLL,
+	flags			:	SET_BIT(1, CMN_THREAD_FLAG_WAIT),
+	
+	init			:	_muxThPollInit,
+	mainLoop		:	_muxThPollMain,
+	eventHandler	:	NULL,
+	destory		:	_muxThPollDestory,
+	data			:	NULL,
+};
+
+

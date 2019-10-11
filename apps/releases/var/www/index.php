@@ -1,41 +1,40 @@
-<?php 
-	require_once('./include/GlobalConfiguration.inc');
-
-	if (isset($_GET['reboot'])) 
-	{
-		$url_reboot = $_GET['reboot'];
-		if ($url_reboot == 1)
-	 	{
-			//require_once('./include/GlobalConfiguration.inc');
-			require_once('./include/UserLoginFile.inc');
-			$login = new UserLoginFile();
-			if ($login->isAuthenticated())	
-			{
-				require_once(MUXPROTOCOL_FILE);
-				Logger::getInstance()->disableLogger(); // avoid logging write error message
-				$currentMessage = new MUXProtocol((string)$login->json_username, (string)$login->json_password);
-				$test = $currentMessage->cmd_reboot();
-			}
-		} 
-	}
-?> 
-
-<HTML>
+<!doctype html>
+<HTML lang="en">
 <HEAD>
-<TITLE>Muxlab <?php echo DEVICE_NAME;?></TITLE>
-<META charset="utf-8">
-
-<LINK href="css/styles.css?v=2018.02.20" type="text/css" rel="stylesheet">
-<LINK href="css/9-cube-grid.css" type="text/css" rel="stylesheet">
-
-<SCRIPT src="js/jquery-3.2.1.min.js" type="text/javascript"></SCRIPT>
+    <TITLE>Muxlab 500774</TITLE>
+    <META charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+ 
+    <LINK href="css/bootstrap.css" type="text/css" rel="stylesheet">
+    <LINK href="css/styles.css" type="text/css" rel="stylesheet">
+    <LINK href="css/9-cube-grid.css" type="text/css" rel="stylesheet">
+    <LINK href="external_libraries/jquery-UI/jquery-ui.min.css" type="text/css" rel="stylesheet">
+    <LINK href="css/jquery.timepicker.min.css" type="text/css" rel="stylesheet">
+    <LINK href="css/boostrap-button-toggle.css" type="text/css" rel="stylesheet">
 </HEAD>
 
 <BODY>
 	<DIV id="body">
-		<DIV id="header"></DIV>
-			<DIV id="blink"><INPUT name="blink_button" type="button" value="Blink LED" onClick="javascript:submit_blink('true');"></DIV>
-		<DIV id="nav"></DIV>
+		<DIV id="header">
+			<a id="logo" href="./index.php?link=info">
+			<img alt="Muxlab Control Panel" src="images/logo.jpg"></a>  <br/>
+			<div data-text="dt_productName" id="id_mainProductName"> </div>
+		</DIV>
+			<DIV id="blink">
+                <button type="button" class="btn btn-primary btn-sm" onClick="javascript:blink('true');">Blink LED</button>
+			</DIV>
+		<DIV id="nav">
+           	<a data-text="system-info" id="nav_info" class="" href="javascript:submit_main('info.html');">System Info</a>
+<!--        		<a data-text="Decoder" id="nav_decoder" class="" href="javascript:submit_main('decoder.html');" >Decoder</a>  -->
+        	<a data-text="media" id="nav_media" class="" href="javascript:submit_main('media.html');">Media</a>	
+<!--             <a data-text="Script" id="nav_script" class="" href="javascript:submit_main('script.html');">Script</a>    --> 
+<!--             <a data-text="Osd" id="nav_osd" class="" href="javascript:submit_main('osd.html');">Overlay</a> -->
+<!--             <a data-text="Osd" id="nav_osd" class="" href="javascript:submit_main('layout.html');">Layout</a>  -->
+<!--           	<a data-text="Network" id="nav_network" class="" href="javascript:submit_main('network.html');">Network</a> -->
+        	<a data-text="rs232" id="nav_rs232" class="" href="javascript:submit_main('rs232.html');">RS-232</a>
+        	<a data-text="settings" id="nav_settings" class="" href="javascript:submit_main('settings.html');">Settings</a> 
+        	<!-- <a data-text="log-out" id="nav_logout" class="" href="javascript:signOut();" >Log Out</a>  -->
+		</DIV>
 		<DIV id="message"></DIV>
 		<DIV id="loading-image">		
 			<div class="sk-cube-grid">
@@ -48,154 +47,17 @@
 				<div class="sk-cube sk-cube7"></div>
 				<div class="sk-cube sk-cube8"></div>
 				<div class="sk-cube sk-cube9"></div>
-			</div>		
-		</DIV>			
+			</div>
+		</DIV>	
 		<DIV id="content"></DIV>
 		<DIV id="footer"></DIV>
 	</DIV>
-
-	<SCRIPT type="text/javascript">
-		$("#header").load("header.php");
-		$("#nav").load("nav.php");
-		$("#footer").load("footer.php");
-	</SCRIPT>
-
-	<SCRIPT type="text/javascript">
-
-		//debugger;
-
-		var $loading = $('#loading-image').hide();
-		$(document)
-			.ajaxStart(function () {
-				$loading.show();
-			})
-		.ajaxStop(function () {
-			$loading.hide();
-		});
-
-		function submit_blink(value) 
-		{
-			//value = (value == 'true');
-
-			$.ajax({
-				method: "POST",
-				url: "blink.php",
-				data: { "value" : value },
-				success: function(data) {
-
-					if (data == 'TRUE') 
-					{
-						$("#blink input[type=button]").attr("onClick","javascript:submit_blink('false');");
-						$("#blink input[type=button]").addClass("blink-button");
-						$("#blink input[type=button]").attr("value","Turn OFF");
-					}
-					else 
-					{
-						$("#blink input[type=button]").attr("onClick","javascript:submit_blink('true');");
-						$("#blink input[type=button]").removeClass("blink-button");
-						$("#blink input[type=button]").attr("value","Blink LED");
-					}
-				},
-				error: function() {
-					//alert('Error occured');
-				}
-			});
-		}
-
-		function submit_main(pageOrSimpleTask,message=null) 
-		{
-			$("#content").load(pageOrSimpleTask);
-
-			//bold menu items			
-			$('.bolder').each(function(i, obj) {
-				$(obj).attr("class","");
-			});
-			var nav_link = pageOrSimpleTask.replace(".php", "");
-			nav_link = "#nav_" + nav_link;
-			$(nav_link).attr("class","bolder");
-
-			//set message
-			if (message == null) message = getUrlParameter('message');
-			if (message)
-			{
-				document.getElementById('message').style.display = "block";
-				document.getElementById('message').innerHTML = urldecode(message);
-			}		
-			else
-			{
-				document.getElementById('message').style.display = "none";
-				document.getElementById('message').innerHTML = null;	
-			}
-
-    		// remove url parameters
-    		var uri = window.location.toString();
-    		if (uri.indexOf("?") > 0) 
-    		{
-    			var clean_uri = uri.substring(0, uri.indexOf("?"));
-    			window.history.replaceState({}, document.title, clean_uri);
-    		}   		
-		}
-
-		function urldecode(url) {
-			return decodeURIComponent(url.replace(/\+/g, ' '));
-		}		
-
-		var getUrlParameter = function getUrlParameter(sParam) {
-			var sPageURL = decodeURIComponent(window.location.search.substring(1)),
-				sURLVariables = sPageURL.split('&'),
-				sParameterName,
-				i;
-
-			for (i = 0; i < sURLVariables.length; i++) {
-				sParameterName = sURLVariables[i].split('=');
-
-				if (sParameterName[0] === sParam) {
-					return sParameterName[1] === undefined ? true : sParameterName[1];
-				}
-			}
-		};
-
-		var link = getUrlParameter('link');
-		if (!link)
-		{
-			submit_main('info.php');
-		}
-		else
-		{
-			switch(link)
-			{
-    			case 'userlogin':
-    				submit_main('userlogin.php');
-    				break;		
-				case 'info':
-					submit_main('info.php');
-					break;
-				case 'status':
-					submit_main('info.php');
-					break;
-				case 'encoder':
-					submit_main('encoder.php');
-					break;
-				case 'decoder':
-					submit_main('decoder.php');
-					break;					
-				case 'network':
-					submit_main('network.php');
-					break;				
-				case 'settings':
-					submit_main('settings.php');
-					break;
-				case 'logout':
-					submit_main('logout.php');
-					break;		
-				default:
-					submit_main('userlogin.php');
-					break;
-			}
-		}
-
-	</SCRIPT>
-
+	<SCRIPT src="js/jquery-3.2.1.min.js" type="text/javascript"></SCRIPT>
+	<SCRIPT src="js/jquery.cookie.js" type="text/javascript"></SCRIPT>
+	<SCRIPT src="js/popper.min.js" type="text/javascript"></SCRIPT>
+	<SCRIPT src="js/bootstrap.js" type="text/javascript"></SCRIPT>
+	<SCRIPT src="js/jquery.timepicker.min.js" type="text/javascript"></SCRIPT>
+    <SCRIPT src="external_libraries/jquery-UI/jquery-ui.min.js" type="text/javascript"></SCRIPT>
+	<script src="js/index.js" type="text/javascript"></script>
 </BODY>
-
 </HTML>

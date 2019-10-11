@@ -406,8 +406,7 @@ int main(int argc, char *argv[])
 	/* Process the command line arguments. */
 	progname = strrchr(argv[0], '/');
 	progname = progname ? 1+progname : argv[0];
-	while (EOF != (c = getopt_long(argc, argv, "246u""b:d:f:hi:s:t:vz",
-				       opts, &index))) {
+	while (EOF != (c = getopt_long(argc, argv, "246u""b:d:f:hi:s:t:vz", opts, &index))) {
 		switch (c) {
 		case 0:
 			if (config_parse_option(cfg, opts[index].name, optarg)) {

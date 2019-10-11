@@ -1,0 +1,940 @@
+<DIV id="forms">
+    <DIV id="titleDiv" class="title">
+        <H3>&nbsp</H3>
+    </DIV>
+	<div class="mainwraposd">
+      <div class="container">
+        <form id="fmText"> 
+        <div class="form-row justify-content-between pt-3 pl-2">
+            <div class="col-3">
+                <h4>Text Overlay</h4>
+	        </div>
+	       <!--  <div class="col-auto">
+ 	            <button type="button" id="btnTextOff" class="btn btn-secondary">On/Off</button>
+	        </div>  -->
+	    </div>
+	    <div class="form-group row pl-2">
+	        <label class="col-2 col-form-label">Case Name</label>
+	        <div class="col-10">
+	            <label id="laTemplate" class="col-form-label"></label>
+	        </div>
+	    </div>
+	    <div class="form-group row pl-2">
+            <label for="inTextMessage" class="col-2 col-form-label">Message</label>
+            <div class="col-10">
+                <input type="text" class="form-control" id="inTextMessage" placeholder="Text overlay message">
+            </div>
+	    </div>
+        <div class="form-group row pl-2">
+            <label for="inTextFontSize" class="col-2 col-form-label">Font Size</label>
+            <div class="col-2">
+                <input type="number" min="1" max="130" class="form-control" id="inTextFontSize" placeholder="48">
+            </div>
+            <label for="inTextFontColor" class="offset-1 col-3 col-form-label">Font Color</label>
+            <div class="col-2">
+                <input type="color" class="form-control" id="inTextFontColor" value="#00FF00" placeholder="#FFFFFF">
+            </div>
+        </div>
+        <div class="form-group row pl-2">
+            <label for="inTextBackTrans" class="col-2 col-form-label">Background Transparency(%)</label>
+            <div class="col-2">
+                <input type="number" min="0" max="100" class="form-control" id="inTextBackTrans" placeholder="0%">
+            </div>
+            <label for="inTextBackColor" class="offset-1 col-3 col-form-label">Background Color</label>
+            <div class="col-2">
+                <input type="color" class="form-control" id="inTextBackColor" value="#7F7F7F" placeholder="#FFFFFF">
+            </div>
+        </div>
+        <div class="form-row pl-2">
+            <label class="col-2 col-form-label">Position</label>
+        </div>
+        <div class="form-row pl-2">        
+	        <div class="form-group col-md-3">
+	            <label for="inTextLeft">Left</label>
+                <input type="number" min="0" max="1920" class="form-control" id="inTextLeft" placeholder="260">
+	        </div>
+	        <div class="form-group col-md-3">
+	            <label for="inTextTop">Top</label>
+	            <input type="number" min="0" max="1080" class="form-control" id="inTextTop" placeholder="50">
+	        </div>
+            <div class="form-group col-md-3">
+                <label for="inTextWidth">Width</label>
+                <input type="number" min="100" max="1920" class="form-control" id="inTextWidth" placeholder="1400">
+            </div>
+            <div class="form-group col-md-3">
+                <label for="inTextHeight">Height</label>
+                <input type="number" min="100" max="1080" class="form-control" id="inTextHeight" placeholder="220">
+            </div>
+        </div>
+        <div class="form-group row pl-2">
+            <div class="col-1 mr-2">
+                <button type="submit" id="btnTextApply" class="btn btn-secondary">Apply</button>
+            </div>
+            <div class="col-1 mr-2">
+                <button type="button" id="btnTextClear" class="btn btn-secondary">Clear</button>
+            </div>
+            <div class="col-1 mr-2">
+                <button type="button" id="btnTextOff" class="btn btn-secondary">Off</button>
+            </div>
+            <label id="lblTextApply" class="col-2 col-form-label ml-3 text-danger" style="display: none;">Applied</label>
+        </div>
+        </form>
+        <div class="form-group row pl-2">
+            <label for="inCreate" class="col-2 col-form-label">Create Preset</label>
+            <div class="col-5">
+                <input type="text" class="form-control" id="inTextCreate" placeholder="new case">
+            </div>
+            <div class="col-1">
+                <button type="button" id="btnTextCreate" class="btn btn-secondary">Create</button>
+            </div>
+            <label id="lblTextCreate" class="col-2 col-form-label ml-3 text-danger" style="display: none;">Created</label>
+        </div>
+        <div class="form-group row pl-2">
+            <label class="col-2 col-form-label">Update Preset</label>
+            <div class="col-5">
+                <select id="slTextUpdate" class="custom-select form-control"></select>
+            </div>
+            <div class="col-1">
+                <button type="button" id="btnTextLoad" class="btn btn-secondary">Load</button>
+            </div>
+            <div class="col-1">
+                <button type="button" id="btnTextUpdate" class="btn btn-secondary disabled">Update</button>
+            </div>
+            <label id="lblTextUpdate" class="col-2 col-form-label ml-3 text-danger" style="display: none;">Updated</label>
+        </div>
+        <div class="form-group row pl-2 pb-3">
+            <label class="col-2 col-form-label">Delete Preset</label>
+            <div class="col-5">
+                <select id="slTextDelete" class="custom-select form-control"></select>
+            </div>
+            <div class="col-1">
+                <button type="button" id="btnTextDelete" class="btn btn-secondary">Delete</button>
+            </div>
+            <label id="lblTextDelete" class="col-2 col-form-label ml-3 text-danger" style="display: none;">Deleted</label>
+        </div>
+      </div>
+	</div>
+	
+	<div class="mainwraposd">
+      <div class="container">
+        <form id="fmImage">
+        <div class="form-row justify-content-between pt-3 pl-2">
+            <div class="col-3">
+                <h4>Image Overlay</h4>
+            </div>
+            <div class="col-auto">
+                <button type="button" id="btnImageEnable" class="btn btn-secondary">On/Off</button>
+            </div>
+        </div>
+        <div class="form-group row pl-2 pt-2">
+            <label for="selectImageFiles" class="col-2 col-form-label">Select Logo</label>
+            <div class="col-7">
+                <select id="selectImageFiles" class="custom-select form-control"></select>
+            </div>
+        </div>
+        <div class="form-group row pl-2">
+            <!-- <label for="inTextFontColor" class="col-2 col-form-label">Logo Duration</label>
+            <div class="col-2">
+                <input class="timepicker form-control" id="startTime" placeholder="00:00:00"/>
+            </div>  -->
+        </div>
+        <div class="form-group row pl-2">
+            <label for="inImageBackTrans" class="col-2 col-form-label">Background Transparency(%)</label>
+            <div class="col-2">
+                <input type="number" min="0" max="100" class="form-control" id="inImageBackTrans" placeholder="50%">
+            </div>
+        </div>
+        <div class="form-row pl-2">
+            <label class="col-2 col-form-label">Position</label>
+        </div>
+        <div class="form-row pl-2">        
+            <div class="form-group col-md-3">
+                <label for="inImageLeft">Left</label>
+                <input type="number" min="0" max="1920" class="form-control" id="inImageLeft" placeholder="60">
+            </div>
+            <div class="form-group col-md-3">
+                <label for="inImageTop">Top</label>
+                <input type="number" min="0" max="1080" class="form-control" id="inImageTop" placeholder="35">
+            </div>
+            <div class="form-group col-md-3">
+                <label for="inImageWidth">Width</label>
+                <input type="number" min="50" max="1920" class="form-control" id="inImageWidth" placeholder="160">
+            </div>
+            <div class="form-group col-md-3">
+                <label for="inImageHeight">Height</label>
+                <input type="number" min="50" max="1080" class="form-control" id="inImageHeight" placeholder="60">
+            </div>
+        </div>
+        <div class="form-group row pl-2 pb-3">
+            <div class="col-1 mr-2">
+                <button type="submit" id="btnImageApply" class="btn btn-secondary">Apply</button>
+            </div>
+            <div class="col-1 mr-2">
+                <button type="button" id="btnImageClear" class="btn btn-secondary">Clear</button>
+            </div>
+            <label id="lblImageApply" class="col-2 col-form-label ml-3 text-danger" style="display: none;">Applied</label>
+        </div>
+        </form>
+      </div>
+    </div>
+</DIV>
+<script type="text/javascript">
+
+//list text cases
+listTextCase();
+
+getMedia("files");
+
+//delete text case
+$("#btnTextUpdate").click(function(){
+    var caseName  = $("#laTemplate").html();
+    var message   = $("#inTextMessage").val();
+    var fontSize  = $("#inTextFontSize").val();
+    var left      = $("#inTextLeft").val();
+    var top       = $("#inTextTop").val();
+    var width     = $("#inTextWidth").val();
+    var height    = $("#inTextHeight").val();
+    var fontColor = $("#inTextFontColor").val();
+    fontColor     = fontColor.replace(/^#/, '');
+    var backColor = $("#inTextBackColor").val();
+    backColor     = backColor.replace(/^#/, '');
+    var backTrans = $("#inTextBackTrans").val();
+    
+    if (caseName == "")
+    {
+        alert("case name can not be empty ");
+        return;
+    }
+    updateTextCase(caseName, message, fontColor, fontSize, backColor, backTrans, left, top, width, height);
+});
+
+//delete text case
+$("#btnTextDelete").click(function(){
+    caseName = $('#slTextDelete').val();
+
+    if (caseName != "NONE")
+    {
+        deleteTextCase(caseName);
+    }
+});
+
+//Load text case
+$("#btnTextLoad").click(function(){
+    caseName = $('#slTextUpdate').val();
+    
+    if (caseName != "NONE")
+    {
+        $("#btnTextUpdate").removeClass('disabled');
+        readTextCase(caseName);
+    }
+});
+
+//create text case
+$("#btnTextCreate").click(function(){
+    var caseName  = $("#inTextCreate").val();
+    var message   = $("#inTextMessage").val();
+    var fontSize  = $("#inTextFontSize").val();
+    var left      = $("#inTextLeft").val();
+    var top       = $("#inTextTop").val();
+    var width     = $("#inTextWidth").val();
+    var height    = $("#inTextHeight").val();
+    var fontColor = $("#inTextFontColor").val();
+    fontColor     = fontColor.replace(/^#/, '');
+    var backColor = $("#inTextBackColor").val();
+    backColor     = backColor.replace(/^#/, '');
+    var backTrans = $("#inTextBackTrans").val();
+    
+//    if (!validateForm(message, fontSize, fontColor, left, top, width, height))
+//    {
+//        return;
+//    }
+    if (caseName == "")
+    {
+        alert("provide a valide case name");
+        return;
+    }
+    
+    createTextCase(caseName, message, fontColor, fontSize, backColor, backTrans, left, top, width, height);
+});
+
+//clear
+$("#btnTextClear").click(function(){
+    clearTextForm();
+});
+$("#btnImageClear").click(function(){
+    clearImageForm();
+});
+
+//on/off
+$("#btnTextOff").click(function(){
+    //toggleOsd(1);
+    setBackground(1, '000000', 0);
+    textMessage(" ", '');
+});
+
+$("#btnImageEnable").click(function(){
+    toggleOsd(2);
+});
+//Image apply
+//$("#btnImageApply").click(function() {
+$("#fmImage").submit(function(event) {
+    var image     = $("#selectImageFiles").val();
+    var left      = parseInt($("#inImageLeft").val());
+    var top       = parseInt($("#inImageTop").val());
+    var width     = parseInt($("#inImageWidth").val());
+    var height    = parseInt($("#inImageHeight").val());
+    var backTrans = parseInt($("#inImageBackTrans").val());
+
+    //position validation 
+    if (!isNaN(left) || !isNaN(top) || !isNaN(width) || !isNaN(height))
+    {
+        if (isNaN(left) || isNaN(top) || isNaN(width) || isNaN(height))
+        {
+            alert("all fields position must be filled");
+            event.preventDefault();
+            return false;
+        }
+    }
+    
+    //set position 
+    if (!isNaN(left) && !isNaN(top) && !isNaN(width) && !isNaN(height))
+    {
+        setPosition(2, left, top, width, height);
+    }
+    
+    if (!isNaN(backTrans))
+    {
+        setTransparency(2, backTrans);
+    }
+    
+    if (image != 'NONE' && image != "")
+    {
+        setImage(image);
+    }
+    
+    $("#lblImageApply").show();
+    $("#lblImageApply").fadeOut(1500);
+    event.preventDefault();
+    return false;
+});
+
+//text apply 
+//$("#btnTextApply").click(function() {
+$("#fmText").submit(function(event) {
+    var message   = $("#inTextMessage").val();
+    var fontSize  = $("#inTextFontSize").val();
+    var left      = parseInt($("#inTextLeft").val());
+    var top       = parseInt($("#inTextTop").val());
+    var width     = parseInt($("#inTextWidth").val());
+    var height    = parseInt($("#inTextHeight").val());
+    var fontColor = $("#inTextFontColor").val();
+    fontColor     = fontColor.replace(/^#/, '');
+    var backColor = $("#inTextBackColor").val();
+    backColor     = backColor.replace(/^#/, '');
+    var backTrans = $("#inTextBackTrans").val();
+    
+    if (!validateForm(message, fontSize, fontColor, left, top, width, height))
+    {
+        event.preventDefault();
+        return;
+    }
+
+    //set font color
+    if (fontSize != '')
+    {
+        setFontSize(1, parseInt(fontSize));
+    }
+
+    //set background
+    if (backTrans != '')
+    {
+        setBackground(1, backColor, backTrans);
+    }
+    else
+    {
+        setBackground(1, backColor, 100);
+    }
+
+    //set position 
+    if (!isNaN(left) && !isNaN(top) && !isNaN(width) && !isNaN(height))
+    {
+        setPosition(1, left, top, width, height);
+    }
+    
+    //set text
+    if (message != '')
+    {
+        textMessage(message, fontColor);
+    }
+    
+    $("#lblTextApply").show();
+    $("#lblTextApply").fadeOut(1500);
+    
+    event.preventDefault();
+    return false;
+});
+
+// functions //
+function clearTextForm()
+{
+    $("#laTemplate").html("");
+    $("#inTextMessage").val("");
+    $("#inTextFontSize").val("");
+    $("#inTextFontColor").val("#00FF00");
+    $("#inTextBackColor").val("#7F7F7F");
+    $("#inTextLeft").val("");
+    $("#inTextTop").val("");
+    $("#inTextWidth").val("");
+    $("#inTextHeight").val("");
+    $("#inTextBackTrans").val("");
+    $("#btnTextUpdate").addClass('disabled');
+}
+
+function clearImageForm()
+{
+    $("#inImageLeft").val("");
+    $("#inImageTop").val("");
+    $("#inImageWidth").val("");
+    $("#inImageHeight").val("");
+    $("#inImageBackTrans").val("");
+}
+
+function validateForm(message, fontSize, fontColor, left, top, width, height)
+{
+    if (fontColor != '')
+    {
+	    //var isOk  = /(^[0-9a-fA-F]{6}$)|(^[0-9a-fA-F]{3}$)/i.test(fontColor);
+        var isOk = /(^[0-9a-fA-F]{6}$)/i.test(fontColor);
+	    if (!isOk)
+	    {
+	        alert("provide a valide font color");
+	        return false;
+	    }
+    }
+    
+    //set position 
+    if (!isNaN(left) || !isNaN(top) || !isNaN(width) || !isNaN(height))
+    {
+        if (isNaN(left) || isNaN(top) || isNaN(width) || isNaN(height))
+        {
+            alert("all fields position must be filled");
+            return false;
+        }
+    }
+    
+    /*if (fontSize != '')
+    {
+        fontSize = parseInt(fontSize);
+        if (isNaN(fontSize))
+        {
+            alert("provide a valide font size");
+        }
+        else if(fontSize < 0)
+        {
+            alert("provide a valide font size");
+        }
+    }*/
+    
+    return true;
+}
+
+// ajax functions //
+function textMessage(message, fontColor)
+{
+    var token = $.cookie("token");
+
+    $.ajax({
+        type: 'PUT',
+        url: apiUrl + "/osd/message",
+        dataType: "json",
+        headers: {"Authorization": token},
+        data: {"message": message, "fontColor": fontColor},
+        success: function(response){
+            if(response.status == "success")
+            {
+            }
+            else if(response.status == "failed")
+            {
+                alert("failed to send message");
+            }
+        },
+        error: function (jqXHR, status) {
+            if (jqXHR.status == 401)
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });
+}
+
+//set image overlay
+function setImage(image)
+{
+    var token = $.cookie("token");
+
+    $.ajax({
+        type: 'PUT',
+        url: apiUrl + "/osd/image",
+        dataType: "json",
+        headers: {"Authorization": token},
+        data: {"media": image},
+        success: function(response){
+            if(response.status == "success")
+            {
+            }
+            else if(response.status == "failed")
+            {
+                alert("failed to set image");
+            }
+        },
+        error: function (jqXHR, status) {
+            if (jqXHR.status == 401)
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });
+}
+
+function setTransparency(osd, tranparency)
+{
+    var token = $.cookie("token");
+
+    $.ajax({
+        type: 'PUT',
+        url: apiUrl + "/osd/transparency",
+        dataType: "json",
+        headers: {"Authorization": token},
+        data: {"osd": osd, "transparency": tranparency},
+        success: function(response){
+            if(response.status == "success")
+            {
+            }
+            else if(response.status == "failed")
+            {
+                alert("failed to set image");
+            }
+        },
+        error: function (jqXHR, status) {
+            if (jqXHR.status == 401)
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });
+}
+ 
+//set an osd font color (text overlay (1) , image overlay (2)  and subtitle(0))
+function setFontColor(osd, fontColor)
+{
+    var token = $.cookie("token");
+
+    $.ajax({
+        type: 'PUT',
+        url: apiUrl + "/osd/font-color",
+        dataType: "json",
+        headers: {"Authorization": token},
+        data: {"osd": osd, "fontColor": fontColor},
+        success: function(response){
+            if(response.status == "success")
+            {
+            }
+            else if(response.status == "failed")
+            {
+                alert("failed to set font color");
+            }
+        },
+        error: function (jqXHR, status) {
+            if (jqXHR.status == 401)
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });    
+}
+
+//set an osd font size (text overlay (1) , image overlay (2)  and subtitle(0))
+function setFontSize(osd, fontSize)
+{
+    var token = $.cookie("token");
+
+    $.ajax({
+        type: 'PUT',
+        url: apiUrl + "/osd/font-size",
+        dataType: "json",
+        headers: {"Authorization": token},
+        data: {"osd": osd, "fontSize": fontSize},
+        success: function(response){
+            if(response.status == "success")
+            {
+            }
+            else if(response.status == "failed")
+            {
+                alert("failed to set font size");
+            }
+        },
+        error: function (jqXHR, status) {
+            if (jqXHR.status == 401)
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });    
+}
+
+//
+function setBackground(osd, background, transparency)
+{
+    var token = $.cookie("token");
+
+    $.ajax({
+        type: 'PUT',
+        url: apiUrl + "/osd/background",
+        dataType: "json",
+        async: false,
+        headers: {"Authorization": token},
+        data: {"osd": osd, "background": background, "transparency": transparency},
+        success: function(response){
+            if(response.status == "success")
+            {
+            }
+            else if(response.status == "failed")
+            {
+                alert("failed to set background");
+            }
+        },
+        error: function (jqXHR, status) {
+            if (jqXHR.status == 401)
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });    
+}
+
+//enable/disable an osd (text overlay (1) , image overlay (2)  and subtitle(0))
+function toggleOsd(osd)
+{
+    var token = $.cookie("token");
+
+    $.ajax({
+        type: 'post',
+        url: apiUrl + "/osd/toggle-enable",
+        dataType: "json",
+        //crossDomain: false,
+        headers: {"Authorization": token},
+        data: {"osd": osd},
+        success: function(response){
+            if(response.status == "success")
+            {
+            }
+            else if(response.status == "failed")
+            {
+                alert("failed to enable/disable osd");
+            }
+        },
+        error: function (jqXHR, status) {
+            if (jqXHR.status == 401)
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });    
+}
+
+//set an osd position (text overlay (1) , image overlay (2)  and subtitle(0))
+function setPosition(osd, left, top, width, height)
+{
+    var token = $.cookie("token");
+
+    $.ajax({
+        type: 'PUT',
+        url: apiUrl + "/osd/position",
+        dataType: "json",
+        headers: {"Authorization": token},
+        data: {"osd": osd, "left": left, "top": top, "width": width, "height": height},
+        success: function(response){
+            if(response.status == "success")
+            {
+            }
+            else if(response.status == "failed")
+            {
+                alert("failed to set position");
+            }
+        },
+        error: function (jqXHR, status) {
+            if (jqXHR.status == 401)
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });
+}
+
+//update text overlay case
+function updateTextCase(caseName, message, fontColor, fontSize, backColor, backTrans, left, top, width, height)
+{
+    var token    = $.cookie("token");
+    var data     = {"caseName": caseName, "message": message, "fontColor": fontColor, "fontSize": fontSize, 
+                    "backColor": backColor, "backTrans": backTrans, "left": left, "top": top, "width": width, "height": height};
+    
+    $.ajax({
+        type: 'PUT',
+        url: apiUrl + "/osd/text-case/" + caseName,
+        dataType: "json",
+        headers: {"Authorization": token},
+        data: data,
+        success: function(response){
+            if(response.status == "success")
+            {
+                $("#inTextMessage").val(response.data.message);
+                $("#inTextFontSize").val(response.data.fontSize);
+                $("#inTextFontColor").val('#' + response.data.fontColor);
+                $("#inTextLeft").val(response.data.left);
+                $("#inTextTop").val(response.data.top);
+                $("#inTextWidth").val(response.data.width);
+                $("#inTextHeight").val(response.data.height);
+                
+                $("#lblTextUpdate").show();
+                $("#lblTextUpdate").fadeOut(1500);
+            }
+            else if(response.status == "failed")
+            {
+                alert("failed to create case");
+            }
+        },
+        error: function (jqXHR, status) {
+            if (jqXHR.status == 401)
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });
+}
+
+//delete a text overlay case
+function deleteTextCase(caseName)
+{
+    var token = $.cookie("token");
+    
+    $.ajax({
+        type: 'DELETE',
+        url: apiUrl + "/osd/text-case/" + caseName,
+        dataType: "json",
+        headers: {"Authorization": token},
+        success: function(response){
+            if(response.status == "success")
+            {
+                listTextCase();
+                textCase = $("#laTemplate").html();
+
+                if (caseName == textCase)
+                {
+                    clearTextForm();
+                    $("#btnTextUpdate").addClass('disabled');
+                }
+                
+                $("#lblTextDelete").show();
+                $("#lblTextDelete").fadeOut(1500);
+            }
+            else if(response.status == "failed")
+            {
+                alert("failed to delete case");
+            }
+        },
+        error: function (jqXHR, status) {
+            if (jqXHR.status == 401)
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });
+}
+
+//retrieve a text overlay case
+function readTextCase(caseName)
+{
+    var token = $.cookie("token");
+    
+    $.ajax({
+        type: 'GET',
+        url: apiUrl + "/osd/text-case/" + caseName,
+        dataType: "json",
+        headers: {"Authorization": token},
+        success: function(response){
+            if(response.status == "success")
+            {
+                $("#laTemplate").html(caseName);
+                $("#inTextMessage").val(response.data.message);
+                $("#inTextFontSize").val(response.data.fontSize);
+                $("#inTextFontColor").val('#' + response.data.fontColor);
+                $("#inTextLeft").val(response.data.left);
+                $("#inTextTop").val(response.data.top);
+                $("#inTextWidth").val(response.data.width);
+                $("#inTextHeight").val(response.data.height);
+                $("#inTextBackColor").val('#' + response.data.backColor);
+                $("#inTextBackTrans").val(response.data.backTrans);
+            }
+            else if(response.status == "failed")
+            {
+                alert("failed to retrieve case");
+            }
+        },
+        error: function (jqXHR, status) {
+            if (jqXHR.status == 401)
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });
+}
+
+//create text overlay case
+function createTextCase(caseName, message, fontColor, fontSize, backColor, backTrans, left, top, width, height)
+{
+    var token    = $.cookie("token");
+    var data     = {"caseName": caseName, "message": message, "fontColor": fontColor, "fontSize": fontSize, 
+                    "backColor": backColor, "backTrans": backTrans, "left": left, "top": top, "width": width, "height": height};
+    
+    $.ajax({
+        type: 'POST',
+        url: apiUrl + "/osd/text-case",
+        dataType: "json",
+        headers: {"Authorization": token},
+        data: data,
+        success: function(response){
+            if(response.status == "success")
+            {
+                listTextCase();
+                $("#laTemplate").html(caseName);
+                $('#slTextUpdate').val("caseName");
+                
+                $("#lblTextCreate").show();
+                $("#lblTextCreate").fadeOut(1500);
+            }
+            else if(response.status == "failed")
+            {
+                alert("failed to create case");
+            }
+        },
+        error: function (jqXHR, status) {
+            if (jqXHR.status == 401)
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });
+}
+
+//list text overlay cases
+function listTextCase()
+{
+    var token = $.cookie("token");
+    
+    $.ajax({
+        type: 'get',
+        url: apiUrl + "/osd/text-case",
+        dataType: "json",
+        headers: {"Authorization": token},
+        success: function(response){
+            if(response.status == "success")
+            {
+                $('#slTextDelete').empty();
+                if (response.data.length > 0)
+                {
+                    $.each(response.data, function(i, item) {
+                        $('#slTextDelete').append($('<option>', { 
+                            value: item,
+                            text : item 
+                        }));
+                    });
+                }
+                else
+                {
+                    $('#slTextDelete').append('<OPTION value="NONE">NONE</OPTION>');
+                }
+                $('#slTextUpdate').empty();
+                if (response.data.length > 0)
+                {
+                    $.each(response.data, function(i, item) {
+                        $('#slTextUpdate').append($('<option>', { 
+                            value: item,
+                            text : item 
+                        }));
+                    });
+                }
+                else
+                {
+                    $('#slTextUpdate').append('<OPTION value="NONE">NONE</OPTION>');
+                }
+            }
+            else if(response.status == "failed")
+            {
+                alert("failed to list cases");
+            }
+        },
+        error: function (jqXHR, status) {
+            if (jqXHR.status == 401)
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });
+}
+
+function getMedia(action)
+{
+    var token = $.cookie("token");
+    var imageCount = 0;
+
+    $.ajax({
+        type: 'PUT',
+        url: apiUrl + "/getmedia/action",
+        dataType: "json",
+        headers: {"Authorization": token},
+        data: {"action":action},
+        success: function(response){
+            if (response.status == "failed")
+            {
+                alert("failed to get media");
+            }
+            else
+            {
+                $('#selectImageFiles').empty();
+                if (response.data[0].objects.length > 0)
+                {
+                    $.each(response.data[0].objects, function(i, item) {
+                        if (item.name.toLowerCase().indexOf(".jpg") != -1 || item.name.toLowerCase().indexOf(".gif") != -1 ||
+                            item.name.toLowerCase().indexOf(".png") != -1 || item.name.toLowerCase().indexOf(".bmp") != -1 ||
+                            item.name.toLowerCase().indexOf(".jpeg") != -1)
+                        {
+                            imageCount++;
+                             $('#selectImageFiles').append($('<option>', {
+                                 value: item.name,
+                                 text : item.name
+                             }));
+                        }
+                    });
+                    if (imageCount == 0)
+                    {
+                        $('#selectImageFiles').append('<OPTION value="NONE">NONE</OPTION>');
+                    }
+                }
+                else
+                {
+                    $('#selectImageFiles').append('<OPTION value="NONE">NONE</OPTION>');
+                }
+            }
+        },
+        error: function (jqXHR, status) {
+            $('.modal').modal('hide');
+            sleep(1000);
+            if (jqXHR.status == 401)
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });
+}
+
+</script>

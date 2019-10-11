@@ -1,0 +1,177 @@
+<DIV id="forms">
+	<FORM >
+		<DIV class="form">
+			<DIV class="title">
+				<H2>Protocol</H2>
+			</DIV>
+			<DIV class="fields">
+				<DIV class="field">
+					<LABEL for="input_resolution">Input Resolution:</LABEL> 
+					<span class="input_label_right" id="device_input_resolution"></span>
+				</DIV>
+
+				<DIV class="field">
+					<LABEL for="output_resolution">Output Resolution:</LABEL>
+					<SELECT id="select_output_resolution" name="select_output_resolution">
+					</SELECT>
+				</DIV>
+
+				<DIV class="field">
+					<LABEL for="Deep_Color">Deep Color:</LABEL> 
+					<SELECT id="Deep_Color" name="Deep_Color">
+						<OPTION value="AUTO">AUTO</OPTION>
+						<OPTION value="12">12</OPTION>
+						<OPTION value="10">10</OPTION>
+						<OPTION value="8">8</OPTION>
+					</SELECT>
+				</DIV>				
+
+				<DIV class="field">
+					<LABEL for="TSurl_1">TS URL:</LABEL> 
+					<INPUT id="TSurl_1" name="TSurl_1" maxlength="128" size="40" type="text" autocomplete=off class="input_text" value=""/> 
+					<SELECT id="isTS_1" name="isTS_1">
+						<OPTION value="0">Disabled</OPTION>
+						<OPTION value="1">Enabled</OPTION>
+					</SELECT>
+				</DIV>
+
+
+				<DIV class="field">
+					<LABEL for="HLSurl_1">HLS URL:</LABEL> 
+					<INPUT id="HLSurl_1" name="HLSurl_1" maxlength="128" size="40" type="text" autocomplete=off class="input_text" value=""/> 
+					<SELECT id="isHLS_1" name="isHLS_1">
+						<OPTION value="0">Disabled</OPTION>
+						<OPTION value="1">Enabled</OPTION>
+					</SELECT>
+				</DIV>
+
+				<DIV class="field" id="flv">
+					<LABEL for="FLVurl_1">FLV URL:</LABEL> 
+					<INPUT id="FLVurl_1" name="FLVurl_1" maxlength="128" size="40" type="text" autocomplete=off class="input_text" value=""/> 
+					<SELECT id="isFLV_1" name="isFLV_1">
+						<OPTION value="0">Disabled</OPTION>
+						<OPTION value="1">Enabled</OPTION>
+					</SELECT>
+				</DIV>
+
+
+				<DIV class="field">
+					<LABEL for="RTSPurl_1">RTSP URL:</LABEL> 
+					<INPUT id="RTSPurl_1" name="RTSPurl_1" maxlength="128" size="40" type="text" autocomplete=off class="input_text" value=""/> 
+					<SELECT id="isRTSP_1" name="isRTSP_1">
+						<OPTION value="0">Disabled</OPTION>
+						<OPTION value="1">Enabled</OPTION>
+					</SELECT>					
+				</DIV>
+
+				<DIV class="field">
+					<LABEL for="RTMPurl_1">RTMP URL:</LABEL> 
+					<INPUT id="RTMPurl_1" name="RTMPurl_1" maxlength="128" size="40" type="text" autocomplete=off class="input_text" value=""/> 
+					<SELECT id="isRTMP_1" name="isRTMP_1">
+						<OPTION value="0">Disabled</OPTION>
+						<OPTION value="1">Enabled</OPTION>
+					</SELECT>					
+				</DIV>				
+
+				<DIV class="field">
+					<LABEL for="MCASTurl_1">Multicast URL:</LABEL> 
+					<INPUT id="MCASTurl_1" name="MCASTurl_1" maxlength="128" size="40" type="text" autocomplete=off class="input_text" value=""/> 
+					<SELECT id="isMCAST_1" name="isMCAST_1">
+						<OPTION value="0">Disabled</OPTION>
+						<OPTION value="1">Enabled</OPTION>
+					</SELECT>
+				</DIV>
+
+				<DIV class="field">
+					<LABEL for="isDipOn">Dipswitch:</LABEL> 
+					<SELECT id="isDipOn" name="isDipOn">
+						<OPTION value="0">Disabled</OPTION>
+						<OPTION value="1">Enabled</OPTION>
+					</SELECT>
+				</DIV>
+
+				<DIV class="field">
+					<INPUT name="submit" type="button" class="btnSubmit"  id="btnSubmitDecoder" value="Apply" />
+					<INPUT name="ResetButton" type="button" class="btnReset" value="Reset" id="btnResetDecoder" />
+				</DIV>
+
+			</DIV>
+		</DIV>
+	</FORM>
+</DIV>
+<script type="text/javascript">
+	completeDecoderPage();
+	
+	$("#btnResetDecoder").click(function() {
+	    completeDecoderPage();
+	});
+	
+    $("#btnSubmitDecoder").click(function() {
+	    var device = {};
+	    device["VidResO_1"]  = $("#select_output_resolution").val();
+	    device["Deep_Color"] = $("select#Deep_Color").val();
+	    device["TSurl_1"]    = $("input#TSurl_1").val();
+	    device["isTS_1"]     = $("select#isTS_1").val();
+	    device["HLSurl_1"]   = $("input#HLSurl_1").val();
+	    device["isHLS_1"]    = $("select#isHLS_1").val();
+	    device["FLVurl_1"]   = $("input#FLVurl_1").val();
+	    device["isFLV_1"]    = $("select#isFLV_1").val();
+	    device["RTSPurl_1"]  = $("input#RTSPurl_1").val();
+	    device["isRTSP_1"]   = $("select#isRTSP_1").val();
+	    device["RTMPurl_1"]  = $("input#RTMPurl_1").val();
+	    device["isRTMP_1"]   = $("select#isRTMP_1").val();
+	    device["MCASTurl_1"] = $("input#MCASTurl_1").val();
+	    device["isMCAST_1"]  = $("select#isMCAST_1").val();
+	    device["isDipOn"]    = $("select#isDipOn").val();
+
+	    setParam(device, "decoder.html");
+	});
+	
+	function completeDecoderPage()
+	{
+	    getParam();
+
+	    if (!!$.cookie('device'))
+	    {
+	        var data = $.cookie("device");
+
+	        //input resolution
+	        $("span#device_input_resolution").html(data.input_resolution);
+	        
+	        //set deep color select options
+	        $("select#Deep_Color").val(data.Deep_Color);
+	        //set TS select options 
+	        $("select#isTS_1").val(data.isTS_1);
+	        //set HLS select options 
+	        $("select#isHLS_1").val(data.isHLS_1);
+	        //set FLV select options 
+	        $("select#isFLV_1").val(data.isFLV_1);
+	        //set RTSP select options 
+	        $("select#isRTSP_1").val(data.isRTSP_1);
+	        //set RTMP select options 
+	        $("select#isRTMP_1").val(data.isRTMP_1);
+	        //set Multicast select options
+	        $("select#isMCAST_1").val(data.isMCAST_1);
+	        //set Multicast select options
+	        $("select#isDipOn").val(data.isDipOn);
+	    
+	        //fill protocol url input fields
+	        $("input#TSurl_1").val(data.TSurl_1);
+	        $("input#HLSurl_1").val(data.HLSurl_1);
+	        $("input#FLVurl_1").val(data.FLVurl_1);
+	        $("input#RTSPurl_1").val(data.RTSPurl_1);
+	        $("input#RTMPurl_1").val(data.RTMPurl_1);
+	        $("input#MCASTurl_1").val(data.MCASTurl_1);
+	        
+	        //output resolution options
+	        $.each(data.output_resolution_options, function(i, item) {
+	            $('#select_output_resolution').append($('<option>', { 
+	                value: i,
+	                text : item 
+	            }));
+	        });
+	        $('#select_output_resolution').val(data.VidResO_1);
+	    }
+	}
+	
+</script>

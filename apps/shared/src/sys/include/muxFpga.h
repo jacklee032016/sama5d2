@@ -79,7 +79,8 @@ typedef	enum
 /* audio */
 #define	EXT_FPGA_REG_AUDIO_CHANNELS				15
 #define	EXT_FPGA_REG_AUDIO_RATE					16
-#define	EXT_FPGA_REG_AUDIO_PKT_SIZE				17
+
+//#define	EXT_FPGA_REG_AUDIO_PKT_SIZE				17
 
 
 #define	EXT_FPGA_REG_SDI_STATUS					19
@@ -110,6 +111,9 @@ typedef	enum
 
 #define	F_REG_TX_SYS_STATISTICS_ANC				INVALIDATE_VALUE_U8
 #define	F_REG_TX_SYS_STATISTICS_AUX				INVALIDATE_VALUE_U8
+
+/* 10.09, 2019 */
+#define	F_REG_TX_AUDIO_PKT_SIZE					0x20
 
 #define	F_REG_TX_SYS_GBE_RX_COUNT				0x22
 #define	F_REG_TX_SYS_GBE_TX_COUNT				0x24
@@ -438,6 +442,8 @@ typedef	struct
 	FpgaI2cAddress			reset;
 	FpgaI2cAddress			enable;
 
+	FpgaI2cAddress			rtpTimestamp;
+
 	FpgaI2cAddress			irCtrl;
 	FpgaI2cAddress			irDemodulation;
 
@@ -474,6 +480,8 @@ typedef	struct
 	FpgaI2cAddress			reset;
 	FpgaI2cAddress			enable;
 	
+	FpgaI2cAddress			rtpTimestamp;
+
 	FpgaI2cAddress			irCtrl;
 	FpgaI2cAddress			irDemodulation;
 
@@ -616,9 +624,12 @@ typedef	struct	_FpgaConfig
 	{	unsigned int _value = ntohl(*((unsigned int *)(intVal))); unsigned char *p = (unsigned char *)&_value; FPGA_WRITE((address), p, 3); }
 
 
+#define	_extFpgaWriteIntegerChange(address, intVal) \
+	{	unsigned int _value = (*((unsigned int *)(intVal))); FPGA_WRITE((address), (unsigned char *)&_value, 4); }
+
+
 #define	_extFpgaWriteInteger(address, intVal) \
 	{	unsigned int _value = ntohl(*((unsigned int *)(intVal))); FPGA_WRITE((address), (unsigned char *)&_value, 4); }
-
 
 
 int fpgaReadParamRegisters(MediaRegisterAddress *addrMedia, EXT_RUNTIME_CFG *runCfg);

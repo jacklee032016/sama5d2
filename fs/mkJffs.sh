@@ -41,6 +41,29 @@ then
     exit 1
 fi
 
+VER_BUILDTIME=`TZ=CN date -u "+%A %d-%B, %Y,  %T"`
+
+VERSION_FILE=etc/mLab/fsVersion.info
+
+echo "   Create version info of filesystem in ..."
+if [[ ! -d minimal/etc/mLab ]]
+then
+    echo "cereate minimal/etc/mLab directory"
+	mkdir -p minimal/etc/mLab
+fi
+
+if [ -f minimal/$VERSION_FILE ]
+then
+    echo "$VERSION_FILE is existed, removing it..."
+    rm -rf minimal/$VERSION_FILE
+fi
+
+VER_STR="Root File System of Mux7xx, build at $VER_BUILDTIME"
+echo $VER_STR > minimal/$VERSION_FILE
+echo $VER_STR
+
+
+# exit 0
 
 #--no-cleanmarkers: Don't add a cleanmarker to every eraseblock
 echo "   make JFFS2 file system into '$OUT_FILE' from '$SRC_DIR', size $PAD_SIZE, erase block size $ERASE_BLOCK_SIZE..."

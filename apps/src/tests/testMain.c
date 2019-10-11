@@ -21,6 +21,8 @@
 
 #define	TEST_CMD_CLOCK				"clk"
 
+#define	TEST_CMD_TIMESTAMP			"ts"
+
 
 int testIgmp(void);
 int testDipSwitch(void);
@@ -42,7 +44,7 @@ static void _usage(char* base)
 	printf("%s: \n\tTest command line utility.\n"\
 		"\t%s -c command "
 		"\t\t Current command:  " \
-		"\n\t\t\t"TEST_CMD_IGMP", "TEST_CMD_DIP_SWITCH", "TEST_CMD_LEDS", "TEST_CMD_SW1", "TEST_CMD_SECURE_CHIP", "TEST_CMD_I2C ", "TEST_CMD_SPI ", "TEST_CMD_CLOCK" \n", 
+		"\n\t\t\t"TEST_CMD_IGMP", "TEST_CMD_DIP_SWITCH", "TEST_CMD_LEDS", "TEST_CMD_SW1", "TEST_CMD_SECURE_CHIP", "TEST_CMD_I2C ", "TEST_CMD_SPI ", "TEST_CMD_CLOCK ", "TEST_CMD_TIMESTAMP" \n", 
 		  base, base);
 
 	exit(-1);
@@ -68,6 +70,14 @@ int testClock(void)
 	return EXIT_SUCCESS;
 }
 
+int testTimestamp(void)
+{
+	uint64_t tsUs = cmnGetTimeUs();
+	uint32_t reg = FPGA_GET_PTP_TIMESTAMP();
+	EXT_INFOF("Current Timestamp: %llu us, reg: %u(0x%x); %lu ms", tsUs, reg, reg, cmnGetTimeMs());
+
+	return EXIT_SUCCESS;
+}
 
 
 int main(int argc, char *argv[])
@@ -138,9 +148,12 @@ int main(int argc, char *argv[])
 		testRs232();
 	}
 	else if(IS_STRING_EQUAL(cmd, TEST_CMD_CLOCK))
-	{
-	
+	{	
 		testClock();
+	}
+	else if(IS_STRING_EQUAL(cmd, TEST_CMD_TIMESTAMP))
+	{	
+		testTimestamp();
 	}
 	else
 	{

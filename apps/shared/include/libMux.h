@@ -858,9 +858,13 @@ typedef	struct _MuxMain
 
 
 	int						isClientPolling;		/* polling for SDP client in RX */
-	int						pollTime;			/* seconds */
+	int						pollTime;			/* seconds, sdp poll time */
 
 	int						resetTime;			/* time for reset when button is pressed, seconds */
+	
+	int						mediaPollTime;
+	int						securityEnable;
+	int						ptpEnable;
 	
 //	CTRL_LINK_TYPE			ctrlProtocol;
 
@@ -1144,6 +1148,7 @@ extern	CmnThread  threadSdpReceiver;
 
 extern	CmnThread  threadButton;
 extern	CmnThread  threadLed;
+extern	CmnThread  threadPoll;
 
 
 MuxPlugIn *cmnMuxPluginFind(MuxMain *muxMain, MUX_PLUGIN_TYPE type);

@@ -123,23 +123,47 @@ static int _parseGlobalConfig(const char **p, MuxMain *muxMain, int linenum)
 	{
 		muxMain->debugRest = cmnParseGetBoolValue(p);
 #if DEBUG_CONFIG_FILE
-		fprintf(stderr, "DebugRest: %s\n", (muxMain->debugRest)?"YES":"NO");
+		fprintf(stderr, "DebugRest: %s\n", STR_BOOL_VALUE(muxMain->debugRest) );
 #endif
 	}
 	else if (!strcasecmp(cmd, "DebugCmd"))
 	{
 		muxMain->debugCmd = cmnParseGetBoolValue(p);
 #if DEBUG_CONFIG_FILE
-		fprintf(stderr, "DebugCmd: %s\n", (muxMain->debugCmd)?"YES":"NO");
+		fprintf(stderr, "DebugCmd: %s\n", STR_BOOL_VALUE(muxMain->debugCmd));
 #endif
 	}
 	else if (!strcasecmp(cmd, "DebugSdp"))
 	{
 		muxMain->debugSdp = cmnParseGetBoolValue(p);
 #if DEBUG_CONFIG_FILE
-		fprintf(stderr, "debugSdp: %s\n", (muxMain->debugSdp)?"YES":"NO");
+		fprintf(stderr, "debugSdp: %s\n", STR_BOOL_VALUE(muxMain->debugSdp));
 #endif
 	}
+
+
+	else if (!strcasecmp(cmd, "MediaPollTime"))
+	{
+		muxMain->mediaPollTime = cmnParseGetIntValue(p);
+#if DEBUG_CONFIG_FILE
+		MUX_INFO("MediaPollTime: %d", muxMain->mediaPollTime );
+#endif
+	}
+	else if (!strcasecmp(cmd, "SecurityEnable"))
+	{
+		muxMain->securityEnable = cmnParseGetBoolValue(p);
+#if DEBUG_CONFIG_FILE
+		MUX_INFO("SecurityEnable: %s", STR_BOOL_VALUE(muxMain->securityEnable) );
+#endif
+	}
+	else if (!strcasecmp(cmd, "PtpEnable"))
+	{
+		muxMain->ptpEnable = cmnParseGetBoolValue(p);
+#if DEBUG_CONFIG_FILE
+		MUX_INFO("PtpEnable: %s", STR_BOOL_VALUE(muxMain->ptpEnable ) );
+#endif
+	}
+
 
 	else
 	{

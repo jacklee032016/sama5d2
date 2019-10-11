@@ -214,6 +214,15 @@ long cmnGetTimeMs(void)
 	return (long long)tv.tv_sec * 1000 + (tv.tv_usec / 1000);
 }
 
+uint64_t cmnGetTimeUs(void)
+{
+	struct timeval tv;
+
+	gettimeofday(&tv,NULL);
+	return (uint64_t)tv.tv_sec * 1000000 + tv.tv_usec;
+}
+
+
 
 char *cmnGetCtime1(char *buf2, size_t buf_size)
 {
