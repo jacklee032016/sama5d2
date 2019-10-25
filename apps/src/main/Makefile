@@ -46,7 +46,7 @@ ifeq ($(ARCH),arm)
 else
 endif
 
-LIBS += -lm -lpthread -lrt -ldl 
+LIBS += -lMuxPtp -lPtp4l -lm -lpthread -lrt -ldl 
 
 # -Wl,-verbose -Wl,-static  -s 
 $(LOCAL_ALL):$(OBJS)

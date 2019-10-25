@@ -24,6 +24,8 @@
 
 #include <stdint.h>
 
+#include "muxPtp.h"
+
 #define	IP_ADDRESS_IN_NET_ORDER		1
 
 
@@ -639,21 +641,37 @@ typedef	struct
 #define	MAC_ADDR_IS_NULL(macAddr)		\
 	( (macAddr)->address[0]==0 && (macAddr)->address[1]==0 && (macAddr)->address[4]==0 && (macAddr)->address[5]==0  )
 
+#if IP_ADDRESS_IN_NET_ORDER	
 
-#if 0//BYTE_ORDER == BIG_ENDIAN
-#define _PP_HTONL(x) (x)
+//#if 0//BYTE_ORDER == BIG_ENDIAN
+#define _PP_HTONL(x)		(x)
+/* when big-endian for IP address, high address(such as 239, eg 0xef) is saved in low address, and send first:  */
+#define IP4_ADDR_IS_MULTICAST(addr)			(((addr) & (0x000000F0UL)) == (0x000000E0UL))
+
+#define IP4_ADDR_IS_LINKLOCAL(addr)			(((addr) & _PP_HTONL(0x0000ffffUL)) == _PP_HTONL(0x0000fea9UL))
+
 #else /* BYTE_ORDER != BIG_ENDIAN */
 #define _PP_HTONL(x) ((((x) & 0x000000ffUL) << 24) | \
                      (((x) & 0x0000ff00UL) <<  8) | \
                      (((x) & 0x00ff0000UL) >>  8) | \
                      (((x) & 0xff000000UL) >> 24))
+
+#define IP4_ADDR_IS_MULTICAST(addr)			(((addr) & _PP_HTONL(0xf0000000UL)) == _PP_HTONL(0xe0000000UL))
+
+#define IP4_ADDR_IS_LINKLOCAL(addr)			(((addr) & _PP_HTONL(0xffff0000UL)) == _PP_HTONL(0xa9fe0000UL))
+
+
 #endif /* BYTE_ORDER == BIG_ENDIAN */
 
-#define IP_ADDR_IS_MULTICAST( addr)  \
-		((addr & _PP_HTONL(0xf0000000UL)) == _PP_HTONL(0xe0000000UL))
 
 #define	EXT_BYTE_ORDER_SHORT(_sh)	\
 	( (((_sh)>>8)&0xff) | ( ((_sh)<<8)&0xFF00))
+
+
+#define ip4_addr1(ipaddr32)			( ((ipaddr32)&_PP_HTONL(0x000000FF)) >> 0)
+#define ip4_addr2(ipaddr32)			( ((ipaddr32)&_PP_HTONL(0x0000FF00)) >> 8)
+#define ip4_addr3(ipaddr32)			( ((ipaddr32)&_PP_HTONL(0x00FF0000)) >> 16)
+#define ip4_addr4(ipaddr32)			( ((ipaddr32)&_PP_HTONL(0xFF0000FF)) >> 24)
 
 
 
@@ -1202,6 +1220,8 @@ struct	_EXT_RUNTIME_CFG
 	MuxRunTimeParam		runtime;				/* must be saved */
 	MuxSetupData		setupData;
 
+	MuxPtpRuntime		ptpRuntime;
+
 
 	unsigned char			endMagic[EXT_MAGIC_SIZE];
 
@@ -1479,16 +1499,6 @@ char extCmnVideoParamPopulate(EXT_RUNTIME_CFG *runCfg, uint8_t index);
 unsigned char rs232SendHexStr(char *str );
 
 uint32_t sys_get_ms(void);
-
-
-#define IP4_ADDR_IS_MULTICAST(addr)			(((addr) & _PP_HTONL(0xf0000000UL)) == _PP_HTONL(0xe0000000UL))
-
-#define IP4_ADDR_IS_LINKLOCAL(addr)			(((addr) & _PP_HTONL(0xffff0000UL)) == _PP_HTONL(0xa9fe0000UL))
-
-#define ip4_addr1(ipaddr32)			( ((ipaddr32)&_PP_HTONL(0x000000FF)) >> 0)
-#define ip4_addr2(ipaddr32)			( ((ipaddr32)&_PP_HTONL(0x0000FF00)) >> 8)
-#define ip4_addr3(ipaddr32)			( ((ipaddr32)&_PP_HTONL(0x00FF0000)) >> 16)
-#define ip4_addr4(ipaddr32)			( ((ipaddr32)&_PP_HTONL(0xFF0000FF)) >> 24)
 
 
 #endif

@@ -245,7 +245,6 @@ int clock_poll(struct PtpClock *c)
 		return 0;
 	}
 
-	TRACE();
 	cur = c->pollfd;
 
 	LIST_FOREACH(p, &c->clkPorts, list)
@@ -268,7 +267,6 @@ int clock_poll(struct PtpClock *c)
 					c->sde = 1;
 				}
 				
-	TRACE();
 				PORT_DISPATCH(p, event, 0);
 				
 				/* Clear any fault after a little while. */
@@ -294,23 +292,19 @@ int clock_poll(struct PtpClock *c)
 		cur += N_CLOCK_PFD;
 	}
 
-	TRACE();
 	/* Check the UDS port. */
 	for (i = 0; i < N_POLLFD; i++)
 	{
 		if (cur[i].revents & (POLLIN|POLLPRI))
 		{
 #if 0		
-	TRACE();
 			if(!p)
 			{
-				TRACE();
 			}
 			if( !p->cbEvent )
 			{
 				TRACE();
 			}
-	TRACE();
 			event = p->cbEvent(c->uds_port, i);
 			if (EV_STATE_DECISION_EVENT == event)
 			{
@@ -330,12 +324,10 @@ int clock_poll(struct PtpClock *c)
 
 	if (c->sde)
 	{
-	TRACE();
 		handle_state_decision_event(c);
 		c->sde = 0;
 	}
 	
-	TRACE();
 	clock_prune_subscriptions(c);
 	return 0;
 }

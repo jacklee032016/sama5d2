@@ -6,7 +6,7 @@ from flask import Flask
 from flask import current_app
 # from flask_restful import Resource
 from . import MuxResource
-from .system import System
+from .system import System, PTP
 from .medias import Video, Audio, Anc 
 
 # from flask.sessions import SessionInterface
@@ -21,6 +21,7 @@ class SdpSession(object):
     def sessionInfo(self, *args, **kwargs):
         ts = int(time.time())
         self.sys = System(**kwargs).get(*args, **kwargs)
+        self.ptp = PTP(**kwargs).get(*args, **kwargs)
         if "status" in self.sys: #["ip"] is None:# when connection broken, the return is dict
             self.error = 1
             return self.sys #'{"status": 500, "detail": "Can not connect to backend server"}' 
@@ -114,10 +115,16 @@ class VideoSdp(SdpResource):
             fps,
             media.get("depth", 16) )
         
-        # mediaStr += "a=ts-refclk:ptp=IEEE1588-2008:\n"
-        mac= self.sys.get("mac", "FF:FF:FF:FF:FF:FF")
-        str += "a=ts-refclk:localmac=%s-%s-%s-%s-%s-%s\n"%(mac[0:2],mac[3:5],mac[6:8],mac[9:11],mac[12:14],mac[15:17])
-        str += "a=mediaclk:direct=0\n"
+        isPtp = self.sys.get("isEnable","1")
+        if isPtp == 0:
+            mac= self.sys.get("mac", "FF:FF:FF:FF:FF:FF")
+            str += "a=ts-refclk:localmac=%s-%s-%s-%s-%s-%s\n"%(mac[0:2],mac[3:5],mac[6:8],mac[9:11],mac[12:14],mac[15:17])
+            str += "a=mediaclk:direct=0\n"
+        else:
+            mac= self.ptp.get("masterID", "00-00-00-FF-FE-00-00")
+            str += "a=ts-refclk:ptp=IEEE1588-2008:%s\n"%(mac)
+            str += "a=ts-refclk:ptp=traceable\n"
+        
         str += "mid:VID\n"
         return str
 
@@ -165,9 +172,20 @@ class AudioSdp(SdpResource):
         str += "a=ptime:%s\n"%("1" if media.get("pktSize", "1ms")=="1ms" else "0.125")
         
         # mediaStr += "a=ts-refclk:ptp=IEEE1588-2008:\n"
-        mac= self.sys.get("mac", "FF:FF:FF:FF:FF:FF")
-        str += "a=ts-refclk:localmac=%s-%s-%s-%s-%s-%s\n"%(mac[0:2],mac[3:5],mac[6:8],mac[9:11],mac[12:14],mac[15:17])
-        str += "a=mediaclk:direct=0\n"
+        #mac= self.sys.get("mac", "FF:FF:FF:FF:FF:FF")
+        #str += "a=ts-refclk:localmac=%s-%s-%s-%s-%s-%s\n"%(mac[0:2],mac[3:5],mac[6:8],mac[9:11],mac[12:14],mac[15:17])
+        #str += "a=mediaclk:direct=0\n"
+
+        isPtp = self.ptp.get("isEnable",1)
+        if isPtp == 0:
+            mac= self.sys.get("mac", "FF:FF:FF:FF:FF:FF")
+            str += "a=ts-refclk:localmac=%s-%s-%s-%s-%s-%s\n"%(mac[0:2],mac[3:5],mac[6:8],mac[9:11],mac[12:14],mac[15:17])
+            str += "a=mediaclk:direct=0\n"
+        else:
+            mac= self.ptp.get("masterID", "00-00-00-FF-FE-00-00")
+            str += "a=ts-refclk:ptp=IEEE1588-2008:%s\n"%(mac)
+            str += "a=ts-refclk:ptp=traceable\n"
+            
         str += "mid:AUD\n"
         return str
 

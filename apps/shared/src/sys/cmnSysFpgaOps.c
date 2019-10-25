@@ -8,11 +8,16 @@
 #include "mux7xx.h"
 
 #include "muxFpga.h"
+#if ARCH_ARM
+#define	LONG_FORMAT	"%"
+#else
+#define	LONG_FORMAT	"%l"
+#endif
 
 
 #define	FPGA_UPDATE_PTP_TIMESTAMP(fpga) \
 	do{	/* write timestamp */ uint32_t fpgaTs = FPGA_GET_PTP_TIMESTAMP(); \
-		EXT_INFOF("Write RtpTimestamp: %lu(0x%x)", fpgaTs, fpgaTs); \
+		EXT_INFOF("Write RtpTimestamp: "LONG_FORMAT"u(0x"LONG_FORMAT"x)", fpgaTs, fpgaTs); \
 		_extFpgaWriteIntegerChange(&fpga->txAddress->rtpTimestamp, &fpgaTs);	}while(0)
 
 
@@ -129,7 +134,6 @@ int	sysFpgaTxConfig(FpgaConfig *fpga)
 	_extFpgaWriteShort(&fpga->txAddress->streamAux->port, (unsigned char *)&runCfg->dest.sport);
 #endif/* AUX */
 
-	TRACE();
 	/* enable all streams */
 	address[0] = INVALIDATE_VALUE_U8;
 	_extFpgaWriteByte(&fpga->txAddress->enable, address);
@@ -140,7 +144,6 @@ int	sysFpgaTxConfig(FpgaConfig *fpga)
 	address[0] = INVALIDATE_VALUE_U8;
 	FPGA_I2C_WRITE(0x1B, address, 1);
 
-	TRACE();
 	return EXIT_SUCCESS;
 }
 

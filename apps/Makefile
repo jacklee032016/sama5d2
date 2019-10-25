@@ -46,6 +46,9 @@ include $(ROOT_DIR)/Rules.mak
 	SHARED_DIRS += shared/src/mux
 	SHARED_DIRS += shared/src/sys
 
+# libraries PTP related
+	APP_DIRS += ptp/src
+	APP_DIRS += ptp/mux
 
 ifeq ($(PLUGINS),YES)
 endif
@@ -53,17 +56,14 @@ endif
 # Command Line client
 	APP_DIRS += src/client
 
+
 	APP_DIRS += src/main
 	APP_DIRS += src/uenvs
 	APP_DIRS += src/tests
 
 
-# PTP related
-	APP_DIRS += ptp/src
 	APP_DIRS += ptp/programs
-	APP_DIRS += ptp/mux
 	APP_DIRS += ptp/phc
-
 
 SUBDIRS += $(SHARED_DIRS)
 

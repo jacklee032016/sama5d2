@@ -480,15 +480,16 @@ void cmnSysNetMGroupDestory(CmnMultiGroup *_group)
 
 int cmnSysNetMulticastIP4Mac(uint32_t	ipAddress, EXT_MAC_ADDRESS *macAddress)
 {
+//	MUX_DEBUG("ip:0x%x", ipAddress);
 	if(IP4_ADDR_IS_MULTICAST(ipAddress) )
 	{/* Hash IP multicast address to MAC address.*/
 		macAddress->address[0] = LL_IP4_MULTICAST_ADDR_0;
 		macAddress->address[1] = LL_IP4_MULTICAST_ADDR_1;
 		macAddress->address[2] = LL_IP4_MULTICAST_ADDR_2;
+		
 		macAddress->address[3] = ip4_addr2(ipAddress) & 0x7f;
 		macAddress->address[4] = ip4_addr3(ipAddress);
 		macAddress->address[5] = ip4_addr4(ipAddress);
-
 		return EXIT_SUCCESS;
 	}
 

@@ -117,6 +117,25 @@ static int	_extSysJsonInit(MuxMain		*muxMain)
 }
 
 
+int32_t	extPtpInit(EXT_RUNTIME_CFG		*runCfg)
+{
+	if(runCfg->ptpRuntime.isEnable)
+	{
+		/* start PTP Daemon */
+		
+		
+		if(muxPtpInit(&runCfg->ptpRuntime, runCfg->ptpRuntime.domainCfg) == NULL)
+		{
+			MUX_ERROR("PTP Client initialization failed");
+			return EXIT_FAILURE;
+		}
+	}
+
+
+	return EXIT_SUCCESS;
+}
+
+
 int32_t	extSystemInit(MuxMain		*muxMain)
 {
 	EXT_RUNTIME_CFG		*runCfg = &muxMain->runCfg;

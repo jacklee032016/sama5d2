@@ -66,6 +66,41 @@ static int _cmnSysJsonUpdateSecurity(EXT_RUNTIME_CFG *runCfg, cJSON *obj)
 	return EXIT_SUCCESS;
 }
 
+static int _cmnSysJsonUpdatePtp(EXT_RUNTIME_CFG *runCfg, cJSON *obj)
+{
+	/* configuration */
+	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_IS_ENABLE, runCfg->rs232Cfg.baudRate);
+	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_IS_SLAVE_ONLY, runCfg->rs232Cfg.charLength);
+	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_DOMAIN_NUM , runCfg->rs232Cfg.stopbits );
+	CJSON_REPLACE_STRING(obj, FIELD_PTP_CLOCK_ID, CMN_FIND_RS_PARITY(runCfg->rs232Cfg.parityType) );
+
+	CJSON_REPLACE_STRING(obj, FIELD_PTP_PORT_ID,  "" );
+	/* data */
+	CJSON_REPLACE_STRING(obj, FIELD_PTP_PORT_STATE,  "" );
+
+	
+	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_PRIORITY_1, 0);
+	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_CLOCK_CLASS, 0);
+	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_CLOCK_ACCURACY, 0);
+	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_OFFSET_LOG, 0);
+	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_PRIORITY_2, 0);
+	
+	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_MASTER_PRESENT, 0);
+
+	CJSON_REPLACE_STRING(obj, FIELD_PTP_MASTER_ID, 0);
+	CJSON_REPLACE_STRING(obj, FIELD_PTP_SRC_PORT_ID, 0);
+	
+	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_M_PRIORITY_1, 0);
+	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_M_CLOCK_CLASS, 0);
+	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_M_CLOCK_ACCURACY, 0);
+	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_M_OFFSET_LOG, 0);
+	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_M_PRIORITY_2, 0);
+
+	return EXIT_SUCCESS;
+}
+
+
+
 static int _cmnSysJsonUpdateRs232(EXT_RUNTIME_CFG *runCfg, cJSON *obj)
 {
 	/* configuration */
@@ -336,6 +371,12 @@ int cmnSysJsonUpdate(MuxMain *muxMain)
 	if(!itemObj ||_cmnSysJsonUpdateIR(&muxMain->runCfg, itemObj))
 	{
 		MUX_ERROR("Update '%s' JSON failed", MUX_REST_URI_IR);
+	}
+
+	itemObj = cmnJsonSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_PTP, INVALIDATE_VALUE_U32);
+	if(!itemObj ||_cmnSysJsonUpdatePtp(&muxMain->runCfg, itemObj))
+	{
+		MUX_ERROR("Update '%s' JSON failed", MUX_REST_URI_PTP);
 	}
 
 	itemObj = cmnJsonSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_OTHERS, INVALIDATE_VALUE_U32);

@@ -20,7 +20,7 @@ insmod $MUX_LAB_HOME/drv/w1Ds28e15.ko
 echo ""
 
 echo "start PTP service..."
-# ptp4l
+ptp4l &
 echo ""
 
 echo "start REST API service..."

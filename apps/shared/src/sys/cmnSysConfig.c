@@ -123,7 +123,7 @@ void cmnSysCfgFromFactory( EXT_RUNTIME_CFG *cfg )
 		}
 		cfg->ipGateway = CFG_MAKE_IP_ADDRESS(ETHERNET_CONF_GATEWAY_ADDR0, ETHERNET_CONF_GATEWAY_ADDR1, ETHERNET_CONF_GATEWAY_ADDR2_TX, ETHERNET_CONF_GATEWAY_ADDR3);
 
-		if(IP_ADDR_IS_MULTICAST(cfg->dest.ip))
+		if(IP4_ADDR_IS_MULTICAST(cfg->dest.ip))
 		{
 			extTxMulticastIP2Mac(cfg);
 		}
@@ -197,7 +197,7 @@ void cmnSysCfgFromFactory( EXT_RUNTIME_CFG *cfg )
 #endif
 		}
 		cfg->ipGateway = CFG_MAKE_IP_ADDRESS( ETHERNET_CONF_GATEWAY_ADDR0, ETHERNET_CONF_GATEWAY_ADDR1, ETHERNET_CONF_GATEWAY_ADDR2_RX, ETHERNET_CONF_GATEWAY_ADDR3);
-		if(IP_ADDR_IS_MULTICAST(cfg->dest.ip))
+		if(IP4_ADDR_IS_MULTICAST(cfg->dest.ip))
 		{
 			extTxMulticastIP2Mac(cfg);
 		}
@@ -257,6 +257,8 @@ void cmnSysCfgFromFactory( EXT_RUNTIME_CFG *cfg )
 
 	cfg->isConfigFpga = EXT_TRUE;
 	memset(&cfg->firmUpdateInfo, 0, sizeof(EXT_FM_UPDATE));
+
+	muxPtpDefaultConfig(&cfg->ptpRuntime);
 
 #ifdef	X86
 	cfg->sc.isExist = EXT_TRUE;

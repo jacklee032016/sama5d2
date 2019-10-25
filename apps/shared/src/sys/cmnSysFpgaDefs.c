@@ -135,7 +135,7 @@ static StreamRegisterAddress _txStreamAudio =
 	.mac =
 	{
 		.device = &_fpgaDevTxNetwork,
-		.offset = F_REG_TX_NET_DEST_MAC,
+		.offset = F_REG_TX_NET_DEST_MAC_AUDIO,
 #if FPGA_DEBUG
 		.name = "txAudioMac",
 #endif

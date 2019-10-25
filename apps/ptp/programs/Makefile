@@ -9,7 +9,7 @@ CODE_SUBDIRS = \
 	.
 
 
-CFLAGS += -Wall -DVER=2.0 -D_GNU_SOURCE -DHAVE_CLOCK_ADJTIME -DHAVE_POSIX_SPAWN -DHAVE_ONESTEP_SYNC -I../include
+CFLAGS += -Wall -DVER=2.0 -D_GNU_SOURCE -DHAVE_CLOCK_ADJTIME -DHAVE_POSIX_SPAWN -DHAVE_ONESTEP_SYNC -I../include -I../mux
 
 SRC:= \
 
@@ -65,3 +65,6 @@ timemaster:$(OBJ_DIR)/timemaster.o $(OBJS)
 	$(CC) -s -Wl,--gc-sections -o $@ $^ $(LDFLAGS)
 	$(MOVE) $@ $(BIN_DIR)/usr/bin  
 
+ptpc:$(OBJ_DIR)/ptpc.o
+	$(CC) -s -o $@ $^ $(LDFLAGS) -lMuxPtp -lPtp4l
+	$(MOVE) $@ $(BIN_DIR)/usr/bin  

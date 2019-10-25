@@ -1,3 +1,29 @@
+
+Management message types
+------------------------------------------------------
+./Linux.bin.X86/usr/bin/pmc -u -b 0 'GET CURRENT_DATA_SET'
+
+./Linux.bin.X86/usr/bin/pmc -u -b 0 'GET CLOCK_DESCRIPTION'
+
+./Linux.bin.X86/usr/bin/pmc -u -b 0 'GET TIME_STATUS_NP'
+
+./Linux.bin.X86/usr/bin/pmc -u -b 0 'GET PORT_DATA_SET'
+
+
+./Linux.bin.X86/usr/bin/pmc -u -b 0 'GET PORT_DATA_SET_NP'
+
+
+pmc -u 'SET PRIORITY1 128'
+sending: SET PRIORITY1
+        7cfe90.fffe.f5a351-0 seq 0 RESPONSE MANAGEMENT PRIORITY1
+                priority1 128
+
+
+
+Some examples
+------------------------------------------------------
+
+
 ./Linux.bin.X86/usr/bin/pmc -u -b 0 'GET CURRENT_DATA_SET'
 sending: GET CURRENT_DATA_SET
 2019-10-11 14:01:32 [INFO,pmc]: [msg.c-389.ptpMsgReceive()]:Receiving MSG MANAGEMENT with length 48, total 72

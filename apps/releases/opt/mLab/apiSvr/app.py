@@ -4,7 +4,7 @@ from flask import Flask
 from flask_restful import reqparse, abort, Api
 
 from resources.root import Root, RestError
-from resources.system import System, Rs232, IR, Security, Others
+from resources.system import System, Rs232, IR, PTP, Security, Others
 from resources.medias import Video, Audio, Anc, SdpConfig
 from resources.sdp import VideoSdp, AudioSdp, AncSdp
 
@@ -34,6 +34,7 @@ api.add_resource(Root, settings.SERVICE_URI_ROOT)
 api.add_resource(System, settings.SERVICE_URI_SYSTEM)
 api.add_resource(Rs232, settings.SERVICE_URI_RS232)
 api.add_resource(IR, settings.SERVICE_URI_IR)
+api.add_resource(PTP, settings.SERVICE_URI_PTP)
 api.add_resource(Security, settings.SERVICE_URI_SECURITYS)
 api.add_resource(Others, settings.SERVICE_URI_OETHERS)
 

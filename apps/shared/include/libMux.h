@@ -219,6 +219,7 @@ typedef	enum _CMD_TYPE
 #define	MUX_REST_URI_RS232				"rs232"
 #define	MUX_REST_URI_SECURITY				"security"
 #define	MUX_REST_URI_IR					"IR"
+#define	MUX_REST_URI_PTP					"ptp"
 #define	MUX_REST_URI_OTHERS				"others"
 
 #define	MUX_REST_URI_PARAMS				"/params"	/* only for get_params/set_params in IP Command */
@@ -330,6 +331,26 @@ typedef	enum _CMD_TYPE
 
 #define	FIELD_RS232_DATA_FEEDBACK				"feedbackdata"
 
+/* PTP fields */
+#define	FIELD_PTP_IS_ENABLE						"isEnable"
+#define	FIELD_PTP_IS_SLAVE_ONLY					"isSlaveOnly"
+#define	FIELD_PTP_DOMAIN_NUM						"domainNumber"
+#define	FIELD_PTP_CLOCK_ID							"clockId"
+#define	FIELD_PTP_PORT_ID							"portId"
+#define	FIELD_PTP_PORT_STATE						"portState"
+#define	FIELD_PTP_PRIORITY_1						"priority1"
+#define	FIELD_PTP_CLOCK_CLASS						"clockClass"
+#define	FIELD_PTP_CLOCK_ACCURACY					"clockAccuracy"
+#define	FIELD_PTP_OFFSET_LOG						"offsetScaledLogVariance"
+#define	FIELD_PTP_PRIORITY_2						"priority2"
+#define	FIELD_PTP_MASTER_PRESENT					"masterPresent"
+#define	FIELD_PTP_MASTER_ID						"masterID"
+#define	FIELD_PTP_SRC_PORT_ID						"sourcePortId"
+#define	FIELD_PTP_M_PRIORITY_1					"mPriority1"
+#define	FIELD_PTP_M_CLOCK_CLASS					"mClockClass"
+#define	FIELD_PTP_M_CLOCK_ACCURACY				"mClockAccuracy"
+#define	FIELD_PTP_M_OFFSET_LOG					"mOffsetScaledLogVariance"
+#define	FIELD_PTP_M_PRIORITY_2					"mPriority2"
 
 
 /* Security Check */

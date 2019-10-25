@@ -638,6 +638,47 @@ TRACE();
 	return EXIT_SUCCESS;
 }
 
+static int	_restHandle4GetPtp(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataConn, cJSON *data)
+{
+	return _restDefaultGet(dest, dataConn, data);
+}
+
+static int	_handle4SetPtp(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataConn, cJSON *data)
+{
+	cJSON *obj = NULL;
+	
+	MuxMain *muxMain = SYS_MAIN(dataConn);
+//	EXT_RUNTIME_CFG		*runCfg = &muxMain->runCfg;
+
+	MUX_DEBUG_JSON_OBJ(data);
+
+	SYS_PLAYLIST_LOCK(muxMain);
+
+	cmnMuxClearConfig(&muxMain->rxCfg);
+
+#if 0
+	if(!data || cmnMuxObjectParseIR(dataConn, data) == EXIT_FAILURE)
+	{
+		SYS_PLAYLIST_UNLOCK(muxMain);
+		return EXIT_FAILURE;
+	}
+#endif
+	// FIELD_RS232_DATA_FEEDBACK
+		
+	MAIN_SYS_CONFIG(muxMain);
+
+	obj = dataConn->dataObj;
+
+TRACE();
+	if(dataConn->errCode == IPCMD_ERR_NOERROR)
+	{
+		REPLY_DATACONN_OK(dataConn, obj);
+	}	
+
+	SYS_PLAYLIST_UNLOCK(muxMain);
+
+	return EXIT_SUCCESS;
+}
 
 static int	_restHandle4GetSecurity(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataConn, cJSON *data)
 {
@@ -774,6 +815,13 @@ struct json_handler jsonActionHandlers[] =
 		.handleGet	= NULL,
 		.handlePost	= _handle4SetIR
 	},
+	{
+		.name 		= MUX_REST_URI_ROOT MUX_REST_URI_PTP,
+		.dest		= MUX_PLUGIN_TYPE_MAIN,
+		.handleGet	= _restHandle4GetPtp,
+		.handlePost	= _handle4SetPtp
+	},
+
 	{
 		.name 		= MUX_REST_URI_ROOT MUX_REST_URI_SECURITY,
 		.dest		= MUX_PLUGIN_TYPE_MAIN,

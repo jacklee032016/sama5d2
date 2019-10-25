@@ -57,6 +57,24 @@ class IR(MuxResource):
         # del TODOS[todo_id]
         return '', 204
 
+class PTP(MuxResource):
+    def __init__(self, **kwargs):
+        super(PTP, self).__init__()
+        self.req[settings.SERVICE_DATA_FIELD_URI] = settings.SERVICE_URI_PTP
+    
+    def get(self, *args, **kwargs):        
+        return super(PTP, self).get(*args, **kwargs)
+    
+        
+    def post(self, *args, **kwargs):
+        return super(PTP, self).post(*args, **kwargs)
+
+
+    def delete(self, *args, **kwargs):
+        # abort_if_todo_doesnt_exist(todo_id)
+        # del TODOS[todo_id]
+        return '', 204
+
 
 class Security(MuxResource):
     def __init__(self, **kwargs):

@@ -386,8 +386,10 @@ int ptpMsgReceive(struct ptp_message *m, int cnt)
 	if (cnt < pdulen)
 		return -EBADMSG;
 
+#if PTP_NOISE_DEBUG
 	pr_info("Receiving MSG %s with length %d, total %d", ptpMsgTypeString(type), pdulen, cnt);
-	
+#endif
+
 	switch (type)
 	{
 		case SYNC:
@@ -421,6 +423,7 @@ int ptpMsgReceive(struct ptp_message *m, int cnt)
 			port_id_post_recv(&m->signaling.targetPortIdentity);
 			break;
 		case MANAGEMENT:
+			pr_info("Receiving MANAGEMENT MSG");
 			port_id_post_recv(&m->management.targetPortIdentity);
 			break;
 	}

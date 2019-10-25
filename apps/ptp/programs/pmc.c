@@ -530,7 +530,8 @@ int main(int argc, char *argv[])
 	pollfd[0].fd = batch_mode ? -1 : STDIN_FILENO;
 	pollfd[1].fd = pmc_get_transport_fd(pmc);
 
-	while (is_running()) {
+	while (1/*is_running()*/)
+	{
 		if (batch_mode && !command) {
 			if (optind < argc) {
 				command = argv[optind++];
@@ -587,8 +588,11 @@ int main(int argc, char *argv[])
 				fprintf(stderr, "bad command: %s\n", command);
 			}
 			command = NULL;
+			
 		}
-		if (pollfd[1].revents & (POLLIN|POLLPRI)) {
+
+		if (pollfd[1].revents & (POLLIN|POLLPRI))
+		{
 			msg = pmc_recv(pmc);
 			if (msg) {
 				pmc_show(msg, stdout);

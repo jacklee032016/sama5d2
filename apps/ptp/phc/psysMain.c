@@ -527,7 +527,6 @@ TRACE();
 
 	r = -1;
 
-TRACE();
 	if (wait_sync)
 	{
 		if (psysPmcInit(cfg, &node))

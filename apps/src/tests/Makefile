@@ -18,7 +18,7 @@ SRC += \
 
 CFLAGS += -fno-strict-aliasing
 
-LDFLAGS := $(LDFLAGS) $(SHARED_LDFLAGS) -L$(HI_SHARED_LIB_DIR) -lrt -lm -ldl -lz -lpthread
+LDFLAGS := $(LDFLAGS) $(SHARED_LDFLAGS) -lMuxPtp -lPtp4l -lrt -lm -ldl -lz -lpthread
 
 TESTS = \
 			testMux \

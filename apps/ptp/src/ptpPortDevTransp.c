@@ -100,7 +100,6 @@ enum PORT_EVENT p2p_event(struct PtpPort *p, int fd_index)
 	enum PORT_EVENT event = EV_NONE;
 	struct ptp_message *msg, *dup;
 
-TRACE();
 	switch (fd_index) {
 		case FD_ANNOUNCE_TIMER:
 		case FD_SYNC_RX_TIMER:
@@ -292,7 +291,6 @@ enum PORT_EVENT e2e_event(struct PtpPort *p, int fd_index)
 	enum PORT_EVENT event = EV_NONE;
 	struct ptp_message *msg, *dup;
 
-TRACE();
 	switch (fd_index) {
 		case FD_ANNOUNCE_TIMER:
 		case FD_SYNC_RX_TIMER:

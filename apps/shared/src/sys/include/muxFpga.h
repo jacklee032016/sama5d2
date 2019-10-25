@@ -192,10 +192,13 @@ typedef	enum
 #define	F_REG_TX_NET_LOCAL_MAC					0x04	/* 6 bytes */	
 #define	F_REG_TX_NET_DEST_MAC					0x0A	/* 6 bytes */	
 
+#define	F_REG_TX_NET_DEST_MAC_AUDIO				0x28	/* 6 bytes */	 /* */
+
+
 #define	F_REG_TX_NET_LOCAL_VIDEO_IP				0x10
 #define	F_REG_TX_NET_DEST_VIDEO_IP				0x14
 
-#define	F_REG_TX_NET_DEST_AUDIO_IP				0x18
+#define	F_REG_TX_NET_DEST_AUDIO_IP				0x2e
 
 #define	F_REG_TX_NET_DEST_ANC_IP					INVALIDATE_VALUE_U8
 #define	F_REG_TX_NET_DEST_AUX_IP					INVALIDATE_VALUE_U8

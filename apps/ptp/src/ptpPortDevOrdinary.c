@@ -107,8 +107,9 @@ static void _p2pTransition(struct PtpPort *p, enum PORT_STATE next)
 /* ordinary and boundary clock */
 void bc_dispatch(struct PtpPort *p, enum PORT_EVENT event, int mdiff)
 {
+#if PTP_NOISE_DEBUG
 	pr_debug(PORT_STR_FORMAT"dispatch %s event, masterDiff:%d", PORT_NAME(p), ptpPortEventString(event), mdiff );
-
+#endif
 	if (clock_slave_only(p->clock))
 	{
 		if (event == EV_RS_MASTER || event == EV_RS_GRAND_MASTER)
@@ -117,14 +118,12 @@ void bc_dispatch(struct PtpPort *p, enum PORT_EVENT event, int mdiff)
 			pr_warning(PORT_STR_FORMAT"defaultDS.priority1 probably misconfigured", PORT_NAME(p) );
 		}
 	}
-	TRACE();
 
 	if (!portStateUpdate(p, event, mdiff))
 	{
 		return;
 	}
 
-	TRACE();
 	/* ordinary clock: P2P delay mechanism ?? */
 	if (p->delayMechanism == DM_P2P)
 	{/* P2P delay in boundary clock */
@@ -146,7 +145,6 @@ void bc_dispatch(struct PtpPort *p, enum PORT_EVENT event, int mdiff)
 		clock_sync_interval(p->clock, p->log_sync_interval);
 	}
 	
-	TRACE();
 }
 
 static int _renewTransport(struct PtpPort *p)
@@ -229,6 +227,7 @@ static int _portIgnore(struct PtpPort *p, struct ptp_message *m)
 		return 1;
 	}
 	if (m->header.domainNumber != clock_domain_number(p->clock)) {
+		pr_err("msg ignored by domainNumber: %d!=%d", m->header.domainNumber, clock_domain_number(p->clock) );
 		return 1;
 	}
 
@@ -246,10 +245,7 @@ enum PORT_EVENT bc_event(struct PtpPort *p, int fd_index)
 {
 	enum PORT_EVENT event = EV_NONE;
 	struct ptp_message *msg;
-	TRACE();
 	int cnt, fd = p->fda.fd[fd_index], err;
-
-	TRACE();
 
 	switch (fd_index)
 	{
@@ -307,9 +303,9 @@ enum PORT_EVENT bc_event(struct PtpPort *p, int fd_index)
 				return EV_NONE;
 	}
 
-	TRACE();
+#if PTP_NOISE_DEBUG
 	pr_debug(PORT_STR_FORMAT"event %s is availbale", PORT_NAME(p), (fd_index==FD_EVENT)?"EVENT":(fd_index==FD_GENERAL)?"GENERAL":"Unknown");
-	TRACE();
+#endif
 	/* for event and general */
 	msg = msg_allocate();
 	if (!msg)
@@ -337,14 +333,15 @@ enum PORT_EVENT bc_event(struct PtpPort *p, int fd_index)
 				pr_debug(PORT_STR_FORMAT"ignoring message", PORT_NAME(p));
 				break;
 		}
-		
+
+		pr_err("msg is ignored");
 		msg_put(msg);
 		return EV_NONE;
 	}
 	
-	TRACE();
 	if (_portIgnore(p, msg))
 	{
+		pr_err("msg is ignored by port");
 		msg_put(msg);
 		return EV_NONE;
 	}

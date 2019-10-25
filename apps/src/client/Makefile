@@ -5,7 +5,7 @@
 
 include $(ROOT_DIR)/Makefile.pre
 
-C_FLAGS += $(SHARED_CFLAGS)
+C_FLAGS += $(SHARED_CFLAGS) 
 
 SRC:= \
 		apiClient.c \
@@ -19,6 +19,7 @@ LOCAL_ALL := \
 		scKey \
 		regRead \
 		fwUpdate \
+		ptpc \
 		
 
 include $(ROOT_DIR)/Makefile.post
@@ -30,7 +31,7 @@ else
 LDFLAGS += -LLinux.bin.$(ARCH)/lib -ldl
 endif
 
-LDFLAGS += -L$(BIN_DIR)/lib -lCmnSys -lMux -lShared $(LDFLAGS) -lz -lpthread -lm
+LDFLAGS += -L$(BIN_DIR)/lib -lCmnSys -lMux -lShared $(LDFLAGS) -lMuxPtp -lPtp4l -lz -lpthread -lm
 
 
 apiClient:$(OBJS)
@@ -47,5 +48,9 @@ regRead:$(OBJ_DIR)/regRead.o
 
 fwUpdate:$(OBJ_DIR)/flashUpdate.o
 	$(CC) -s -o $@ $^ $(LDFLAGS) 
+	$(MOVE) $@ $(BIN_DIR)/usr/bin  
+
+ptpc:$(OBJ_DIR)/ptpc.o
+	$(CC) -s -o $@ $^ $(LDFLAGS) -lMuxPtp -lPtp4l -lpthread
 	$(MOVE) $@ $(BIN_DIR)/usr/bin  
 	

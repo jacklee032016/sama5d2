@@ -8,6 +8,8 @@
 #include <inttypes.h>
 #include <arpa/inet.h>
 
+#include <stdarg.h>
+
 #include "ptpCompact.h"
 #include "ptpProtocol.h"
 #include "ptpImplements.h"
@@ -19,6 +21,7 @@
 
 #define IFMT "\n\t\t"
 
+#if PTPC_NOISE_DEBUG
 static char *_text2str(struct PTPText *text)
 {
 	static struct static_ptp_text s;
@@ -32,14 +35,49 @@ static char *_bin2str(Octet *data, int len)
 	static char buf[BIN_BUF_SIZE];
 	return bin2str_impl(data, len, buf, sizeof(buf));
 }
+#endif
 
 char *muxPtpId2Str(MUX_PTP_ID *id)
 {
 	static char buf[64];
 	
 	unsigned char *ptr = id->id;
-	snprintf(buf, sizeof(buf), "%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",  ptr[0], ptr[1], ptr[2], ptr[3], ptr[4], ptr[5], ptr[6], ptr[7] );
+	snprintf(buf, sizeof(buf), "%02x-%02x-%02x-%02x-%02x-%02x-%02x-%02x",  ptr[0], ptr[1], ptr[2], ptr[3], ptr[4], ptr[5], ptr[6], ptr[7] );
 	return buf;
+}
+
+static void muxPmcDataClear(void *_muxPtp)
+{
+	MuxPtpRuntime *muxPtp = (MuxPtpRuntime *)_muxPtp;
+	EXT_ASSERT((muxPtp!=NULL), "MuxPtp is null");
+	
+	memset(muxPtp, 0, offsetof(MuxPtpRuntime, pmc) );
+
+	struct PtpMgmtClient *pmc = (struct PtpMgmtClient *)muxPtp->pmc;
+	EXT_ASSERT((pmc!=NULL), "PMC is null");
+
+}
+
+static int muxPmcDataError(void *_muxPtp, int errCode, const char* frmt,...)
+{
+	char	buf[256];
+	MuxPtpRuntime *muxPtp = (MuxPtpRuntime *)_muxPtp;
+	EXT_ASSERT((muxPtp!=NULL), "MuxPtp is null");
+	
+	muxPmcDataClear(_muxPtp);
+	
+	muxPtp->errCode = errCode;
+	memset(buf, 0, sizeof(buf));
+
+	va_list ap;
+	va_start(ap, frmt);
+	vsnprintf(buf, sizeof(buf), frmt, ap);
+	va_end(ap);
+
+	printf("'%s'", buf);
+	snprintf(muxPtp->msg, sizeof(muxPtp->msg), "%s", buf);	
+
+	return EXIT_SUCCESS;
 }
 
 
@@ -48,17 +86,20 @@ static void muxPmcParse(void *_muxPtp, struct ptp_message *msg)
 	int action;
 	struct TLV *tlv;
 	struct management_tlv *mgt;
-	struct management_tlv_datum *mtd;
 	struct defaultDS *dds;
-	struct currentDS *cds;
 	struct parentDS *pds;
-	struct timePropertiesDS *tp;
 	struct time_status_np *tsn;
+	struct portDS *p;
+#if PTPC_NOISE_DEBUG
+	struct tlv_extra *extra;
+	struct management_tlv_datum *mtd;
+	struct currentDS *cds;
+	struct timePropertiesDS *tp;
 	struct grandmaster_settings_np *gsn;
 	struct mgmt_clock_description *cd;
-	struct tlv_extra *extra;
-	struct portDS *p;
 	struct port_ds_np *pnp;
+
+#endif
 
 	FILE *fp = stdout;
 	MuxPtpRuntime *muxPtp = (MuxPtpRuntime *)_muxPtp;
@@ -76,12 +117,16 @@ static void muxPmcParse(void *_muxPtp, struct ptp_message *msg)
 	{
 		return;
 	}
+#if PTPC_NOISE_DEBUG
 	fprintf(fp, "\t%s seq %hu %s ", pid2str(&msg->header.sourcePortIdentity), msg->header.sequenceId, pmc_action_string(action));
+#endif
 	if (msg_tlv_count(msg) != 1)
 	{
 		goto out;
 	}
+#if PTPC_NOISE_DEBUG
 	extra = TAILQ_FIRST(&msg->tlv_list);
+#endif
 
 	tlv = (struct TLV *) msg->management.suffix;
 	if (tlv->type == TLV_MANAGEMENT)
@@ -109,6 +154,7 @@ static void muxPmcParse(void *_muxPtp, struct ptp_message *msg)
 	switch (mgt->id)
 	{
 		case TLV_CLOCK_DESCRIPTION:
+#if PTPC_NOISE_DEBUG
 			cd = &extra->cd;
 			fprintf(fp, "CLOCK_DESCRIPTION "
 				IFMT "clockType             0x%hx"
@@ -131,16 +177,20 @@ static void muxPmcParse(void *_muxPtp, struct ptp_message *msg)
 				IFMT "profileId             %s",
 				_text2str(cd->userDescription),
 				_bin2str(cd->profileIdentity, PROFILE_ID_LEN));
+#endif
 			break;
 			
 		case TLV_USER_DESCRIPTION:
+#if PTPC_NOISE_DEBUG
 			fprintf(fp, "USER_DESCRIPTION "
 				IFMT "userDescription  %s",
 				_text2str(extra->cd.userDescription));
+#endif
 			break;
 			
 		case TLV_DEFAULT_DATA_SET:
 			dds = (struct defaultDS *) mgt->data;
+#if PTPC_NOISE_DEBUG
 			fprintf(fp, "DEFAULT_DATA_SET "
 				IFMT "twoStepFlag             %d"
 				IFMT "slaveOnly               %d"
@@ -162,8 +212,23 @@ static void muxPmcParse(void *_muxPtp, struct ptp_message *msg)
 				dds->priority2,
 				cid2str(&dds->clockIdentity),
 				dds->domainNumber);
+#endif
+
+			muxPtp->isTwoStep = dds->flags & DDS_TWO_STEP_FLAG ? EXT_TRUE : EXT_FALSE;
+			muxPtp->isSlaveOnly = dds->flags & DDS_SLAVE_ONLY ?EXT_TRUE : EXT_FALSE;
+			muxPtp->priority1 = dds->priority1;
+			muxPtp->clockClass = dds->clockQuality.clockClass;
+			muxPtp->clockAccuracy = dds->clockQuality.clockAccuracy;
+			muxPtp->offsetScaledLogVariance = dds->clockQuality.offsetScaledLogVariance;
+			muxPtp->priority2 = dds->priority2;
+			muxPtp->domain = dds->domainNumber;
+			
+			memcpy(muxPtp->clockId.id, dds->clockIdentity.id, 8);
+
 			break;
+			
 		case TLV_CURRENT_DATA_SET:
+#if PTPC_NOISE_DEBUG
 			cds = (struct currentDS *) mgt->data;
 			fprintf(fp, "CURRENT_DATA_SET "
 				IFMT "stepsRemoved     %hd"
@@ -171,10 +236,12 @@ static void muxPmcParse(void *_muxPtp, struct ptp_message *msg)
 				IFMT "meanPathDelay    %.1f",
 				cds->stepsRemoved, cds->offsetFromMaster / 65536.0,
 				cds->meanPathDelay / 65536.0);
+#endif
 			break;
 			
 		case TLV_PARENT_DATA_SET:
 			pds = (struct parentDS *) mgt->data;
+#if PTPC_NOISE_DEBUG
 			fprintf(fp, "PARENT_DATA_SET "
 				IFMT "parentPortIdentity                    %s"
 				IFMT "parentStats                           %hhu"
@@ -196,9 +263,22 @@ static void muxPmcParse(void *_muxPtp, struct ptp_message *msg)
 				pds->grandmasterClockQuality.offsetScaledLogVariance,
 				pds->grandmasterPriority2,
 				cid2str(&pds->grandmasterIdentity));
+#endif
+
+			muxPtp->gmPriority1 = pds->grandmasterPriority1;
+			muxPtp->gmClockClass = pds->grandmasterClockQuality.clockClass;
+			muxPtp->gmClockAccuracy = pds->grandmasterClockQuality.clockAccuracy;
+			muxPtp->gmOffsetScaledLogVariance = pds->grandmasterClockQuality.offsetScaledLogVariance;
+			muxPtp->gmPriority2 = pds->grandmasterPriority2;
+			
+			memcpy(muxPtp->sourceId.id, pds->parentPortIdentity.clockIdentity.id, 8);
+			muxPtp->sourceIndex = pds->parentPortIdentity.portNumber;
+			memcpy(muxPtp->masterId.id, pds->grandmasterIdentity.id, 8);
+			
 			break;
 			
 		case TLV_TIME_PROPERTIES_DATA_SET:
+#if PTPC_NOISE_DEBUG
 			tp = (struct timePropertiesDS *) mgt->data;
 			fprintf(fp, "TIME_PROPERTIES_DATA_SET "
 				IFMT "currentUtcOffset      %hd"
@@ -217,55 +297,71 @@ static void muxPmcParse(void *_muxPtp, struct ptp_message *msg)
 				tp->flags & TIME_TRACEABLE ? 1 : 0,
 				tp->flags & FREQ_TRACEABLE ? 1 : 0,
 				tp->timeSource);
+#endif
 			break;
 			
 		case TLV_PRIORITY1:
+#if PTPC_NOISE_DEBUG
 			mtd = (struct management_tlv_datum *) mgt->data;
 			fprintf(fp, "PRIORITY1 "
 				IFMT "priority1 %hhu", mtd->val);
+#endif
 			break;
 			
 		case TLV_PRIORITY2:
+#if PTPC_NOISE_DEBUG
 			mtd = (struct management_tlv_datum *) mgt->data;
 			fprintf(fp, "PRIORITY2 "
 				IFMT "priority2 %hhu", mtd->val);
+#endif
 			break;
 			
 		case TLV_DOMAIN:
+#if PTPC_NOISE_DEBUG
 			mtd = (struct management_tlv_datum *) mgt->data;
 			fprintf(fp, "DOMAIN "
 				IFMT "domainNumber %hhu", mtd->val);
+#endif
 			break;
 			
 		case TLV_SLAVE_ONLY:
+#if PTPC_NOISE_DEBUG
 			mtd = (struct management_tlv_datum *) mgt->data;
 			fprintf(fp, "SLAVE_ONLY "
 				IFMT "slaveOnly %d", mtd->val & DDS_SLAVE_ONLY ? 1 : 0);
+#endif
 			break;
 			
 		case TLV_CLOCK_ACCURACY:
+#if PTPC_NOISE_DEBUG
 			mtd = (struct management_tlv_datum *) mgt->data;
 			fprintf(fp, "CLOCK_ACCURACY "
 				IFMT "clockAccuracy 0x%02hhx", mtd->val);
+#endif
 			break;
 			
 		case TLV_TRACEABILITY_PROPERTIES:
+#if PTPC_NOISE_DEBUG
 			mtd = (struct management_tlv_datum *) mgt->data;
 			fprintf(fp, "TRACEABILITY_PROPERTIES "
 				IFMT "timeTraceable      %d"
 				IFMT "frequencyTraceable %d",
 				mtd->val & TIME_TRACEABLE ? 1 : 0,
 				mtd->val & FREQ_TRACEABLE ? 1 : 0);
+#endif
 			break;
 			
 		case TLV_TIMESCALE_PROPERTIES:
+#if PTPC_NOISE_DEBUG
 			mtd = (struct management_tlv_datum *) mgt->data;
 			fprintf(fp, "TIMESCALE_PROPERTIES "
 				IFMT "ptpTimescale %d", mtd->val & PTP_TIMESCALE ? 1 : 0);
+#endif
 			break;
 			
 		case TLV_TIME_STATUS_NP:
 			tsn = (struct time_status_np *) mgt->data;
+#if PTPC_NOISE_DEBUG
 			fprintf(fp, "TIME_STATUS_NP "
 				IFMT "master_offset              %" PRId64
 				IFMT "ingress_time               %" PRId64
@@ -285,8 +381,15 @@ static void muxPmcParse(void *_muxPtp, struct ptp_message *msg)
 				tsn->lastGmPhaseChange.fractional_nanoseconds,
 				tsn->gmPresent ? "true" : "false",
 				cid2str(&tsn->gmIdentity));
+#endif
+
+			/* initial muxPtp */
+			muxPtp->masterPresent = (tsn->gmPresent)?EXT_TRUE:EXT_FALSE;
+			memcpy(muxPtp->masterId.id, tsn->gmIdentity.id, 8);
 			break;
+			
 		case TLV_GRANDMASTER_SETTINGS_NP:
+#if PTPC_NOISE_DEBUG
 			gsn = (struct grandmaster_settings_np *) mgt->data;
 			fprintf(fp, "GRANDMASTER_SETTINGS_NP "
 				IFMT "clockClass              %hhu"
@@ -311,6 +414,7 @@ static void muxPmcParse(void *_muxPtp, struct ptp_message *msg)
 				gsn->time_flags & TIME_TRACEABLE ? 1 : 0,
 				gsn->time_flags & FREQ_TRACEABLE ? 1 : 0,
 				gsn->time_source);
+#endif
 			break;
 			
 		case TLV_PORT_DATA_SET:
@@ -319,6 +423,7 @@ static void muxPmcParse(void *_muxPtp, struct ptp_message *msg)
 			{
 				p->portState = 0;
 			}
+#if PTPC_NOISE_DEBUG
 			fprintf(fp, "PORT_DATA_SET "
 				IFMT "portIdentity            %s"
 				IFMT "portState               %s"
@@ -335,50 +440,65 @@ static void muxPmcParse(void *_muxPtp, struct ptp_message *msg)
 				p->logAnnounceInterval, p->announceReceiptTimeout,
 				p->logSyncInterval, p->delayMechanism,
 				p->logMinPdelayReqInterval, p->versionNumber);
+#endif
 
 			/* initial muxPtp */
 			memcpy(muxPtp->portId.id, p->portIdentity.clockIdentity.id, 8);
-			muxPtp->state = p->portState;
-			snprintf(muxPtp->stateName, sizeof(muxPtp->stateName), "%s", ptpPortStateString(p->portState));
+			muxPtp->portState = p->portState;
+			snprintf(muxPtp->portStateName, sizeof(muxPtp->portStateName), "%s", ptpPortStateString(p->portState));
 			break;
 			
 		case TLV_PORT_DATA_SET_NP:
+#if PTPC_NOISE_DEBUG
 			pnp = (struct port_ds_np *) mgt->data;
 			fprintf(fp, "PORT_DATA_SET_NP "
 				IFMT "neighborPropDelayThresh %u"
 				IFMT "asCapable               %d",
 				pnp->neighborPropDelayThresh,
 				pnp->asCapable ? 1 : 0);
+#endif
 			break;
 		case TLV_LOG_ANNOUNCE_INTERVAL:
+#if PTPC_NOISE_DEBUG
 			mtd = (struct management_tlv_datum *) mgt->data;
 			fprintf(fp, "LOG_ANNOUNCE_INTERVAL "
 				IFMT "logAnnounceInterval %hhd", mtd->val);
+#endif
 			break;
 		case TLV_ANNOUNCE_RECEIPT_TIMEOUT:
+#if PTPC_NOISE_DEBUG
 			mtd = (struct management_tlv_datum *) mgt->data;
 			fprintf(fp, "ANNOUNCE_RECEIPT_TIMEOUT "
 				IFMT "announceReceiptTimeout %hhu", mtd->val);
+#endif
 			break;
 		case TLV_LOG_SYNC_INTERVAL:
+#if PTPC_NOISE_DEBUG
 			mtd = (struct management_tlv_datum *) mgt->data;
 			fprintf(fp, "LOG_SYNC_INTERVAL "
 				IFMT "logSyncInterval %hhd", mtd->val);
+#endif
 			break;
 		case TLV_VERSION_NUMBER:
+#if PTPC_NOISE_DEBUG
 			mtd = (struct management_tlv_datum *) mgt->data;
 			fprintf(fp, "VERSION_NUMBER "
 				IFMT "versionNumber %hhu", mtd->val);
+#endif
 			break;
 		case TLV_DELAY_MECHANISM:
+#if PTPC_NOISE_DEBUG
 			mtd = (struct management_tlv_datum *) mgt->data;
 			fprintf(fp, "DELAY_MECHANISM "
 				IFMT "delayMechanism %hhu", mtd->val);
+#endif
 			break;
 		case TLV_LOG_MIN_PDELAY_REQ_INTERVAL:
+#if PTPC_NOISE_DEBUG
 			mtd = (struct management_tlv_datum *) mgt->data;
 			fprintf(fp, "LOG_MIN_PDELAY_REQ_INTERVAL "
 				IFMT "logMinPdelayReqInterval %hhd", mtd->val);
+#endif
 			break;
 		}
 out:
@@ -386,111 +506,44 @@ out:
 	fflush(fp);
 }
 
-void muxPtpDestory(void *_muxPtp)
-{
-	MuxPtpRuntime *muxPtp = (MuxPtpRuntime *)_muxPtp;
-	EXT_ASSERT((muxPtp!=NULL), "MuxPtp is null");
-	struct PtpMgmtClient *pmc = (struct PtpMgmtClient *)muxPtp->pmc;
-	EXT_ASSERT((pmc!=NULL), "PMC is null");
 
-	pmc_destroy(pmc);
-	msg_cleanup();
-
-//	config_destroy(cfg);
-}
-
-void *muxPtpInit(void *_muxPtp)
-{
-	const char *iface_name = NULL;
-	int zero_datalen = 0;
-	char uds_local[MAX_IFNAME_SIZE + 1];
-	enum transport_type transport_type = TRANS_UDP_IPV4;
-	UInteger8 boundary_hops = 1, domain_number = 0, transport_specific = 0;
-	struct PtpConfig *cfg;
-
-	struct PtpMgmtClient *_pmc = NULL;
-
-//	handle_term_signals();
-
-	cfg = config_create();
-	if (!cfg)
-	{
-		return NULL;
-	}
-
-
-	if (config_set_int(cfg, "network_transport", TRANS_UDS))
-	{
-		goto out;
-	}
-
-	boundary_hops = 0;
-
-	transport_type = config_get_int(cfg, NULL, "network_transport");
-	transport_specific = config_get_int(cfg, NULL, "transportSpecific") << 4;
-	domain_number = config_get_int(cfg, NULL, "domainNumber");
-
-	if (!iface_name)
-	{
-		if (transport_type == TRANS_UDS)
-		{
-			snprintf(uds_local, sizeof(uds_local), PTP_RUN_HOME"/pmc.%d", getpid());
-			iface_name = uds_local;
-		}
-		else
-		{
-			iface_name = "eth0";
-		}
-	}
-	
-
-	print_set_progname("muxPtp");
-	print_set_syslog(1);
-	print_set_verbose(1);
-
-	_pmc = pmc_create(cfg, transport_type, iface_name, boundary_hops, domain_number, transport_specific, zero_datalen);
-	if (!_pmc)
-	{
-		EXT_ERRORF("failed to create pmc");
-		goto out;
-	}
-
-	config_destroy(cfg);
-	return _pmc;
-
-out:
-	config_destroy(cfg);
-	return NULL;
-}
-
-
-int muxPtpSearch(void *_muxPtp, char *cmd)
+static int muxPtpSearchOneCommand(void *_muxPtp, char *cmd)
 {
 	int cnt, tmo = -1;
 	
 #define N_FD		1
 
 	struct pollfd pollfd[N_FD];
-	char *command = NULL;
+	char command[256];
 	struct ptp_message *msg;
 	
 	MuxPtpRuntime *muxPtp = (MuxPtpRuntime *)_muxPtp;
 	EXT_ASSERT((muxPtp!=NULL), "MuxPtp is null");
 	struct PtpMgmtClient *pmc = (struct PtpMgmtClient *)muxPtp->pmc;
 	EXT_ASSERT((pmc!=NULL), "PMC is null");
+	int isSent = 0;
 	
 
 	pollfd[0].fd = pmc_get_transport_fd(pmc);
 
-	command = cmd;
+	snprintf(command, sizeof(command), "GET %s", cmd);
+	EXT_INFOF("Cmd:%s, fd:%d", cmd, pollfd[0].fd);
 //	while (is_running())
+	while (isSent <= 1 )
 	{
 		/* No more commands, wait a bit for
 		   any outstanding replies and exit. */
 		tmo = 100;
 
 		pollfd[0].events = POLLIN | POLLPRI;
-		pollfd[0].events |= POLLOUT;
+		if( !isSent )
+		{
+			pollfd[0].events |= POLLOUT;
+		}
+		else
+		{
+			isSent ++;
+		}
 
 		cnt = poll(pollfd, N_FD, tmo);
 		if (cnt < 0)
@@ -511,7 +564,10 @@ int muxPtpSearch(void *_muxPtp, char *cmd)
 		else if (!cnt)
 		{
 //			break;
-			EXT_INFOF("No fd is available");
+			EXT_INFOF("No fd is available, domain %d", muxPtp->domainCfg);
+			int domain = (int)muxPtp->domainCfg;
+			
+			muxPmcDataError(muxPtp, PTPC_ERROR_NO_CONNECTION, "No connection to PTP is available, domain %d, not correct", cmd, domain );
 			return EXIT_FAILURE;
 		}
 		
@@ -538,20 +594,27 @@ int muxPtpSearch(void *_muxPtp, char *cmd)
 			{
 				EXT_ERRORF("bad command: %s", command);
 			}
-			command = NULL;
+			//command = NULL;
+
+			isSent = 1;
 		}
 		
-		//if (pollfd[0].revents & (POLLIN|POLLPRI))
+		if (pollfd[0].revents & (POLLIN|POLLPRI))
 		{
-			TRACE();
 			msg = pmc_recv(pmc);
 			if (msg)
 			{
-			TRACE();
 				muxPmcParse(muxPtp, msg);
 				msg_put(msg);
 			}
-			TRACE();
+		}
+		else
+		{
+			if(isSent > 1)
+			{
+				muxPmcDataError(muxPtp, PTPC_ERROR_NO_REPLY, "No response for management msg '%s' with domain number %d, check domain number", cmd, muxPtp->domainCfg);
+				EXT_ERRORF("PMC Error: code: %d: %s", muxPtp->errCode, muxPtp->msg);
+			}
 		}
 	}
 
@@ -559,34 +622,183 @@ int muxPtpSearch(void *_muxPtp, char *cmd)
 	return EXIT_SUCCESS;
 }
 
-
-int main(int argc, char *argv[])
+void muxPtpDestory(void *_muxPtp)
 {
-	int ret = EXIT_SUCCESS;
-	MuxPtpRuntime	_muxPtp;
-	MuxPtpRuntime	*muxPtp = &_muxPtp;
+	MuxPtpRuntime *muxPtp = (MuxPtpRuntime *)_muxPtp;
+	EXT_ASSERT((muxPtp!=NULL), "MuxPtp is null");
 
-	muxPtp->pmc = muxPtpInit(muxPtp);
+	struct PtpMgmtClient *pmc = (struct PtpMgmtClient *)muxPtp->pmc;
+	EXT_ASSERT((pmc!=NULL), "PMC is null");
 
-	if(!muxPtp->pmc )
+	pmc_destroy(pmc);
+	msg_cleanup();
+
+//	config_destroy(cfg);
+}
+
+void *muxPtpInit(void *_muxPtp, unsigned char domainNumber)
+{
+	const char *iface_name = NULL;
+	int zero_datalen = 0;
+	char uds_local[MAX_IFNAME_SIZE + 1];
+	enum transport_type transport_type = TRANS_UDP_IPV4;
+	UInteger8 boundary_hops = 1, domain_number = 0, transport_specific = 0;
+	struct PtpConfig *cfg;
+
+	struct PtpMgmtClient *_pmc = NULL;
+
+	MuxPtpRuntime *muxPtp = (MuxPtpRuntime *)_muxPtp;
+	EXT_ASSERT((muxPtp!=NULL), "MuxPtp is null");
+//	handle_term_signals();
+
+	cfg = config_create();
+	if (!cfg)
 	{
-		ret = EXIT_FAILURE;
+		EXT_ERRORF("failed to create config");
+		return NULL;
+	}
+
+
+	if (config_set_int(cfg, "network_transport", TRANS_UDS))
+	{
+		EXT_ERRORF("failed to set network interface of pmc");
 		goto out;
 	}
 
-	if(muxPtpSearch(muxPtp, "GET PORT_DATA_SET") == EXIT_FAILURE)
+	boundary_hops = 0;
+
+	transport_type = config_get_int(cfg, NULL, "network_transport");
+	transport_specific = config_get_int(cfg, NULL, "transportSpecific") << 4;
+	domain_number = config_get_int(cfg, NULL, "domainNumber");
+
+	domain_number = domainNumber;
+	if (!iface_name)
 	{
-		ret = EXIT_FAILURE;
+		if (transport_type == TRANS_UDS)
+		{
+			snprintf(uds_local, sizeof(uds_local), PTP_RUN_HOME"/pmc.%d", getpid());
+			iface_name = uds_local;
+		}
+		else
+		{
+			iface_name = "eth0";
+		}
+	}
+	
+
+	print_set_progname("muxPtp");
+	print_set_syslog(1);
+	print_set_verbose(1);
+
+	_pmc = pmc_create(cfg, transport_type, iface_name, boundary_hops, domain_number, transport_specific, zero_datalen);
+	if (!_pmc)
+	{
+		EXT_ERRORF("failed to create pmc");
 		goto out;
 	}
 
-	EXT_INFOF("PTP port:%s, state:%s(%d)", muxPtpId2Str(&muxPtp->portId), muxPtp->stateName, muxPtp->state);
+//	config_destroy(cfg);
+	muxPtp->pmc = _pmc;
+	muxPtp->domainCfg = domain_number;
+	EXT_INFOF("PTP Client: if:%s, domain: %d", iface_name, muxPtp->domainCfg);
+	return _pmc;
+	
 
 out:
+	config_destroy(cfg);
+	return NULL;
+}
 
-	muxPtpDestory(muxPtp);
+
+int muxPtpRetrieve(void *_muxPtp)
+{
+	int ret = EXIT_SUCCESS;
+
+	MuxPtpRuntime *muxPtp = (MuxPtpRuntime *)_muxPtp;
+	EXT_ASSERT((muxPtp!=NULL), "MuxPtp is null");
+	
+	if(muxPtp->pmc == NULL )
+	{
+		EXT_ERRORF("pmc is null");
+		ret = EXIT_FAILURE;
+		goto out;
+	}
+
+	muxPmcDataClear(muxPtp);
+
+	/* port ID, port status, status name */
+	if(muxPtpSearchOneCommand(muxPtp, "PORT_DATA_SET") == EXIT_FAILURE)
+	{
+		EXT_ERRORF("PORT_DATA_SET is null");
+		ret = EXIT_FAILURE;
+		goto out;
+	}
+
+	/* gmPresent and gmIdentity */
+	if(muxPtpSearchOneCommand(muxPtp, "TIME_STATUS_NP") == EXIT_FAILURE)
+	{
+		EXT_ERRORF("TIME_STATUS_NP is null");
+		ret = EXIT_FAILURE;
+		goto out;
+	}
+
+	if(muxPtpSearchOneCommand(muxPtp, "DEFAULT_DATA_SET") == EXIT_FAILURE)
+	{
+		EXT_ERRORF("DEFAULT_DATA_SET is null");
+		ret = EXIT_FAILURE;
+		goto out;
+	}
+
+
+	if(muxPtpSearchOneCommand(muxPtp, "PARENT_DATA_SET") == EXIT_FAILURE)
+	{
+		EXT_ERRORF("PARENT_DATA_SET is null");
+		ret = EXIT_FAILURE;
+		goto out;
+	}
+	
+out:
+	return ret;
+}
+
+int muxPtpDebug(void *_muxPtp)
+{
+	int ret = EXIT_SUCCESS;
+
+	MuxPtpRuntime *muxPtp = (MuxPtpRuntime *)_muxPtp;
+	EXT_ASSERT((muxPtp!=NULL), "MuxPtp is null");
+
+	if(muxPtp->errCode)
+	{
+		EXT_ERRORF("Error: code: %d; details: %s", muxPtp->errCode, muxPtp->msg );
+		return EXIT_FAILURE;
+	}
+
+
+	EXT_INFOF("PTP Clock ID:%s; port:%s, state:%s(%d)", muxPtpId2Str(&muxPtp->clockId),  muxPtpId2Str(&muxPtp->portId), muxPtp->portStateName, muxPtp->portState);
+	EXT_INFOF("Default DS:TwoStep:%d, SlaveOnly:%d, priority1:%d, ClockClass:%d, ClockAccuracy:0x%2x, offsetScaledLogVariance:0x%4x; Priority2:%d", 
+		muxPtp->isTwoStep, muxPtp->isSlaveOnly, muxPtp->priority1, muxPtp->clockClass, muxPtp->clockAccuracy, muxPtp->offsetScaledLogVariance, muxPtp->priority2);
+
+	EXT_INFOF("PTP Master ID:%s, present:%d; source port:%s", muxPtpId2Str(&muxPtp->masterId), muxPtp->masterPresent,  muxPtpId2Str(&muxPtp->sourceId));
+	EXT_INFOF("Parent DS:priority1:%d, ClockClass:%d, ClockAccuracy:0x%2x, offsetScaledLogVariance:0x%4x; Priority2:%d", 
+		muxPtp->gmPriority1, muxPtp->gmClockClass, muxPtp->gmClockAccuracy, muxPtp->gmOffsetScaledLogVariance, muxPtp->gmPriority2);
 
 	return ret;
 }
 
+int muxPtpDefaultConfig(void *_muxPtp)
+{
+	int ret = EXIT_SUCCESS;
+
+	MuxPtpRuntime *muxPtp = (MuxPtpRuntime *)_muxPtp;
+	EXT_ASSERT((muxPtp!=NULL), "MuxPtp is null");
+	muxPmcDataClear(muxPtp);
+
+	muxPtp->isEnable = EXT_TRUE;
+	muxPtp->domainCfg = 0;
+	muxPtp->isSlaveOnly = EXT_TRUE;
+	muxPtp->isTwoStep = EXT_TRUE;
+
+	return ret;
+}
 
