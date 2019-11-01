@@ -53,7 +53,7 @@ class Params
     
     static $logLevels = ["DEBUG","INFO","NOTICE","WARNING", "ERROR", "CRITICAL", "ALERT", "EMERGENCY"];
     
-    const FIRMWARE_MCU_FILE  = '/tmp/upgrade';
+    const FIRMWARE_MCU_FILE  = '/var/www/upgrade';
     const FIRMWARE_FPGA_FILE = '/tmp/upgradeFPGA';
     const DEVICE_NAME        = '500774'; //'RX-500762'
     const DEVICE_LAST_UPDATE = "June 17 2019";
@@ -76,7 +76,7 @@ class Params
     const PROD_PROTOCOL_ORIGIN_ADDRESS      = '127.0.0.1';
     const PROD_PROTOCOL_ORIGIN_PORT         = 3601;
     
-    const DEV_PROTOCOL_DESTINATION_ADDRESS_UDP = '127.0.0.1';//'192.168.168.100';//'192.168.168.103';// peter controller
+    const DEV_PROTOCOL_DESTINATION_ADDRESS_UDP = '192.168.168.100';//'192.168.168.100';//'192.168.168.103';// peter controller
     const DEV_PROTOCOL_DESTINATION_ADDRESS_TCP = '127.0.0.1';//'192.168.168.100';//'192.168.168.103';// jack controller
     const DEV_PROTOCOL_ORIGIN_ADDRESS          = '192.168.168.101';// my pc ip
 }

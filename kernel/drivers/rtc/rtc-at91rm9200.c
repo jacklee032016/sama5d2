@@ -41,6 +41,7 @@
 
 #include "mux7xxCompact.h"
 
+#define	__RTC_DEBUG		0
 
 #define at91_rtc_read(field) \
 	readl_relaxed(at91_rtc_regs + field)
@@ -156,7 +157,8 @@ static int at91_rtc_readtime(struct device *dev, struct rtc_time *tm)
 	tm->tm_yday = rtc_year_days(tm->tm_mday, tm->tm_mon, tm->tm_year);
 	tm->tm_year = tm->tm_year - 1900;
 
-#ifdef	MUX_BOARD
+//#ifdef	MUX_BOARD
+#if __RTC_DEBUG
 	EXT_INFOF("RTC read time: %4d-%02d-%02d %02d:%02d:%02d", 1900 + tm->tm_year, (tm->tm_mon+1), tm->tm_mday,
 		tm->tm_hour, tm->tm_min, tm->tm_sec);
 #else
@@ -175,7 +177,8 @@ static int at91_rtc_settime(struct device *dev, struct rtc_time *tm)
 {
 	unsigned long cr;
 
-#ifdef	MUX_BOARD
+//#ifdef	MUX_BOARD
+#if __RTC_DEBUG
 	EXT_INFOF("RTC set time: %4d-%02d-%02d %02d:%02d:%02d", 1900 + tm->tm_year, (tm->tm_mon+1), tm->tm_mday,
 		tm->tm_hour, tm->tm_min, tm->tm_sec);
 #else
@@ -211,7 +214,9 @@ static int at91_rtc_settime(struct device *dev, struct rtc_time *tm)
 	at91_rtc_write(AT91_RTC_CR, cr & ~(AT91_RTC_UPDCAL | AT91_RTC_UPDTIM));
 	at91_rtc_write_ier(AT91_RTC_SECEV);
 
-EXT_INFOF("RTC write OK!");
+#if __RTC_DEBUG
+	EXT_INFOF("RTC write OK!");
+#endif
 	return 0;
 }
 
@@ -229,7 +234,8 @@ static int at91_rtc_readalarm(struct device *dev, struct rtc_wkalrm *alrm)
 	alrm->enabled = (at91_rtc_read_imr() & AT91_RTC_ALARM)
 			? 1 : 0;
 
-#ifdef	MUX_BOARD
+//#ifdef	MUX_BOARD
+#if __RTC_DEBUG
 	EXT_INFOF("RTC read alarm: %4d-%02d-%02d %02d:%02d:%02d", 1900 + tm->tm_year, tm->tm_mon, tm->tm_mday,
 		tm->tm_hour, tm->tm_min, tm->tm_sec);
 #else
@@ -274,7 +280,8 @@ static int at91_rtc_setalarm(struct device *dev, struct rtc_wkalrm *alrm)
 		at91_rtc_write_ier(AT91_RTC_ALARM);
 	}
 
-#ifdef	MUX_BOARD
+//#ifdef	MUX_BOARD
+#if __RTC_DEBUG
 	EXT_INFOF("RTC set alarm: %4d-%02d-%02d %02d:%02d:%02d", at91_alarm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour,
 		tm.tm_min, tm.tm_sec);
 #else
@@ -480,7 +487,9 @@ static int __init at91_rtc_probe(struct platform_device *pdev)
 	 * completion.
 	 */
 	at91_rtc_write_ier(AT91_RTC_SECEV);
-#ifdef	MUX_BOARD
+
+//#ifdef	MUX_BOARD
+#if __RTC_DEBUG
 	EXT_INFOF("AT91 Real Time Clock driver.");
 #else
 	dev_info(&pdev->dev, "AT91 Real Time Clock driver.\n");

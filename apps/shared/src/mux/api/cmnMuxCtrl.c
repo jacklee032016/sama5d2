@@ -116,9 +116,13 @@ static char _compareSystemCfg(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 			memcpy(&runCfg->local.mac, &rxCfg->local.mac, EXT_MAC_ADDRESS_LENGTH);
 			runCfg->isMacConfiged = EXT_TRUE;
 
+#if 1
+			/* only MAC is modified */
+			cmnSysEthernetConfig(runCfg);
+#else
 			/* save MAC address into u-boot env partition */
 			cmnSysSaveMac2Uboot(runCfg);
-			
+#endif			
 			ret = EXT_TRUE;
 		}
 	}
@@ -350,6 +354,8 @@ static char _compareProtocolConfig(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxC
 char extSysCompareParams(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 {
 //	DEBUG_CFG_PARAMS();
+	int isSfpChanged = EXT_FALSE;
+	int isForceStreamChanged = EXT_FALSE;
 
 	if(_compareSystemCfg(runCfg, rxCfg) == EXT_TRUE)
 	{
@@ -412,6 +418,27 @@ char extSysCompareParams(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 	{
 		printf(EXT_NEW_LINE"After configured, Runtime Configuration:"EXT_NEW_LINE);
 		cmnMuxCfgDebugData(runCfg);
+	}
+
+	/* system params for FPGA */
+	if(FIELD_IS_CHANGED_U8(rxCfg->sfpCfg ) && (rxCfg->sfpCfg != runCfg->sfpCfg ) ) 
+	{
+		EXT_DEBUGF(DEBUG_SYS_CTRL, "SFP Configuration %d", rxCfg->sfpCfg);
+		runCfg->sfpCfg = rxCfg->sfpCfg;
+		isSfpChanged = EXT_TRUE;
+	}
+
+	if(FIELD_IS_CHANGED_U8(rxCfg->isConvert ) && (rxCfg->isConvert != runCfg->isConvert ) ) 
+	{
+		EXT_DEBUGF(DEBUG_SYS_CTRL, "ForceStrean Configuration %d", rxCfg->isConvert);
+		runCfg->isConvert = rxCfg->isConvert;
+		isForceStreamChanged = EXT_TRUE;
+	}
+
+	if(isForceStreamChanged == EXT_TRUE || isSfpChanged == EXT_TRUE )
+	{
+		cmnSysCfgSave(runCfg, EXT_CFG_MAIN);
+		sysFpgaVideoForced();
 	}
 
 	return EXIT_SUCCESS;

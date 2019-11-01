@@ -5,7 +5,7 @@
 #ifndef	__EXT_PTP_H__
 #define	__EXT_PTP_H__
 
-#if ARCH_X86
+#if 0//ARCH_X86
 #define	PTP_RUN_HOME					"/tmp"
 #else
 #define	PTP_RUN_HOME					"/var/run"

@@ -16,6 +16,8 @@
 #define	EP91A6SQ_REG_AUDIO_INFOFRAME_CC			0x29		/* channel conut */
 #define	EP91A6SQ_REG_AUDIO_INFOFRAME_SS			0x2A
 
+#define	EP91A6SQ_REG_AUDIO_PATH						0x10
+
 
 /* read audio sample frequency and audo channels from EP91A6SQ HDMI repeater. Register Map. p.6  */
 int	cmnSysI2cTxReadAudioParams(unsigned char *sampleRate, unsigned char *channels, unsigned char *depth)
@@ -30,7 +32,13 @@ int	cmnSysI2cTxReadAudioParams(unsigned char *sampleRate, unsigned char *channel
 		return EXIT_FAILURE;
 	}
 	audioChannels = (readValue&0x07);
+	
+	/* 10.29, 2019, changed as requirement from FPGA*/
+#if 0	
 	*channels = audioChannels + 1; /*channel count, such as 2~8 */
+#else
+	*channels = 8; 
+#endif
 
 	ret = EP91A6_READ(EP91A6SQ_REG_AUDIO_INFOFRAME_SS, &readValue, sizeof(readValue));
 	if(ret == EXIT_FAILURE)
@@ -43,6 +51,16 @@ int	cmnSysI2cTxReadAudioParams(unsigned char *sampleRate, unsigned char *channel
 	
 	audioRate = (readValue>>2)&0x07; /* bit2~bit4 */
 	*sampleRate = audioRate;
+
+	/* 10.30, 2019. select audio path in HDMI repeater */
+	audioChannels = 0x80;
+	ret = EP91A6_WRITE(EP91A6SQ_REG_AUDIO_PATH, &audioChannels, sizeof(audioChannels));
+	if(ret == EXIT_FAILURE)
+	{
+		EXT_ERRORF("EP91A6SQ read failed");
+		return EXIT_FAILURE;
+	}
+
 
 	EXT_DEBUGF(EXT_CMN_SYS_HW_DEBUG, "\t\tEP91A6SQ audio rate:%s; depth:%d(reg: 0x%02X); channels:%d", 
 		CMN_FIND_A_RATE(*sampleRate),  *depth,  readValue, *channels);

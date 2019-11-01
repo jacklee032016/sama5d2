@@ -250,6 +250,8 @@ typedef	enum _CMD_TYPE
 
 #define	FIELD_SYS_CFG_MEDIA_AUTO					"mediaMode"
 
+#define	FIELD_SYS_CFG_SFP_CFG						"sfpCfg"
+
 
 /* fields in Data array */
 #define	EXT_IPCMD_DATA_P_NAME					"pName"
@@ -279,6 +281,8 @@ typedef	enum _CMD_TYPE
 #define	SYS_CFG_FIELD_SDP_AUDIO_URI				"sdpAudioUri"
 #define	SYS_CFG_FIELD_SDP_ANC_URI				"sdpAncUri"
 
+
+#define	MEDIA_SESSION_ID							"sessionID"	/* for AV SDP */
 /* video fields */
 #define	FIELD_VIDEO_IP								"ip"
 #define	FIELD_VIDEO_PORT							"port"
@@ -291,6 +295,9 @@ typedef	enum _CMD_TYPE
 #define	FIELD_VIDEO_COLOR_SPACE					"colorSpace"
 #define	FIELD_VIDEO_DEPTH							"depth"
 #define	FIELD_VIDEO_INTERLACE						"intlce"
+#define	FIELD_VIDEO_IS_CONVERT					"forceStream"	/* convert video to YCbCr422 and 10bits depth */
+
+#define	FIELD_VIDEO_SESSION_ID					MEDIA_SESSION_ID
 
 #define	FIELD_VIDEO_SEGMENTED					"videoIsSgmt"
 
@@ -304,6 +311,8 @@ typedef	enum _CMD_TYPE
 #define	FIELD_AUDIO_CHANNELS						"channels"
 #define	FIELD_AUDIO_DEPTH							"depth"
 #define	FIELD_AUDIO_PKT_SIZE						"pktSize"
+
+#define	FIELD_AUDIO_SESSION_ID					MEDIA_SESSION_ID
 
 /* ANC fields */
 #define	FIELD_ANC_IP								"ip"
@@ -1240,7 +1249,7 @@ typedef enum
 	SDPC_STATE_MAX
 }SDPC_STATE_T;
 
-cJSON *cmnMuxSdpStatus(void);
+cJSON *cmnMuxSdpStatus(int isTx);
 
 
 #endif

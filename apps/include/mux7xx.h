@@ -216,6 +216,10 @@ struct DATA_BUFFER
 };
 
 
+#define	SYS_UPDATE_SESSION_ID()	\
+		do{snprintf((char *)runCfg->runtime.vSession, sizeof(runCfg->runtime.vSession), "11%ld", cmnGetTimeMs());	\
+		snprintf((char *)runCfg->runtime.aSession, sizeof(runCfg->runtime.aSession), "10%ld", cmnGetTimeMs());TRACE();} while(0)
+
 
 
 #endif

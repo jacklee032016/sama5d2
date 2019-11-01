@@ -154,6 +154,36 @@
         
         <div class="row">
             <div class="form-group col">
+                <DIV class="row">
+                    <H2>SFP configuration</H2>
+                </DIV>
+                <div class="row pl-2 mb-2">
+                    <label for="sdfPort" class="col-5 col-form-label">SFP Port:</label>
+                    <div class="col-6 pl-0">
+                        <SELECT id="sdfPort" class="form-control" name="sdfPort">
+                            <OPTION value="1">SFP1</OPTION>
+                            <OPTION value="2">SFP2</OPTION>
+                            <OPTION value="3">Redundant</OPTION>
+                            <OPTION value="4">Split</OPTION>
+                        </SELECT>
+                    </div>
+                </div>
+                <div class="row pl-2 pt-3">
+                    <div class=" col-2"> <!-- offset-5 col-2 pl-0 -->
+                        <button type="submit" class="btn btn-secondary" id="btnApplySDF" name="btnApplySDF">Apply</button>
+                    </div>
+                    <div class="col-2">
+                        <button type="button" class="btn btn-secondary" id="btnResetSDF" name="btnResetSDF">Reset</button>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group col">
+
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="form-group col">
 		        <DIV class="row">
                     <H2>Factory Reset</H2>
                 </DIV>
@@ -227,6 +257,10 @@ $("#btnResetRs232").click(function() {
     completeRs232Form();
 });
 
+$("#btnResetSDF").click(function() {
+    completeSfdForm();
+});
+
 function completeSettingsPage()
 {
     $.each(device.rs232List.baudrate, function (i, item) { $('#baudrate').append($('<option>', {value: item,text : item }));});
@@ -235,6 +269,12 @@ function completeSettingsPage()
     $.each(device.rs232List.stopbits, function (i, item) { $('#stopbits').append($('<option>', {value: item,text : item }));});
     completeNetworkForm();
     completeRs232Form();
+    completeSfdForm();
+}
+
+function completeSfdForm()
+{
+    $("#sdfPort").val(device.system.sfpCfg);
 }
 
 function completeRs232Form()
@@ -289,6 +329,10 @@ $("form#formUpgradeFPGA").submit(function(e) {
     upgradeDeviceFPGA(this, e);
 });
 
+$("#btnApplySDF").click(function() {
+    setSfd();
+});
+
 $("#btnReboot").click(function() {
     if (confirm("Are you sure you want to reboot?"))
         rebootDevice();
@@ -335,6 +379,49 @@ function rebootMessage()
 }
 
 //ajax functions
+function setSfd()
+{
+    var data  = {};
+    
+    if ( $("#sdfPort").val() != device.system.sfpCfg )
+    {
+        if ($("#sdfPort").val())
+            data.sfd = $("#sdfPort").val();
+    }
+
+    if (jQuery.isEmptyObject(data))
+    {
+        alert("No changes made");
+        return false;
+    }
+    
+    var token = $.cookie("token");
+    $.ajax({
+        method: "PUT",
+        url: apiUrl + "/device/manual-settings",
+        headers: {"Authorization": token},
+        data: data,
+        success: function(response) {
+            if (response.status != "success")
+            {
+                alert("error while applying settings");
+            } else {
+                getParam();
+            }
+            completeSfdForm();
+        },
+        error: function (jqXHR, status) {
+            if (jqXHR.status == 401) //token not valid or expired
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });
+    
+    event.preventDefault();
+    return false;        
+}
+
 function setNetwork()
 {
     var data  = {};
@@ -385,6 +472,10 @@ function setNetwork()
             }
         }
     });
+    window.setTimeout( function()
+    {
+       location.reload();
+    }, 3000);
 }
 
 function setRs232()
@@ -672,7 +763,7 @@ function upgradeDevice(element, event)
                     //$('#message').html("Upgrade done");
                     location.reload();
                     //$('#message').css("display", "none");
-                }, 80000);
+                }, 140000);
             }
             else
             {

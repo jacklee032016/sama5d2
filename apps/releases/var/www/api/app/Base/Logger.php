@@ -6,7 +6,8 @@ use App\Params;
 use App\Models\LogLevel;
 
 /* Logger class:  
- * - It's a wrapper for monolog logger
+ * - It's a wrapper for monolog logger //        Logger::getInstance()->addError("get param failed " . $errorMessage);
+
  */  
 class Logger{
 
@@ -16,7 +17,7 @@ class Logger{
     
     private static $day = "";
 
-    private static $enabled = false;
+    private static $enabled = FALSE;
     
     public static function getLogLevelList()
     {
@@ -34,9 +35,31 @@ class Logger{
         
     }
 
+    // open log file
+    private function lopen(){
+        // define log file path and name
+        $lfile = "/tmp/logFile";
+        // define the current date (it will be appended to the log file name)
+        $today = date('Y-m-d');
+        // open log file for writing only; place the file pointer at the end of the file
+        // if the file does not exist, attempt to create it
+        //$this->fp = fopen($lfile . '_' . $today, 'a') or exit("Can't open $lfile!");
+        $fp = fopen($lfile . '_' . $today .'.log', 'a') or exit("Can't open $lfile!");
+        return $fp;
+    } 
+    
     public function addDebug($message, array $context = array())
     {
-        return "";
+        if (self::$enabled == TRUE)
+        {
+            $fp = $this->lopen();
+            // define script name
+            $script_name = pathinfo($_SERVER['PHP_SELF'], PATHINFO_FILENAME);
+            // define current time
+            $time = date('H:i:s');
+            // write current time, script name and message to the log file
+            fwrite($fp, "$time ($script_name) $message\n");
+        }
     }
     
     public function addInfo($message, array $context = array())
@@ -56,7 +79,16 @@ class Logger{
     
     public function addError($message, array $context = array())
     {
-        return "";
+        if (self::$enabled == TRUE)
+        {
+            $fp = $this->lopen();
+            // define script name
+            $script_name = pathinfo($_SERVER['PHP_SELF'], PATHINFO_FILENAME);
+            // define current time
+            $time = date('H:i:s');
+            // write current time, script name and message to the log file
+            fwrite($fp, "$time ($script_name) $message\n");
+        }
     }
     
     public function addCritical($message, array $context = array())

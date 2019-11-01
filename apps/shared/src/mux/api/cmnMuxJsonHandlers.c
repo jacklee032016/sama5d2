@@ -201,6 +201,16 @@ static int	_ipCmdHandle4SetParams(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataCo
 		isFound = EXT_TRUE;
 	}
 
+	obj = cmnJsonSystemGetSubItem(dataConn->dataObj, MUX_REST_URI_PTP, INVALIDATE_VALUE_U32);
+	if(obj )
+	{
+		if( cmnMuxObjectParsePtp(dataConn, obj) == EXIT_FAILURE)
+		{
+			goto failed;
+		}
+		isFound = EXT_TRUE;
+	}
+
 	obj = cmnJsonSystemGetSubItem(dataConn->dataObj, MUX_REST_URI_IR, INVALIDATE_VALUE_U32);
 	if(obj )
 	{
@@ -656,14 +666,11 @@ static int	_handle4SetPtp(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataConn, cJSO
 
 	cmnMuxClearConfig(&muxMain->rxCfg);
 
-#if 0
-	if(!data || cmnMuxObjectParseIR(dataConn, data) == EXIT_FAILURE)
+	if(!data || cmnMuxObjectParsePtp(dataConn, data) == EXIT_FAILURE)
 	{
 		SYS_PLAYLIST_UNLOCK(muxMain);
 		return EXIT_FAILURE;
 	}
-#endif
-	// FIELD_RS232_DATA_FEEDBACK
 		
 	MAIN_SYS_CONFIG(muxMain);
 

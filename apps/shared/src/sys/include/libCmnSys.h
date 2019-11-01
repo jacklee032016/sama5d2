@@ -138,6 +138,8 @@ int	sysFpgaCheck(EXT_RUNTIME_CFG *runCfg );
 
 int	sysFpgaInit(EXT_RUNTIME_CFG *runCfg );
 
+int sysFpgaVideoForced(void);
+
 int	sysFpgaRefresh(void );
 
 char *sysFgpaVersion(void);
@@ -358,13 +360,17 @@ cJSON *cmnMuxThreadsInfo(MuxMain *muxMain);
 
 
 int	sysFpgaReadVideoStatus(void);
-int	sysFpgaReadFpsStatus(void);
+int	sysFpgaReadSfpStatus(void);
 
 #define	MAC_DEBUG_FORMAT(address)	\
 			(" %02x:%02x:%02x:%02x:%02x:%02x:", address[0], address[1], address[2], address[3], address[4], address[5])
 
-
+#if 1
+/* N25Q512A and N25Q256A */
 #define	SPI_FLASH_SECTOR_SIZE						0x10000	/* 65536, 64K */
+#else
+#define	SPI_FLASH_SECTOR_SIZE							(0x10000/2)	/* 65536, 64K */
+#endif
 
 int	cmnSysSpiTest(void);
 
@@ -372,6 +378,7 @@ int	cmnSysRawSpiFlashInit(void);
 void	cmnSysRawSpiFlashClose(int fd);
 int	cmnSysRawSpiFlashWriteFile(int flashFd, char *filename, uint32_t startAddr);
 int	cmnSysRawSpiFlashRead(int flashFd, uint32_t startAddr, uint32_t pageCount);
+int cmnSysRawSpiFlashEraseSectors(int flashFd, int sectorCount, uint32_t startAddr);
 
 
 int	cmnSysI2cTxReadAudioParams(unsigned char *sampleRate, unsigned char *channels , unsigned char *depth);

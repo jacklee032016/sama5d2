@@ -1,6 +1,15 @@
 #!/bin/sh
 # script in busybox, bash must be sh
 
+# simple command like that
+# video
+# printf "timer" > /sys/class/leds/video/trigger
+# printf "none" > /sys/class/leds/video/trigger
+
+# SFP
+# printf "timer" > /sys/class/leds/act/trigger
+# printf "none" > /sys/class/leds/act/trigger
+
 LED_RED=/sys/class/leds/red
 LED_GREEN=/sys/class/leds/green
 LED_BLUE=/sys/class/leds/blue

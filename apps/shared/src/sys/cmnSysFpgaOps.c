@@ -14,10 +14,12 @@
 #define	LONG_FORMAT	"%l"
 #endif
 
+/*
+EXT_INFOF("Write RtpTimestamp: "LONG_FORMAT"u(0x"LONG_FORMAT"x)", fpgaTs, fpgaTs); \
+*/
 
 #define	FPGA_UPDATE_PTP_TIMESTAMP(fpga) \
 	do{	/* write timestamp */ uint32_t fpgaTs = FPGA_GET_PTP_TIMESTAMP(); \
-		EXT_INFOF("Write RtpTimestamp: "LONG_FORMAT"u(0x"LONG_FORMAT"x)", fpgaTs, fpgaTs); \
 		_extFpgaWriteIntegerChange(&fpga->txAddress->rtpTimestamp, &fpgaTs);	}while(0)
 
 
@@ -281,8 +283,8 @@ int sysFpgaTxReadParams(FpgaConfig *fpga)
 {
 	unsigned char _chValue;
 	
-	EXT_RUNTIME_CFG *runCfg = fpga->runCfg;
 
+	EXT_RUNTIME_CFG *runCfg = fpga->runCfg;
 	EXT_INFOF("Read cfg:%p", runCfg);
 
 #if 0
@@ -337,6 +339,11 @@ int sysFpgaTxReadParams(FpgaConfig *fpga)
 	/* write timestamp */
 	FPGA_UPDATE_PTP_TIMESTAMP(fpga);
 
+	_chValue = 0x40; /* 10.30, 2019. TX write to select audio channel from Audio input, not I2S */
+	_extFpgaWriteByte(&fpga->txAddress->media->channels, &runCfg->runtime.aChannels);
+
+	sysFpgaVideoForced();
+	
 	return fpgaReadParamRegisters(fpga->txAddress->media, runCfg);
 }
 
@@ -555,6 +562,7 @@ int sysFpgaTxPollUpdateParams(void *data)
 	}
 
 	_extFpgaReadByte(&fpga->txAddress->media->paramStatus, &_chValue);
+//	EXT_DEBUGF(MUX_DEBUG_FPGA, "params status:0x%x", _chValue);
 	if( NEW_PARAM_AVAILABLE(_chValue) )
 	{
 		EXT_DEBUGF(MUX_DEBUG_FPGA, "New params is available now");
@@ -566,6 +574,7 @@ int sysFpgaTxPollUpdateParams(void *data)
 		_chValue = INVALIDATE_VALUE_U8;
 		_extFpgaWriteByte(&fpga->txAddress->media->paramStatus, &_chValue);
 
+		SYS_UPDATE_SESSION_ID();
 	}
 
 	return EXIT_SUCCESS;

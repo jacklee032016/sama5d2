@@ -174,6 +174,10 @@ typedef	enum
 #define	F_REG_TX_SYS_MINUTE						0x40
 
 
+#define	F_REG_TX_SYS_VIDEO_FORCED				0x41
+#define	F_REG_TX_SYS_VIDEO_STATUS				0x43
+
+
 #define	F_REG_TX_SYS_MB_VIDEO_COLOR_DEPTH		0x2C	/* 10/12/14/16 */
 #define	F_REG_TX_SYS_MB_VIDEO_COLOR_FORMAT	0x2D	/* RGB/YCbCr */
 
@@ -644,6 +648,8 @@ int sysFpgaTxReadParams(FpgaConfig *fpga);
 int sysFpgaRxReadParams(FpgaConfig *fpga);
 int sysFpgaTxWriteParams(FpgaConfig *fpga);
 int sysFpgaRxWriteParams(FpgaConfig *fpga);
+
+
 
 extern	FpgaConfig 	_fpgaConfig;
 

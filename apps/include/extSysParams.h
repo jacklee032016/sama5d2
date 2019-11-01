@@ -152,7 +152,11 @@
 #if 1//EXTLAB_BOARD
 #define ETHERNET_CONF_IPADDR2_TX				168
 #define ETHERNET_CONF_IPADDR2_RX				168
-#define ETHERNET_CONF_IPADDR3_TX				102
+
+#if (MUX_BOARD == MUX_BOARD_774)
+#define ETHERNET_CONF_IPADDR3_TX				67
+#endif
+
 #else
 #define ETHERNET_CONF_IPADDR2_TX				169
 #define ETHERNET_CONF_IPADDR2_RX				169
@@ -161,7 +165,13 @@
 
 
 #if ARCH_ARM
+
+#if (MUX_BOARD == MUX_BOARD_774)
+#define ETHERNET_CONF_IPADDR3_RX				67
+#else
 #define ETHERNET_CONF_IPADDR3_RX				65
+#endif
+
 #else
 #define ETHERNET_CONF_IPADDR3_RX				3
 #endif
@@ -246,6 +256,15 @@
 #define	EXT_MQTT_CLIENT_ID					"extMqtt"
 #define	EXT_MQTT_USER_NAME					"admin"
 #define	EXT_MQTT_PASSWORD					"admin"
+
+
+enum EXT_SFP_CFG_T
+{
+	EXT_SFP_CFG_FIRST = 1,		/* port 1 */
+	EXT_SFP_CFG_SECOND,		/* port 2 */
+	EXT_SFP_CFG_DOUBLE,		/* duplicate in 2 ports */
+	EXT_SFP_CFG_SPLIT			/* split video into 2 ports */
+};
 
 #define	EXT_NEW_LINE							"\r\n"
 //#define	EXT_NEW_LINE							"\r"
@@ -1019,6 +1038,7 @@ typedef	struct
 	char				scID[EXT_SC_ID_MAX_LENGTH+1];
 }MuxSetupData;
 
+#define	SESSION_ID_MAX_SIZE			32
 
 /* runtime parameters which can't be saved in flash */
 typedef	struct
@@ -1032,11 +1052,13 @@ typedef	struct
 
 	unsigned char			vIsInterlaced;	/* used now. 01.15, 2019 */
 	unsigned char			vIsSegmented;
+	unsigned char			vSession[SESSION_ID_MAX_SIZE];
 
 	unsigned char			aSampleRate;
 	unsigned char			aChannels;	/* 4/8/12/16 */
 	unsigned char			aDepth;		/* 16, 24 bits, etc.  not configurable, 12.07, 2018; for HDMI-->2110, it is changable. 09.25, 2019 */
 	unsigned char			aPktSize;	/* 1ms or 125ms. */
+	unsigned char			aSession[SESSION_ID_MAX_SIZE];
 
 	unsigned char			rtpTypeVideo;
 	unsigned char			rtpTypeAudio;
@@ -1176,6 +1198,9 @@ struct	_EXT_RUNTIME_CFG
 	unsigned char			isDipOn;
 #endif
 	unsigned char			netMode;
+
+	unsigned char			sfpCfg;
+	unsigned char			isConvert;
 
 	EXT_VIDEO_CONFIG	local;
 	uint32_t				ipMask;

@@ -1,4 +1,5 @@
 # /etc/network/interfaces by muxCtrl
+# this file should be recreated at the time all configuration is generated when it runs first time
 # 2019-08-08 15:24:05
 
 # The loopback interface
@@ -8,4 +9,14 @@ iface lo inet loopback
 # wire interface eth0
 auto eth0
 iface eth0 inet dhcp
+        hwaddress ether fc:c2:3d:0d:16:11
+
+#default TX static address
+auto eth0:1
+iface eth0:1 inet static
+        address 192.168.168.66
+        netmask 255.255.255.0
+        network 192.168.168.0
+        gateway 192.168.168.1
+        hwaddress ether fc:c2:3d:0d:16:13
 

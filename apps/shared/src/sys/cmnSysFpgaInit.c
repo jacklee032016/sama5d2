@@ -394,10 +394,10 @@ int	sysFpgaInit(EXT_RUNTIME_CFG *runCfg )
 
 int	sysFpgaReadVideoStatus(void)
 {
-	FpgaI2cAddress		*reg;
+#if 0
 	FpgaConfig 	*fpga =  &_fpgaConfig;
+	FpgaI2cAddress		*reg;
 	unsigned short _shortValue;
-
 
 	if(fpga->runCfg == NULL)
 		return EXT_FALSE;
@@ -412,25 +412,33 @@ int	sysFpgaReadVideoStatus(void)
 	}
 
 	_extFpgaReadShort(reg, &_shortValue);
-
 	if(_shortValue)
 	{
 		return EXT_TRUE;
 	}
-
+#else
+	unsigned char _chValue;
+	FPGA_I2C_READ(F_REG_TX_SYS_VIDEO_STATUS, &_chValue, sizeof(_chValue));
+//	EXT_INFOF("Video Status:0x%x", _chValue);
+	if((_chValue&0x80) )
+	{
+		return EXT_TRUE;
+	}
+#endif
 	return EXT_FALSE;
 }
 
 
-int	sysFpgaReadFpsStatus(void)
+int	sysFpgaReadSfpStatus(void)
 {
-	FpgaI2cAddress		*reg, *reg2;
 	FpgaConfig 	*fpga =  &_fpgaConfig;
+	if(fpga->runCfg == NULL)
+		return EXT_FALSE;
+#if 0
+	FpgaI2cAddress		*reg, *reg2;
 	unsigned short rxCount, txCount;
 
 
-	if(fpga->runCfg == NULL)
-		return EXT_FALSE;
 	
 	if(EXT_IS_TX(fpga->runCfg) )
 	{
@@ -450,6 +458,19 @@ int	sysFpgaReadFpsStatus(void)
 	{
 		return EXT_TRUE;
 	}
+#else
+	unsigned char _chValue;
+	FPGA_I2C_READ(F_REG_TX_SYS_VIDEO_STATUS, &_chValue, sizeof(_chValue));
+	_chValue = _chValue&0x03;
+//	EXT_INFOF("Video SFP:0x%x; configuration: %d", _chValue, fpga->runCfg->sfpCfg );
+	if((_chValue == 1 && fpga->runCfg->sfpCfg == EXT_SFP_CFG_FIRST)  ||
+		(_chValue == 2 && fpga->runCfg->sfpCfg == EXT_SFP_CFG_SECOND) ||
+		(_chValue == 3 && (fpga->runCfg->sfpCfg == EXT_SFP_CFG_DOUBLE || fpga->runCfg->sfpCfg == EXT_SFP_CFG_SPLIT) ) )
+	{
+//		EXT_INFOF("SFP LED ON");
+		return EXT_TRUE;
+	}
+#endif
 
 	return EXT_FALSE;
 }
@@ -515,4 +536,49 @@ int	sysFpgaWriteIrCtrl(unsigned char isIrPowerOn, unsigned char isIrOut, unsigne
 	return EXIT_SUCCESS;
 }
 
+
+int sysFpgaVideoForced(void)
+{
+	FpgaConfig 	*fpga =  &_fpgaConfig;
+	EXT_RUNTIME_CFG *runCfg = fpga->runCfg;
+	unsigned char _chVal, _ch2 =0;
+	
+	if(runCfg->sfpCfg == EXT_SFP_CFG_SECOND)
+	{
+		_ch2 = 0x40;
+	}
+	else if(runCfg->sfpCfg == EXT_SFP_CFG_DOUBLE)
+	{
+		_ch2 = 0x10;
+	}
+	else if(runCfg->sfpCfg == EXT_SFP_CFG_SPLIT)
+	{
+		_ch2 = 0x20;
+	}
+#if 0	
+	else if(runCfg->sfpCfg == EXT_SFP_CFG_FIRST )
+		0x00;
+#endif
+		
+	if(runCfg->isConvert)
+	{
+		EXT_INFOF("Read cfg:%p", runCfg);
+		
+		_chVal = 0x80|_ch2 ;
+		FPGA_I2C_WRITE(F_REG_TX_SYS_VIDEO_CTRL, &_chVal, sizeof(_chVal));
+		
+		_chVal = 0x00;
+		FPGA_I2C_WRITE(F_REG_TX_SYS_VIDEO_FORCED, &_chVal, sizeof(_chVal));
+	}
+	else
+	{
+		_chVal = 0x00|_ch2;
+		FPGA_I2C_WRITE(F_REG_TX_SYS_VIDEO_CTRL, &_chVal, sizeof(_chVal));
+		
+		_chVal = 0x80;
+		FPGA_I2C_WRITE(F_REG_TX_SYS_VIDEO_FORCED, &_chVal, sizeof(_chVal));
+	}
+
+	return EXIT_SUCCESS;
+}
 

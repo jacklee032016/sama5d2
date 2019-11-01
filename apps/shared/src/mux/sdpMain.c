@@ -256,7 +256,7 @@ static cJSON *_cmnMuxSdpOneClient(struct SDP_CLIENT *sdpClient)
 	return res;
 }
 
-cJSON *cmnMuxSdpStatus(void)
+cJSON *cmnMuxSdpStatus(int isTx)
 {
 	cJSON *resultObj = NULL;
 	struct SDP_CLIENT_CTX *sdpCtx = &_sdpCtx;
@@ -266,9 +266,16 @@ cJSON *cmnMuxSdpStatus(void)
 	//cJSON_CreateObject();
 	cmn_mutex_lock(sdpCtx->lock);
 
-	LIST_FOREACH(sdpClient, &sdpCtx->clients, list)
+	if(isTx)
 	{
-		cJSON_AddItemToArray(resultObj, _cmnMuxSdpOneClient(sdpClient));
+		cJSON_AddItemToArray(resultObj, cJSON_CreateString("SDP Client is not available on TX"));
+	}
+	else
+	{
+		LIST_FOREACH(sdpClient, &sdpCtx->clients, list)
+		{
+			cJSON_AddItemToArray(resultObj, _cmnMuxSdpOneClient(sdpClient));
+		}
 	}
 
 	cmn_mutex_unlock(sdpCtx->lock);

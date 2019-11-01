@@ -527,7 +527,7 @@ static int muxPtpSearchOneCommand(void *_muxPtp, char *cmd)
 	pollfd[0].fd = pmc_get_transport_fd(pmc);
 
 	snprintf(command, sizeof(command), "GET %s", cmd);
-	EXT_INFOF("Cmd:%s, fd:%d", cmd, pollfd[0].fd);
+//	EXT_INFOF("Cmd:%s, fd:%d", cmd, pollfd[0].fd);
 //	while (is_running())
 	while (isSent <= 1 )
 	{
@@ -713,6 +713,7 @@ out:
 int muxPtpRetrieve(void *_muxPtp)
 {
 	int ret = EXIT_SUCCESS;
+	unsigned char isEnable, domain, slave, twoStep;
 
 	MuxPtpRuntime *muxPtp = (MuxPtpRuntime *)_muxPtp;
 	EXT_ASSERT((muxPtp!=NULL), "MuxPtp is null");
@@ -724,7 +725,18 @@ int muxPtpRetrieve(void *_muxPtp)
 		goto out;
 	}
 
+	
+	isEnable =  muxPtp->isEnable;
+	domain = muxPtp->domainCfg;
+	slave = muxPtp->isSlaveOnly;
+	twoStep = muxPtp->isTwoStep;
+	
 	muxPmcDataClear(muxPtp);
+
+	muxPtp->isEnable = isEnable;
+	muxPtp->domainCfg = domain;
+	muxPtp->isSlaveOnly = slave;
+	muxPtp->isTwoStep = twoStep;
 
 	/* port ID, port status, status name */
 	if(muxPtpSearchOneCommand(muxPtp, "PORT_DATA_SET") == EXIT_FAILURE)

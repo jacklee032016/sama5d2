@@ -60,7 +60,7 @@ static int __init rtc_hctosys(void)
 
 	err = do_settimeofday64(&tv64);
 
-#if 0
+#if 1
 	dev_info(rtc->dev.parent,
 		"setting system clock to "
 		"%d-%02d-%02d %02d:%02d:%02d UTC (%lld)\n",

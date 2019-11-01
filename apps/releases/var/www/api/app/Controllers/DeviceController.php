@@ -104,11 +104,10 @@ class DeviceController extends Controller
     {
         $parameters = $this->muxProtocol->cmd_get_param();
         
-        //check if good
         if ($parameters)
         {
             $arrParameters = $this->muxProtocol->hex_command_to_text($parameters[0]);
-
+            
             if (!empty($arrParameters) && $arrParameters['login-ack'] == 'OK')
             {
                 $dataList = array("rs232List" => MuxDevice::RS232_LIST) + array("videoList" => MuxDevice::VIDEO_LIST) + array("audioList" => MuxDevice::AUDIO_LIST);
@@ -304,7 +303,15 @@ class DeviceController extends Controller
             
             if (!empty($arrParameters) && $arrParameters['login-ack'] == 'OK')
             {
-                return $response->withJson($this->arrSuccess);
+                $data = array("system" => array("reboot" => 1));
+                $deviceResponse = $this->muxProtocol->cmd_set_param($data);
+                
+                if ($deviceResponse)
+                {
+                    $arrParameters = $this->muxProtocol->hex_command_to_text($deviceResponse[0]);
+                    if (!empty($arrParameters) && $arrParameters['login-ack'] == 'OK')
+                        return $response->withJson($this->arrSuccess);
+                }
             }
         }
         $errorMessage = (!empty($arrParameters))? $arrParameters['pwd-msg'] : "";
@@ -312,6 +319,96 @@ class DeviceController extends Controller
         return $response->withJson($this->arrFailed);
     }
 
+    /**
+     * @SWG\Put(
+     *     path="/device/ptp-settings",
+     *     summary="Set device ptp settings",
+     *     tags={"Device"},
+     *     description="Set device ptp settings.",
+     *     operationId="device_ptp-settings",
+     *     produces={"application/json"},
+     *     @SWG\Parameter(
+     *         name="Authorization",
+     *         in="header",
+     *         required=true,
+     *         type="string",
+     *         description="Access token retrieved from the login API"
+     *     ),
+     *     @SWG\Parameter(
+     *         name="body",
+     *         in="body",
+     *         required=true,
+     *         @SWG\Schema(
+     *           @SWG\Property(
+     *                property="enable",
+     *                type="integer",
+     *                example=1
+     *           ),
+     *           @SWG\Property(
+     *               property="domainNumber",
+     *               type="integer",
+     *               example=1
+     *           ),
+     *         )
+     *     ),
+     *     @SWG\Response(
+     *         response=200,
+     *         description="successful operation",
+     *         @SWG\Schema(
+     *              @SWG\Property(
+     *                  property="status",
+     *                  type="string",
+     *                  example="success"
+     *              ),
+     *              @SWG\Property(
+     *                  property="data",
+     *                  @SWG\Items(
+     *                  )
+     *              )
+     *         ),
+     *     ),
+     *     @SWG\Response(
+     *         response="401",
+     *         description="authentication failed",
+     *         @SWG\Schema(ref="#/definitions/401_response"),
+     *     )
+     * )
+     */
+    public function setPtpSettings($request, $response)
+    {
+        
+        $validation = $this->Validator->validate($request, [
+            "domainNumber" => v::intVal(),
+            "enable" => v::in(["1", "0"]),
+        ]);
+        
+        if ($validation->failed())
+        {
+            $this->arrFailed['data'] = $validation->getErrors();
+            return $response->withJson($this->arrFailed);
+        }
+       
+        $data["ptp"]["isEnable"] = $request->getParam("isEnable");
+        $data["ptp"]["domainNumber"] = $request->getParam("domainNumber");
+        
+/*        $deviceResponse= $this->muxProtocol->cmd_set_param($data);
+        
+        //check if good
+        if ($deviceResponse)
+        {
+            $arrParameters = $this->muxProtocol->hex_command_to_text($deviceResponse[0]);
+            
+            if (!empty($arrParameters) && $arrParameters['login-ack'] == 'OK')
+            {
+                return $response->withJson($this->arrSuccess);
+            }
+        }
+        $errorMessage = (!empty($arrParameters))? $arrParameters['pwd-msg'] : "";
+        Logger::getInstance()->addError('set param api error' . $errorMessage);
+*/        return $response->withJson($this->arrFailed);
+    }
+    
+    
     /**
      * @SWG\Post(
      *     path="/device/manual-settings",
@@ -433,10 +530,23 @@ class DeviceController extends Controller
             $rule["videoport"] = v::between(1,65535);
             $mediaVideo["port"] = intval($request->getParam("videoport"));
         }
+        
+        $videoForceStream = $request->getParam("videoForceStream");
+        if (isset($videoForceStream))
+        {
+            $rule["videoForceStream"] = v::in([0, 1]);
+            $data["system"]["forceStream"] = intval($videoForceStream);
+        }
+
+        if ($request->getParam("sfd"))
+        {
+            $rule["sfd"] = v::between(1,4);
+            $data["system"]["sfpCfg"] = intval($request->getParam("sfd"));
+        }
         if ($request->getParam("fps"))
         {
             $rule["fps"] = v::notBlank();
-            $mediaVideo["fps"] = $request->getParam("fps");
+            $mediaVideo["fps"]= $request->getParam("fps");
         }
         if ($request->getParam("audioip"))
         {
@@ -1083,7 +1193,23 @@ class DeviceController extends Controller
                 fwrite($fp,$fwData);
                 fclose($fp);
                 
-                return $response->withJson($this->arrSuccess);
+                //rebooting
+                $data = array("system" => array("reboot" => 1));
+                $deviceResponse = $this->muxProtocol->cmd_set_param($data);
+                
+                //check if good
+                if ($deviceResponse)
+                {
+                    $arrParameters = $this->muxProtocol->hex_command_to_text($deviceResponse[0]);
+                    
+                    if (!empty($arrParameters) && $arrParameters['login-ack'] == 'OK')
+                    {
+                        return $response->withJson($this->arrSuccess);
+                    }
+                }
+                $errorMessage = (!empty($arrParameters))? $arrParameters["pwd-msg"]: "";
+                Logger::getInstance()->addError('reboot failed ' . $errorMessage);
+                return $response->withJson($this->arrFailed);
             }
         }
         $errorMessage = (!empty($arrParameters))? $arrParameters["pwd-msg"]: "";
@@ -1210,6 +1336,8 @@ class DeviceController extends Controller
                 
                 fwrite($fp,$fwData);
                 fclose($fp);
+                
+                exec("sh /opt/mLab/firmware_detect", $output);
                 
                 sleep(3);
                 

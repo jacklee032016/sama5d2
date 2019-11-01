@@ -16,6 +16,8 @@ apiClient -c set -a 192.168.168.101 -m "02:01:03:04:05:06" -d  '{"blinkLed":1}'
 
 apiClient -c set -a 192.168.168.101 -m "02:01:03:04:05:06" -d  '{"system":{"blinkLed":1}}'
 
+apiClient -c set -d '{"system":{"blinkLed":1}}'
+
 stop blink
 apiClient -c set -a 192.168.168.101 -m "02:01:03:04:05:06" -d  '{"system":{"blinkLed":0}}'
 

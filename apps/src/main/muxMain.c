@@ -199,6 +199,7 @@ int main(int argc, char **argv)
 	muxMain->version.major = EXT_VERSION_MAJOR;
 	muxMain->version.minor = EXT_VERSION_MINOR;
 	muxMain->version.revision = EXT_VERSION_REVISION;
+	
 	snprintf(muxMain->builtDate, sizeof(muxMain->builtDate), "%s %s", __DATE__ , __TIME__ );
 #if 0	
 	MUX_INFO(CMN_VERSION_INFO(CMN_MODULE_MAIN_NAME));

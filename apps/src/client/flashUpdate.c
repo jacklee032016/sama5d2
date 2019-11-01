@@ -9,30 +9,37 @@
 static void usage(char* base)
 {
 	printf("%s: \n\tCommand line interface for flash operation.\n"\
-		"\t%s -a ADDRESS -f BINARY_FILE -p PAGE_COUNT -w\n"\
+		"\t%s -a ADDRESS -f BINARY_FILE -p PAGE_COUNT(read)|SECTOR_COUNT(erase) -c r(read, default)/e(rase)/w(rite)\n"\
 		"\t\t w: write BINARY_FILE into ADDRESS; default: read 2 pages data from 0x0000,0000\n"\
-		"\t\t ADDRESS, hexa, default 0x0000,0000; PAGE_COUNT: default 2\n", 
+		"\t\t ADDRESS, hexa, default 0x0000,0000; PAGE_COUNT|SECTOR_COUNT: default 2\n", 
 		  base, base);
 }
 
 int main(int argc, char *argv[])
 {
+#define	_CMD_READ			0
+#define	_CMD_ERASE		1
+#define	_CMD_WRITE		2
+
 	int fd;
 	uint32_t startAddress = 0;
 	uint32_t pageCount = 2;
 	char	fileName[256];
+	char	cmd[256];
 	int isWrite = EXT_FALSE;
 	int opt;
+	int cmdType = _CMD_READ;
 	
 
 	memset(fileName, 0, sizeof(fileName));
+	memset(cmd, 0, sizeof(cmd));
 
 	if (argc < 2)
 	{
 		usage(argv[0]);
 	}	
 
-	while ((opt = getopt (argc, argv, "wa:f:p:")) != -1)
+	while ((opt = getopt (argc, argv, "c:a:f:p:")) != -1)
 	{
 		switch (opt)
 		{
@@ -51,9 +58,17 @@ int main(int argc, char *argv[])
 				EXT_DEBUGF(EXT_DBG_OFF, "Page count: \t%d", pageCount );
 				break;
 				
-			case 'w': /* write */
-				isWrite = EXT_TRUE;
-				EXT_DEBUGF(EXT_DBG_OFF, "Write Flash...");
+			case 'c': /* write */
+				snprintf(cmd, sizeof(cmd), "%s",optarg);
+				if(strstr(cmd, "w") )
+				{
+					cmdType = _CMD_WRITE;
+				}
+				else if(strstr(cmd, "e") )
+				{
+					cmdType = _CMD_ERASE;
+				}
+				
 				break;
 
 			default:
@@ -66,9 +81,10 @@ int main(int argc, char *argv[])
 
 	
 	printf(CMN_VERSION_INFO(CMN_MODULE_FW_UPDATE) EXT_NEW_LINE );
+	EXT_DEBUGF(EXT_DBG_OFF, "\tCommamd:\t%s", (cmdType == _CMD_READ)?"READ":(cmdType==_CMD_WRITE)?"WRITE":"ERASE" );
 
 
-	if( isWrite && (cmn_count_file(fileName)< 0) )
+	if( strlen(fileName)> 0 && (cmn_count_file(fileName)< 0) )
 	{
 		MUX_ERROR("FPGA firmware '%s' can not be open for write flash");
 		return -1;
@@ -88,9 +104,13 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
-	if(isWrite )
+	if(cmdType == _CMD_WRITE)
 	{
 		cmnSysRawSpiFlashWriteFile(fd, fileName, startAddress);
+	}
+	else if(cmdType == _CMD_ERASE )
+	{
+		cmnSysRawSpiFlashEraseSectors(fd, pageCount, startAddress);
 	}
 	else
 	{
@@ -99,7 +119,7 @@ int main(int argc, char *argv[])
 
 	cmnSysRawSpiFlashClose(fd);
 	
-	EXT_INFOF(EXT_NEW_LINE"OK");
+	EXT_INFOF(EXT_NEW_LINE"Finished");
 	return 0;
 }
 

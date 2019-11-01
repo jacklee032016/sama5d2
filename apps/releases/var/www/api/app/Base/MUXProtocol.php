@@ -74,15 +74,20 @@ class MUXProtocol
 		$jsonData = StringHelper::string_hex2str(substr($cmdValue, 0, $actualDataLength*2 - 8));
 		
 		$actualJsonCmdCrcInHex = StringHelper::string_addPadding(sprintf("%x", crc32($jsonData)), true, '0', 8);
-		
+
 		if (strcasecmp($jsonCmdCrcInHex, $actualJsonCmdCrcInHex) !== 0)
 		{
 		    Logger::getInstance()->addError('packet CRC Error, can be a socket buffer size problem');
 			return;
 		}
+		
+		//$jsonData= iconv("UTF-8","UTF-8//IGNORE",$jsonData);
+		$jsonData = mb_convert_encoding($jsonData, 'UTF-8', 'UTF-8');
+		
 		//==============================================
 		// STEP #4 : The packet is Good, we can now process the command
 		$cmdArray = json_decode($jsonData, true);
+		
 		return($cmdArray);
 	}    
 

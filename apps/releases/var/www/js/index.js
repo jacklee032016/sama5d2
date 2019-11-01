@@ -1,13 +1,11 @@
 //** Api url address used in ajax functions **//
 //var apiUrl = "http://angelicaq.api" //dev
-//var apiUrl = "http://" + window.location.hostname // + "/api" //dev and prod
-//var apiUrl = "http://192.168.168.100" //dev and prod
-
-//var apiUrl = "http://127.0.0.1/api" //dev
-
-
 var apiUrl = "http://" + window.location.hostname + ":8888" //prod 
 
+    
+//var apiUrl = "http://192.168.168.100:8888" //dev
+    
+    
 // device params info
 var device = null; 
 

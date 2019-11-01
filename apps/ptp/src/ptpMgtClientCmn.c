@@ -666,8 +666,7 @@ int pmc_do_command(struct PtpMgmtClient *pmc, char *str)
 		return 0;
 	}
 
-	fprintf(stdout, "sending: %s %s\n",
-		action_string[action], idtab[id].name);
+//	fprintf(stdout, "sending: %s %s\n", action_string[action], idtab[id].name);
 
 	idtab[id].func(pmc, action, id, str);
 

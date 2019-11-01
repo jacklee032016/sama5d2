@@ -59,6 +59,7 @@ int	cmnMuxObjectParseRs232(struct DATA_CONN *dataConn, cJSON *dataObj);
 int	cmnMuxObjectParseIR(struct DATA_CONN *dataConn, cJSON *dataObj);
 int cmnMuxObjectParseSecurity(struct DATA_CONN *dataConn, cJSON *dataObj);
 int cmnMuxObjectParseOthers(struct DATA_CONN *dataConn, cJSON *dataObj);
+int	cmnMuxObjectParsePtp(struct DATA_CONN *dataConn, cJSON *dataObj);
 
 
 int	cmnMuxObjectParseHexaData(struct DATA_CONN *dataConn, cJSON *dataObj, char *cmdName, int isMadidate);

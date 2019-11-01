@@ -16,8 +16,9 @@
 #define		EXT_REBOOT()	\
 				EXT_INFOF("Reboot now!")
 #else
-#define		EXT_REBOOT()	\
-			{sync(); reboot(RB_AUTOBOOT); EXT_INFOF("Reboot now!");}
+#define		EXT_REBOOT()	cmnSysForkCmd("reboot")
+
+// \ 			{sync(); reboot(RB_AUTOBOOT); EXT_INFOF("Reboot now!");}
 
 //				reboot(LINUX_REBOOT_CMD_CAD_OFF)
 #endif
@@ -235,7 +236,7 @@ int cmnSysSaveMac2Uboot( EXT_RUNTIME_CFG *cfg )
 
 int	cmnSysCtrlBlinkPowerLED(char	isEnable)
 {
-	cmnSysLedCtrl(LED_TYPE_POWER, (isEnable)?LED_MODE_BLINK:LED_MODE_OFF);
+	cmnSysLedCtrl(LED_TYPE_POWER, (isEnable)?LED_MODE_BLINK:LED_MODE_ON); /* 09.29, 2019, no blink means ON */
 
 	return EXIT_SUCCESS;
 }

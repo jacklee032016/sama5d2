@@ -122,8 +122,6 @@ int32_t	extPtpInit(EXT_RUNTIME_CFG		*runCfg)
 	if(runCfg->ptpRuntime.isEnable)
 	{
 		/* start PTP Daemon */
-		
-		
 		if(muxPtpInit(&runCfg->ptpRuntime, runCfg->ptpRuntime.domainCfg) == NULL)
 		{
 			MUX_ERROR("PTP Client initialization failed");
@@ -189,6 +187,9 @@ int32_t	extSystemInit(MuxMain		*muxMain)
 	runCfg->runtime.reboot = 0;
 	runCfg->runtime.blink = 0;
 	runCfg->isTx = isTx;
+
+	SYS_UPDATE_SESSION_ID();
+
 	
 	memcpy(&runCfg->version, &muxMain->version, sizeof(muxMain->version));
 
@@ -197,6 +198,13 @@ int32_t	extSystemInit(MuxMain		*muxMain)
 		MUX_ERROR("Network initialization failed");
 		return EXIT_FAILURE;
 	}
+
+ 	/* must before JSON init, because JSON will access it*/
+	if(extPtpInit(runCfg)== EXIT_FAILURE)
+	{
+		MUX_ERROR("Initialization of PTP Runtime failed");
+	}
+
 
 	if(_extSysJsonInit(muxMain)== EXIT_FAILURE)
 	{
@@ -210,10 +218,12 @@ int32_t	extSystemInit(MuxMain		*muxMain)
 		MUX_ERROR("FPGA failed");
 	}
 
-	if(cmnSysRs232Init(runCfg)== EXIT_FAILURE)
+ 	if(cmnSysRs232Init(runCfg)== EXIT_FAILURE)
 	{
 		MUX_ERROR("Initialization of RS232 failed");
 	}
+	
+	MUX_WARN("Initialization finished");
 	
 	return EXIT_SUCCESS;
 }

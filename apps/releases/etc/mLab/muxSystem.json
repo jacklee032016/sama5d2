@@ -20,8 +20,10 @@
 				"reset": 0,
 				"reboot": 0,
       			"blinkLed": 0,
-				"mediaMode": "Auto"
-  			},
+				"mediaMode": "Auto",
+				"sfpCfg": 1,
+ 				"forceStream": 1
+ 			},
 		
 			"video": 
 			[
@@ -35,7 +37,8 @@
 					"colorSpace": "YCbCr-4:2:2",
 					"depth": 16,
 					"payloadType":96,
-					"intlce": 1
+					"intlce": 1,
+					"sessionID": ""
 				}
 			],
 
@@ -49,7 +52,8 @@
 					"channels": 16,
 					"depth": 24,
 					"payloadType":97,
-					"pktSize": "1ms"
+					"pktSize": "1ms",
+					"sessionID": ""
 				}
 			],
 				
@@ -81,12 +85,6 @@
 				"waitTime": 1000
       		},
 
-      		"IR": 
-      		{
-				"data": "1234567980abcdef",
-				"isFeedback": 1,
-				"waitTime": 1000
-      		},
 			
       		"security": 
       		{

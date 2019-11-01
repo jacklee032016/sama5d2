@@ -17,6 +17,8 @@ struct ButtonCtrl
 	int		event;
 	int		status;
 
+	long		startTime;
+
 	int		timerFd;
 	int		timeout;		/*seconds */
 	void 	*data;
@@ -102,37 +104,49 @@ static int _btnDelay(struct ButtonCtrl *btn)
 }
 #endif
 
+static int _blinkTimerCallback(int interval, void *param)
+{
+	struct ButtonCtrl *btn = (struct ButtonCtrl *)param;
+
+	MUX_DEBUG("Blink after %d ms", (cmnGetTimeMs() - btn->startTime) );
+	cmnSysCtrlBlinkPowerLED(EXT_TRUE);
+
+	return EXIT_SUCCESS;
+}
+
+
+/* power LED is always ON. So press it, nothing happen; blink after press more than 6 seconds */
 static int _muxThBtnMain(CmnThread *th)
 {
 	struct ButtonCtrl *btn = (struct ButtonCtrl *)th->data;
 	MuxMain *muxMain = (MuxMain *)btn->data;
 	int count = 0;
-	long timestamp = 0;
 
+	btn->status = _BTN_STATUS_NONE;
 	while(1)
 	{
 //		_btnDelay(btn);
 		
 		btn->event = cmnSysSW1CheckEvent();
 
-
 		if(btn->event == BTN_EVENT_PRESSED && btn->status == _BTN_STATUS_NONE )
 		{
 			MUX_DEBUG("Button pressed now" );
-			cmnSysCtrlBlinkPowerLED(EXT_TRUE);
 			btn->status = _BTN_STATUS_PRESSED;
-			timestamp = cmnGetTimeMs();
+			btn->startTime = cmnGetTimeMs();
 			count = 0;
+			
+			cmn_add_timer(btn->timeout*1000, _blinkTimerCallback, btn, cmn_timer_type_once, "blinkTimer");
 		}
 		else if(btn->event == BTN_EVENT_RELEASED && btn->status == _BTN_STATUS_PRESSED )
 		{
-			count = (cmnGetTimeMs() - timestamp);
+			count = (cmnGetTimeMs() - btn->startTime);
 			MUX_DEBUG("Button released after about %d millseconds", count);
 
-			cmnSysLedCtrl(LED_TYPE_POWER, LED_MODE_ON);
 			if(count/1000 >= btn->timeout )
 			{
-				MUX_INFO("Button pressed for about %d seconds, so reset now...", count/1000);
+				cmnSysCtrlBlinkPowerLED(EXT_TRUE);
+				MUX_WARN("Button pressed for about %d seconds, so reset now...", count/1000);
 				cmnSysCtrlDelayReset(SYS_REBOOT_DELAY_MS_4_BTN, &muxMain->runCfg.runtime);
 			}
 			else
@@ -247,34 +261,52 @@ static int _ledDelay(struct LedCtrl *led)
 
 static int _muxThLedMain(CmnThread *th)
 {
+#define	CHANGE_ORDER_LEDS		1
+
 	struct LedCtrl *led = (struct LedCtrl *)th->data;
 //	MuxMain *muxMain = (MuxMain *)btn->data;
 	int status = EXT_FALSE;
 
 	status = sysFpgaReadVideoStatus();
 	led->videoStatus = status;
-	CMN_SYS_LED_POWER_CTRL((led->videoStatus==EXT_TRUE)?LED_MODE_ON: LED_MODE_OFF);
-
-	status = sysFpgaReadFpsStatus();
-	led->actStatus = status;
+#if CHANGE_ORDER_LEDS
 	CMN_SYS_LED_ACT_CTRL((led->actStatus==EXT_TRUE)?LED_MODE_ON: LED_MODE_OFF);
+#else
+	CMN_SYS_LED_VIDEO_CTRL((led->videoStatus==EXT_TRUE)?LED_MODE_ON: LED_MODE_OFF);
+#endif
+
+	status = sysFpgaReadSfpStatus();
+	led->actStatus = status;
+#if CHANGE_ORDER_LEDS
+	CMN_SYS_LED_VIDEO_CTRL((led->videoStatus==EXT_TRUE)?LED_MODE_ON: LED_MODE_OFF);
+#else
+	CMN_SYS_LED_ACT_CTRL((led->actStatus==EXT_TRUE)?LED_MODE_ON: LED_MODE_OFF);
+#endif
 
 	while(1)
 	{
 		_ledDelay(led);
 
 		status = sysFpgaReadVideoStatus();
-		if( led->videoStatus != status )
+//		if( led->videoStatus != status )
 		{
 			led->videoStatus = status;
-			CMN_SYS_LED_POWER_CTRL((led->videoStatus==EXT_TRUE)?LED_MODE_ON: LED_MODE_OFF);
+#if CHANGE_ORDER_LEDS
+			CMN_SYS_LED_ACT_CTRL((led->videoStatus==EXT_TRUE)?LED_MODE_ON: LED_MODE_OFF);
+#else
+			CMN_SYS_LED_VIDEO_CTRL((led->videoStatus==EXT_TRUE)?LED_MODE_ON: LED_MODE_OFF);
+#endif
 		}
 
-		status = sysFpgaReadFpsStatus();
-		if( led->actStatus != status )
+		status = sysFpgaReadSfpStatus();
+//		if( led->actStatus != status )
 		{
 			led->actStatus = status;
+#if CHANGE_ORDER_LEDS
+			CMN_SYS_LED_VIDEO_CTRL((led->actStatus==EXT_TRUE)?LED_MODE_ON: LED_MODE_OFF);
+#else
 			CMN_SYS_LED_ACT_CTRL((led->actStatus==EXT_TRUE)?LED_MODE_ON: LED_MODE_OFF);
+#endif
 		}
 	}
 
@@ -324,7 +356,6 @@ static void _muxThPollDestory(struct _CmnThread *th)
 static int _muxThPollMain(CmnThread *th)
 {
 	MuxMain *muxMain = (MuxMain *)th->data;
-	int status = EXT_FALSE;
 
 	while(1)
 	{

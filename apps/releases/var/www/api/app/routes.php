@@ -17,6 +17,7 @@ $app->get('/device/notAuthParam', 'DeviceController:getNotAuthParam');
     $app->post('/device/network', 'DeviceController:setNetwork');
     $app->put('/device/sdp', 'DeviceController:setSdp');
     $app->put('/device/manual-settings', 'DeviceController:setSettings');
+    $app->put('/device/ptp-settings', 'DeviceController:setPtpSettings');
     $app->get('/device/security-check', 'DeviceController:getSecurityStatus');
     $app->put('/device/blink', 'DeviceController:blink');
     $app->post('/device/upgrade', 'DeviceController:upgrade');

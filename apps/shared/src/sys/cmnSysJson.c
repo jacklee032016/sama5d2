@@ -29,20 +29,20 @@ static int _cmnSysJsonUpdateOthers(EXT_RUNTIME_CFG *runCfg, cJSON *obj)
 	CJSON_REPLACE_INTEGRE(obj, FIELD_OTHERS_DEBUG_SDP, runCfg->muxMain->debugSdp );
 	if(cJSON_GetObjectItem(obj, FIELD_OTHERS_SDP_STATUS))
 	{
-		cJSON_ReplaceItemInObject(obj, FIELD_OTHERS_SDP_STATUS, cmnMuxThreadsInfo(runCfg->muxMain) );
+		cJSON_ReplaceItemInObject(obj, FIELD_OTHERS_SDP_STATUS, cmnMuxSdpStatus( EXT_IS_TX(runCfg)));
 	}
 	else
 	{
-		cJSON_AddItemToObjectCS(obj, FIELD_OTHERS_SDP_STATUS, cmnMuxThreadsInfo(runCfg->muxMain) );
+		cJSON_AddItemToObjectCS(obj, FIELD_OTHERS_SDP_STATUS, cmnMuxSdpStatus(EXT_IS_TX(runCfg)) );
 	}
 	
 	if(cJSON_GetObjectItem(obj, FIELD_OTHERS_THREADS))
 	{
-		cJSON_ReplaceItemInObject(obj, FIELD_OTHERS_THREADS, cmnMuxSdpStatus());
+		cJSON_ReplaceItemInObject(obj, FIELD_OTHERS_THREADS, cmnMuxThreadsInfo(runCfg->muxMain) );
 	}
 	else
 	{
-		cJSON_AddItemToObjectCS(obj, FIELD_OTHERS_THREADS, cmnMuxSdpStatus());
+		cJSON_AddItemToObjectCS(obj, FIELD_OTHERS_THREADS, cmnMuxThreadsInfo(runCfg->muxMain));
 	}
 
 	return EXIT_SUCCESS;
@@ -68,33 +68,45 @@ static int _cmnSysJsonUpdateSecurity(EXT_RUNTIME_CFG *runCfg, cJSON *obj)
 
 static int _cmnSysJsonUpdatePtp(EXT_RUNTIME_CFG *runCfg, cJSON *obj)
 {
+	MuxPtpRuntime *ptpRuntime = &runCfg->ptpRuntime;
+	char msg[32];
+	
+	if(muxPtpRetrieve(ptpRuntime) == EXIT_FAILURE)
+	{
+		MUX_ERROR("PTP runtime can't be contacted now");
+	}
+
 	/* configuration */
-	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_IS_ENABLE, runCfg->rs232Cfg.baudRate);
-	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_IS_SLAVE_ONLY, runCfg->rs232Cfg.charLength);
-	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_DOMAIN_NUM , runCfg->rs232Cfg.stopbits );
-	CJSON_REPLACE_STRING(obj, FIELD_PTP_CLOCK_ID, CMN_FIND_RS_PARITY(runCfg->rs232Cfg.parityType) );
+	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_IS_ENABLE, ptpRuntime->isEnable);
+	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_IS_SLAVE_ONLY, ptpRuntime->isSlaveOnly);
+	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_DOMAIN_NUM , ptpRuntime->domain );
+	
+	CJSON_REPLACE_STRING(obj, FIELD_PTP_CLOCK_ID, muxPtpId2Str(&ptpRuntime->clockId) );
+	CJSON_REPLACE_STRING(obj, FIELD_PTP_PORT_ID,  muxPtpId2Str(&ptpRuntime->portId) );
 
-	CJSON_REPLACE_STRING(obj, FIELD_PTP_PORT_ID,  "" );
 	/* data */
-	CJSON_REPLACE_STRING(obj, FIELD_PTP_PORT_STATE,  "" );
+	CJSON_REPLACE_STRING(obj, FIELD_PTP_PORT_STATE,  ptpRuntime->portStateName );
 
+	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_PRIORITY_1, ptpRuntime->priority1);
+	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_CLOCK_CLASS, ptpRuntime->clockClass);
+	snprintf(msg, sizeof(msg), "0x%2x", ptpRuntime->clockAccuracy);
+	CJSON_REPLACE_STRING(obj, FIELD_PTP_CLOCK_ACCURACY, msg);
+	snprintf(msg, sizeof(msg), "0x%4x", ptpRuntime->offsetScaledLogVariance);
+	CJSON_REPLACE_STRING(obj, FIELD_PTP_OFFSET_LOG, msg);
+	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_PRIORITY_2, ptpRuntime->priority2);
 	
-	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_PRIORITY_1, 0);
-	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_CLOCK_CLASS, 0);
-	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_CLOCK_ACCURACY, 0);
-	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_OFFSET_LOG, 0);
-	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_PRIORITY_2, 0);
-	
-	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_MASTER_PRESENT, 0);
+	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_MASTER_PRESENT, ptpRuntime->masterPresent );
 
-	CJSON_REPLACE_STRING(obj, FIELD_PTP_MASTER_ID, 0);
-	CJSON_REPLACE_STRING(obj, FIELD_PTP_SRC_PORT_ID, 0);
+	CJSON_REPLACE_STRING(obj, FIELD_PTP_MASTER_ID, muxPtpId2Str(&ptpRuntime->masterId) );
+	CJSON_REPLACE_STRING(obj, FIELD_PTP_SRC_PORT_ID, muxPtpId2Str(&ptpRuntime->sourceId) );
 	
-	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_M_PRIORITY_1, 0);
-	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_M_CLOCK_CLASS, 0);
-	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_M_CLOCK_ACCURACY, 0);
-	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_M_OFFSET_LOG, 0);
-	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_M_PRIORITY_2, 0);
+	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_M_PRIORITY_1, ptpRuntime->gmPriority1);
+	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_M_CLOCK_CLASS, ptpRuntime->gmClockClass);
+	snprintf(msg, sizeof(msg), "0x%2x", ptpRuntime->gmClockAccuracy);
+	CJSON_REPLACE_STRING(obj, FIELD_PTP_M_CLOCK_ACCURACY, msg);
+	snprintf(msg, sizeof(msg), "0x%4x", ptpRuntime->gmOffsetScaledLogVariance);
+	CJSON_REPLACE_STRING(obj, FIELD_PTP_M_OFFSET_LOG, msg);
+	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_M_PRIORITY_2, ptpRuntime->gmPriority2);
 
 	return EXIT_SUCCESS;
 }
@@ -219,6 +231,7 @@ static int _cmnSysJsonUpdateAudio(EXT_RUNTIME_CFG *runCfg, cJSON *obj)
 	CJSON_REPLACE_STRING(obj, FIELD_AUDIO_SAMPLE, CMN_FIND_A_RATE(runCfg->runtime.aSampleRate) );
 	CJSON_REPLACE_STRING(obj, FIELD_AUDIO_PKT_SIZE, CMN_FIND_A_PKTSIZE(runCfg->runtime.aPktSize) );
 
+	CJSON_REPLACE_STRING(obj, FIELD_AUDIO_SESSION_ID, (const char *)runCfg->runtime.aSession );
 	CJSON_REPLACE_INTEGRE(obj, FIELD_ANC_VP_ID, runCfg->runtime.rtpTypeAudio);
 	
 	return EXIT_SUCCESS;
@@ -247,6 +260,10 @@ static int _cmnSysJsonUpdateVideo(EXT_RUNTIME_CFG *runCfg, cJSON *obj)
 
 	CJSON_REPLACE_INTEGRE(obj, FIELD_VIDEO_DEPTH, CMN_INT_FIND_NAME_V_DEPTH(runCfg->runtime.vDepth));
 	CJSON_REPLACE_INTEGRE(obj, FIELD_VIDEO_INTERLACE, runCfg->runtime.vIsInterlaced );
+
+//	EXT_ERRORF("Interlace: %d", runCfg->runtime.vIsInterlaced);
+
+	CJSON_REPLACE_STRING(obj, FIELD_VIDEO_SESSION_ID, (const char *)runCfg->runtime.vSession );
 
 	EXT_INFOF("Update cfg:%p; %dx%d; fps:%d; cs:%d; depth:%d; intlc:%d", 
 		runCfg, runCfg->runtime.vWidth, runCfg->runtime.vHeight, runCfg->runtime.vFrameRate, runCfg->runtime.vColorSpace, runCfg->runtime.vDepth, runCfg->runtime.vIsInterlaced);
@@ -297,6 +314,8 @@ static int _cmnSysJsonUpdateSystem(EXT_RUNTIME_CFG *runCfg, cJSON *systemObj)
 
 	CJSON_REPLACE_INTEGRE(systemObj, FIELD_SYS_CFG_DIP, (runCfg->isDipOn==0)?0:1 );
 
+	CJSON_REPLACE_INTEGRE(systemObj, FIELD_SYS_CFG_SFP_CFG, runCfg->sfpCfg );
+	CJSON_REPLACE_INTEGRE(systemObj, FIELD_VIDEO_IS_CONVERT, runCfg->isConvert );
 	
 	if(!EXT_IS_TX(runCfg))
 	{
@@ -367,11 +386,13 @@ int cmnSysJsonUpdate(MuxMain *muxMain)
 		MUX_ERROR("Update '%s' JSON failed", MUX_REST_URI_SECURITY);
 	}
 
+#if 0
 	itemObj = cmnJsonSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_IR, INVALIDATE_VALUE_U32);
 	if(!itemObj ||_cmnSysJsonUpdateIR(&muxMain->runCfg, itemObj))
 	{
 		MUX_ERROR("Update '%s' JSON failed", MUX_REST_URI_IR);
 	}
+#endif
 
 	itemObj = cmnJsonSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_PTP, INVALIDATE_VALUE_U32);
 	if(!itemObj ||_cmnSysJsonUpdatePtp(&muxMain->runCfg, itemObj))

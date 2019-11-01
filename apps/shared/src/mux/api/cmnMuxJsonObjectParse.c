@@ -11,6 +11,8 @@ void cmnMuxClearConfig(EXT_RUNTIME_CFG *rxCfg)
 	FIELD_INVALIDATE_U8(rxCfg->netMode);
 	FIELD_INVALIDATE_U8(rxCfg->fpgaAuto);
 
+	FIELD_INVALIDATE_U8(rxCfg->sfpCfg);
+	FIELD_INVALIDATE_U8(rxCfg->isConvert);
 
 #if EXT_DIP_SWITCH_ON
 	FIELD_INVALIDATE_U8(rxCfg->isDipOn);
@@ -158,6 +160,28 @@ int	cmnMuxObjectParseSystem(struct DATA_CONN *dataConn, cJSON *dataObj)
 	}
 #endif
 
+	/* system parameters for FPGA */
+	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_SYS_CFG_SFP_CFG);
+	if( FIELD_IS_CHANGED_U32(intValue) )
+	{
+		if(intValue < EXT_SFP_CFG_FIRST ||intValue > EXT_SFP_CFG_SPLIT )
+		{
+			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "value '%d' Field '%s' in %s item is wrong", intValue, FIELD_SYS_CFG_SFP_CFG, MUX_REST_URI_SYSTEM);
+			return EXIT_FAILURE;
+		}
+
+		rxCfg->sfpCfg = intValue;
+		isFound = EXT_TRUE;
+	}
+	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_VIDEO_IS_CONVERT);
+	if( FIELD_IS_CHANGED_U32(intValue) )
+	{
+		rxCfg->isConvert = (intValue != 0)?1: 0;
+		isFound = EXT_TRUE;
+	}
+
+
+
 	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_SYS_CFG_RESET);
 	if( FIELD_IS_CHANGED_U32(intValue) )
 	{
@@ -183,15 +207,11 @@ TRACE();
 	if(!EXT_IS_TX(&muxMain->runCfg) )
 	{
 		value = cmnGetStrFromJsonObject(dataObj, FIELD_SYS_CFG_MEDIA_AUTO);
-TRACE();
 		if(!IS_STRING_NULL_OR_ZERO(value) )
 		{
-TRACE();
 			rxCfg->fpgaAuto = CMN_FIND_STR_MEDIA_MODE(value);
-TRACE();
 			if(rxCfg->fpgaAuto == -1 )
 			{
-TRACE();
 				DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s' in %s item is wrong", FIELD_SYS_CFG_MEDIA_AUTO, MUX_REST_URI_SYSTEM);
 				return EXIT_FAILURE;
 			}
@@ -827,6 +847,106 @@ int cmnMuxObjectParseSecurity(struct DATA_CONN *dataConn, cJSON *dataObj)
 	MUX_DEBUG("'%s' command OK!", FIELD_SECURITY_GET_ID);
 	return EXIT_SUCCESS;
 	
+}
+
+
+int	cmnMuxObjectParsePtp(struct DATA_CONN *dataConn, cJSON *dataObj)
+{
+	char *value;
+	int	intValue;
+	int	isFound = 0;
+	
+	MuxMain *muxMain = SYS_MAIN(dataConn);
+	EXT_RUNTIME_CFG *rxCfg = &muxMain->rxCfg;
+	MuxPtpRuntime *ptpRuntime = &rxCfg->ptpRuntime;
+
+	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_PTP_IS_ENABLE);
+	if( FIELD_IS_CHANGED_U32(intValue) )
+	{
+		ptpRuntime->isEnable = (intValue==0)?0:1;
+		isFound = 1;
+	}
+
+	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_PTP_IS_SLAVE_ONLY);
+	if( FIELD_IS_CHANGED_U32(intValue) )
+	{
+		ptpRuntime->isSlaveOnly = (intValue==0)?0:1;
+		isFound = 1;
+	}
+
+	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_PTP_DOMAIN_NUM);
+	if( FIELD_IS_CHANGED_U32(intValue)  )
+	{
+		if( intValue< 0 || intValue > 127 )
+		{
+			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s': %d in %s item is out of range (0~127)", FIELD_PTP_DOMAIN_NUM, intValue, MUX_REST_URI_PTP);
+			return EXIT_FAILURE;
+		}
+		ptpRuntime->domainCfg =(unsigned char ) intValue;
+		isFound = 1;
+	}
+	
+	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_PTP_PRIORITY_1);
+	if( FIELD_IS_CHANGED_U32(intValue)  )
+	{
+		if( intValue< 0 || intValue > 255 )
+		{
+			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s': %d in %s item is out of range (0~127)", FIELD_PTP_PRIORITY_1, intValue, MUX_REST_URI_PTP);
+			return EXIT_FAILURE;
+		}
+		ptpRuntime->priority1 = (unsigned char )intValue;
+		isFound = 1;
+	}
+
+	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_PTP_PRIORITY_2);
+	if( FIELD_IS_CHANGED_U32(intValue)  )
+	{
+		if( intValue< 0 || intValue > 255 )
+		{
+			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s': %d in %s item is out of range (0~127)", FIELD_PTP_PRIORITY_2, intValue, MUX_REST_URI_PTP);
+			return EXIT_FAILURE;
+		}
+		ptpRuntime->priority2 = (unsigned char )intValue;
+		isFound = 1;
+	}
+
+	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_PTP_CLOCK_CLASS);
+	if( FIELD_IS_CHANGED_U32(intValue)  )
+	{
+		if( intValue< 0 || intValue > 255 )
+		{
+			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s': %d in %s item is out of range (0~127)", FIELD_PTP_CLOCK_CLASS, intValue, MUX_REST_URI_PTP);
+			return EXIT_FAILURE;
+		}
+		ptpRuntime->clockClass= (unsigned char )intValue;
+		isFound = 1;
+	}
+
+	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_PTP_CLOCK_ACCURACY);
+	if( FIELD_IS_CHANGED_U32(intValue)  )
+	{
+		if( intValue< 0 || intValue > 255 )
+		{
+			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s': %d in %s item is out of range (0~127)", FIELD_PTP_CLOCK_ACCURACY, intValue, MUX_REST_URI_PTP);
+			return EXIT_FAILURE;
+		}
+		ptpRuntime->clockAccuracy= (unsigned char )intValue;
+		isFound = 1;
+	}
+
+	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_PTP_OFFSET_LOG);
+	if( FIELD_IS_CHANGED_U32(intValue)  )
+	{
+		if( intValue< 0 || intValue > 65535 )
+		{
+			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s': %d in %s item is out of range (0~127)", FIELD_PTP_OFFSET_LOG, intValue, MUX_REST_URI_PTP);
+			return EXIT_FAILURE;
+		}
+		ptpRuntime->offsetScaledLogVariance = (unsigned short )intValue;
+		isFound = 1;
+	}
+
+	return EXIT_SUCCESS;
 }
 
 

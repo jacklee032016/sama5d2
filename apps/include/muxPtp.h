@@ -4,7 +4,7 @@
 #ifndef	__MUX_PTP_H__
 #define	__MUX_PTP_H__
 
-#define		PTPC_NOISE_DEBUG			EXT_DBG_ON
+#define		PTPC_NOISE_DEBUG			EXT_DBG_OFF
 
 
 #define		PTPC_ERROR_NO_CONNECTION		500

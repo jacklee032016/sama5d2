@@ -10,10 +10,21 @@
 
 MUX_LAB_HOME=/opt/mLab
 
+chown www-data /var/www
+chmod 777 $MUX_LAB_HOME/firmware_detect
 
-#detect if new upgrade firmware present, then reboot 
-/opt/mLab/firmware_detect &
-
+if [ -f /var/www/upgrade ]; then
+	sleep 1
+	/usr/bin/unzip -l /var/www/upgrade > /dev/null #check validation of zip file
+	if [ $? -eq 0 ]; then
+	    /usr/bin/unzip -o /var/www/upgrade -d /
+	    rm /var/www/upgrade
+		reboot
+	fi
+	if [ -f /var/www/upgrade ]; then			#double-check if upgrade has not been removed
+    	rm /var/www/upgrade
+	fi
+fi
 
 echo "install w1 DS28e15 driver..."
 insmod $MUX_LAB_HOME/drv/w1Ds28e15.ko

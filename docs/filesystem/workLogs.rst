@@ -2,6 +2,10 @@ Work Logs for File System
 ################################
 April 17th, 2019
 
+* udhcpc of busybos configuration: 10.30, 2019
+-------------------------------------------------
+remove command options from ifup: "-R -b"
+
 
 * ntpd and busybos configuration: 10.07, 2019
 -------------------------------------------------
@@ -23,7 +27,7 @@ April 17th, 2019
 		remove other tar.gz files and mimimal in fs;
 		run ``loadTar.sh`` to uncompress tar file into minimal;
 		Modify or update files in ``minimal`` as wish:
-			Remove usr/bin/phpdbgroot
+			Remove usr/bin/phpdbg
 			
 			for example: in minimal, ``unzip ../mux7xxApp_7.3.0_arm_debug_2019_10_07.zip``;
 		``mkJffs.sh`` to make new JFFS2 image which is updated onboard by tftp in u-boot;

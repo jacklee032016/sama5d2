@@ -27,7 +27,7 @@
            	<a data-text="system-info" id="nav_info" class="" href="javascript:submit_main('info.html');">System Info</a>
 <!--        		<a data-text="Decoder" id="nav_decoder" class="" href="javascript:submit_main('decoder.html');" >Decoder</a>  -->
         	<a data-text="media" id="nav_media" class="" href="javascript:submit_main('media.html');">Media</a>	
-<!--             <a data-text="Script" id="nav_script" class="" href="javascript:submit_main('script.html');">Script</a>    --> 
+            <a id="nav_ptp" class="" href="javascript:submit_main('ptp.html');">PTP</a> 
 <!--             <a data-text="Osd" id="nav_osd" class="" href="javascript:submit_main('osd.html');">Overlay</a> -->
 <!--             <a data-text="Osd" id="nav_osd" class="" href="javascript:submit_main('layout.html');">Layout</a>  -->
 <!--           	<a data-text="Network" id="nav_network" class="" href="javascript:submit_main('network.html');">Network</a> -->

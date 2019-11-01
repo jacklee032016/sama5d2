@@ -83,6 +83,13 @@
                 <label id="intlce" class="col-form-label"></label>
             </div>
         </div>
+        <div class="form-group row pl-2 mb-3">
+<!--             <input type="checkbox" class="form-check-input" id="forceStream">  -->
+            <label for="forceStream" class="col-3 col-form-label" >Force ST2110 to 4:2:2-10Bit:</label>
+             <div class="col-3">
+                <input type="checkbox" class="" style="margin-top:0.5rem;" id="forceStream">
+            </div>
+        </div>
         <div class="form-group row pl-2 mb-1">
             <label for="audio-channels" class="col-3 col-form-label">Audio Channels:</label>
             <div class="col-3">
@@ -133,6 +140,17 @@
         {
             data.videoport = $("#video-port").val();  
         }
+
+        if ( ($('#forceStream').is(':checked') && device.system.forceStream == 0))
+        {
+            data.videoForceStream = 1;  
+        }
+        
+        if (($('#forceStream').is(':not(:checked)') && device.system.forceStream != 0))
+        {
+            data.videoForceStream = 0;
+        }
+
         if ($("#audio-address").val() != audio.ip)
         {
             data.audioip = $("#audio-address").val();
@@ -187,6 +205,10 @@
         $("#audio-port").val(audio.port);
         //$("#anc-address").val(anc.ip);
         //$("#anc-port").val(anc.port);
+        
+        $('#forceStream').prop('checked', false);
+        if (device.system.forceStream != 0)
+            $('#forceStream').prop('checked', true);
         
         resolution = video.width+"x"+video.height;
         $("#resolution").text(resolution);

@@ -1,6 +1,34 @@
 Work logs for Application Development
 #########################################
 
+10.29, 2019
+---------------------------
+#. Factory Default: 
+    * blink after 6 seconds;
+	* Restore default parameters;
+#. increase log level from DEBUG to WARNING to minimize log messages
+#. RTC message comments: modify kernel image:
+    * kernel version: Oct 29 13:21:15 EDT 2019
+#. SDP:
+    * check media and create SESSION ID;
+	* Only updaye SESSION ID only media changed;
+	* 'interlaced' when video is interlace;
+#. Crash flash when modifying MAC address
+#. Read PTP status and reply with IP Command and REST API
+#. control on PTP daemon:
+    * rename PTP daemon as muxPtpd;
+	* start PTP daemon with parameters of "domain number";
+	* start and stop PTP daemon dynamically;
+#. New configuration of FPGA:
+    * Add "ColorSpaceConvert" to convert all color space tp YCrCb422 and 10 bits depth;
+	* Add "FPS Configuration" with 4 options of "1|2|Double|Split";
+	* Add "AudioInput" and "AudioPath" configuration for audio in TX;
+#. Audio Channels fix to 8, no matter what read from HDMI chip;
+#. remove code about IR;
+#. After blink, LED should be in state of ON;
+#. Default TX/RX IP: 66/67 if DHCP server is not available when DHCP is configured
+
+
 05.10, 2019
 ---------------------------
 * Finish multicast group join and leave;

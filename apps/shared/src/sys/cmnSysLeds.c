@@ -42,7 +42,7 @@ struct _SysLedCtrl
 	char				*triggerCheck;	/* check trigger is ON/OFF */
 };
 
-#define	_LED_DEBUG		EXT_DBG_ON
+#define	_LED_DEBUG		EXT_DBG_OFF
 
 static struct _SysLedCtrl  _sysLeds[] =
 {
@@ -303,8 +303,8 @@ int cmnSysLedCtrl(LED_TYPE_T type, LED_MODE_T mode)
 	EXT_DEBUGF(_LED_DEBUG, "LED %s is on state of %s", led->name, cmnSysLedFindState(currentMode) );
 	if(currentMode == mode)
 	{
-		EXT_INFOF("LED %s has been in state of %s", led->name, cmnSysLedFindState(mode) );
-		return EXIT_FAILURE;
+//		EXT_INFOF("LED %s has been in state of %s", led->name, cmnSysLedFindState(mode) );
+//		return EXIT_FAILURE;
 	}
 
 	if(currentMode == LED_MODE_BLINK )
@@ -327,7 +327,7 @@ int cmnSysLedCtrl(LED_TYPE_T type, LED_MODE_T mode)
 
 #include <linux/input.h> /* struct input_event */
   
-/* return BTN_EVENT_T */  
+/* return BTN_EVENT_T. No event happen, it blocks */  
 int cmnSysSW1CheckEvent(void)
 {
 	struct input_event _event;	

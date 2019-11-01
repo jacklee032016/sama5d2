@@ -48,6 +48,9 @@ void cmnSysCfgFromFactory( EXT_RUNTIME_CFG *cfg )
 	cfg->isDipOn = EXT_TRUE;
 #endif
 	cfg->isMacConfiged = EXT_FALSE;
+
+	cfg->sfpCfg = EXT_SFP_CFG_FIRST;
+	cfg->isConvert = EXT_TRUE;
 	
 #if 0
 	cfg->macAddress.address[0] = ETHERNET_CONF_ETHADDR0;

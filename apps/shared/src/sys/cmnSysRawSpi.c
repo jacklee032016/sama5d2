@@ -70,6 +70,15 @@ static FLASH_ID_T _n25q512 =
 	.dataLength = 0x10,
 };
 
+static FLASH_ID_T _n25q256 =
+{
+	.manuId = 0x20,
+	.memType = 0xBA,
+	.memCap = 0x19,
+	.dataLength = 0x10,
+};
+
+
 /* send command to SPI slave and receive reply from it
 * cmdData and replyData have same length
 */
@@ -377,7 +386,11 @@ int	cmnSysRawSpiFlashInit(void)
 	}
 	else
 	{
+#if 0
 		int *p = (int *)&_n25q512;
+#else
+		int *p = (int *)&_n25q256;
+#endif
 		int _id = (int )*p;
 		printf(_RAW_SPI_TITLE"Flash_id = 0x%X(0x%X): %s"EXT_NEW_LINE, flashId, _id, (_id==flashId)? "OK":"Failed");
 	}
@@ -435,6 +448,140 @@ static uint32_t _makeCrc(uint32_t crc, uint8_t *string, uint32_t size, uint32_t 
 	return crc;
 }
 
+/* one or less than one page */
+int _writeOnePage(int flashFd, uint32_t startAddr, int pageNo, uint8_t *writeData, int size)
+{
+	uint8_t readData[SPI_PAGE_SIZE];	
+	size_t  readLength = 0;
+
+//	uint32_t crc32_tableW[256];
+//	uint32_t crc32_tableR[256];
+//	uint32_t file_crc = INVALIDATE_VALUE_U32, read_crc = INVALIDATE_VALUE_U32;
+	int 	ret = EXIT_SUCCESS;
+	int i;
+
+
+//	_makeCrc32Table(crc32_tableW);
+//	_makeCrc32Table(crc32_tableR);
+	
+	//make file crc
+//	memset(crc32_table, 0, sizeof(crc32_table));
+//	file_crc = _makeCrc(0, writeData, size, crc32_tableW);
+	
+	//write to flash
+	if(SYS_RAW_SPI_WRITE_DATA(flashFd, startAddr + pageNo*SPI_PAGE_SIZE, writeData, size)==EXIT_FAILURE)
+	{
+		MUX_ERROR("Error happened on write #%d page", pageNo);
+		return EXIT_FAILURE;
+	}
+
+	memset(readData, 0xff, sizeof(readData));
+	if(SYS_RAW_SPI_READ_DATA(flashFd, startAddr + pageNo*SPI_PAGE_SIZE, readData, size) == EXIT_FAILURE )
+	{
+		MUX_ERROR("Error happened on read #%d page", pageNo);
+		return EXIT_FAILURE;
+	}
+	
+//	memset(crc32_table, 0, sizeof(crc32_table));
+//	read_crc = _makeCrc(0, readData, size, crc32_tableR);
+
+//	MUX_INFO("flash page #%d: 0x%08x; read CRC: 0x%08x", pageNo, file_crc, read_crc);
+	if(/*file_crc != read_crc || */ memcmp(writeData, readData, size) )
+	{
+		ret = EXIT_FAILURE;
+	}
+
+	if(ret == EXIT_FAILURE)
+	{
+//		MUX_ERROR("flash page #%d failed: 0x%08x; read CRC: 0x%08x", pageNo, file_crc, read_crc);
+		MUX_ERROR("Programming page #%d failed", pageNo);
+		for(i=0; i< size; i++)
+		{
+			if( *(writeData+i) != *(readData+i) )
+			{
+				MUX_ERROR("Error being at byte %d pf page #%d, address: 0x%x", i, pageNo, startAddr + pageNo*SPI_PAGE_SIZE )
+				break;
+			}
+		}
+		MUX_ERROR("Write Data:")
+		cmnHexDump(writeData, SPI_PAGE_SIZE);
+		MUX_ERROR("Read Data:")
+		cmnHexDump(readData, SPI_PAGE_SIZE);
+	}
+
+	return ret;
+}
+
+
+//start_addr must be based on 64KB size
+int cmnSysRawSpiFlashEraseSectors(int flashFd, int sectorCount, uint32_t startAddr)
+{
+	int ret = EXIT_FAILURE;
+	uint8_t readData[SPI_PAGE_SIZE];	
+	int i;
+	long startTime, endTime;
+
+	startTime = cmnGetTimeMs();
+	
+	//check start_addr
+	if((startAddr%SPI_FLASH_SECTOR_SIZE) != 0)
+	{
+		MUX_ERROR("start_addr is NOT integer times of %dKB.", SPI_FLASH_SECTOR_SIZE/UNIT_OF_KILO);
+		return -1;
+	}
+	
+	//write enable before sector erase command.
+	if(SYS_RAW_SPI_CMD_WRITE_ENABLE(flashFd) == EXIT_FAILURE)
+	{
+		MUX_ERROR(_RAW_SPI_TITLE"Set Write Enable failed when rrase sector at 0x%x", startAddr);
+		return EXIT_FAILURE;
+	}
+
+	printf(EXT_NEW_LINE _RAW_SPI_TITLE"Erase %d sectors from address 0x%x..."EXT_NEW_LINE, sectorCount, startAddr);
+	for(i = 0; i < sectorCount; i++)
+	{
+		if(SYS_RAW_SPI_CMD_WRITE_ENABLE(flashFd) == EXIT_FAILURE)
+		{
+			MUX_ERROR(_RAW_SPI_TITLE"Set Write Enable failed when rrase sector at 0x%x", startAddr);
+			return EXIT_FAILURE;
+		}
+
+		if(sysRawSpiSectorErase4byte(flashFd, startAddr + i*SPI_FLASH_SECTOR_SIZE)==EXIT_FAILURE)
+		{
+			MUX_ERROR("Failed at erase #%d sector", i+1);
+			return EXIT_FAILURE;
+		}
+		else
+		{
+			printf(".");fflush(stdout);
+		}
+
+		if(SYS_RAW_SPI_READ_DATA(flashFd, startAddr + i*SPI_FLASH_SECTOR_SIZE, readData, SPI_PAGE_SIZE) == EXIT_FAILURE )
+		{
+			MUX_ERROR("Error happened on read #%d sector", i+1);
+			return EXIT_FAILURE;
+		}
+		if(readData[0] != 0xFF )
+		{
+			MUX_ERROR("Erase #%d sector at address 0x%x", i+1,  i*SPI_FLASH_SECTOR_SIZE);
+			cmnHexDump(readData, SPI_PAGE_SIZE);
+			goto error;
+		}
+
+	}
+	
+	endTime = cmnGetTimeMs();
+
+	printf(EXT_NEW_LINE EXT_NEW_LINE  _RAW_SPI_TITLE"ERASE flash OK, %ld ms spent!"EXT_NEW_LINE, (endTime-startTime));
+
+	return EXIT_SUCCESS;
+
+error:
+	printf(EXT_NEW_LINE EXT_NEW_LINE  _RAW_SPI_TITLE"ERASE flash FAILED"EXT_NEW_LINE );
+
+	return ret;
+	
+}
 
 
 //start_addr must be based on 64KB size
@@ -485,29 +632,9 @@ int cmnSysRawSpiFlashWriteFile(int flashFd, char *filename, uint32_t startAddr)
 		pageCount++;
 	}
 
-	//write enable before sector erase command.
-	if(SYS_RAW_SPI_CMD_WRITE_ENABLE(flashFd) == EXIT_FAILURE)
+	if(cmnSysRawSpiFlashEraseSectors( flashFd, sectorCount, startAddr) == EXIT_FAILURE)
 	{
-		MUX_ERROR(_RAW_SPI_TITLE"Set Write Enable failed when rrase sector at 0x%x", startAddr);
 		return EXIT_FAILURE;
-	}
-
-	printf(_RAW_SPI_TITLE"FPGA binary ('%s') size: %d bytes; Need %d sectors, %d pages of flash;"EXT_NEW_LINE, filename, fileSize, sectorCount, pageCount);
-
-	printf(EXT_NEW_LINE _RAW_SPI_TITLE"Erase %d sectors from address 0x%x..."EXT_NEW_LINE, sectorCount, startAddr);
-	for(i = 0; i < sectorCount; i++)
-	{
-		if(sysRawSpiSectorErase4byte(flashFd, startAddr + i*SPI_FLASH_SECTOR_SIZE)==EXIT_FAILURE)
-		{
-			MUX_ERROR("Failed at erase #%d page", i);
-			return EXIT_FAILURE;
-		}
-		else
-		{
-			{
-				printf(".");fflush(stdout);
-			}
-		}
 	}
 		
 	fp = fopen(filename, "rb");	
@@ -517,6 +644,7 @@ int cmnSysRawSpiFlashWriteFile(int flashFd, char *filename, uint32_t startAddr)
 		goto error;
 	}
 	
+#if 0
 	//read SPI_PAGE_SIZE 256 bytes from file, write to flash, calculate file CRC, until file end.
 	printf(EXT_NEW_LINE EXT_NEW_LINE _RAW_SPI_TITLE"Program %d pages into address 0x%08X of flash..."EXT_NEW_LINE, pageCount, startAddr);
 	for(i = 0; i < (pageCount - 1); i++)
@@ -604,16 +732,68 @@ int cmnSysRawSpiFlashWriteFile(int flashFd, char *filename, uint32_t startAddr)
 	EXT_DEBUGF(_DEBUG_RAW_SPI, "source CRC: 0x%08x; read CRC: 0x%08x", file_crc, read_crc);
 	if(file_crc != read_crc)
 	{
-		MUX_ERROR("flash program ERROR!");
+		MUX_ERROR("flash program ERROR!source CRC: 0x%08x; read CRC: 0x%08x", file_crc, read_crc);
 		goto error;
 	}
+
+#else
+
+	
+	//read SPI_PAGE_SIZE 256 bytes from file, write to flash, calculate file CRC, until file end.
+	printf(EXT_NEW_LINE EXT_NEW_LINE _RAW_SPI_TITLE"Program %d pages into address 0x%08X of flash..."EXT_NEW_LINE, pageCount, startAddr);
+	for(i = 0; i < (pageCount - 1); i++)
+	{		
+		readLength = fread(readData, 1, SPI_PAGE_SIZE, fp);
+		if(readLength != SPI_PAGE_SIZE)
+		{
+			MUX_ERROR("Read page #% from binary failed: %m", i);
+			goto error;
+		}
+
+		if(_writeOnePage(flashFd, startAddr, i,readData, SPI_PAGE_SIZE) == EXIT_FAILURE)
+		{
+			goto error;
+		}
+		
+		if( i%32== 0) /* 4 '.' for every sector */
+		{
+			printf(".");fflush(stdout);
+		}
+			
+	}
+	
+	//last page
+	readLength = fileSize - i*SPI_PAGE_SIZE;
+	if(readLength > 0)
+	{
+		memset(readData, 0xff, sizeof(readData));
+		readLength = fread(readData, 1, readLength, fp);
+		if(readLength != (fileSize - i*SPI_PAGE_SIZE))
+		{
+			MUX_ERROR("Read %d bytes of last page from binary failed: %d", fileSize - i*SPI_PAGE_SIZE, readLength);
+			goto error;
+		}
+
+		if(_writeOnePage(flashFd, startAddr, i, readData, readLength) == EXIT_FAILURE)
+		{
+			MUX_ERROR("Error happened on write %d bytes of last page", readLength);
+			goto error;
+		}
+		printf("*");fflush(stdout);
+		
+	}
+	printf(EXT_NEW_LINE);
+
+#endif
+	
 	endTime = cmnGetTimeMs();
 
 	printf(EXT_NEW_LINE EXT_NEW_LINE  _RAW_SPI_TITLE"Flash program OK, %ld ms spent!"EXT_NEW_LINE, (endTime-startTime));
 
-	ret = EXIT_SUCCESS;
+	return EXIT_SUCCESS;
 
 error:
+	printf(EXT_NEW_LINE EXT_NEW_LINE  _RAW_SPI_TITLE"Flash program FAILED"EXT_NEW_LINE );
 	if(fp)
 	{
 		fclose(fp);

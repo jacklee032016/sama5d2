@@ -19,7 +19,7 @@ class SdpSession(object):
         super(SdpSession, self).__init__(**kwargs)
         
     def sessionInfo(self, *args, **kwargs):
-        ts = int(time.time())
+        self.ts = int(time.time())
         self.sys = System(**kwargs).get(*args, **kwargs)
         self.ptp = PTP(**kwargs).get(*args, **kwargs)
         if "status" in self.sys: #["ip"] is None:# when connection broken, the return is dict
@@ -39,12 +39,8 @@ class SdpSession(object):
         #    self.error = 1
         #    return json.loads('{"status": 501, "detail": "RX not support SDP service"}' )
         
+        sessionStr =''
         self.error = 0
-        sessionStr='v=0\no=- %d 1 IN IP4 %s\ns=MuxLab %s 2110\nt=0 0\n'%(
-            ts, 
-            self.sys.get("ip", "0.0.0.0"), 
-            self.sys.get("name", "NoName")
-        )
         return sessionStr
 
     def mediaInfo(self, *args, **kwargs):
@@ -94,8 +90,13 @@ class VideoSdp(SdpResource):
             a=mediaclk:direct=0
             a=mid:VID 
         """
-        
-        str = "m=video %d RTP/AVP %d\n"%(media.get("port", 36000), self.payloadType)
+        # 11: 1: TX; 1: video
+        str = 'v=0\no=- %s 1 IN IP4 %s\ns=MuxLab %s 2110\nt=0 0\n'%(
+            media.get("sessionID", "1234567890"), 
+            self.sys.get("ip", "0.0.0.0"), 
+            self.sys.get("name", "NoName")
+        )
+        str += "m=video %d RTP/AVP %d\n"%(media.get("port", 36000), self.payloadType)
         str += "c=IN IP4 %s/64\n"%(
             media.get("ip", "0.0.0.0")
             )    ## IP/TTL
@@ -107,13 +108,22 @@ class VideoSdp(SdpResource):
         if fps == "59.94":
             fps = "60000/1001"
         str += "a=rtpmap:%d raw/90000\n"%(self.payloadType) 
-        str += "a=fmtp:%d sampling=%s; width=%d; height=%d; exactframerate=%s; depth=%d; TCS=SDR; colorimetry=BT709; PM=2110GPM; SSN=ST2110-20:2017; TP=2110TPN;\n"%(
+
+        intlaced = media.get("intlce", 0)
+        if intlaced == 0:
+            strLaced = ' interlace;'
+        elif intlaced == 1: # PsF 
+            strLaced = '' #'segmented;'
+        else:
+            strLaced = ''
+            
+        str += "a=fmtp:%d sampling=%s; width=%d; height=%d; exactframerate=%s; depth=%d; TCS=SDR; colorimetry=BT709; PM=2110GPM; SSN=ST2110-20:2017; TP=2110TPN;%s\n"%(
             self.payloadType, 
             media.get("colorSpace", "YCbCr-4:2:2"), 
             media.get("width", 1920), 
             media.get("height", 1080), 
             fps,
-            media.get("depth", 16) )
+            media.get("depth", 16), strLaced )
         
         isPtp = self.sys.get("isEnable","1")
         if isPtp == 0:
@@ -156,7 +166,14 @@ class AudioSdp(SdpResource):
             a=mediaclk:direct=0
             a=mid:AUD
         """
-        str = "m=audio %d RTP/AVP %d\n"%(
+
+        # 10: 1: TX, 0: audio
+        str = 'v=0\no=- %s 1 IN IP4 %s\ns=MuxLab %s 2110\nt=0 0\n'%(
+            media.get("sessionID", "1234567890"), 
+            self.sys.get("ip", "0.0.0.0"), 
+            self.sys.get("name", "NoName")
+        )
+        str += "m=audio %d RTP/AVP %d\n"%(
             media.get("port", 36010), 
             self.payloadType
         )
