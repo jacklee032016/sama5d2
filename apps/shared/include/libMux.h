@@ -47,6 +47,8 @@
 
 #define	MUX_SYSTEM_INIT_FLAGS			CONFIG_FILE_HOME_PROJECT"flags.dat"
 
+#define	MUX_SYSTEM_SYS_CONFIG			CONFIG_FILE_HOME_PROJECT"muxSys.conf"
+
 
 #define	CRON_TASK_FILE						"/var/spool/cron/crontabs/root"
 
@@ -360,6 +362,9 @@ typedef	enum _CMD_TYPE
 #define	FIELD_PTP_M_CLOCK_ACCURACY				"mClockAccuracy"
 #define	FIELD_PTP_M_OFFSET_LOG					"mOffsetScaledLogVariance"
 #define	FIELD_PTP_M_PRIORITY_2					"mPriority2"
+
+#define	FIELD_PTP_M_ERROR_CODE					"errCode"
+#define	FIELD_PTP_M_ERROR_MSG					"msg"
 
 
 /* Security Check */

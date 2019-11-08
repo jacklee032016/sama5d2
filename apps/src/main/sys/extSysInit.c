@@ -113,22 +113,35 @@ static int	_extSysJsonInit(MuxMain		*muxMain)
 	}
 #endif
 
+
+#if 1
+	TRACE();
 	return cmnSysJsonUpdate(muxMain);
+#else
+	return EXIT_SUCCESS;
+#endif
 }
 
 
 int32_t	extPtpInit(EXT_RUNTIME_CFG		*runCfg)
 {
+	/* initialize runtime to uninitialied state */
+	muxPtpInitData(&runCfg->ptpRuntime);
+
 	if(runCfg->ptpRuntime.isEnable)
 	{
 		/* start PTP Daemon */
-		if(muxPtpInit(&runCfg->ptpRuntime, runCfg->ptpRuntime.domainCfg) == NULL)
+		if(muxPtpInit(&runCfg->ptpRuntime) == NULL)
 		{
 			MUX_ERROR("PTP Client initialization failed");
 			return EXIT_FAILURE;
 		}
+		MUX_INFO("Initialization: PTP Controller checked successfully!");
 	}
-
+	else
+	{
+		MUX_WARN("nitialization: PTP is disabled");
+	}
 
 	return EXIT_SUCCESS;
 }
@@ -145,6 +158,10 @@ int32_t	extSystemInit(MuxMain		*muxMain)
 	{
 		EXT_ERRORF("Check FPGA failed");
 	}
+	else
+	{
+		MUX_INFO("Initialization: FPAG checked successfully!");
+	}
 	
 	if((runCfg->runtime.revision == 0) && (runCfg->runtime.revision== 0))
 	{
@@ -157,7 +174,7 @@ int32_t	extSystemInit(MuxMain		*muxMain)
 	isTx = runCfg->isTx;
 	ret = cmnSysCfgRead(runCfg, EXT_CFG_MAIN);
 	if(ret == EXIT_FAILURE)
-	{/* TX/RX must be get before default condfiguration*/
+	{/* TX/RX must be get before default configuration*/
 		cmnSysCfgFromFactory(runCfg);
 		
 		if(cmnSysCheckFirstRunFlags() )
@@ -171,6 +188,9 @@ int32_t	extSystemInit(MuxMain		*muxMain)
 
 			cmnSysSetFirstRunFlags();
 
+			cmnSysWriteSysConfig(runCfg);
+
+
 			cmnSysEthernetConfig(runCfg);
 			cmnSysCfgSave(runCfg, EXT_CFG_MAIN);
 
@@ -182,6 +202,7 @@ int32_t	extSystemInit(MuxMain		*muxMain)
 		cmnSysCfgSave(runCfg, EXT_CFG_MAIN);
 //		MUX_ERROR("No "MUX_SYSTEM_CONFIG_DATA" is found, default %s factory configuration is used", (EXT_IS_TX(runCfg))?"TX":"RX");
 	}
+
 	
 	runCfg->runtime.reset = 0;
 	runCfg->runtime.reboot = 0;
@@ -190,26 +211,29 @@ int32_t	extSystemInit(MuxMain		*muxMain)
 
 	SYS_UPDATE_SESSION_ID();
 
-	
 	memcpy(&runCfg->version, &muxMain->version, sizeof(muxMain->version));
+
+	MUX_INFO("Initialization: Configuration checked successfully!");
 
 	if(_extSysNetInit(muxMain)== EXIT_FAILURE)
 	{
 		MUX_ERROR("Network initialization failed");
 		return EXIT_FAILURE;
 	}
+	MUX_INFO("Initialization: Network successfully!");
+
 
  	/* must before JSON init, because JSON will access it*/
-	if(extPtpInit(runCfg)== EXIT_FAILURE)
-	{
-		MUX_ERROR("Initialization of PTP Runtime failed");
-	}
-
+	extPtpInit(runCfg);
 
 	if(_extSysJsonInit(muxMain)== EXIT_FAILURE)
 	{
 		MUX_ERROR("JSON initialization failed");
 		return EXIT_FAILURE;
+	}
+	else
+	{
+		MUX_INFO("Initialization: REST API data checked successfully!");
 	}
 
 	/* config FPGA and join multicast group */
@@ -217,10 +241,18 @@ int32_t	extSystemInit(MuxMain		*muxMain)
 	{
 		MUX_ERROR("FPGA failed");
 	}
+	else
+	{
+		MUX_INFO("Initialization: FPGA configured successfully!");
+	}
 
- 	if(cmnSysRs232Init(runCfg)== EXIT_FAILURE)
+	if(cmnSysRs232Init(runCfg)== EXIT_FAILURE)
 	{
 		MUX_ERROR("Initialization of RS232 failed");
+	}
+	else
+	{
+		MUX_INFO("Initialization: RS232 checked successfully!");
 	}
 	
 	MUX_WARN("Initialization finished");

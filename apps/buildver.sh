@@ -5,13 +5,13 @@
 DATDIR=`echo $1 | sed 's/\/\//\//g'`
 PKGDIR="$DATDIR/pkg"
 	
-	mkdir -p $PKGDIR/var/ver
+	mkdir -p $PKGDIR/etc/mLab
 	
 #	cd programs 
 
 VTIME=`date "+%F %T"`
 
-PROGS="muxMedia"
+PROGS="muxMgr"
 # setup
 
 for p in $PROGS; do

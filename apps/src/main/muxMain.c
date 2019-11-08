@@ -162,7 +162,7 @@ static int _muxMainStartThreadEvent(MuxMain *muxMain, CmnThread *thread, void *d
 {
 	int res = EXIT_FAILURE;
 	
-	MUX_DEBUG("Start thread '%s' .....", thread->name );
+	MUX_WARN("Start thread '%s' .....", thread->name );
 	res = cmnThreadInit( thread, data);
 	if(res == EXIT_SUCCESS)
 	{
@@ -365,6 +365,8 @@ int main(int argc, char **argv)
 	{
 	
 	}
+
+	MUX_INFO("Initialization finished now!" );
 
 	muxThread = muxMain->threads;
 	while(muxThread)

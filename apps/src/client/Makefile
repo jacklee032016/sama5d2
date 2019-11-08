@@ -20,6 +20,7 @@ LOCAL_ALL := \
 		regRead \
 		fwUpdate \
 		ptpc \
+		sfpCtrl \
 		
 
 include $(ROOT_DIR)/Makefile.post
@@ -31,7 +32,7 @@ else
 LDFLAGS += -LLinux.bin.$(ARCH)/lib -ldl
 endif
 
-LDFLAGS += -L$(BIN_DIR)/lib -lCmnSys -lMux -lShared $(LDFLAGS) -lMuxPtp -lPtp4l -lz -lpthread -lm
+LDFLAGS += -L$(BIN_DIR)/lib -lCmnSys -lMux $(LDFLAGS) -lMuxPtp -lPtp4l -lShared -lz -lpthread -lm
 
 
 apiClient:$(OBJS)
@@ -51,6 +52,10 @@ fwUpdate:$(OBJ_DIR)/flashUpdate.o
 	$(MOVE) $@ $(BIN_DIR)/usr/bin  
 
 ptpc:$(OBJ_DIR)/ptpc.o
-	$(CC) -s -o $@ $^ $(LDFLAGS) -lMuxPtp -lPtp4l -lpthread
+	$(CC) -s -o $@ $^ $(LDFLAGS) 
+	$(MOVE) $@ $(BIN_DIR)/usr/bin  
+	
+sfpCtrl:$(OBJ_DIR)/sfpCtrl.o
+	$(CC) -s -o $@ $^ $(LDFLAGS)
 	$(MOVE) $@ $(BIN_DIR)/usr/bin  
 	

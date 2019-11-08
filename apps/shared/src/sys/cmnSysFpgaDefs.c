@@ -424,12 +424,21 @@ static TxRegisterMap _TX_ADDRESS =
 #endif
 	},
 
-	.rtpTimestamp = 
+	.rtpTimestampVideo = 
 	{
 		.device = &_fpgaDevTxRtp,
-		.offset = F_REG_TX_RTP_TIMESTAMP,
+		.offset = F_REG_TX_RTP_TIMESTAMP_VIDEO,
 #if FPGA_DEBUG
-		.name = "txRtpTimestamp",
+		.name = "txRtpVideoTimestamp",
+#endif
+	},
+
+	.rtpTimestampAudio = 
+	{
+		.device = &_fpgaDevTxRtp,
+		.offset = F_REG_TX_RTP_TIMESTAMP_AUDIO,
+#if FPGA_DEBUG
+		.name = "txRtpAudioTimestamp",
 #endif
 	},
 
@@ -894,12 +903,21 @@ static RxRegisterMap _RX_ADDRESS =
 #endif
 	},
 
-	.rtpTimestamp = 
+	.rtpTimestampVideo = 
 	{
 		.device = &_fpgaDevRxRtp,
-		.offset = F_REG_RX_RTP_TIMESTAMP,
+		.offset = F_REG_RX_RTP_TIMESTAMP_VIDEO,
 #if FPGA_DEBUG
-		.name = "rxRtpTimestamp",
+		.name = "rxRtpVideoTimestamp",
+#endif
+	},
+
+	.rtpTimestampAudio = 
+	{
+		.device = &_fpgaDevRxRtp,
+		.offset = F_REG_RX_RTP_TIMESTAMP_AUDIO,
+#if FPGA_DEBUG
+		.name = "rxRtpAudioTimestamp",
 #endif
 	},
 

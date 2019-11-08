@@ -185,7 +185,10 @@ typedef	enum
 #define	F_REG_TX_RTP_VIDEO_PAYLOAD_TYPE			0x00
 #define	F_REG_TX_RTP_XAUI_CTRL					0x05
 #define	F_REG_TX_RTP_XAUI_STATUS					0x07
-#define	F_REG_TX_RTP_TIMESTAMP					0x08	/* 4 bytes, 32 bits */
+
+#define	F_REG_TX_RTP_TIMESTAMP_VIDEO				0x08	/* 4 bytes, 32 bits */
+#define	F_REG_TX_RTP_TIMESTAMP_AUDIO			0x0F	/* 4 bytes, 32 bits */
+
 
 #define	F_REG_TX_RTP_AUDIO_PAYLOAD_TYPE			INVALIDATE_VALUE_U8
 #define	F_REG_TX_RTP_ANC_PAYLOAD_TYPE			INVALIDATE_VALUE_U8
@@ -287,7 +290,8 @@ typedef	enum
 #define	F_REG_RX_RTP_VIDEO_PAYLOAD_TYPE			0x00
 #define	F_REG_RX_RTP_XAUI_CTRL					0x05
 #define	F_REG_RX_RTP_XAUI_STATUS					0x07
-#define	F_REG_RX_RTP_TIMESTAMP					0x08	/* 4 bytes, 32 bits */
+#define	F_REG_RX_RTP_TIMESTAMP_VIDEO			0x08	/* 4 bytes, 32 bits */
+#define	F_REG_RX_RTP_TIMESTAMP_AUDIO			0x0F	/* 4 bytes, 32 bits */
 
 #define	F_REG_RX_RTP_AUDIO_PAYLOAD_TYPE			INVALIDATE_VALUE_U8
 #define	F_REG_RX_RTP_ANC_PAYLOAD_TYPE			INVALIDATE_VALUE_U8
@@ -449,7 +453,8 @@ typedef	struct
 	FpgaI2cAddress			reset;
 	FpgaI2cAddress			enable;
 
-	FpgaI2cAddress			rtpTimestamp;
+	FpgaI2cAddress			rtpTimestampVideo;
+	FpgaI2cAddress			rtpTimestampAudio;
 
 	FpgaI2cAddress			irCtrl;
 	FpgaI2cAddress			irDemodulation;
@@ -487,7 +492,8 @@ typedef	struct
 	FpgaI2cAddress			reset;
 	FpgaI2cAddress			enable;
 	
-	FpgaI2cAddress			rtpTimestamp;
+	FpgaI2cAddress			rtpTimestampVideo;
+	FpgaI2cAddress			rtpTimestampAudio;
 
 	FpgaI2cAddress			irCtrl;
 	FpgaI2cAddress			irDemodulation;

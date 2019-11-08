@@ -139,6 +139,7 @@ int	sysFpgaCheck(EXT_RUNTIME_CFG *runCfg );
 int	sysFpgaInit(EXT_RUNTIME_CFG *runCfg );
 
 int sysFpgaVideoForced(void);
+int sysFpgaCfgSfpWhenBoot(void);
 
 int	sysFpgaRefresh(void );
 
@@ -388,11 +389,17 @@ int cmnSysI2cSi5351VcxoControl(unsigned long clkFreq);
 
 
 /* in unit of micro second, eg. 1/90000 */
-#define	FPGA_TIMESTAMP_UNIT			11111
+#define	FPGA_TIMESTAMP_UNIT_VIDEO			11111
 
-#define	FPGA_GET_PTP_TIMESTAMP()		\
-		(uint32_t)(cmnGetTimeUs()/FPGA_TIMESTAMP_UNIT)
+#define	FPGA_TIMESTAMP_UNIT_AUDIO			20833
 
+
+#define	FPGA_GET_PTP_TIMESTAMP_VIDEO()		\
+		(uint32_t)(cmnGetTimeUs()/FPGA_TIMESTAMP_UNIT_VIDEO)
+
+
+#define	FPGA_GET_PTP_TIMESTAMP_AUDIO()		\
+		(uint32_t)(cmnGetTimeUs()/FPGA_TIMESTAMP_UNIT_AUDIO)
 
 #endif
 

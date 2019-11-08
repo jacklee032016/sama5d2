@@ -54,7 +54,7 @@ class Params
     static $logLevels = ["DEBUG","INFO","NOTICE","WARNING", "ERROR", "CRITICAL", "ALERT", "EMERGENCY"];
     
     const FIRMWARE_MCU_FILE  = '/var/www/upgrade';
-    const FIRMWARE_FPGA_FILE = '/tmp/upgradeFPGA';
+    const FIRMWARE_FPGA_FILE = '/var/www/upgradeFPGA';
     const DEVICE_NAME        = '500774'; //'RX-500762'
     const DEVICE_LAST_UPDATE = "June 17 2019";
     

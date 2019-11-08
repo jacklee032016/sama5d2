@@ -73,8 +73,9 @@ int testClock(void)
 int testTimestamp(void)
 {
 	uint64_t tsUs = cmnGetTimeUs();
-	uint32_t reg = FPGA_GET_PTP_TIMESTAMP();
-	EXT_INFOF("Current Timestamp: %llu us, reg: %u(0x%x); %lu ms", tsUs, reg, reg, cmnGetTimeMs());
+	uint32_t regVideo = FPGA_GET_PTP_TIMESTAMP_VIDEO();
+	uint32_t regAudio = FPGA_GET_PTP_TIMESTAMP_AUDIO();
+	EXT_INFOF("Current Timestamp: %llu us, video reg: %u(0x%x); audio reg: %u(0x%x); %lu ms", tsUs, regVideo, regAudio, cmnGetTimeMs());
 
 	return EXIT_SUCCESS;
 }

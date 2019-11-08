@@ -19,8 +19,10 @@ EXT_INFOF("Write RtpTimestamp: "LONG_FORMAT"u(0x"LONG_FORMAT"x)", fpgaTs, fpgaTs
 */
 
 #define	FPGA_UPDATE_PTP_TIMESTAMP(fpga) \
-	do{	/* write timestamp */ uint32_t fpgaTs = FPGA_GET_PTP_TIMESTAMP(); \
-		_extFpgaWriteIntegerChange(&fpga->txAddress->rtpTimestamp, &fpgaTs);	}while(0)
+	do{	/* write timestamp */ uint32_t fpgaTs = FPGA_GET_PTP_TIMESTAMP_VIDEO(); \
+		_extFpgaWriteIntegerChange(&fpga->txAddress->rtpTimestampVideo, &fpgaTs); \
+		fpgaTs = FPGA_GET_PTP_TIMESTAMP_AUDIO(); _extFpgaWriteIntegerChange(&fpga->txAddress->rtpTimestampAudio, &fpgaTs);  \
+		}while(0)
 
 
 
@@ -443,6 +445,21 @@ int sysFpgaRxWriteParams(FpgaConfig *fpga)
 
 int	_txUpdateParams(EXT_RUNTIME_CFG *runCfg)
 {
+	/* 11.04, 2019, change as following */
+#if 1	
+	unsigned char _chVal;
+	FPGA_I2C_READ(F_REG_TX_SYS_AUDIO_SELECT, &_chVal, 1);
+
+	unsigned char depth = ((_chVal>> 6) & 0x03);
+	runCfg->runtime.aDepth = (depth ==0x03)? 24:0;
+	unsigned char sampleRate = ( (_chVal>>3) &0x07);
+	runCfg->runtime.aSampleRate = sampleRate; //(sampleRate==0x03)?EXT_A_RATE_48K:0; 
+//	unsigned char 
+	runCfg->runtime.aChannels = (_chVal&0x07)+1;
+
+	cmnSysI2cTxReadAudioParams(&runCfg->runtime.aSampleRate, &runCfg->runtime.aChannels, &runCfg->runtime.aDepth);
+
+#else
 	unsigned char _audioSelect = 0, sampleFreq, depth;
 	cmnSysI2cTxReadAudioParams(&runCfg->runtime.aSampleRate, &runCfg->runtime.aChannels, &runCfg->runtime.aDepth);
 	
@@ -453,7 +470,7 @@ int	_txUpdateParams(EXT_RUNTIME_CFG *runCfg)
 		runCfg->runtime.aDepth, runCfg->runtime.aSampleRate, runCfg->runtime.aChannels, _audioSelect);
 
 	FPGA_I2C_WRITE(F_REG_TX_SYS_AUDIO_SELECT, &_audioSelect, 1);
-
+#endif
 	return EXIT_SUCCESS;
 }
 

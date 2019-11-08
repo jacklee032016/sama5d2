@@ -582,3 +582,52 @@ int sysFpgaVideoForced(void)
 	return EXIT_SUCCESS;
 }
 
+
+
+
+int sysFpgaCfgSfpWhenBoot(void)
+{
+	FpgaConfig 	*fpga =  &_fpgaConfig;
+	EXT_RUNTIME_CFG *runCfg = fpga->runCfg;
+	unsigned char _chVal, _ch2 =0;
+	char *sfp = "Port1";
+	
+	if(runCfg->sfpCfg == EXT_SFP_CFG_SECOND)
+	{
+		_ch2 = 0x40;
+		sfp = "Port2";
+	}
+	else if(runCfg->sfpCfg == EXT_SFP_CFG_DOUBLE)
+	{
+		_ch2 = 0x10;
+		sfp = "Double";
+	}
+	else if(runCfg->sfpCfg == EXT_SFP_CFG_SPLIT)
+	{
+		_ch2 = 0x20;
+		sfp = "Split";
+	}
+#if 0	
+	else if(runCfg->sfpCfg == EXT_SFP_CFG_FIRST )
+		0x00;
+#endif
+		
+	if(runCfg->isConvert)
+	{
+		EXT_INFOF("Read cfg:%p", runCfg);
+		_chVal = 0x80|_ch2 ;
+		FPGA_I2C_WRITE(F_REG_TX_SYS_VIDEO_CTRL, &_chVal, sizeof(_chVal));
+	}
+	else
+	{
+		_chVal = 0x00|_ch2;
+		FPGA_I2C_WRITE(F_REG_TX_SYS_VIDEO_CTRL, &_chVal, sizeof(_chVal));
+	}
+	
+	FPGA_I2C_READ(F_REG_TX_SYS_VIDEO_CTRL, &_chVal, sizeof(_chVal));
+	MUX_INFO("SFP is configured as '%s(0x%2x)'", sfp, _chVal);	
+
+	return EXIT_SUCCESS;
+}
+
+

@@ -79,7 +79,7 @@ GCC_VERSION := $(shell $(CC) -dumpversion )
 BIN_DIR=$(ROOT_DIR)/Linux.bin.$(ARCH)
 OBJ_DIR=Linux.obj.$(ARCH)
 
-CGI_BIN_DIR=$(BIN_DIR)//var/www/apis
+CGI_BIN_DIR=$(BIN_DIR)/var/www/apis
 
 
 SHARED_HOME := $(ROOT_DIR)/shared
@@ -91,7 +91,10 @@ endif
 
 CC_CFLAGS+= -Wno-deprecated
 
-CFLAGS += -DROOT_DIR='"$(ROOT_DIR)"' -I$(ROOT_DIR) $(INCLUDE_DIR) -I. -I./ \
+INPUT_FILE=$<
+FILE_NAME=$(shell basename $(INPUT_FILE))
+
+CFLAGS += -D__FILENAME__='"$(FILE_NAME)"' -DROOT_DIR='"$(ROOT_DIR)"' -I$(ROOT_DIR) $(INCLUDE_DIR) -I. -I./ \
 			-fdata-sections -ffunction-sections 
 
 # -fdata-sections -ffunction-sections : remove not used symbole when linking, but only usable in X86 static library, not ARM shared library
@@ -140,54 +143,18 @@ ifeq ($(ARCH),arm)
 	CFG_HI_CFLAGS+= -DCHIP_TYPE_$(CFG_HI_CHIP_TYPE) -DCFG_HI_SDK_VERSION=$(CFG_HI_SDK_VERSION)
 	CFG_HI_CFLAGS+= $(CFG_HI_BOARD_CONFIGS)
 	
-	ifeq ($(CFG_HI_HDMI_RX_SUPPORT),y)
-			CFG_HI_CFLAGS += -DHI_HDMI_RX_INSIDE
-	endif
-	ifeq ($(CFG_HI_ADVCA_FUNCTION),FINAL)
-	    CFG_HI_CFLAGS += -DHI_ADVCA_FUNCTION_RELEASE
-	else
-	    CFG_HI_CFLAGS += -DHI_ADVCA_FUNCTION_$(CFG_HI_ADVCA_FUNCTION)
-	endif
 	
 	
 	SYS_LIBS := -lpthread -lrt -lm -ldl -lstdc++
 
 
-	ifeq ($(CFG_HI_ZLIB_SUPPORT),y)
-			HI_LIBS += -lz
-	endif
-	
-	
-	DEPEND_LIBS := $(HI_LIBS)
-
 	HI_DEPEND_LIBS := -Wl,--start-group $(SYS_LIBS) $(DEPEND_LIBS) -Wl,--end-group
 	
 	TARGETS :=
 	
-	ifeq ($(HI_USER_SPACE_LIB),y)
-	TARGETS += $(if $(HI_SAMPLE_IMAGES),$(HI_SAMPLE_IMAGES),$(HI_COMMON_OBJS))
-	endif
-	
-	ifeq ($(HI_USER_SPACE_LIB64),y)
-	TARGETS += $(if $(HI_SAMPLE_IMAGES64),$(HI_SAMPLE_IMAGES64),$(HI_COMMON_OBJS64))
-	endif
-	
-	HI_LDFLAGS += $(HI_LIB_PATHS) $(HI_DEPEND_LIBS)
-
-	
-	FFMPEG_LDFLAGS += \
-		-Wl,--as-needed -Wl,-z,noexecstack -Wl,--warn-common -Wl,--start-group -Wl,--end-group \
-		-ldl -lm -lz -pthread 
-
-#		-Wl,-rpath-link=libpostproc:libavformat:libavcodec:libavutil   \
-
 
 else 
 	ASM_FLAGS = -f elf  -g dwarf2 -I./ -I.// -I$(ROOT_DIR) -Pconfig.asm 
-
-	FFMPEG_LDFLAGS += \
-		-Wl,--as-needed -Wl,-z,noexecstack -Wl,--warn-common -Wl,--start-group -Wl,--end-group \
-		-ldl -lm -lz -pthread 
 
 endif
 

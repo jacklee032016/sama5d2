@@ -212,7 +212,7 @@ static struct CTRL_CONN *_createCtrlConnection(CTRL_LINK_TYPE type, MuxMain *mux
 	if(type == CTRL_LINK_TCP || type == CTRL_LINK_UDP)
 	{
 		struct sockaddr_in addr;
-		int yes;
+		int yes = 1;
 		
 		port = (type==CTRL_LINK_TCP)?muxMain->tcpCtrlPort:muxMain->udpCtrlPort;
 		if (setsockopt(sockCtrl, SOL_SOCKET, SO_REUSEADDR, (char *) &yes, sizeof(yes)) < 0)

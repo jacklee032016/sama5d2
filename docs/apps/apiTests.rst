@@ -2,6 +2,25 @@ REST API Testing
 ##############################################
 Jack Lee, 04.22, 2019
 
+11.06, 2019
+================================
+
+::
+
+	curl -i http://192.168.168.101:5000/ -H "Content-Type: application/json" 
+	HTTP/1.0 400 BAD REQUEST
+	Content-Type: application/json
+	Content-Length: 93
+	Server: Werkzeug/0.15.2 Python/3.4.3
+	Date: Wed, 06 Nov 2019 21:32:28 GMT
+
+	{
+		"message": "Failed to decode JSON object: Expecting value: line 1 column 1 (char 0)"
+	}
+
+Because GET request without data, so it can't be get with that header;
+
+
 
 blink:
 

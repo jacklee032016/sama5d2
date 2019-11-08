@@ -1337,18 +1337,23 @@ class DeviceController extends Controller
                 fwrite($fp,$fwData);
                 fclose($fp);
                 
-                exec("sh /opt/mLab/firmware_detect", $output);
+                //rebooting
+                $data = array("system" => array("reboot" => 1));
+                $deviceResponse = $this->muxProtocol->cmd_set_param($data);
                 
-                sleep(3);
-                
-                exec("ps |grep 'fwUpdate -f /tmp/upgradeFPGA -w' |grep -v grep", $output);
-                
-                if (!empty($output)) {
-                    return $response->withJson($this->arrSuccess);
-                } else { 
-                    $this->arrFailed["data"] = ["fileToUpload"=>"error while upgrading device"];
-                    return $response->withJson($this->arrFailed);
+                //check if good
+                if ($deviceResponse)
+                {
+                    $arrParameters = $this->muxProtocol->hex_command_to_text($deviceResponse[0]);
+                    
+                    if (!empty($arrParameters) && $arrParameters['login-ack'] == 'OK')
+                    {
+                        return $response->withJson($this->arrSuccess);
+                    }
                 }
+                $errorMessage = (!empty($arrParameters))? $arrParameters["pwd-msg"]: "";
+                Logger::getInstance()->addError('reboot failed ' . $errorMessage);
+                return $response->withJson($this->arrFailed);
             }
         }
         $errorMessage = (!empty($arrParameters))? $arrParameters["pwd-msg"]: "";

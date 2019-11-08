@@ -13,11 +13,11 @@ SRCDIR=`echo $2 | sed 's/\/\//\//g'`
 	echo "Install Shared Library and EXEs for "$ARCH
 	echo "Build Directris in $PKGDIR"
 	
-	#VERBOSE=-v
+	# VERBOSE=-v
 	
-	if [ -d $PKGDIR ]; 
+	if [ -d $PKGDIR ];
 	then
-		echo "     Remove existed $PKGDIR"
+		echo "   remove existed $PKGDIR"
 		rm -rf $PKGDIR
 	fi
 	
@@ -25,40 +25,21 @@ SRCDIR=`echo $2 | sed 's/\/\//\//g'`
 	mkdir -p $PKGDIR/usr/bin
 	mkdir -p $PKGDIR/sbin
 	mkdir -p $PKGDIR/lib
-	mkdir -p $PKGDIR/etc/apache2
-	mkdir -p $PKGDIR/etc/php/apache2-php7
-	mkdir -p $PKGDIR/etc/avahi
 	mkdir -p $PKGDIR/etc/mLab
-	mkdir -p $PKGDIR/etc/network
-	mkdir -p $PKGDIR/etc/init.d
-	mkdir -p $PKGDIR/etc/rc5.d
-	mkdir -p $PKGDIR/etc/udhcpc.d
-	#mkdir -p $PKGDIR/etc/sys
 	mkdir -p $PKGDIR/opt
 	mkdir -p $PKGDIR/var/www
 	mkdir -p $PKGDIR/usr/share/udhcpc
 
 	# muxConfig.dat: default no configurtion data. It is created with hardware detection
-	CONFIG_FILES="muxSys.conf muxLab.png muxMain.conf  
-		muxSystem.json muxPtpd.cfg muxPhcd.cfg
+	CONFIG_FILES=" muxSystem.json 
 		"
 	
 	echo ""
 	echo "   Copy Configuration into $PKGDIR..."
-	cp $VERBOSE -r $SRCDIR/etc/mime.types	$PKGDIR/etc
-	cp $VERBOSE $SRCDIR/etc/fw_env.config	$PKGDIR/etc/
-	cp $VERBOSE -r $SRCDIR/etc/avahi		$PKGDIR/etc
-	cp $VERBOSE -r $SRCDIR/etc/network		$PKGDIR/etc
-	cp $VERBOSE -r $SRCDIR/etc/init.d		$PKGDIR/etc
-	cp $VERBOSE -r $SRCDIR/etc/rc5.d		$PKGDIR/etc
-	cp $VERBOSE -r $SRCDIR/etc/udhcpc.d		$PKGDIR/etc
-	cp $VERBOSE -r $SRCDIR/usr/share/udhcpc/*		$PKGDIR/usr/share/udhcpc
 	#cp $VERBOSE -r $SRCDIR/etc/sys			$PKGDIR/etc
 	for cfg in $CONFIG_FILES; do
 		cp $VERBOSE -r $SRCDIR/etc/mLab/$cfg $PKGDIR/etc/mLab
 	done
-	cp $VERBOSE $SRCDIR/etc/apache2/httpd.conf	$PKGDIR/etc/apache2/
-	cp $VERBOSE $SRCDIR/etc/php/apache2-php7/php.ini	$PKGDIR/etc/php/apache2-php7/php.ini
 
 	#	cp $VERBOSE -r $SRCDIR/etc/mLab/muxWeb.conf $PKGDIR/etc/mLab/muxWeb.conf
 
@@ -104,27 +85,8 @@ SRCDIR=`echo $2 | sed 's/\/\//\//g'`
 			cp $VERBOSE $p $PKGDIR/sbin
 	done
 
-
 	
-	#echo ""
-#	echo "   Copy CGI into $PKGDIR..."
-	#EXES=`find $DATDIR/var/www/apis/ -type f `
-	#for p in $EXES; do
-	#		f=`basename $p`
-	#		echo "                  $f is copied..."
-	#		cp $VERBOSE $p $PKGDIR/var/www/apis/
-	#done
-
-	
-		echo ""
-#	echo "   Copy CGI into $PKGDIR..."
-#	EXES=`find $DATDIR/var/www/cgi-bin/ -type f `
-#	for p in $EXES; do
-#			f=`basename $p`
-#			echo "                  $f is copied..."
-#			cp $VERBOSE $p $PKGDIR/var/www/cgi-bin/
-#	done
-
+	echo ""
 
 	PYTHON_TEMP_FILES=`find $PKGDIR -name __pycache__ `
 	
@@ -142,16 +104,16 @@ SRCDIR=`echo $2 | sed 's/\/\//\//g'`
 	done
 
 	cd $PKGDIR
-#	tar czf $INSTALL_NAME *
-	echo "zip $INSTALL_NAME *"
-	zip -r -q $INSTALL_NAME etc lib sbin usr var opt
-	mv $INSTALL_NAME $ROOT_DIR
+#	tar czf $UPDATE_NAME *
+	echo "zip $UPDATE_NAME *"
+	zip -r -q $UPDATE_NAME etc lib sbin usr var opt
+	mv $UPDATE_NAME $ROOT_DIR
 
 cat << EOF
 ======================================================================
 Shared Library and EXEs for $ARCH are installed 
      _________________________________________________________
-     *****  $INSTALL_NAME  *****
+     *****  $UPDATE_NAME  *****
      ---------------------------------------------------------
               has been build in $BUILDTIME!
 Please Check it with Your Board!

@@ -1,0 +1,39 @@
+#!/bin/sh
+
+# udhcpc script edited by Jack Lee 
+# Nov.4th, 2019
+
+[ -z "$1" ] && echo "Error: should be called from udhcpc" && exit 1
+
+RESOLV_CONF="/etc/resolv.conf"
+[ -n "$broadcast" ] && BROADCAST="broadcast $broadcast"
+[ -n "$subnet" ] && NETMASK="netmask $subnet"
+
+if [ -f /etc/mLab/muxSys.conf ]; then
+  source /etc/mLab/muxSys.conf
+else
+  MUX_IP=192.168.168.66
+  MUX_BROADCAST=192.168.168.255
+  MUX_MASK=192.168.168.255
+  MUX_GATEWAY=192.168.168.1
+fi
+echo "default 774 IP $MUX_IP/, device $MUX_TYPE"
+
+
+case "$1" in
+	deconfig)
+		#/sbin/ifconfig $interface $MUX_IP boardcast $MUX_BROADCAST netmask $MUX_MASK
+		/sbin/ifconfig $interface $MUX_IP 
+		route add default gw $MUX_GATEWAY
+		;;
+
+	renew|bound)
+		exec run-parts -a "$1" /etc/udhcpc.d
+		;;
+
+esac
+
+exit 0
+
+#exec run-parts -a "$1" /etc/udhcpc.d
+

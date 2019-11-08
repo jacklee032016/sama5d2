@@ -1048,7 +1048,7 @@ cJSON * cJSON_ParseWithOpts(const char *value, const char **return_parse_end, cJ
     if (!parse_value(item, buffer_skip_whitespace(skip_utf8_bom(&buffer))))
     {
 		/* 03.25, 2019. JL, to support debug in JSON file */
-		printf("%s#%d: %s parsing failed", __FILE__, __LINE__, buffer.content + buffer.offset );
+		printf("%s#%d: %s parsing failed", __FILENAME__, __LINE__, buffer.content + buffer.offset );
         /* parse failure. ep is set. */
         goto fail;
     }
@@ -1060,7 +1060,7 @@ cJSON * cJSON_ParseWithOpts(const char *value, const char **return_parse_end, cJ
         if ((buffer.offset >= buffer.length) || buffer_at_offset(&buffer)[0] != '\0')
         {
 		/* 03.25, 2019. JL, to support debug in JSON file */
-		printf("%s#%d: %s parsing failed", __FILE__, __LINE__, buffer.content + buffer.offset );
+		printf("%s#%d: %s parsing failed", __FILENAME__, __LINE__, buffer.content + buffer.offset );
             goto fail;
         }
     }
@@ -1100,9 +1100,9 @@ fail:
         global_error = local_error;
 		/* 03.25, 2019. JL, to support debug in JSON file */
 #ifdef	ARM
-		printf("%s#%d: JSON parsing failed at %d is '%s' ", __FILE__, __LINE__, global_error.position, global_error.json + global_error.position);
+		printf("%s#%d: JSON parsing failed at %d is '%s' ", __FILENAME__, __LINE__, global_error.position, global_error.json + global_error.position);
 #else
-		printf("%s#%d: JSON parsing failed at %ld is '%s' ", __FILE__, __LINE__, global_error.position, global_error.json + global_error.position);
+		printf("%s#%d: JSON parsing failed at %ld is '%s' ", __FILENAME__, __LINE__, global_error.position, global_error.json + global_error.position);
 #endif
     }
 

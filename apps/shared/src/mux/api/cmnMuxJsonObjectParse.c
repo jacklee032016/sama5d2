@@ -852,7 +852,7 @@ int cmnMuxObjectParseSecurity(struct DATA_CONN *dataConn, cJSON *dataObj)
 
 int	cmnMuxObjectParsePtp(struct DATA_CONN *dataConn, cJSON *dataObj)
 {
-	char *value;
+//	char *value;
 	int	intValue;
 	int	isFound = 0;
 	
@@ -944,6 +944,12 @@ int	cmnMuxObjectParsePtp(struct DATA_CONN *dataConn, cJSON *dataObj)
 		}
 		ptpRuntime->offsetScaledLogVariance = (unsigned short )intValue;
 		isFound = 1;
+	}
+
+	if(isFound == EXT_FALSE )
+	{
+		DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "No validated field is found in '%s' packet", MUX_REST_URI_PTP );
+		isFound = EXT_TRUE;
 	}
 
 	return EXIT_SUCCESS;

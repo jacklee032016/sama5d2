@@ -1,4 +1,8 @@
 
+ from LAN or across LAN:
+./Linux.bin.X86/usr/bin/pmc -b 1|2 'GET CURRENT_DATA_SET'
+
+
 Management message types
 ------------------------------------------------------
 ./Linux.bin.X86/usr/bin/pmc -u -b 0 'GET CURRENT_DATA_SET'

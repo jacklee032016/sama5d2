@@ -113,7 +113,9 @@
 				"mClockClass": 255,
 				"mClockAccuracy": "0xfe",
 				"mOffsetScaledLogVariance": "0xffff", 
-				"mPriority2": 200
+				"mPriority2": 200,
+				"errCode": 200,
+				"msg": "No error, OK"
 			},
 		
       		"others": 

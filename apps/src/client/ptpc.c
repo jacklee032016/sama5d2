@@ -8,6 +8,7 @@
 #include <unistd.h>
 
 #include "muxPtp.h"
+#include "libCmn.h"
 
 #define CMN_MODULE_MUX_PMC			"ptpc"
 int handle_term_signals(void);
@@ -45,25 +46,27 @@ int main(int argc, char *argv[])
 
 	}
 
-	printf(CMN_MODULE_MUX_PMC "\n"  );
+//	printf(CMN_MODULE_MUX_PMC "\n"  );
+	usage(argv[0] );
 	printf("PTP domain number:%d\n", domain);
 
 //	handle_term_signals();
-	if(muxPtpInit(muxPtp, (unsigned char)domain ) == NULL )
+	muxPtp->domainCfg = domain;
+	if(muxPtpInit(muxPtp) == NULL )
 	{
-		printf("PTP Client initialization failed\n");
+		MUX_ERROR("PTP Client initialization failed");
 		goto out;
 	}
 
 	if(muxPtpRetrieve(muxPtp) == EXIT_FAILURE)
 	{
-		printf("Retrive status from PTP daemon failed\n");
+		MUX_ERROR("Retrive status from PTP daemon failed");
 		goto out;
 	}
 
+	muxPtpDebug(muxPtp);
 	
 out:
-	muxPtpDebug(muxPtp);
 	muxPtpDestory(muxPtp);
 
 	return 0;

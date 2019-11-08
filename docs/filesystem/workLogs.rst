@@ -2,6 +2,43 @@ Work Logs for File System
 ################################
 April 17th, 2019
 
+11.06, 2019
+-------------------------------------------------
+* Modification of PTP configuration
+    * add 2 fields of PTP data:
+	   * "errCode": 200, OK; others check "msg" fields
+	   * "msg": "OK or error msg";
+    * IP Command/REST API support modify the writable fields:
+	   * data can save;
+	   * can't used to control ptp daemon now;
+	* PTP is disable:
+	   * SDP clock type refer to local clock;
+	   * return alert info and zero data for most fields;
+	   * never stop at the polling PTP connection;
+	* check status of PTP server when PTP is enabled;
+	* debug the problem of clear PTP configuration data when connection can't be created;
+
+* Debug info and log in log file
+    * show important start information;
+
+* Repackage install package and update package:	 
+	* install package: 
+	    * install all application after new file system is flashed;
+		* mux7xxApp_7.3.0_arm_debug_2019_11_05.zip;
+	* update package:
+	    * update binaries and some required configuration data;
+	* packaging version for install and update packages: etc/mLab/muxMgr.ver	   
+
+
+
+11.04, 2019
+-------------------------------------------------
+* Integrated with new web pages;
+* Support default IP when DHCP server is not available: TX: 66, RX: 67;
+* New FPGA configuration: read Audio params from FPGA, instead of HDMI chip;
+* Debug the problem 'apiClient' can't send command out;
+
+
 * udhcpc of busybos configuration: 10.30, 2019
 -------------------------------------------------
 remove command options from ifup: "-R -b"

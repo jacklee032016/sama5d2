@@ -423,7 +423,7 @@ int ptpMsgReceive(struct ptp_message *m, int cnt)
 			port_id_post_recv(&m->signaling.targetPortIdentity);
 			break;
 		case MANAGEMENT:
-			pr_info("Receiving MANAGEMENT MSG");
+//			pr_info("Receiving MANAGEMENT MSG");
 			port_id_post_recv(&m->management.targetPortIdentity);
 			break;
 	}

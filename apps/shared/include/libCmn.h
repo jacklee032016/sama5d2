@@ -271,7 +271,7 @@ int cmn_log_init(log_stru_t *lobj);
 	#endif
 #endif
 
-#define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
+//#define __FILENAME__ (strrchr(__FILENAME__, '/') ? strrchr(__FILENAME__, '/') + 1 : __FILENAME__)
 
 
 #define	FILE_TO_STDOUT			0
@@ -286,7 +286,7 @@ int cmn_log_init(log_stru_t *lobj);
 #define	CMN_MSG_LOG(level, format ,...)   \
 	do{ 					\
 		if ( level <= CMN_LOG_DEBUG && get_current_level() >= level) \
-			log_information(level, __FILE__, __LINE__, format, ##__VA_ARGS__);	\
+			log_information(level, __FILENAME__, __LINE__, format, ##__VA_ARGS__);	\
 	}while(0)
 #endif
 #else
@@ -334,7 +334,7 @@ int cmn_log_init(log_stru_t *lobj);
 #define	CMN_MSG_DEBUG(level, format ,...) 	\
 	do{ 					\
 		if ( level <= CMN_LOG_DEBUG && get_current_level() >= level) \
-			log_information(level, __FILE__, __LINE__, format, ##__VA_ARGS__);	\
+			log_information(level, __FILENAME__, __LINE__, format, ##__VA_ARGS__);	\
 	}while(0)
 #endif
 

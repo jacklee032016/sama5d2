@@ -71,22 +71,25 @@ static int _cmnSysJsonUpdatePtp(EXT_RUNTIME_CFG *runCfg, cJSON *obj)
 	MuxPtpRuntime *ptpRuntime = &runCfg->ptpRuntime;
 	char msg[32];
 	
-	if(muxPtpRetrieve(ptpRuntime) == EXIT_FAILURE)
+	if(runCfg->ptpRuntime.isEnable) 
 	{
-		MUX_ERROR("PTP runtime can't be contacted now");
+		if(muxPtpRetrieve(ptpRuntime) == EXIT_FAILURE) 
+		{
+			MUX_ERROR("PTP runtime can't be contacted now");
+//			muxPtpInitData(&runCfg->ptpRuntime);
+		}
+	}
+	else
+	{/* else if disable, the default data must be re-initialized because of enable/disable dynamically */
+		muxPtpInitData(&runCfg->ptpRuntime);
+		snprintf(runCfg->ptpRuntime.msg, sizeof(runCfg->ptpRuntime.msg), "%s", "PTP is disabled");	
 	}
 
 	/* configuration */
 	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_IS_ENABLE, ptpRuntime->isEnable);
 	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_IS_SLAVE_ONLY, ptpRuntime->isSlaveOnly);
-	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_DOMAIN_NUM , ptpRuntime->domain );
+	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_DOMAIN_NUM , ptpRuntime->domainCfg );
 	
-	CJSON_REPLACE_STRING(obj, FIELD_PTP_CLOCK_ID, muxPtpId2Str(&ptpRuntime->clockId) );
-	CJSON_REPLACE_STRING(obj, FIELD_PTP_PORT_ID,  muxPtpId2Str(&ptpRuntime->portId) );
-
-	/* data */
-	CJSON_REPLACE_STRING(obj, FIELD_PTP_PORT_STATE,  ptpRuntime->portStateName );
-
 	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_PRIORITY_1, ptpRuntime->priority1);
 	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_CLOCK_CLASS, ptpRuntime->clockClass);
 	snprintf(msg, sizeof(msg), "0x%2x", ptpRuntime->clockAccuracy);
@@ -94,6 +97,13 @@ static int _cmnSysJsonUpdatePtp(EXT_RUNTIME_CFG *runCfg, cJSON *obj)
 	snprintf(msg, sizeof(msg), "0x%4x", ptpRuntime->offsetScaledLogVariance);
 	CJSON_REPLACE_STRING(obj, FIELD_PTP_OFFSET_LOG, msg);
 	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_PRIORITY_2, ptpRuntime->priority2);
+	
+	CJSON_REPLACE_STRING(obj, FIELD_PTP_CLOCK_ID, muxPtpId2Str(&ptpRuntime->clockId) );
+	CJSON_REPLACE_STRING(obj, FIELD_PTP_PORT_ID,  muxPtpId2Str(&ptpRuntime->portId) );
+
+	/* data */
+	CJSON_REPLACE_STRING(obj, FIELD_PTP_PORT_STATE,  ptpRuntime->portStateName );
+
 	
 	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_MASTER_PRESENT, ptpRuntime->masterPresent );
 
@@ -107,6 +117,9 @@ static int _cmnSysJsonUpdatePtp(EXT_RUNTIME_CFG *runCfg, cJSON *obj)
 	snprintf(msg, sizeof(msg), "0x%4x", ptpRuntime->gmOffsetScaledLogVariance);
 	CJSON_REPLACE_STRING(obj, FIELD_PTP_M_OFFSET_LOG, msg);
 	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_M_PRIORITY_2, ptpRuntime->gmPriority2);
+
+	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_M_ERROR_CODE, ptpRuntime->errCode );
+	CJSON_REPLACE_STRING(obj, FIELD_PTP_M_ERROR_MSG, ptpRuntime->msg);
 
 	return EXIT_SUCCESS;
 }
@@ -340,12 +353,14 @@ int cmnSysJsonUpdate(MuxMain *muxMain)
 {
 	cJSON *itemObj = NULL;
 	
+	TRACE();
 	itemObj = cmnJsonSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_SYSTEM, INVALIDATE_VALUE_U32);
 	if(_cmnSysJsonUpdateSystem(&muxMain->runCfg, itemObj))
 	{
 		MUX_ERROR("Update '%s' JSON failed", MUX_REST_URI_SYSTEM);
 	}
 
+	TRACE();
 	sysFpgaRefresh();
 
 	itemObj = cmnJsonSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_VIDEO, 0);
@@ -354,6 +369,7 @@ int cmnSysJsonUpdate(MuxMain *muxMain)
 		MUX_ERROR("Update '%s' JSON failed", MUX_REST_URI_VIDEO);
 	}
 
+	TRACE();
 	itemObj = cmnJsonSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_AUDIO, 0);
 	if(!itemObj ||_cmnSysJsonUpdateAudio(&muxMain->runCfg, itemObj))
 	{
@@ -380,6 +396,7 @@ int cmnSysJsonUpdate(MuxMain *muxMain)
 		MUX_ERROR("Update '%s' JSON failed", MUX_REST_URI_RS232);
 	}
 
+	TRACE();
 	itemObj = cmnJsonSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_SECURITY, INVALIDATE_VALUE_U32);
 	if(!itemObj ||_cmnSysJsonUpdateSecurity(&muxMain->runCfg, itemObj))
 	{
@@ -394,18 +411,22 @@ int cmnSysJsonUpdate(MuxMain *muxMain)
 	}
 #endif
 
+	TRACE();
 	itemObj = cmnJsonSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_PTP, INVALIDATE_VALUE_U32);
+	TRACE();
 	if(!itemObj ||_cmnSysJsonUpdatePtp(&muxMain->runCfg, itemObj))
 	{
 		MUX_ERROR("Update '%s' JSON failed", MUX_REST_URI_PTP);
 	}
 
+	TRACE();
 	itemObj = cmnJsonSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_OTHERS, INVALIDATE_VALUE_U32);
 	if(!itemObj ||_cmnSysJsonUpdateOthers(&muxMain->runCfg, itemObj))
 	{
 		MUX_ERROR("Update '%s' JSON failed", MUX_REST_URI_OTHERS);
 	}
 	
+	TRACE();
 	return EXIT_SUCCESS;
 }
 

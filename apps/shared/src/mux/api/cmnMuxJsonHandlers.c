@@ -676,7 +676,6 @@ static int	_handle4SetPtp(MUX_PLUGIN_TYPE dest, struct DATA_CONN *dataConn, cJSO
 
 	obj = dataConn->dataObj;
 
-TRACE();
 	if(dataConn->errCode == IPCMD_ERR_NOERROR)
 	{
 		REPLY_DATACONN_OK(dataConn, obj);

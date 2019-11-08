@@ -125,7 +125,7 @@ class VideoSdp(SdpResource):
             fps,
             media.get("depth", 16), strLaced )
         
-        isPtp = self.sys.get("isEnable","1")
+        isPtp = self.ptp.get("isEnable","1")
         if isPtp == 0:
             mac= self.sys.get("mac", "FF:FF:FF:FF:FF:FF")
             str += "a=ts-refclk:localmac=%s-%s-%s-%s-%s-%s\n"%(mac[0:2],mac[3:5],mac[6:8],mac[9:11],mac[12:14],mac[15:17])

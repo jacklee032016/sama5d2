@@ -6,9 +6,18 @@
 
 #define		PTPC_NOISE_DEBUG			EXT_DBG_OFF
 
+#define		PTPC_ERROR_OK						200		/* everything is OK */
 
-#define		PTPC_ERROR_NO_CONNECTION		500
-#define		PTPC_ERROR_NO_REPLY				501
+#define		PTPC_ERROR_UN_INITIALIZED			300		/* data uninitalized */
+
+#define		PTPC_ERROR_NO_CONNECTION		400
+#define		PTPC_ERROR_NO_REPLY				401
+
+/* system error */
+#define		PTPC_ERROR_SYS_NO_CFG			500
+#define		PTPC_ERROR_SYS_NET_CFG			501
+#define		PTPC_ERROR_SYS_CREATE_CLIENT		502
+
 
 typedef	struct _MUX_PTP_ID
 {
@@ -22,13 +31,6 @@ typedef	struct _MuxPtpRuntime
 	unsigned char		isEnable;
 	unsigned char		domainCfg;
 	
-	MUX_PTP_ID		clockId;
-	MUX_PTP_ID		portId;
-
-	int 				portState;
-	char				portStateName[256];
-
-
 	/************ default dataset ******************/
 	unsigned char		isTwoStep;
 	unsigned char		isSlaveOnly;
@@ -40,7 +42,17 @@ typedef	struct _MuxPtpRuntime
 	unsigned short	offsetScaledLogVariance;
 
 	unsigned char		priority2;
-	unsigned short	domain;
+
+	/* data read dynamically */
+
+//	unsigned short	domain;
+
+
+	MUX_PTP_ID		clockId;
+	MUX_PTP_ID		portId;
+
+	int 				portState;
+	char				portStateName[256];
 
 	unsigned char		portCount;
 	
@@ -65,9 +77,10 @@ typedef	struct _MuxPtpRuntime
 	void				*pmc;
 }MuxPtpRuntime;
 
+
 char *muxPtpId2Str(MUX_PTP_ID *id);
 
-void *muxPtpInit(void *_muxPtp, unsigned char domainNumber);
+void *muxPtpInit(void *_muxPtp);
 void muxPtpDestory(void *_muxPtp);
 
 int muxPtpRetrieve(void *_muxPtp);
@@ -75,6 +88,7 @@ int muxPtpDebug(void *_muxPtp);
 
 int muxPtpDefaultConfig(void *_muxPtp);
 
+int muxPtpInitData(void *_muxPtp);
 
 #endif
 

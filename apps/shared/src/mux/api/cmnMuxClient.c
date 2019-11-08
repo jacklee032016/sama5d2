@@ -212,6 +212,10 @@ int cmnMuxClientConnSendRequest(struct CLIENT_CONN *clientConn, void *buf, int s
 	else if(clientConn->type == CTRL_LINK_UDP)
 	{
 		len = sendto(clientConn->socket, sendBuf, sendSize, 0, (struct sockaddr *)&clientConn->peerAddr, clientConn->addrlen); 
+		if (len < 0)
+		{/* send boardcast packet failed with sendto when there is no default gateway */
+			MUX_ERROR("ERROR writing to socket: '%s'", strerror(errno));
+		}
 	}
 
 	return len;
@@ -409,7 +413,7 @@ cJSON *cmnMuxClientRequest(cJSON *ipCmd)
 	}
 	if(res <= 0)
 	{
-		MUX_ERROR("IP command send failed, maybe the API server is not running!");
+		MUX_ERROR("IP command send failed(%m), maybe the API server is not running!");
 		return NULL;
 	}
 

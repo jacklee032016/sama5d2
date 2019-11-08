@@ -2,6 +2,15 @@ IP Command progressive testing
 ##############################################
 Jack Lee, 08.07, 2019
 
+
+
+apiClient -c set -d  '{"system":{"sfpCfg":0}}'
+apiClient -c set -d  '{"system":{"sfpCfg":5}}'
+apiClient -c set -d  '{"system":{"sfpCfg":2}}'
+
+apiClient -c set -d  '{"system":{"forceStream":0}}'
+
+
 Following commands using set/get:
 
 system command:

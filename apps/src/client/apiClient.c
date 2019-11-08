@@ -418,7 +418,7 @@ int main(int argc, char *argv[])
 	res = _apiHandleCmd(&params, argv[0]);
 	if(res ==  EXIT_FAILURE)
 	{
-		printf("Unknow command '%s' \n", params.cmd);
+		printf("Failed command '%s' \n", params.cmd);
 		usage(argv[0], &params);
 	}
 

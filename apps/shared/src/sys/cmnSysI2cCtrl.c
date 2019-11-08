@@ -18,7 +18,7 @@
 
 #define	EP91A6SQ_REG_AUDIO_PATH						0x10
 
-
+#if 0
 /* read audio sample frequency and audo channels from EP91A6SQ HDMI repeater. Register Map. p.6  */
 int	cmnSysI2cTxReadAudioParams(unsigned char *sampleRate, unsigned char *channels, unsigned char *depth)
 {
@@ -68,6 +68,28 @@ int	cmnSysI2cTxReadAudioParams(unsigned char *sampleRate, unsigned char *channel
 
 	return EXIT_SUCCESS;
 }
+
+#else
+
+/* read audio sample frequency and audo channels from EP91A6SQ HDMI repeater. Register Map. p.6  */
+int	cmnSysI2cTxReadAudioParams(unsigned char *sampleRate, unsigned char *channels, unsigned char *depth)
+{
+	unsigned char audioChannels;
+	int ret;
+
+	/* 10.30, 2019. select audio path in HDMI repeater */
+	audioChannels = 0x80;
+	ret = EP91A6_WRITE(EP91A6SQ_REG_AUDIO_PATH, &audioChannels, sizeof(audioChannels));
+	if(ret == EXIT_FAILURE)
+	{
+		EXT_ERRORF("EP91A6SQ read failed");
+		return EXIT_FAILURE;
+	}
+
+	return EXIT_SUCCESS;
+}
+#endif
+
 
 /* an610. p.11 */
 #define	CLK_REG_DEVICE_STATUS						0

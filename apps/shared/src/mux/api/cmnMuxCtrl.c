@@ -14,6 +14,7 @@ typedef	enum
 	_SETUP_TYPE_PROTOCOL,
 	_SETUP_TYPE_SDP,
 	_SETUP_TYPE_MEDIA,
+	_SETUP_TYPE_PTP,			/* save and setup */
 	_SETUP_TYPE_CONNECT,
 }_SETUP_TYPE;
 
@@ -159,6 +160,33 @@ static char _compareSystemCfg(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 
 	return ret;
 }
+
+
+/* ptp */
+static char _comparePtpConfig(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
+{
+	char ret = EXT_FALSE;//, _ret = EXT_FALSE;
+	MuxPtpRuntime *cfgPtp = &runCfg->ptpRuntime;
+	MuxPtpRuntime *rxPtp = &rxCfg->ptpRuntime;
+	
+	_checkNumU8FieldValue(&cfgPtp->isEnable, rxPtp->isEnable, ret);	
+
+	_checkNumU8FieldValue(&cfgPtp->isSlaveOnly, rxPtp->isSlaveOnly, ret);	
+	
+	_checkNumU8FieldValue(&cfgPtp->domainCfg, rxPtp->domainCfg, ret);
+	
+	_checkNumU8FieldValue(&cfgPtp->priority1, rxPtp->priority1, ret);	
+	_checkNumU8FieldValue(&cfgPtp->priority2, rxPtp->priority2, ret);	
+
+	
+	_checkNumU8FieldValue(&cfgPtp->clockClass, rxPtp->clockClass, ret);	
+	_checkNumU8FieldValue(&cfgPtp->clockAccuracy, rxPtp->clockAccuracy, ret);
+	
+	_checkNumU16FieldValue(&cfgPtp->offsetScaledLogVariance, rxPtp->offsetScaledLogVariance, ret);
+	
+	return ret;
+}
+
 
 
 /* dest IP and ports */
@@ -382,6 +410,12 @@ char extSysCompareParams(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 		SETUP_SET_TYPE(_SETUP_TYPE_SDP);
 	}
 
+	if(_comparePtpConfig(runCfg, rxCfg) == EXT_TRUE)
+	{
+		EXT_DEBUGF(DEBUG_SYS_CTRL, "PTP params changing" );
+		SETUP_SET_TYPE(_SETUP_TYPE_PTP);
+	}
+
 	if(_compareRs232Config(runCfg, rxCfg) == EXT_TRUE)
 	{
 		EXT_DEBUGF(DEBUG_SYS_CTRL, "RS232 params changing" );
@@ -510,6 +544,13 @@ static int _cmnSysConfigCtrl(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 		cmnSysCfgSave(runCfg, EXT_CFG_MAIN);
 		fpga->opMediaWrite(fpga);
 		EXT_DEBUGF(EXT_DBG_ON, "FPGA configuration Media" );
+	}
+
+	if( SETUP_CHECK_TYPE(_SETUP_TYPE_PTP) )	
+	{
+		cmnSysCfgSave(runCfg, EXT_CFG_MAIN);
+//		bspCmdReboot(NULL, NULL, 0);
+		EXT_DEBUGF(EXT_DBG_ON, "New PTP parameters" );
 	}
 
 #if 0

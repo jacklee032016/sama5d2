@@ -154,7 +154,7 @@
 #define ETHERNET_CONF_IPADDR2_RX				168
 
 #if (MUX_BOARD == MUX_BOARD_774)
-#define ETHERNET_CONF_IPADDR3_TX				67
+#define ETHERNET_CONF_IPADDR3_TX				66
 #endif
 
 #else
@@ -450,13 +450,13 @@ enum EXT_SFP_CFG_T
 #ifndef __EXT_RELEASE__
 //	#define	EXT_PRINTF(x)						{printf x ;}
 	
-//	#define	EXT_DEBUGF(fmt, args...)	{printf("[%s-%u] DEBUG: " fmt EXT_NEW_LINE, __FILE__, __LINE__, ## args);}
+//	#define	EXT_DEBUGF(fmt, args...)	{printf("[%s-%u] DEBUG: " fmt EXT_NEW_LINE, __FILENAME__, __LINE__, ## args);}
 	#define	EXT_DEBUGF(debug, format, message...)		do { \
                                if ( \
                                    ((debug) & EXT_DBG_ON) && \
                                    ((debug) & EXT_DBG_TYPES_ON) && \
                                    ((int16_t)((debug) & EXT_DBG_MASK_LEVEL) >= EXT_DBG_MIN_LEVEL)) { \
-                                 SYS_PRINT("%s [DBUG,%s]: [%s-%u.%s()]: " format EXT_NEW_LINE, sysTimestamp(),  sysTaskName(), __FILE__, __LINE__, __FUNCTION__, ##message); \
+                                 SYS_PRINT("%s [DBUG,%s]: [%s-%u.%s()]: " format EXT_NEW_LINE, sysTimestamp(),  sysTaskName(), __FILENAME__, __LINE__, __FUNCTION__, ##message); \
                                  if ((debug) & EXT_DBG_HALT) { \
                                    while(1); \
                                  } \
@@ -464,13 +464,13 @@ enum EXT_SFP_CFG_T
                              } while(0)
 
                              
-	#define	EXT_INFOF(format, message...)		{SYS_PRINT(ANSI_COLOR_CYAN "%s [INFO,%s]: [%s-%u]:" format ANSI_COLOR_RESET EXT_NEW_LINE, sysTimestamp(), sysTaskName(), __FILE__, __LINE__, ##message);}
+	#define	EXT_INFOF(format, message...)		{SYS_PRINT(ANSI_COLOR_CYAN "%s [INFO,%s]: [%s-%u]:" format ANSI_COLOR_RESET EXT_NEW_LINE, sysTimestamp(), sysTaskName(), __FILENAME__, __LINE__, ##message);}
 	
-	#define	EXT_ERRORF(format, message...)		{SYS_PRINT(EXT_ERROR_TEXT_BEGIN "%s [ERR, %s]: [%s-%u]:" format EXT_ERROR_TEXT_END  EXT_NEW_LINE, sysTimestamp(), sysTaskName(), __FILE__, __LINE__, ##message);}
+	#define	EXT_ERRORF(format, message...)		{SYS_PRINT(EXT_ERROR_TEXT_BEGIN "%s [ERR, %s]: [%s-%u]:" format EXT_ERROR_TEXT_END  EXT_NEW_LINE, sysTimestamp(), sysTaskName(), __FILENAME__, __LINE__, ##message);}
 
-//	#define	EXT_ASSERT(x)						{printf("Assertion \"%s\" failed at line %d in %s\n", x, __LINE__, __FILE__); while(1);}
-	#define	EXT_ASSERT(x, format, msg...)		{if((x)==0) {SYS_PRINT(EXT_ERROR_TEXT_BEGIN"%s %s: ASSERT: [%s-%u]:" format EXT_ERROR_TEXT_END EXT_NEW_LINE, sysTimestamp(),  sysTaskName(), __FILE__, __LINE__ , ##msg);while(0){};}}
-	#define	EXT_ABORT(fmt, args... )				SYS_PRINT("%s %s: ABORT in [" __FILE__ "-%u]:" fmt EXT_NEW_LINE, sysTimestamp(), sysTaskName(), __LINE__, ##args );while(1){}
+//	#define	EXT_ASSERT(x)						{printf("Assertion \"%s\" failed at line %d in %s\n", x, __LINE__, __FILENAME__); while(1);}
+	#define	EXT_ASSERT(x, format, msg...)		{if((x)==0) {SYS_PRINT(EXT_ERROR_TEXT_BEGIN"%s %s: ASSERT: [%s-%u]:" format EXT_ERROR_TEXT_END EXT_NEW_LINE, sysTimestamp(),  sysTaskName(), __FILENAME__, __LINE__ , ##msg);while(0){};}}
+	#define	EXT_ABORT(fmt, args... )				SYS_PRINT("%s %s: ABORT in [" __FILENAME__ "-%u]:" fmt EXT_NEW_LINE, sysTimestamp(), sysTaskName(), __LINE__, ##args );while(1){}
 
 //	#define	TRACE()								_TRACE_OUT(EXT_NEW_LINE )
 #else
@@ -490,7 +490,7 @@ enum EXT_SFP_CFG_T
 #endif
 
 #define	_TRACE_OUT(format, message...)	\
-			{SYS_PRINT("%s: [%s-%u.%s()]: "format,  sysTaskName(), __FILE__, __LINE__, __FUNCTION__, ##message); }
+			{SYS_PRINT("%s: [%s-%u.%s()]: "format,  sysTaskName(), __FILENAME__, __LINE__, __FUNCTION__, ##message); }
 
 
 #define		MUX_DEBUG_HW_CTRL					EXT_DBG_OFF
@@ -1448,6 +1448,7 @@ int cmnSysCfgRead( EXT_RUNTIME_CFG *cfg, EXT_CFG_TYPE cfgType);
 int cmnSysSaveMac2Uboot( EXT_RUNTIME_CFG *cfg );
 
 int cmnSysEthernetConfig( EXT_RUNTIME_CFG *cfg);
+int cmnSysWriteSysConfig( EXT_RUNTIME_CFG *cfg );
 
 
 #ifdef	ARM 

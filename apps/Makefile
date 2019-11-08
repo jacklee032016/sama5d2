@@ -30,19 +30,21 @@ export HISI_LINUX_ENV=ok
 export EDITION
 export PLUGINS
 
+BUILDTIME := $(shell TZ=CN date -u "+%Y_%m_%d")
+GCC_VERSION := $(shell $(CC) -dumpversion )
 
-
-RELEASES_NAME=$(PROJECT_NAME)_$(GCC_VERSION)_$(ARCH)_$(EDITION)_$(BUILDTIME).zip
+INSTALL_NAME=$(PROJECT_NAME)_install_$(GCC_VERSION)_$(ARCH)_$(EDITION)_$(BUILDTIME).zip
+UPDATE_NAME=$(PROJECT_NAME)_update_$(GCC_VERSION)_$(ARCH)_$(EDITION)_$(BUILDTIME).zip
 #.tar.gz  
 
 export ARCH
 export BUILDTIME
-export RELEASES_NAME
+export INSTALL_NAME
+export UPDATE_NAME
 
-include $(RULE_DIR)/Rules.mak
-include $(ROOT_DIR)/Rules.mak
 
 	SHARED_DIRS += shared/src/common
+
 	SHARED_DIRS += shared/src/mux
 	SHARED_DIRS += shared/src/sys
 
@@ -85,6 +87,12 @@ clean:
 install:
 	@$(SHELL) $(ROOT_DIR)/buildver.sh $(ROOT_DIR)
 	@$(SHELL) $(ROOT_DIR)/install.sh $(ROOT_DIR)/Linux.bin.$(ARCH) $(ROOT_DIR)/releases  
+
+
+update:
+	@$(SHELL) $(ROOT_DIR)/buildver.sh $(ROOT_DIR)
+	@$(SHELL) $(ROOT_DIR)/update.sh $(ROOT_DIR)/Linux.bin.$(ARCH) $(ROOT_DIR)/releases  
+
 
 #	@$(SHELL) $(ROOT_DIR)/buildver.sh $(ROOT_DIR)
 
