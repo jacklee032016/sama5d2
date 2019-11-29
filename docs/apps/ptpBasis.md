@@ -45,10 +45,16 @@
    * msg not forward, except Mgmt;
    * Network element;
 * E2E Transparent Clock: independent of thse mechanism
+   * forward all messages;
+   * resident time --> corect field of event message;   
 * P2P Transparent Clock: peer mechanism
+   * differ in the way it corrects and handles the PTP timing message;
 * Management device:
 
 ### 2 Delay measuring Mechanisms
 * Delay request-response mechanism: 
 * Peer delay mechanism:
+
+### FSM fpr Transparent Clock
+
    
