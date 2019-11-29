@@ -23,6 +23,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <termios.h>
+
 #include "clock.h"
 #include "ptpConfig.h"
 #include "ptpCompact.h"
@@ -63,6 +65,131 @@ static void usage(char *progname)
 		progname);
 }
 
+
+#if DISABLE_SEGMENT_FAULT
+void sig_seg(void)
+{
+	printf("sig_seg\n");
+	fflush(stdout);
+	while(1)
+		;
+}
+#endif
+
+static struct termios _oldtty;
+
+static void termExit(void)
+{
+	MUX_INFO("termExit" );
+	
+//	if(_muxMain.muxLog.isDaemonized)
+	{
+		tcsetattr (0, TCSANOW, &_oldtty);
+	}
+
+	exit(1);
+}
+
+static void sigTermHandler(int sig)
+{
+//	SYSTEM_SIGNAL_EXIT();
+
+	termExit();
+}
+
+static void termInit(int isDaemonized)
+{
+	struct termios tty;
+
+	tcgetattr (0, &tty);
+	_oldtty = tty;
+
+	tty.c_iflag &= ~(IGNBRK|BRKINT|PARMRK|ISTRIP |INLCR|IGNCR|ICRNL|IXON); /* input modes */
+	tty.c_oflag |= OPOST;/* output modes */
+	tty.c_lflag &= ~(ECHO|ECHONL|ICANON|IEXTEN); /* local modes */
+	tty.c_cflag &= ~(CSIZE|PARENB);  /* control modes */
+	tty.c_cflag |= CS8; 
+	tty.c_cc[VMIN] = 1; /* special characters */
+	tty.c_cc[VTIME] = 0;
+
+	if(isDaemonized)
+	{/* change occurs immediately*/
+		if(tcsetattr (0, TCSANOW, &tty) )
+		{
+			fprintf(stderr, "Set Terminal failed:%s", strerror(errno) );
+		}
+	}
+
+	signal(SIGINT , sigTermHandler); /* Interrupt (ANSI).  */
+	signal(SIGQUIT, sigTermHandler); /* Quit (POSIX).  */
+	signal(SIGTERM, sigTermHandler); /* Termination (ANSI).  */
+	
+	/*  register a function to be called at normal program termination */
+	atexit(termExit);
+	
+#ifdef CONFIG_BEOS_NETSERVER
+	fcntl(0, F_SETFL, fcntl(0, F_GETFL) | O_NONBLOCK);
+#endif
+}
+
+static int _initLog(log_stru_t *muxLog, struct PtpConfig *cfg)
+{
+	muxLog->lfacility = CMN_LOG_7;
+	muxLog->lstyle = USE_FILE;
+	muxLog->llevel  = CMN_LOG_DEBUG;
+	muxLog->isDaemonized = TRUE;
+	muxLog->maxSize = 2048*UNIT_OF_KILO;
+
+	snprintf(muxLog->logFileName, 256, "%s", config_get_string(cfg, NULL, "ptp_log"));
+	if (!strcmp(muxLog->logFileName, "-"))
+	{
+		muxLog->lstyle = USE_CONSOLE;
+	}
+	
+	muxLog->isDaemonized = (config_get_int(cfg, NULL, "verbose")==0);
+	if(muxLog->isDaemonized )
+	{
+		MUX_INFO("running as daemon");
+	}
+	else
+	{
+		MUX_INFO("running as front-end");
+	}
+	
+	int val = config_get_int(cfg, NULL, "logging_level");
+	if(val < CMN_LOG_EMERG || val > CMN_LOG_DEBUG)
+	{
+		val = CMN_LOG_NOTICE;
+	}
+	muxLog->llevel = val;
+
+	/* signal init */
+	signal(SIGPIPE, SIG_IGN);
+
+#if DISABLE_SEGMENT_FAULT
+	if(signal(SIGSEGV,(void *)sig_seg)==SIG_ERR)
+	{
+		MUX_WARN("signal SEG error\n");
+	}
+#endif
+
+	/* every thread must be created after set terminal attributes */
+	termInit(muxLog->isDaemonized);
+
+	fprintf(stderr, "Start logging of '%s' .....\n", muxLog->logFileName );
+	if(cmn_log_init(muxLog)<0)
+	{
+		printf("%s Log Init Failed.\n", muxLog->name );
+		return EXIT_FAILURE;
+	}
+
+#if PTP_FPGA_UPDATE
+	clockInitFpga();
+#endif
+
+	return EXIT_SUCCESS;
+}
+
 int main(int argc, char *argv[])
 {
 	char *configFile = NULL, *req_phc = NULL, *progname;
@@ -71,6 +198,10 @@ int main(int argc, char *argv[])
 	struct PtpClock *clock = NULL;
 	struct option *opts;
 	struct PtpConfig *cfg;
+	int _domainNumber = 0;
+
+
+	log_stru_t	muxLog;
 
 #if 0
 	if (handle_term_signals())
@@ -174,6 +305,21 @@ int main(int argc, char *argv[])
 				goto out;
 		}
 	}
+#else
+	while (EOF != (c = getopt_long(argc, argv, "d:", opts, &index)))
+	{
+		switch (c)
+		{
+			case 'p':
+				_domainNumber = atoi(optarg);
+				break;
+			case '?':
+			default:
+				usage(progname);
+				goto out;
+		}
+	}
+
 #endif
 
 #if 0
@@ -212,6 +358,9 @@ int main(int argc, char *argv[])
 		usage(progname);
 		goto out;
 	}
+
+
+	_initLog(&muxLog, cfg);
 
 	EXT_INFOF("Ptp Interface number: %d", cfg->n_interfaces);
 	type = config_get_int(cfg, NULL, "clock_type");

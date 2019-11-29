@@ -6,19 +6,6 @@
 #ifndef	__MUX_7XX_H__
 #define	__MUX_7XX_H__
 
-/* board type, so libMux and libCmnSys can be customized */
-#define	EXT_BOARD_TYPE			MUX_BOARD_TYPE_774
-
-#if 1
-#define	MUX_ATMEL_XPLAINED		1
-#define	MUX_BOARD_768				2
-#define	MUX_BOARD_774				3
-#define	MUX_BOARD_767				4
-
-//#define	MUX_BOARD				MUX_BOARD_774
-//#define	MUX_BOARD				MUX_ATMEL_XPLAINED
-#endif
-
 
 #define	EEPROM_AT24MAC402_ADDRESS			(0xBE >> 1)	/* Evaludation board AT24MAC, 4Kb */
 #define	EEPROM_24LC32A_ADDRESS				(0xAE >> 1)	/* 4Kb, on channel-1, shared with Sensor */
@@ -132,6 +119,7 @@ typedef	enum
 	LED_TYPE_VIDEO	,
 	LED_TYPE_ACT,
 	LED_TYPE_LINK,
+	LED_TYPE_SIGNAL,
 	LED_TYPE_UNKNOWN
 }LED_TYPE_T;
 

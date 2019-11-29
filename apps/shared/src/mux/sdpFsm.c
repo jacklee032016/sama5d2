@@ -72,7 +72,8 @@ static int _sdpcConnect(struct SDP_CLIENT *sdpClient, int timeoutSeconds)
 		return EXIT_FAILURE;
 	} 
 
-	index += snprintf(sdpClient->buffer, sizeof(sdpClient->buffer), "GET /%s HTTP/1.0"EXT_NEW_LINE EXT_NEW_LINE, sdpClient->url.uri);
+	index += snprintf(sdpClient->buffer, sizeof(sdpClient->buffer), "GET /%s HTTP/1.1"EXT_NEW_LINE "Host: %s" EXT_NEW_LINE EXT_NEW_LINE, 
+		sdpClient->url.uri, cmnSysNetAddress(sdpClient->sdpCtx->muxMain->runCfg.local.ip) );
 	len = write(sock, (unsigned char *)sdpClient->buffer, index);
 	if (len < 0)
 	{
@@ -346,7 +347,9 @@ void	sdpClientFsmHandle(struct SDP_CLIENT *sdpClient, struct SDP_EVENT *sdpEvent
 		return;
 	}
 
+TRACE();
 	_state = _sdpcFsmFindState(_fsm, sdpClient->state);
+	EXT_ASSERT((_state!=NULL), "State %d is not found", sdpClient->state );
 
 	const transition_t *handle = _state->eventHandlers;
 	for(i=0; i < _state->size; i++)
@@ -380,6 +383,7 @@ void	sdpClientFsmHandle(struct SDP_CLIENT *sdpClient, struct SDP_EVENT *sdpEvent
 					(_state->enter_handle)(sdpClient);
 				}
 
+TRACE();
 				sdpClient->state = newState;
 			}
 

@@ -421,7 +421,7 @@ enum EXT_SFP_CFG_T
 
 #define	EXT_IPCMD_DEBUG						EXT_DBG_OFF
 
-#define	SDP_CLIENT_DEBUG						EXT_DBG_OFF
+#define	SDP_CLIENT_DEBUG						EXT_DBG_ON
 
 
 /*
@@ -920,6 +920,7 @@ typedef	enum
 #elif (MUX_BOARD == MUX_BOARD_774)
 typedef	enum
 {
+#if 0
 	EXT_A_RATE_HEADER		= 0,	/** stream header */
 	EXT_A_RATE_32K			= 1,
 	EXT_A_RATE_44K			= 2,	/* 44.1 K */
@@ -929,6 +930,13 @@ typedef	enum
 	EXT_A_RATE_176K		= 6,	/* 176.4 K*/
 	EXT_A_RATE_192K		= 7,
 //	EXT_A_RATE_768K		= 7,
+#else
+	EXT_A_RATE_HEADER		= 0,	/** stream header */
+	EXT_A_RATE_44K			= 2,	/* 44.1 K */
+	EXT_A_RATE_48K			= 3,
+	EXT_A_RATE_96K			= 5,
+//	EXT_A_RATE_768K		= 7,
+#endif
 	EXT_A_RATE_NONE
 }EXT_A_RATE;
 #else

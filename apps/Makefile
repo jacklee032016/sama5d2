@@ -15,7 +15,7 @@ else
 endif
 
 
-PROJECT_NAME:=mux7xxApp
+PROJECT_NAME:=apps
 
 ROOT_DIR:=$(shell pwd)
 RULE_DIR:=$(ROOT_DIR)/../
@@ -60,7 +60,7 @@ endif
 
 
 	APP_DIRS += src/main
-	APP_DIRS += src/uenvs
+#	APP_DIRS += src/uenvs
 	APP_DIRS += src/tests
 
 
@@ -97,5 +97,5 @@ update:
 #	@$(SHELL) $(ROOT_DIR)/buildver.sh $(ROOT_DIR)
 
 package:clean
-	cd ..; tar -cvjf $(PROJECT_NAME).$(BUILDTIME).tar.bz2 mux7xxApp
+	cd ..; tar -cvjf $(PROJECT_NAME).$(BUILDTIME).tar.bz2 $(PROJECT_NAME)
 			

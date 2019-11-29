@@ -9,14 +9,14 @@ CODE_SUBDIRS = \
 	.
 
 
-CFLAGS += -Wall -DVER=2.0 -D_GNU_SOURCE -DHAVE_CLOCK_ADJTIME -DHAVE_POSIX_SPAWN -DHAVE_ONESTEP_SYNC -I../include -I../mux
+CFLAGS += $(SHARED_CFLAGS) $(PTP_CFLAGS)
 
 SRC:= \
 
 	
 
 LOCAL_ALL := \
-		ptp4l \
+		muxPtpd \
 		hwstamp_ctl \
 		nsm \
 		phc_ctl \
@@ -34,10 +34,10 @@ else
 LDFLAGS += -ldl
 endif
 
-LDFLAGS += -lPtp4l -lpthread -lrt -lm
+LDFLAGS += -lShared  -lMuxPtp -lPtp4l -lpthread -lrt -lm
+# -lCmnSys -lMux
 
-
-ptp4l:$(OBJ_DIR)/ptp4l.o 
+muxPtpd:$(OBJ_DIR)/ptp4l.o 
 	$(CC) -s -Wl,--gc-sections -o $@ $^ $(LDFLAGS) 
 	$(MOVE) $@ $(BIN_DIR)/sbin  
 
@@ -47,7 +47,7 @@ hwstamp_ctl:$(OBJ_DIR)/hwstamp_ctl.o
 
 nsm:$(OBJ_DIR)/nsm.o
 	$(CC) -s -Wl,--gc-sections -o $@ $^ $(LDFLAGS)
-	$(MOVE) $@ $(BIN_DIR)/bin  
+	$(MOVE) $@ $(BIN_DIR)/usr/bin  
 
 phc2sys:$(OBJ_DIR)/phc2sys.o
 	$(CC) -s -Wl,--gc-sections -o $@ $^ $(LDFLAGS)

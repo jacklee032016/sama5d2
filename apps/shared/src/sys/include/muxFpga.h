@@ -189,6 +189,7 @@ typedef	enum
 #define	F_REG_TX_RTP_TIMESTAMP_VIDEO				0x08	/* 4 bytes, 32 bits */
 #define	F_REG_TX_RTP_TIMESTAMP_AUDIO			0x0F	/* 4 bytes, 32 bits */
 
+#define	F_REG_TX_GRAND_MASTER_TIMESTAMP		0x14
 
 #define	F_REG_TX_RTP_AUDIO_PAYLOAD_TYPE			INVALIDATE_VALUE_U8
 #define	F_REG_TX_RTP_ANC_PAYLOAD_TYPE			INVALIDATE_VALUE_U8
@@ -258,7 +259,6 @@ typedef	enum
 
 #define	F_REG_RX_SYS_GBE_RX_COUNT				0x22
 #define	F_REG_RX_SYS_GBE_TX_COUNT				0x24
-
 
 #define	F_REG_RX_SYS_AUDIO_SELECT				0x1A
 #define	F_REG_RX_SYS_AUDIO_MASK					0x1B
@@ -553,14 +553,22 @@ typedef	struct	_FpgaConfig
 /* used to debug, accessing with address directly */
 /* 8 bits address, and 8 bit data */
 #define	FPGA_I2C_WRITE(address, val, size)		\
-	I2C_EXT_WRITE(0, EXT_I2C_PCA9554_CS_NONE, EXT_I2C_ADDRESS_FPGA, (address), 1, (val), size)
+	I2C_EXT_WRITE(0, EXT_I2C_PCA9554_CS_NONE, EXT_FPAG_ADDRESS_SYSTEM, (address), 1, (val), size)
 
 //	extI2CWrite(EXT_I2C_PCA9554_CS_NONE, EXT_I2C_ADDRESS_FPGA, (address), 1, (val), size)
 
 #define	FPGA_I2C_READ(address, val, size)		\
-	I2C_EXT_READ(0, EXT_I2C_PCA9554_CS_NONE, EXT_I2C_ADDRESS_FPGA, (address), 1, (val), size)
+	I2C_EXT_READ(0, EXT_I2C_PCA9554_CS_NONE, EXT_FPAG_ADDRESS_SYSTEM, (address), 1, (val), size)
 //	extI2CRead(EXT_I2C_PCA9554_CS_NONE, EXT_I2C_ADDRESS_FPGA, (address), 1, (val), size)
 
+
+#define	FPGA_I2C_4BYTE_WRITE(address, val, size)		\
+	I2C_EXT_WRITE(0, EXT_I2C_PCA9554_CS_NONE, EXT_FPAG_ADDRESS_SYSTEM, (address), 1, (val), size)
+
+//	extI2CWrite(EXT_I2C_PCA9554_CS_NONE, EXT_I2C_ADDRESS_FPGA, (address), 1, (val), size)
+
+#define	FPGA_I2C_4BYTE_READ(address, val, size)		\
+	I2C_EXT_READ(0, EXT_I2C_PCA9554_CS_NONE, EXT_FPAG_ADDRESS_SYSTEM, (address), 1, (val), size)
 
 /* can be used to implment on different boards */
 
@@ -613,6 +621,9 @@ typedef	struct	_FpgaConfig
 #define	_extFpgaRead3Bytes(address, intVal) \
 	{	unsigned char *p = (unsigned char *)(intVal); *intVal=0;  FPGA_READ((address), p, 3); *intVal = (ntohl(*intVal)|(239) ) ; }
 
+
+#define	_extFpgaReadIntegerChange(address, intVal) \
+		{FPGA_READ((address), intVal, 4); }
 
 #define	_extFpgaReadInteger(address, intVal) \
 		{FPGA_READ((address), intVal, 4); *((unsigned int *)intVal) = ntohl(*((unsigned int *)intVal)); }

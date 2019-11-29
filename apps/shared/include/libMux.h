@@ -320,7 +320,7 @@ typedef	enum _CMD_TYPE
 #define	FIELD_ANC_IP								"ip"
 #define	FIELD_ANC_PORT								"port"
 #define	FIELD_ANC_SDP								"sdp"
-#define	FIELD_ANC_VP_ID							"vpId"	/* Video Payload ID (VPID) for ANC data packet. https://www.iana.org/assignments/media-types/video/smpte291 */
+#define	FIELD_ANC_VP_ID							"payloadType"	/* Video Payload ID (VPID) for ANC data packet. https://www.iana.org/assignments/media-types/video/smpte291 */
 
 /* SDP fields */
 #define	FIELD_SDP_MEDIA							"media"
@@ -893,7 +893,7 @@ typedef	struct _MuxMain
 
 
 	int						isClientPolling;		/* polling for SDP client in RX */
-	int						pollTime;			/* seconds, sdp poll time */
+	int						sdpPollTime;			/* seconds, sdp poll time */
 
 	int						resetTime;			/* time for reset when button is pressed, seconds */
 	

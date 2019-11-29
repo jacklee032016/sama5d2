@@ -695,8 +695,16 @@ int ntp_validate_timex(struct timex *txc)
 				return -EINVAL;
 
 		} else {
+	/* Jack Lee, 11, 26, 2019 to support nano second which is bigger than USEC_PER_SEC 
+	* refer to https://gist.github.com/dvdhrm/d4ac7d9209f3be1e55c4
+	*/
+#if 1
 			if (!timeval_inject_offset_valid(&txc->time))
 				return -EINVAL;
+#else
+			if (!timeval_inject_offset_valid(&txc->time, txc->modes & ADJ_NANO))
+				return -EINVAL;
+#endif	
 		}
 	}
 

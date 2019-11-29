@@ -17,7 +17,6 @@
 #include "ptpConfig.h"
 
 #include "muxPtp.h"
-#include "libCmn.h"
 
 #define	PTP_TRACE()	CMN_MSG_LOG(CMN_LOG_DEBUG,"" )
 

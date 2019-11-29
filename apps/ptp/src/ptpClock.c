@@ -37,6 +37,31 @@
 #include "clockPrivate.h"
 #include "portPrivate.h"
 
+#include "libCmnSys.h"
+
+#if PTP_FPGA_UPDATE
+EXT_RUNTIME_CFG		_runCfg;
+
+int clockInitFpga(void)
+{
+	EXT_RUNTIME_CFG		*runCfg = &_runCfg;
+
+	memset(runCfg, 0, sizeof(EXT_RUNTIME_CFG));
+
+	cmnSysCfgFromFactory(runCfg);
+
+	if(sysFpgaInit(runCfg)== EXIT_FAILURE)
+	{
+		MUX_ERROR("FPGA failed");
+	}
+
+//	sysFpgaRefresh();
+
+	EXT_INFOF(EXT_NEW_LINE"OK");
+	return 0;
+}
+#endif
+
 int (*clock_dscmp(struct PtpClock *c))(struct dataset *a, struct dataset *b)
 {
 	return c->dscmp;
@@ -201,7 +226,7 @@ int clock_management_fill_response(struct PtpClock *c, struct PtpPort *p,
 	return 1;
 }
 
-static void clock_stats_update(struct clock_stats *s, double offset, double freq)
+static void clock_stats_update(struct clock_stats *s, double offset, double freq, enum servo_state state)
 {
 	struct stats_result offset_stats, freq_stats, delay_stats;
 
@@ -216,15 +241,15 @@ static void clock_stats_update(struct clock_stats *s, double offset, double freq
 
 	/* Path delay stats are updated separately, they may be empty. */
 	if (!stats_get_result(s->delay, &delay_stats)) {
-		pr_info("rms %4.0f max %4.0f "
+		pr_info("S%d: rms %4.0f max %4.0f "
 			"freq %+6.0f +/- %3.0f "
-			"delay %5.0f +/- %3.0f",
+			"delay %5.0f +/- %3.0f", state,
 			offset_stats.rms, offset_stats.max_abs,
 			freq_stats.mean, freq_stats.stddev,
 			delay_stats.mean, delay_stats.stddev);
 	} else {
-		pr_info("rms %4.0f max %4.0f "
-			"freq %+6.0f +/- %3.0f",
+		pr_info("S%d: rms %4.0f max %4.0f "
+			"freq %+6.0f +/- %3.0f", state, 
 			offset_stats.rms, offset_stats.max_abs,
 			freq_stats.mean, freq_stats.stddev);
 	}
@@ -270,7 +295,7 @@ static enum servo_state clock_no_adjust(struct PtpClock *c, tmv_t ingress, tmv_t
 	freq = (1.0 - ratio) * 1e9;
 
 	if (c->stats.max_count > 1) {
-		clock_stats_update(&c->stats, tmv_dbl(c->master_offset), freq);
+		clock_stats_update(&c->stats, tmv_dbl(c->master_offset), freq, state);
 	} else {
 		pr_info("master offset %10" PRId64 " s%d freq %+7.0f "
 			"path delay %9" PRId64,
@@ -523,17 +548,27 @@ enum servo_state ptpClockSynchronize(struct PtpClock *c, tmv_t ingress, tmv_t or
 
 	c->ingress_ts = ingress;
 
+//	pr_info("ingress %10" PRId64 "; origin %10" PRId64, tmv_to_nanoseconds(ingress), tmv_to_nanoseconds(origin));
+
+	/* update t1, t2 in tsproc */
 	tsproc_down_ts(c->tsproc, origin, ingress);
 
-	if (tsproc_update_offset(c->tsproc, &c->master_offset, &weight)) {
-		if (c->free_running) {
+	if (tsproc_update_offset(c->tsproc, &c->master_offset, &weight))
+	{
+		pr_info("Timestamp process failed");
+		if (c->free_running)
+		{
 			return clock_no_adjust(c, ingress, origin);
-		} else {
+		}
+		else
+		{
 			return state;
 		}
 	}
 
-	if (clock_utc_correct(c, ingress)) {
+	if (clock_utc_correct(c, ingress))
+	{
+		pr_info("UTC is not correct, S%d", c->servo_state);
 		return c->servo_state;
 	}
 
@@ -543,13 +578,17 @@ enum servo_state ptpClockSynchronize(struct PtpClock *c, tmv_t ingress, tmv_t or
 		return clock_no_adjust(c, ingress, origin);
 	}
 
-	adj = servo_sample(c->servo, tmv_to_nanoseconds(c->master_offset),
-			   tmv_to_nanoseconds(ingress), weight, &state);
+	
+	/* ingress is local timestamp for FollowUp and Sync */
+	adj = servo_sample(c->servo, tmv_to_nanoseconds(c->master_offset), tmv_to_nanoseconds(ingress), weight, &state);
 	c->servo_state = state;
 
 	if (c->stats.max_count > 1)
 	{
-		clock_stats_update(&c->stats, tmv_dbl(c->master_offset), adj);
+#if PTP_FPGA_UPDATE
+		pr_info("max_count %d", c->stats.max_count);
+#endif
+		clock_stats_update(&c->stats, tmv_dbl(c->master_offset), adj, state);
 	}
 	else
 	{
@@ -573,6 +612,11 @@ enum servo_state ptpClockSynchronize(struct PtpClock *c, tmv_t ingress, tmv_t or
 						-tmv_to_nanoseconds(c->master_offset));
 			}
 			tsproc_reset(c->tsproc, 0);
+
+#if PTP_FPGA_UPDATE
+			sysFpgaWritePtpTimestamp(&_runCfg);
+#endif
+
 			break;
 		case SERVO_LOCKED:
 			clockadj_set_freq(c->clkid, -adj);
@@ -587,6 +631,7 @@ enum servo_state ptpClockSynchronize(struct PtpClock *c, tmv_t ingress, tmv_t or
 	return state;
 }
 
+/* n: master's sync interval */
 void clock_sync_interval(struct PtpClock *c, int n)
 {
 	int shift;
@@ -594,7 +639,8 @@ void clock_sync_interval(struct PtpClock *c, int n)
 	shift = c->freq_est_interval - n;
 	if (shift < 0)
 		shift = 0;
-	else if (shift >= sizeof(int) * 8) {
+	else if (shift >= sizeof(int) * 8)
+	{
 		shift = sizeof(int) * 8 - 1;
 		pr_warning("freq_est_interval is too long");
 	}
@@ -607,7 +653,7 @@ void clock_sync_interval(struct PtpClock *c, int n)
 		shift = sizeof(int) * 8 - 1;
 		pr_warning("summary_interval is too long");
 	}
-	c->stats.max_count = (1 << shift);
+	c->stats.max_count = (1 << shift); /* how many sync receivied in this sync interval */
 
 	servo_sync_interval(c->servo, n < 0 ? 1.0 / (1 << -n) : 1 << n);
 }

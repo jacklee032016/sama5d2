@@ -9,7 +9,7 @@ CODE_SUBDIRS = \
 	.
 
 
-CFLAGS += -Wall -DVER=2.0 -D_GNU_SOURCE -DHAVE_CLOCK_ADJTIME -DHAVE_POSIX_SPAWN -DHAVE_ONESTEP_SYNC -I../include
+CFLAGS += $(SHARED_CFLAGS) $(PTP_CFLAGS)
 
 SRC:= \
 	psysConfig.c \
@@ -33,8 +33,8 @@ else
 LDFLAGS += -ldl
 endif
 
-LDFLAGS += -lPtp4l -lpthread -lrt -lm
-
+LDFLAGS += -lShared -lPtp4l -lpthread -lrt -lm
+#-lCmnSys -lMux -lMuxPtp 
 
 phc2sys:$(OBJS)
 	$(CC) -s -Wl,--gc-sections -o $@ $^ $(LDFLAGS)

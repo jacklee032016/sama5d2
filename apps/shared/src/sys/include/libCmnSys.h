@@ -162,6 +162,17 @@ int cmnSysLedCtrl(LED_TYPE_T type, LED_MODE_T mode);
 #define	CMN_SYS_LED_CTRL(led, mode)	\
 			cmnSysLedCtrl((led), (mode)	)
 
+/* LED signal, send signal to FPGA, 11.25, 2019 */
+#define	CMN_SYS_LED_SIGNAL_CTRL( mode)	\
+			CMN_SYS_LED_CTRL(LED_TYPE_SIGNAL, (mode)	)
+
+#define	CMN_SYS_LED_SIGNAL_OFF( mode)	\
+			CMN_SYS_LED_SIGNAL_CTRL(LED_MODE_OFF)
+
+#define	CMN_SYS_LED_SIGNAL_ON( mode)	\
+			CMN_SYS_LED_SIGNAL_CTRL(LED_MODE_ON)
+
+
 /* LED power, used by IP command to blink */
 #define	CMN_SYS_LED_POWER_CTRL( mode)	\
 			CMN_SYS_LED_CTRL(LED_TYPE_POWER, (mode)	)
@@ -395,11 +406,13 @@ int cmnSysI2cSi5351VcxoControl(unsigned long clkFreq);
 
 
 #define	FPGA_GET_PTP_TIMESTAMP_VIDEO()		\
-		(uint32_t)(cmnGetTimeUs()/FPGA_TIMESTAMP_UNIT_VIDEO)
+		(uint32_t)(cmnGetTimeUs()*1000/FPGA_TIMESTAMP_UNIT_VIDEO)
 
 
 #define	FPGA_GET_PTP_TIMESTAMP_AUDIO()		\
-		(uint32_t)(cmnGetTimeUs()/FPGA_TIMESTAMP_UNIT_AUDIO)
+		(uint32_t)(cmnGetTimeUs()*1000/FPGA_TIMESTAMP_UNIT_AUDIO)
+
+int sysFpgaWritePtpTimestamp(void 	*fpga);
 
 #endif
 

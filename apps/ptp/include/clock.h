@@ -211,5 +211,8 @@ void clock_check_ts(struct PtpClock *c, uint64_t ts);
 double clock_rate_ratio(struct PtpClock *c);
 
 
+int clockInitFpga(void);
+
+
 
 #endif

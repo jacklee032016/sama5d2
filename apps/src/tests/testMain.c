@@ -70,12 +70,20 @@ int testClock(void)
 	return EXIT_SUCCESS;
 }
 
-int testTimestamp(void)
+int testTimestamp2(void)
 {
+	struct timeval tv;
+
+	gettimeofday(&tv,NULL);
+//	return (uint64_t)tv.tv_sec * 1000000 + tv.tv_usec;
+
 	uint64_t tsUs = cmnGetTimeUs();
 	uint32_t regVideo = FPGA_GET_PTP_TIMESTAMP_VIDEO();
 	uint32_t regAudio = FPGA_GET_PTP_TIMESTAMP_AUDIO();
-	EXT_INFOF("Current Timestamp: %llu us, video reg: %u(0x%x); audio reg: %u(0x%x); %lu ms", tsUs, regVideo, regAudio, cmnGetTimeMs());
+
+//	printf("Current Timestamp: %llu us, video reg: %u; audio reg: %u; %lu ms\n", tsUs, regVideo, regAudio, cmnGetTimeMs());
+	printf("Current Timestamp: %llu us, video reg: %u; audio reg: %u;\n", tsUs, regVideo, regAudio );
+	printf("%lu second, %lu us\n", tv.tv_sec, tv.tv_usec);
 
 	return EXIT_SUCCESS;
 }
@@ -154,7 +162,8 @@ int main(int argc, char *argv[])
 	}
 	else if(IS_STRING_EQUAL(cmd, TEST_CMD_TIMESTAMP))
 	{	
-		testTimestamp();
+TRACE();
+		testTimestamp2();
 	}
 	else
 	{

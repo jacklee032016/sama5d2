@@ -13,6 +13,7 @@ SRC += \
 		testSecure.c \
 		testMain.c \
 		evtest.c \
+		testClkAdj.c \
 
 
 
@@ -22,7 +23,8 @@ LDFLAGS := $(LDFLAGS) $(SHARED_LDFLAGS) -lMuxPtp -lPtp4l -lrt -lm -ldl -lz -lpth
 
 TESTS = \
 			testMux \
-			evtest
+			evtest \
+			testClkAdj \
 
 		 
 LOCAL_ALL:=$(TESTS) 
@@ -37,6 +39,11 @@ testMux:$(OBJ_DIR)/testMip.o $(OBJ_DIR)/testMain.o $(OBJ_DIR)/testSecure.o
 
 
 evtest:$(OBJ_DIR)/evtest.o
+		$(CC) -o $@ $^ -lCmnSys $(LDFLAGS)
+		$(STRIP) $@
+		$(MOVE) $@ $(BIN_DIR)/usr/bin
+
+testClkAdj:$(OBJ_DIR)/testClkAdj.o
 		$(CC) -o $@ $^ -lCmnSys $(LDFLAGS)
 		$(STRIP) $@
 		$(MOVE) $@ $(BIN_DIR)/usr/bin

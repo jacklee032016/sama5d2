@@ -332,9 +332,9 @@ static int _muxThPollInit(CmnThread *th, void *data)
 {
 	MuxMain *muxMain = (MuxMain *)data;
 
-	if(muxMain->pollTime < 0)
+	if(muxMain->mediaPollTime < 0)
 	{
-		MUX_ERROR("Poll Timeout parameter is wrong, check your configuration: %d seconds", muxMain->pollTime);
+		MUX_ERROR("Poll Timeout parameter is wrong, check your configuration: %d seconds", muxMain->mediaPollTime);
 		return EXIT_FAILURE;
 	}
 
@@ -359,7 +359,7 @@ static int _muxThPollMain(CmnThread *th)
 
 	while(1)
 	{
-		cmn_delay(muxMain->pollTime*UNIT_K_HZ );
+		cmn_delay(muxMain->mediaPollTime*UNIT_K_HZ );
 
 		sysFpgaTxPollUpdateParams(muxMain->runCfg.fpgaCfg);
 	}

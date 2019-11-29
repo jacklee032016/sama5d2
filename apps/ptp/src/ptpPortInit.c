@@ -432,7 +432,7 @@ struct PtpPort *portCreate(int phc_index, enum timestamp_type timestamping, int 
 		return NULL;
 	}
 
-	pr_info("Port#%d (PHC#%d, %s) is created..."EXT_NEW_LINE, number,  phc_index, ptpIntf->name);
+	pr_info("Port#%d (PHC#%d, %s) is created...", number,  phc_index, ptpIntf->name);
 
 	memset(p, 0, sizeof(*p));
 	TAILQ_INIT(&p->tc_transmitted);
@@ -576,7 +576,7 @@ struct PtpPort *portCreate(int phc_index, enum timestamp_type timestamping, int 
 			goto err_tsproc;
 		}
 	}
-	pr_info("Port#%d (PHC#%d, %s) creation ended successfully!!!"EXT_NEW_LINE, number,  phc_index, ptpIntf->name);
+	pr_info("Port#%d (PHC#%d, %s) creation ended successfully!!!", number,  phc_index, ptpIntf->name);
 
 	return p;
 

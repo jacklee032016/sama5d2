@@ -158,4 +158,7 @@ else
 
 endif
 
+PTP_CFLAGS+= -Wall -DVER=2.0 -D_GNU_SOURCE -DHAVE_CLOCK_ADJTIME -DHAVE_POSIX_SPAWN -DHAVE_ONESTEP_SYNC -I../include -I../mux
+PTP_CFLAGS+= 
+
 LDFLAGS := $(LDFLAGS) -L$(BIN_DIR)/lib -Wl,--gc-sections \

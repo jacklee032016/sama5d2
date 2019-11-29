@@ -30,6 +30,10 @@
 #include "ntp_internal.h"
 #include "timekeeping_internal.h"
 
+#include "mux7xxCompact.h"
+
+#define		MUX_TS_UPDATE_DEBUG		0
+
 #define TK_CLEAR_NTP		(1 << 0)
 #define TK_MIRROR		(1 << 1)
 #define TK_CLOCK_WAS_SET	(1 << 2)
@@ -1274,6 +1278,7 @@ int timekeeping_inject_offset(struct timespec *ts)
 	if (!timespec_inject_offset_valid(ts))
 		return -EINVAL;
 
+	/* ts64 also offset of ts. JL */
 	ts64 = timespec_to_timespec64(*ts);
 
 	raw_spin_lock_irqsave(&timekeeper_lock, flags);
@@ -1282,14 +1287,31 @@ int timekeeping_inject_offset(struct timespec *ts)
 	timekeeping_forward_now(tk);
 
 	/* Make sure the proposed value is valid */
-	tmp = timespec64_add(tk_xtime(tk),  ts64);
-	if (timespec64_compare(&tk->wall_to_monotonic, &ts64) > 0 ||
-	    !timespec64_valid_strict(&tmp)) {
+	tmp = timespec64_add(tk_xtime(tk),  ts64);/* tmp is possible new ts, not offset now, JL*/
+	
+	/* wall clock must be less than or equal new ts offset. JL */
+	/* wall_to_monotonic is offset of realtime clock to monotonic clock, eg: realtime+wall_to_monotonic = monotonic
+	* so wall_to_monotonic is always negative value; 
+	* so if wall_to_monotonic> ts_offset, then the realtime clock is smaller than monotonic clock
+	*/
+	if (timespec64_compare(&tk->wall_to_monotonic, &ts64) > 0 || /* check the result of realtime after update it, is stll bigger than monotonic */		
+	    !timespec64_valid_strict(&tmp)) /* check the result is bigger than 1970; this check is some radundant. new possible value must be after 1970.01.01, eg. tmp.tv_sec >= 0 and tmp.tv_nsec <= 9223372036 JL */
+	{
+#if MUX_TS_UPDATE_DEBUG
+		int res1 = timespec64_compare(&tk->wall_to_monotonic, &ts64);
+		bool res2 = timespec64_valid_strict(&tmp);
+		EXT_INFOF("wall: sec:%lld, nsec:%ld;  ts offset:%lld, %ld;  tmp new: %lld, %ld;  compared: %d, %d", 
+			tk->wall_to_monotonic.tv_sec, tk->wall_to_monotonic.tv_nsec, 
+			ts64.tv_sec, ts64.tv_nsec, 
+			tmp.tv_sec, tmp.tv_nsec,
+			res1, res2);
+#endif		
 		ret = -EINVAL;
 		goto error;
 	}
 
 	tk_xtime_add(tk, &ts64);
+	
 	tk_set_wall_to_mono(tk, timespec64_sub(tk->wall_to_monotonic, ts64));
 
 error: /* even if we error out, we forwarded the time, so call update */
@@ -2258,10 +2280,16 @@ int do_adjtimex(struct timex *txc)
 	s32 orig_tai, tai;
 	int ret;
 
+//	EXT_INFOF("set timex");
 	/* Validate the data before disabling interrupts */
 	ret = ntp_validate_timex(txc);
 	if (ret)
+	{
+#if MUX_TS_UPDATE_DEBUG
+		EXT_INFOF("Invalidate timex00");
+#endif
 		return ret;
+	}
 
 	if (txc->modes & ADJ_SETOFFSET) {
 		struct timespec delta;
@@ -2271,7 +2299,12 @@ int do_adjtimex(struct timex *txc)
 			delta.tv_nsec *= 1000;
 		ret = timekeeping_inject_offset(&delta);
 		if (ret)
+		{
+#if MUX_TS_UPDATE_DEBUG
+			EXT_INFOF("Invalidate timex01");
+#endif
 			return ret;
+		}
 	}
 
 	getnstimeofday64(&ts);
@@ -2296,6 +2329,7 @@ int do_adjtimex(struct timex *txc)
 
 	ntp_notify_cmos_timer();
 
+//	EXT_INFOF("set timex OK");
 	return ret;
 }
 

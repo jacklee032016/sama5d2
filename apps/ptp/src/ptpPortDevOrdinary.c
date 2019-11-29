@@ -264,8 +264,11 @@ enum PORT_EVENT bc_event(struct PtpPort *p, int fd_index)
 			return EV_ANNOUNCE_RECEIPT_TIMEOUT_EXPIRES;
 
 		case FD_DELAY_TIMER:
+			/* timeout for send DELAY_REQ */
 			pr_debug(PORT_STR_FORMAT"DELAY timeout", PORT_NAME(p));
+			/* reset timeout value */
 			port_set_delay_tmo(p);
+			/* clear existed DELAY_REQ */
 			delay_req_prune(p);
 			return port_delay_request(p) ? EV_FAULT_DETECTED : EV_NONE;
 

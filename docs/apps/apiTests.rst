@@ -2,6 +2,18 @@ REST API Testing
 ##############################################
 Jack Lee, 04.22, 2019
 
+For SDP, Host header must be added::
+
+GET /api/video/sdp HTTP/1.1
+Host: 192.168.168.102
+
+
+Content-Type: application/octet-stream
+
+User-Agent: curl/7.35.0
+
+
+
 11.06, 2019
 ================================
 

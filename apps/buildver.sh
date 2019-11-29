@@ -4,8 +4,15 @@
 
 DATDIR=`echo $1 | sed 's/\/\//\//g'`
 PKGDIR="$DATDIR/pkg"
+
+	if [ -d $PKGDIR ]; 
+	then
+		echo "     Remove existed $PKGDIR"
+		rm -rf $PKGDIR
+	fi
 	
 	mkdir -p $PKGDIR/etc/mLab
+	mkdir -p $PKGDIR/var/ver
 	
 #	cd programs 
 

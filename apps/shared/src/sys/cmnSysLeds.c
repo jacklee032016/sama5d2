@@ -32,6 +32,9 @@
 
 #define	LED_LINK				LED_HOME"/""link"
 
+/* 11.25, 2019, send PTP signal to FPGA to notify new timestamp is arriving */
+#define	LED_SIGNAL				LED_HOME"/""signal"
+
 
 struct _SysLedCtrl
 {
@@ -73,6 +76,13 @@ static struct _SysLedCtrl  _sysLeds[] =
 		.brightness = 	LED_LINK"/"LED_BRIGHTNESS,
 		.trigger = 	LED_LINK"/"LED_TRIGGER,
 		.triggerCheck = 	LED_LINK"/"LED_DELAY_ON
+	},
+	{
+		.led = LED_TYPE_SIGNAL,
+		.name = "SIGNAL",	
+		.brightness = 	LED_SIGNAL"/"LED_BRIGHTNESS,
+		.trigger = 	LED_SIGNAL"/"LED_TRIGGER,
+		.triggerCheck = 	LED_SIGNAL"/"LED_DELAY_ON
 	},
 	{
 		.led = LED_TYPE_UNKNOWN,

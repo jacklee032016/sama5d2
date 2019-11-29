@@ -204,6 +204,12 @@ static void __portSynchronize(struct PtpPort *p, tmv_t ingress_ts, struct LocalT
 	enum servo_state state;
 	tmv_t t1, t1c, t2, c1, c2;
 
+#if PTP_NOISE_DEBUG
+//	pr_info("ingress %10" PRId64"; \torigin_ts %" PRId64 "; \tCorrect1:%" PRId64 "; \tCorrect2:%10" PRId64 ,
+//			tmv_to_nanoseconds(ingress_ts), origin_ts.sec, correction1, correction2);
+	pr_info("ingress %10" PRId64"; \torigin_ts %" PRId64, tmv_to_nanoseconds(ingress_ts), origin_ts.sec);
+#endif
+
 	port_set_sync_rx_tmo(p);
 
 	t1 = timestamp_to_tmv(origin_ts);
@@ -612,7 +618,9 @@ out:
 	return err;
 }
 
-
+/*
+* received delayReq
+*/
 void portMsgProDelayResp(struct PtpPort *p, struct ptp_message *m)
 {
 	struct delay_resp_msg *rsp = &m->delay_resp;

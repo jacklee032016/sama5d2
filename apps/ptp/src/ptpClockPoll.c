@@ -46,7 +46,7 @@ static void clock_update_slave(struct PtpClock *c)
 		pr_warning("foreign master not using PTP timescale");
 	}
 	if (c->tds.currentUtcOffset < c->utc_offset) {
-		pr_warning("running in a temporal vortex");
+		pr_warning("running in a temporal vortex,  UtcOffset announced: %d, configured: %d", c->tds.currentUtcOffset, c->utc_offset);
 	}
 	if ((c->tds.flags & UTC_OFF_VALID && c->tds.flags & TIME_TRACEABLE) ||
 	    (c->tds.currentUtcOffset > c->utc_offset)) {

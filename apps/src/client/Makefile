@@ -21,6 +21,7 @@ LOCAL_ALL := \
 		fwUpdate \
 		ptpc \
 		sfpCtrl \
+		hello \
 		
 
 include $(ROOT_DIR)/Makefile.post
@@ -52,10 +53,13 @@ fwUpdate:$(OBJ_DIR)/flashUpdate.o
 	$(MOVE) $@ $(BIN_DIR)/usr/bin  
 
 ptpc:$(OBJ_DIR)/ptpc.o
-	$(CC) -s -o $@ $^ $(LDFLAGS) 
+	$(CC) -s -o $@ $^ $(LDFLAGS) -lCmnSys -lMux
 	$(MOVE) $@ $(BIN_DIR)/usr/bin  
 	
 sfpCtrl:$(OBJ_DIR)/sfpCtrl.o
 	$(CC) -s -o $@ $^ $(LDFLAGS)
 	$(MOVE) $@ $(BIN_DIR)/usr/bin  
 	
+hello:$(OBJ_DIR)/hello.o
+	$(CXX) -s -o $@ $^ 
+	$(MOVE) $@ $(BIN_DIR)/usr/bin  

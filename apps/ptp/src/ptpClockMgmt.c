@@ -76,7 +76,9 @@ static int clock_management_get_response(struct PtpClock *c, struct PtpPort *p, 
 	struct ptp_message *rsp;
 	int respond;
 
+#if PTP_NOISE_DEBUG			
 	pr_debug("RSP of GET MGMT msg...");
+#endif
 	rsp = port_management_reply(pid, p, req);
 	if (!rsp) {
 		return 0;
@@ -85,12 +87,16 @@ static int clock_management_get_response(struct PtpClock *c, struct PtpPort *p, 
 	respond = clock_management_fill_response(c, p, req, rsp, id);
 	if (respond)
 	{
+#if PTP_NOISE_DEBUG			
 		pr_debug("response of GET MGMT msg...");
+#endif
 		port_prepare_and_send(p, rsp, TRANS_GENERAL);
 	}
 	else
 	{
+#if PTP_NOISE_DEBUG			
 		pr_err("no response of GET MGMT msg...");
+#endif
 	}
 	
 	msg_put(rsp);
@@ -152,7 +158,9 @@ static void _clockForwardMgmtMsg(struct PtpClock *c, struct PtpPort *p, struct p
 		pdulen = msg->header.messageLength;
 		msg->management.boundaryHops--;
 		
-	pr_debug("Forward MGMT msg...");
+#if PTP_NOISE_DEBUG			
+		pr_debug("Forward MGMT msg...");
+#endif
 		LIST_FOREACH(piter, &c->clkPorts, list)
 		{
 			if (_clockDoForwardMgmt(c, p, piter, msg, &msg_ready))
@@ -181,7 +189,9 @@ int clock_manage(struct PtpClock *c, struct PtpPort *p, struct ptp_message *msg)
 	struct PtpPort *piter;
 	struct management_tlv *mgt;
 
+#if PTP_NOISE_DEBUG			
 	pr_debug("RX MGMT msg...");
+#endif
 	struct ClockIdentity *tcid, wildcard =
 	{
 		{0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
@@ -212,8 +222,9 @@ int clock_manage(struct PtpClock *c, struct PtpPort *p, struct ptp_message *msg)
 	switch (management_action(msg))
 	{
 		case GET:
+#if PTP_NOISE_DEBUG			
 			pr_debug("RX GET MGMT msg...");
-
+#endif
 			if (clock_management_get_response(c, p, mgt->id, msg))
 				return changed;
 			break;

@@ -49,9 +49,19 @@ static int	_sdpEventHandler(struct _CmnThread *th, void *_event)
 	EXT_ASSERT((sdpClient != NULL), "SDP Client can't be null");
 
 	cmn_mutex_lock(sdpClient->lock);
+
+	/* update with new URL */
+//	memcpy(&sdpClient->url, sdpEvent->data, sizeof(HttpClientReq) );
+
+TRACE();
 	sdpClientFsmHandle(sdpClient, sdpEvent);
 	cmn_mutex_unlock(sdpClient->lock);
 
+//	if(sdpEvent->data)
+	{/*HttpClientReq */
+//		cmn_free(sdpEvent->data);
+	}
+	
 	cmn_free(sdpEvent);
 
 	/* semaphore can be post when timer add new task to minimize the chance SdpReceiver is waked */
@@ -126,9 +136,11 @@ static int _initSdpThread(CmnThread *th, void *data)
 
 	__initAddSdpClient(sdpCtx, HC_REQ_SDP_VIDEO);
 	__initAddSdpClient(sdpCtx, HC_REQ_SDP_AUDIO);
+#if WITH_ANCILLIARY_STREAM
 	__initAddSdpClient(sdpCtx, HC_REQ_SDP_ANC);
-	
-	sdpCtx->timer = cmn_add_timer(sdpCtx->muxMain->pollTime*1000, cmnMuxSdpTimerCallback, sdpCtx, cmn_timer_type_reload, "sdpTimer");
+#endif
+
+	sdpCtx->timer = cmn_add_timer(sdpCtx->muxMain->sdpPollTime*1000, cmnMuxSdpTimerCallback, sdpCtx, cmn_timer_type_reload, "sdpTimer");
 	if(sdpCtx->timer == NULL)
 	{
 		EXT_ERRORF("SDPC: Timer is not created for SDP client in RX");

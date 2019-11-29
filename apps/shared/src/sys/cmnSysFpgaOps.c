@@ -15,16 +15,44 @@
 #endif
 
 /*
-EXT_INFOF("Write RtpTimestamp: "LONG_FORMAT"u(0x"LONG_FORMAT"x)", fpgaTs, fpgaTs); \
 */
-
+#if 0
 #define	FPGA_UPDATE_PTP_TIMESTAMP(fpga) \
 	do{	/* write timestamp */ uint32_t fpgaTs = FPGA_GET_PTP_TIMESTAMP_VIDEO(); \
+		EXT_INFOF("Write RtpTimestamp: "LONG_FORMAT"u(0x"LONG_FORMAT"x)", fpgaTs, fpgaTs); \
 		_extFpgaWriteIntegerChange(&fpga->txAddress->rtpTimestampVideo, &fpgaTs); \
 		fpgaTs = FPGA_GET_PTP_TIMESTAMP_AUDIO(); _extFpgaWriteIntegerChange(&fpga->txAddress->rtpTimestampAudio, &fpgaTs);  \
 		}while(0)
+#else
+int	FPGA_UPDATE_PTP_TIMESTAMP(FpgaConfig *fpga)
+{
+	uint32_t readTs;
+	_extFpgaReadIntegerChange(&fpga->txAddress->rtpTimestampVideo, &readTs);
+	uint32_t fpgaTs = FPGA_GET_PTP_TIMESTAMP_VIDEO();
+	_extFpgaWriteIntegerChange(&fpga->txAddress->rtpTimestampVideo, &fpgaTs);
+	EXT_INFOF("Video: Read Timestamp: "LONG_FORMAT"u; \tWrite Timestamp: "LONG_FORMAT"u(0x"LONG_FORMAT"x), current:%llu", readTs, fpgaTs, fpgaTs, cmnGetTimeUs());
 
+	_extFpgaReadIntegerChange(&fpga->txAddress->rtpTimestampAudio, &readTs);
+	fpgaTs = FPGA_GET_PTP_TIMESTAMP_AUDIO(); 
+	_extFpgaWriteIntegerChange(&fpga->txAddress->rtpTimestampAudio, &fpgaTs);
+	EXT_INFOF("Audio: Read Timestamp: "LONG_FORMAT"u; \tWrite Timestamp: "LONG_FORMAT"u(0x"LONG_FORMAT"x), current:%llu", readTs, fpgaTs, fpgaTs, cmnGetTimeUs() );
 
+	{
+		struct timeval tv;
+
+		gettimeofday(&tv,NULL);
+		uint64_t _ts = (uint64_t)tv.tv_sec * 1000000 + tv.tv_usec;
+		uint64_t _readTs;
+
+		FPGA_I2C_READ(F_REG_TX_GRAND_MASTER_TIMESTAMP, &_readTs, 8);
+		FPGA_I2C_WRITE(F_REG_TX_GRAND_MASTER_TIMESTAMP, &_ts, 8);
+
+		EXT_INFOF("Grand Master Timestamp: \tRead: %llu; Write:%llu", _readTs, _ts );
+	}
+
+	return EXIT_SUCCESS;
+}
+#endif
 
 int	sysFpgaTxConfig(FpgaConfig *fpga)
 {
@@ -339,7 +367,7 @@ int sysFpgaTxReadParams(FpgaConfig *fpga)
 #endif
 
 	/* write timestamp */
-	FPGA_UPDATE_PTP_TIMESTAMP(fpga);
+//	FPGA_UPDATE_PTP_TIMESTAMP(fpga);
 
 	_chValue = 0x40; /* 10.30, 2019. TX write to select audio channel from Audio input, not I2S */
 	_extFpgaWriteByte(&fpga->txAddress->media->channels, &runCfg->runtime.aChannels);
@@ -371,6 +399,24 @@ int sysFpgaTxWriteParams(FpgaConfig *fpga)
 
 	return EXIT_SUCCESS;
 }
+
+int	_rxUpdateAudioParams(EXT_RUNTIME_CFG *runCfg)
+{
+	/* 11.04, 2019, change as following */
+	unsigned char _chVal;
+
+	unsigned char depth = ((_chVal>> 6) & 0x03);
+	runCfg->runtime.aDepth = (depth ==0x03)? 24:0;
+	unsigned char sampleRate = ( (_chVal>>3) &0x07);
+	runCfg->runtime.aSampleRate; /* 2: 44.1K; 3: 48K; 5: 96K */
+//	unsigned char 
+	runCfg->runtime.aChannels = (_chVal&0x07)+1;
+
+	FPGA_I2C_READ(F_REG_RX_SYS_AUDIO_SELECT, &_chVal, 1);
+
+	return EXIT_SUCCESS;
+}
+
 
 int sysFpgaRxWriteParams(FpgaConfig *fpga)
 {
@@ -416,11 +462,13 @@ int sysFpgaRxWriteParams(FpgaConfig *fpga)
 
 		_extFpgaWriteByte(&fpga->rxAddress->media->intl, &runCfg->runtime.vIsInterlaced);
 
-
+#if 0
 		_extFpgaWriteByte(&fpga->rxAddress->media->channels, &runCfg->runtime.aChannels);
 		_extFpgaWriteByte(&fpga->rxAddress->media->audioRate, &runCfg->runtime.aSampleRate);
 		_extFpgaWriteByte(&fpga->rxAddress->media->pktSize, &runCfg->runtime.aPktSize);
+#else
 
+#endif
 
 		_extFpgaWriteByte(&fpga->rxAddress->streamVideo->rtpPayload, &runCfg->runtime.rtpTypeVideo);
 		_extFpgaWriteByte(&fpga->rxAddress->streamAudio->rtpPayload, &runCfg->runtime.rtpTypeAudio);
@@ -571,12 +619,15 @@ int sysFpgaTxPollUpdateParams(void *data)
 	EXT_RUNTIME_CFG *runCfg = fpga->runCfg;
 
 
-	FPGA_UPDATE_PTP_TIMESTAMP(fpga);
+//	FPGA_UPDATE_PTP_TIMESTAMP(fpga);
 
 	if(! EXT_IS_TX(runCfg))
 	{
 		return EXIT_FAILURE;
 	}
+
+	sysFpgaWritePtpTimestamp(runCfg);
+
 
 	_extFpgaReadByte(&fpga->txAddress->media->paramStatus, &_chValue);
 //	EXT_DEBUGF(MUX_DEBUG_FPGA, "params status:0x%x", _chValue);
@@ -593,6 +644,29 @@ int sysFpgaTxPollUpdateParams(void *data)
 
 		SYS_UPDATE_SESSION_ID();
 	}
+
+	return EXIT_SUCCESS;
+}
+
+
+int sysFpgaWritePtpTimestamp(void 	*data)
+{
+	struct timeval tv;
+	
+	FpgaConfig 	*fpga =  (FpgaConfig 	*)data;
+
+	EXT_ASSERT((fpga != NULL), "FPAG failed: %p", data);
+
+	gettimeofday(&tv,NULL);
+	uint64_t _ts = (uint64_t)tv.tv_sec * 1000000 + tv.tv_usec;
+	uint64_t _readTs;
+
+	FPGA_I2C_READ(F_REG_TX_GRAND_MASTER_TIMESTAMP, &_readTs, 8);
+	CMN_SYS_LED_SIGNAL_ON();
+	I2C_EXT_WRITE(0, EXT_I2C_PCA9554_CS_NONE, EXT_FPAG_ADDRESS_PTP, F_REG_TX_GRAND_MASTER_TIMESTAMP, 1, &_ts, 8);
+	CMN_SYS_LED_SIGNAL_OFF();
+
+	EXT_INFOF("Grand Master Timestamp: \tRead: %llu; Write:%llu", _readTs, _ts );
 
 	return EXIT_SUCCESS;
 }

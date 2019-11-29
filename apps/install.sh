@@ -15,11 +15,6 @@ SRCDIR=`echo $2 | sed 's/\/\//\//g'`
 	
 	#VERBOSE=-v
 	
-	if [ -d $PKGDIR ]; 
-	then
-		echo "     Remove existed $PKGDIR"
-		rm -rf $PKGDIR
-	fi
 	
 	mkdir -p $PKGDIR
 	mkdir -p $PKGDIR/usr/bin

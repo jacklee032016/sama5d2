@@ -700,11 +700,13 @@ const	TYPE_NAME_T	_audioPktSizes[] =
 
 const	TYPE_NAME_T	_audioRates[] =
 {
+#if 0
 	{
 		type	: EXT_A_RATE_32K,
 		name	: "32000",
 		value : NULL,
 	},
+#endif	
 	{
 		type	: EXT_A_RATE_44K,
 		name	: "44100",
@@ -715,16 +717,19 @@ const	TYPE_NAME_T	_audioRates[] =
 		name	: "48000",
 		value : NULL,
 	},
+#if 0	
 	{
 		type	: EXT_A_RATE_88K,
 		name	: "88200",
 		value : NULL,
 	},
+#endif	
 	{
 		type	: EXT_A_RATE_96K,
 		name	: "96000",
 		value : NULL,
 	},
+#if 0	
 	{
 		type	: EXT_A_RATE_176K,
 		name	: "176400",
@@ -735,6 +740,8 @@ const	TYPE_NAME_T	_audioRates[] =
 		name	: "192000",
 		value : NULL,
 	},
+#endif
+
 /*
 	{
 		type	: EXT_A_RATE_768K,
@@ -898,7 +905,7 @@ int	cmnMuxTypeFindType(const TYPE_NAME_T *types, char *name)
 #ifndef   __CMN_RELEASE__
 	{
 //		CMN_ABORT("Type of name %s is not found, the first item is :%s", name, types->name);
-		MUX_ERROR("Type of name %s is not found, the first item is :%s", name, types->name);
+		MUX_ERROR("Type of name %s is not found, the first item is :%d(%s)", name, types->type, types->name);
 	}
 #endif
 	return INVALIDATE_VALUE_U32;
@@ -922,7 +929,7 @@ char *cmnMuxTypeFindName(const TYPE_NAME_T *types, int type)
 #ifndef   __CMN_RELEASE__
 	{
 //		CMN_ABORT("Type %d is not found, the first item is :%s", type, types->name);
-		MUX_ERROR("Type %d is not found, the first item is :%s", type, types->name);
+		MUX_ERROR("Type %d is not found, the first item is :%d(%s)", type, types->type, types->name);
 	}
 //	return NULL;
 	return "Unknown";

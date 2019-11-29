@@ -2,6 +2,11 @@ Work Logs for File System
 ################################
 April 17th, 2019
 
+11.12, 2019
+-------------------------------------------------
+* add libstc++ into image/usr/lib and run first hello world of c++ program;
+
+
 11.06, 2019
 -------------------------------------------------
 * Modification of PTP configuration

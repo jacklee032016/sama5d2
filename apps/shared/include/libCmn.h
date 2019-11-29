@@ -51,6 +51,20 @@
 #define	MUX_INVALIDATE_INTEGER				0xFFFFFFFF
 
 
+/* board type, so libMux and libCmnSys can be customized */
+#define	EXT_BOARD_TYPE			MUX_BOARD_TYPE_774
+
+#if 1
+#define	MUX_ATMEL_XPLAINED		1
+#define	MUX_BOARD_768				2
+#define	MUX_BOARD_774				3
+#define	MUX_BOARD_767				4
+
+//#define	MUX_BOARD				MUX_BOARD_774
+//#define	MUX_BOARD				MUX_ATMEL_XPLAINED
+#endif
+
+
 
 // Check windows
 #if _WIN32 || _WIN64
@@ -190,9 +204,9 @@ typedef	enum _MUX_MEDIA_TYPE
 #define	ERROR_TEXT_END			"\e[0m"
 
 
-#define	WARN_TEXT_BEGIN			""ANSI_COLOR_MAGENTA"WARN:"
+#define	WARN_TEXT_BEGIN			""ANSI_COLOR_MAGENTA""
 
-#define	INFO_TEXT_BEGIN			""ANSI_COLOR_YELLOW"INFO:"
+#define	INFO_TEXT_BEGIN			""ANSI_COLOR_YELLOW""
 
 
 
@@ -211,6 +225,7 @@ typedef	enum _MUX_MEDIA_TYPE
 
 #define	CONFIG_FILE_HOME_PROJECT			RUN_HOME_DIR"/etc/mLab/"
 
+#define	PTP_EXE								"muxPtpd"
 
 #define ADD_ELEMENT(header, element)	\
 	if (header == NULL){					\
@@ -531,7 +546,7 @@ char *cmnTimestampStr(void);
 
 
 /* Definitions from include/linux/timerfd.h */
-#define TFD_TIMER_ABSTIME	(1 << 0)
+//#define TFD_TIMER_ABSTIME	(1 << 0)
 
 #define	EXT_CLOCK_ID						CLOCK_REALTIME
 

@@ -2,6 +2,8 @@
 #include <sys/stat.h>
 
 #include "libCmnSys.h"
+#include "mux7xx.h"
+#include "libMux.h"
 #include "_cmnMux.h"
 
 #include "_sdp.h"
@@ -143,6 +145,7 @@ static int _sdpParseAudioStream(struct SDP_CLIENT *sdpClient, EXT_RUNTIME_CFG *r
 	}
 	else
 	{
+	
 		if(_shVal == 48000)
 		{
 			rxCfg->runtime.aSampleRate = EXT_A_RATE_48K;
@@ -160,6 +163,8 @@ static int _sdpParseAudioStream(struct SDP_CLIENT *sdpClient, EXT_RUNTIME_CFG *r
 			EXT_ERRORF("Not support Sample Freq for SDP audio stream '%d'", _shVal );
 			rxCfg->runtime.aSampleRate = EXT_A_RATE_48K;
 		}
+
+		SDPC_DEBUG_MSG(sdpClient, "AudioSampleRate:%d(%d): %d", rxCfg->runtime.aSampleRate, _shVal, EXT_A_RATE_48K);
 	}
 
 	/* Audio Channels */
@@ -176,7 +181,7 @@ static int _sdpParseAudioStream(struct SDP_CLIENT *sdpClient, EXT_RUNTIME_CFG *r
 	pnext = strnstr(data+index, SDP_P_AUDIO_PACK_SIZE, size - index);
 	if(pnext== NULL)
 	{
-		rxCfg->runtime.aSampleRate = INVALIDATE_VALUE_U8;
+		rxCfg->runtime.aPktSize = INVALIDATE_VALUE_U8;
 		EXT_ERRORF("No packet size in SDP audio stream: '%s'", data+index);
 		return EXIT_FAILURE;
 	}

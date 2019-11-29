@@ -394,6 +394,7 @@ int ptpMsgReceive(struct ptp_message *m, int cnt)
 	{
 		case SYNC:
 			timestamp_post_recv(m, &m->sync.originTimestamp);
+			pr_debug("SYNC ts: %lld sec", m->ts.pdu.sec );
 			break;
 		case DELAY_REQ:
 			break;
@@ -405,10 +406,12 @@ int ptpMsgReceive(struct ptp_message *m, int cnt)
 			break;
 		case FOLLOW_UP:
 			timestamp_post_recv(m, &m->follow_up.preciseOriginTimestamp);
+			pr_debug("FollowUP ts: %lld sec", m->ts.pdu.sec );
 			break;
 		case DELAY_RESP:
 			timestamp_post_recv(m, &m->delay_resp.receiveTimestamp);
 			port_id_post_recv(&m->delay_resp.requestingPortIdentity);
+			pr_debug("DELAY_RESP ts: %lld sec", m->ts.pdu.sec );
 			break;
 		case PDELAY_RESP_FOLLOW_UP:
 			timestamp_post_recv(m, &m->pdelay_resp_fup.responseOriginTimestamp);
@@ -418,6 +421,7 @@ int ptpMsgReceive(struct ptp_message *m, int cnt)
 			PTP_GET_SYS_TIME_MONOTONIC(&m->ts.host);
 			timestamp_post_recv(m, &m->announce.originTimestamp);
 			announce_post_recv(&m->announce);
+			pr_debug("Annnoce ts: %lld sec", m->ts.pdu.sec );
 			break;
 		case SIGNALING:
 			port_id_post_recv(&m->signaling.targetPortIdentity);

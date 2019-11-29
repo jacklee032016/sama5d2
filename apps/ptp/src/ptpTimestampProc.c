@@ -283,7 +283,7 @@ static tmv_t _getRawDelay(struct TimestampProcess *tsp)
 	delay = tmv_div(tmv_add(t23, t41), 2);
 
 	if (tmv_sign(delay) < 0)
-	{
+	{/* delay <=0, something is wrong */
 		pr_debug("negative delay %10" PRId64, tmv_to_nanoseconds(delay));
 		pr_debug("delay = (t2 - t3) * rr + (t4 - t1)");
 		pr_debug("t2 - t3 = %+10" PRId64, tmv_to_nanoseconds(t23));
@@ -301,7 +301,9 @@ int tsproc_update_delay(struct TimestampProcess *tsp, tmv_t *delay)
 	tmv_t raw_delay;
 
 	if (tmv_is_zero(tsp->t2) || tmv_is_zero(tsp->t3))
+	{/* t1, t2, t3, t4 must be set before this operation */
 		return -1;
+	}
 
 	raw_delay = _getRawDelay(tsp);
 	tsp->filtered_delay = filter_sample(tsp->delay_filter, raw_delay);
@@ -331,6 +333,9 @@ int tsproc_update_delay(struct TimestampProcess *tsp, tmv_t *delay)
 	return 0;
 }
 
+/* after receive FOLLOW_UP(when 2-step is used) or receive SYN, this is called 
+* caculate offset and weight?? from t1, t2, t3 and t4
+*/
 int tsproc_update_offset(struct TimestampProcess *tsp, tmv_t *offset, double *weight)
 {
 	tmv_t delay = tmv_zero(), raw_delay = tmv_zero();
@@ -341,7 +346,11 @@ int tsproc_update_offset(struct TimestampProcess *tsp, tmv_t *offset, double *we
 	switch (tsp->mode)
 	{
 		case TSPROC_FILTER:
-			if (!tsp->filtered_delay_valid) {
+			if (!tsp->filtered_delay_valid)
+			{
+#if PTP_NOISE_DEBUG			
+				pr_info("TSPROC_FILTER: tsp->filtered_delay_valid is 0");
+#endif				
 				return -1;
 			}
 			delay = tsp->filtered_delay;

@@ -230,6 +230,8 @@ static int _sdpReceiverMainLoop(CmnThread *th)
 	index = 0;
 	LIST_FOREACH(sdpClient, &sdpCtx->clients, list)
 	{/* no timeout for Ctrl Connection */
+
+		SDPC_DEBUG_MSG(sdpClient, "is searching..." );
 	
 		cmn_mutex_lock(sdpClient->lock);
 		if(! SDPC_CHECK_STATE(sdpClient, SDPC_STATE_CONNECTED) )
@@ -279,6 +281,7 @@ static int _sdpReceiverMainLoop(CmnThread *th)
 		/* what is the appropriate thing to do here on EBADF */
 		if (errno == EINTR)
 		{
+TRACE();	
 			return EXIT_SUCCESS;
 		}
 		else if (errno != EBADF)
@@ -296,7 +299,8 @@ static int _sdpReceiverMainLoop(CmnThread *th)
 
 	pollfd = pfds;
 	index = 0;
-	
+
+TRACE();	
 	for(i=0; i < count; i++)
 	{
 		int isTimer = 0;
@@ -354,12 +358,15 @@ static int _sdpReceiverMainLoop(CmnThread *th)
 						if(res == _SDP_RV_OK)
 						{
 							SDPC_SEND_EVENT(sdpClient, SDPC_EVENT_RECV);				
+TRACE();
 						}
 						else if(res == _SDP_RV_ERROR)
 						{
 							SDPC_SEND_EVENT(sdpClient, SDPC_EVENT_ERROR);				
+TRACE();
 						}
 						
+TRACE();
 						/* others, continue to receive more packets */
 					}
 				}
@@ -376,15 +383,19 @@ static int _sdpReceiverMainLoop(CmnThread *th)
 					exit(1);
 				}
 				
+TRACE();
 			}
 			cmn_mutex_unlock(sdpClient->lock);
 
+TRACE();
 			index++;
 		}
 		else
 		{
 			EXT_ERRORF("SDPC poll fd %d has not found SdpClient", pollfd->fd);
 		}
+
+		TRACE();
 		
 		pollfd++;
 	}

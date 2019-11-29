@@ -608,7 +608,7 @@ void cmnMuxCfgDebugData(EXT_RUNTIME_CFG *cfg)
 
 int cmnMuxSystemConfig(EXT_RUNTIME_CFG *runCfg, 	EXT_RUNTIME_CFG	 *rxCfg)
 {
-	if(0)//MUX_MAIN_IS_DEBUG_MSG(runCfg->muxMain))
+	if(1)//MUX_MAIN_IS_DEBUG_MSG(runCfg->muxMain))
 	{
 		EXT_INFOF("Existed data:");
 		cmnMuxCfgDebugData(runCfg);

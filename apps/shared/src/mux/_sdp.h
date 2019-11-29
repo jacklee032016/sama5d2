@@ -82,7 +82,7 @@
 #define	SDP_CLIENT_NUMBER			3
 
 
-#define	SDP_RECV_TIMER_TIMEOUT		500 /* ms, must be less than SDPC_POLL_TIMEOUT */
+#define	SDP_RECV_TIMER_TIMEOUT		500*10 /* ms, must be less than SDPC_POLL_TIMEOUT */
 #define	SDPC_POLL_TIMEOUT				1000 /* ms */
 
 

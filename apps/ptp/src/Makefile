@@ -8,7 +8,7 @@ CODE_SUBDIRS = \
 					.
 
 
-C_FLAGS += $(SHARED_CFLAGS) -Wall -DVER=2.0 -D_GNU_SOURCE -DHAVE_CLOCK_ADJTIME -DHAVE_POSIX_SPAWN -DHAVE_ONESTEP_SYNC -I../include 
+C_FLAGS += $(SHARED_CFLAGS)  $(PTP_CFLAGS)  
 
 
 ################################################

@@ -591,7 +591,8 @@
 						 <PIN_PB5__GPIO>,	/* POWER */
 						 /* Mux774 */
 						 <PIN_PB7__GPIO>, /* LINK. 09.15, 2019. JL */
-						 <PIN_PB9__GPIO>; /* ACT on 774 */
+						 <PIN_PB9__GPIO>, /* ACT on 774 */
+						 <PIN_PB24__GPIO>; /* PTP Sync sigal; 11.25, 2019. JL */
 					bias-pull-up;
 				};
 
@@ -831,6 +832,12 @@
 			/*default-state = "on";	*/
 		};
 		
+		/* add 11.25, 2019 */
+		signal {
+			label = "signal";
+			gpios = <&pioA PIN_PB24 GPIO_ACTIVE_HIGH>; 
+			/*default-state = "on";	*/
+		};
 	};
 	
 	onewire_device {

@@ -512,6 +512,7 @@ out:
 	return -1;
 }
 
+/* send DELAY_REQ: send and add into send out queue  */
 int port_delay_request(struct PtpPort *p)
 {
 	struct ptp_message *msg;
@@ -553,6 +554,7 @@ int port_delay_request(struct PtpPort *p)
 		msg->header.flagField[0] |= UNICAST;
 	}
 
+	/* send out REQ */
 	if (port_prepare_and_send(p, msg, TRANS_EVENT)) {
 		pr_err(PORT_STR_FORMAT"send delay request failed", PORT_NAME(p));
 		goto out;
@@ -562,6 +564,11 @@ int port_delay_request(struct PtpPort *p)
 		goto out;
 	}
 
+#if PTP_NOISE_DEBUG
+	pr_debug("Delay Request sentd to ");
+#endif
+
+	/* keep the outgoing REQ in queue to check the corresponding DELAY_RESPONSE */
 	TAILQ_INSERT_HEAD(&p->delay_req, msg, list);
 
 	return 0;
@@ -570,6 +577,9 @@ out:
 	return -1;
 }
 
+/* when software clock is used, timestamp in ANNOUNCE and SYNC all are 0, only timestamp of FOLLOW_UP is the timestamp of last transmittion of SYNC;
+* For hardware clock, the timestamp is written by hardware in kernel space.
+*/
 int port_tx_announce(struct PtpPort *p, struct address *dst)
 {
 	struct timePropertiesDS *tp = clock_time_properties(p->clock);

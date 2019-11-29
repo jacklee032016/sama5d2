@@ -105,9 +105,9 @@ static int _parseGlobalConfig(const char **p, MuxMain *muxMain, int linenum)
 	}
 	else if (!strcasecmp(cmd, "SdpPeriod"))
 	{
-		muxMain->pollTime = cmnParseGetIntValue(p);
+		muxMain->sdpPollTime = cmnParseGetIntValue(p);
 #if DEBUG_CONFIG_FILE
-		MUX_INFO("SdpPeriod: %d", muxMain->pollTime );
+		MUX_INFO("SdpPeriod: %d", muxMain->sdpPollTime );
 #endif
 	}
 

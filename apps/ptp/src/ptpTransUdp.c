@@ -273,6 +273,7 @@ static int _udpSend(struct transport *t, struct FdArray *fda,
 	/*
 	 * Get the time stamp right away.
 	 */
+	/* get timestamp of last transmition, which is used in Follow UP when software clock is used JL */
 	return event == TRANS_EVENT ? sk_receive(fd, junk, len, NULL, hwts, MSG_ERRQUEUE) : cnt;
 }
 

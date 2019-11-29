@@ -475,14 +475,24 @@ void print_set_level(int level);
 void print_set_verbose(int value);
 
 #if 1
-#define pr_emerg(x...)   print(LOG_EMERG, x)
-#define pr_alert(x...)   print(LOG_ALERT, x)
-#define pr_crit(x...)    print(LOG_CRIT, x)
-#define pr_err(x...)     print(LOG_ERR, x)
-#define pr_warning(x...) print(LOG_WARNING, x)
-#define pr_notice(x...)  print(LOG_NOTICE, x)
-#define pr_info(x...)    print(LOG_INFO, x)
-#define pr_debug(x...)   print(LOG_DEBUG, x)
+//#define pr_emerg(x...)	print(LOG_EMERG, x)
+//#define pr_alert(x...)   print(LOG_ALERT, x)
+//#define pr_crit(x...)    print(LOG_CRIT, x)
+//#define pr_err(x...)     print(LOG_ERR, x)
+//#define pr_warning(x...) print(LOG_WARNING, x)
+//#define pr_notice(x...)  print(LOG_NOTICE, x)
+//#define pr_info(x...)    print(LOG_INFO, x)
+//#define pr_debug(x...)   print(LOG_DEBUG, x)
+
+#define pr_emerg(x,...)	MUX_ERROR(x, ##__VA_ARGS__)
+#define pr_alert(x,...)		MUX_ERROR(x, ##__VA_ARGS__)
+#define pr_crit(x,...)		MUX_ERROR(x, ##__VA_ARGS__)
+#define pr_err(x,...)		MUX_ERROR(x, ##__VA_ARGS__)
+#define pr_warning(x,...)	MUX_WARN(x, ##__VA_ARGS__)
+#define pr_notice(x,...)	MUX_WARN(x, ##__VA_ARGS__)
+#define pr_info(x,...)		MUX_INFO(x, ##__VA_ARGS__)
+#define pr_debug(x,...)	MUX_DEBUG(x, ##__VA_ARGS__)
+
 #else
 #define pr_emerg(x,...)		EXT_ERRORF(x, ##__VA_ARGS__)
 #define pr_alert(x,...)			EXT_ERRORF(x, ##__VA_ARGS__)
@@ -495,7 +505,9 @@ void print_set_verbose(int value);
 //#define pr_debug(x...)   EXT_INFOF( x)
 #endif
 
-#define		PTP_NOISE_DEBUG			EXT_DBG_OFF
+#define		PTP_NOISE_DEBUG			EXT_DBG_ON
+
+#define		PTP_FPGA_UPDATE			0
 
 #define PRINT_RL(l, i, x...) \
 	do { \

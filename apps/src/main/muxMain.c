@@ -305,7 +305,7 @@ int main(int argc, char **argv)
 
 //	usleep(10*1000);
 
-	if(muxMain->isClientPolling && muxMain->pollTime >0 && !EXT_IS_TX(&muxMain->runCfg) )
+	if(muxMain->isClientPolling && muxMain->sdpPollTime >0 && !EXT_IS_TX(&muxMain->runCfg) )
 	{
 		res = muxMain->initThread(muxMain, &threadSdpClient, muxMain);
 		if(res < 0 )

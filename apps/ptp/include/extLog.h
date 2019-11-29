@@ -2,6 +2,8 @@
 #ifndef	__EXT_LOG_H__
 #define	__EXT_LOG_H__
 
+#include "libCmn.h"
+
 /* defined in stdlib.h */
 #ifndef	EXIT_FAILURE
 #define	EXIT_FAILURE 			1
@@ -63,15 +65,19 @@
 #define ANSI_COLOR_CYAN			"\x1b[36m"
 #define ANSI_COLOR_RESET			"\x1b[0m"	/* for all colors, other than red, this must be used. April,15,2018. JL*/
 
-
+#ifndef	ERROR_TEXT_BEGIN
 #define	ERROR_TEXT_BEGIN			"\t\e[31m ERR:"
+#endif
+
 #define	ERROR_TEXT_END			"\e[0m"
 
+#ifdef WARN_TEXT_BEGIN
+#define	WARN_TEXT_BEGIN			""ANSI_COLOR_MAGENTA""
+#endif
 
-#define	WARN_TEXT_BEGIN			""ANSI_COLOR_MAGENTA"WARN:"
-
-#define	INFO_TEXT_BEGIN			""ANSI_COLOR_BLUE"INFO:"
-
+#ifndef	INFO_TEXT_BEGIN
+#define	INFO_TEXT_BEGIN			""ANSI_COLOR_BLUE""
+#endif
 
 #define	SYS_PRINT						printf
 
@@ -115,7 +121,7 @@
 #define	_TRACE_OUT(format, message...)	\
 			{SYS_PRINT("%s: [%s-%u.%s()]: "format,  sysTaskName(), __FILENAME__, __LINE__, __FUNCTION__, ##message); }
 
-#define	TRACE()						_TRACE_OUT(EXT_NEW_LINE )
+#define	EXT_TRACE()						_TRACE_OUT(EXT_NEW_LINE )
 
 
 /* check predefined marco in gcc with 'cpp -dM include/extLog.h '*/

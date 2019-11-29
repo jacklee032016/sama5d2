@@ -253,7 +253,7 @@ static int _cmnSysJsonUpdateAudio(EXT_RUNTIME_CFG *runCfg, cJSON *obj)
 
 static int _cmnSysJsonUpdateVideo(EXT_RUNTIME_CFG *runCfg, cJSON *obj)
 {
-	EXT_INFOF("Update cfg:%p:%p", runCfg, obj);
+//	EXT_INFOF("Update cfg:%p:%p", runCfg, obj);
 	/* protocol */
 	CJSON_REPLACE_STRING(obj, FIELD_VIDEO_IP, cmnSysNetAddress(runCfg->dest.ip) );
 	CJSON_REPLACE_INTEGRE(obj, FIELD_VIDEO_PORT, runCfg->dest.vport );
@@ -278,7 +278,7 @@ static int _cmnSysJsonUpdateVideo(EXT_RUNTIME_CFG *runCfg, cJSON *obj)
 
 	CJSON_REPLACE_STRING(obj, FIELD_VIDEO_SESSION_ID, (const char *)runCfg->runtime.vSession );
 
-	EXT_INFOF("Update cfg:%p; %dx%d; fps:%d; cs:%d; depth:%d; intlc:%d", 
+	EXT_INFOF("Update cfg:%p; %dx%d; fps:%d; ColorSpace:%d; depth:%d; intlc:%d", 
 		runCfg, runCfg->runtime.vWidth, runCfg->runtime.vHeight, runCfg->runtime.vFrameRate, runCfg->runtime.vColorSpace, runCfg->runtime.vDepth, runCfg->runtime.vIsInterlaced);
 	
 	CJSON_REPLACE_INTEGRE(obj, FIELD_ANC_VP_ID, runCfg->runtime.rtpTypeVideo);
@@ -360,7 +360,6 @@ int cmnSysJsonUpdate(MuxMain *muxMain)
 		MUX_ERROR("Update '%s' JSON failed", MUX_REST_URI_SYSTEM);
 	}
 
-	TRACE();
 	sysFpgaRefresh();
 
 	itemObj = cmnJsonSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_VIDEO, 0);

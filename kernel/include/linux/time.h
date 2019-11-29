@@ -151,13 +151,28 @@ static inline bool timeval_inject_offset_valid(const struct timeval *tv)
 	return true;
 }
 
+#if 1
 static inline bool timespec_inject_offset_valid(const struct timespec *ts)
+#else
+static inline bool timespec_inject_offset_valid(const struct timespec *ts, bool is_nano)
+#endif
 {
 	/* We don't check the tv_sec as it can be positive or negative */
 
 	/* Can't have more nanoseconds then a second */
+	/* Jack Lee, 11, 26, 2019 to support nano second which is bigger than USEC_PER_SEC 
+	* refer to https://gist.github.com/dvdhrm/d4ac7d9209f3be1e55c4
+	*/
+#if 1	
 	if (ts->tv_nsec < 0 || ts->tv_nsec >= NSEC_PER_SEC)
 		return false;
+#else
+	/* Can't have more micro/nano-seconds than a second */
+	if (ts->tv_usec < 0 ||
+		ts->tv_usec >= is_nano ? NSEC_PER_SEC : USEC_PER_SEC)
+			return false;
+#endif
+	
 	return true;
 }
 

@@ -1,4 +1,19 @@
 
+apiClient -c set -d '{"ptp":{"isEnable":1}}'
+
+
+Set commands:
+
+
+* PRIORITY1
+* PRIORITY2
+pmc -u -b 0 "GET PRIORITY1 128" -d 127
+
+* GRANDMASTER_SETTINGS_NP
+* PORT_DATA_SET_NP
+
+pmc -u -b 0 "SET PORT_DATA_SET_NP neighborPropDelayThresh 200 asCapable 20 " -d 127 
+
  from LAN or across LAN:
 ./Linux.bin.X86/usr/bin/pmc -b 1|2 'GET CURRENT_DATA_SET'
 

@@ -23,6 +23,10 @@
 
 #include "clockPrivate.h"
 
+/*
+ E2E and P2P transparent clock in this file
+*/
+
 static int _p2pDelayRequest(struct PtpPort *p)
 {
 	switch (p->state)
