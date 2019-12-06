@@ -30,6 +30,7 @@
 #include <net/if.h>
 
 #include "missing.h"
+void version_show(FILE *fp);
 
 static void usage(char *progname)
 {

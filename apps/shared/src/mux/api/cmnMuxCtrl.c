@@ -109,7 +109,7 @@ static char _compareSystemCfg(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 	{
 		if(! MAC_ADDR_IS_EQUAL(&runCfg->local.mac, &rxCfg->local.mac) )
 		{
-			EXT_DEBUGF(EXT_DBG_ON, "MAC address is not same:%.2x:%.2x:%.2x:%.2x:%.2x:%.2x(Old)!=%.2x:%.2x:%.2x:%.2x:%.2x:%.2x(New)", 
+			MUX_DEBUG( "MAC address is not same:%.2x:%.2x:%.2x:%.2x:%.2x:%.2x(Old)!=%.2x:%.2x:%.2x:%.2x:%.2x:%.2x(New)", 
 				runCfg->local.mac.address[0], runCfg->local.mac.address[1], runCfg->local.mac.address[2], 
 				runCfg->local.mac.address[3], runCfg->local.mac.address[4], runCfg->local.mac.address[5], 
 				rxCfg->local.mac.address[0], rxCfg->local.mac.address[1], rxCfg->local.mac.address[2],
@@ -165,24 +165,31 @@ static char _compareSystemCfg(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 /* ptp */
 static char _comparePtpConfig(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 {
-	char ret = EXT_FALSE;//, _ret = EXT_FALSE;
-	MuxPtpRuntime *cfgPtp = &runCfg->ptpRuntime;
-	MuxPtpRuntime *rxPtp = &rxCfg->ptpRuntime;
-	
-	_checkNumU8FieldValue(&cfgPtp->isEnable, rxPtp->isEnable, ret);	
+	char ret = EXT_FALSE;
+	MuxPtpConfig *ptpCfg = &runCfg->ptpConfig;
+	MuxPtpConfig *rxPtpCfg = &rxCfg->ptpConfig;
 
-	_checkNumU8FieldValue(&cfgPtp->isSlaveOnly, rxPtp->isSlaveOnly, ret);	
+	/* always enabled and SlaveOnly. 12.02, 2019 */
+	_checkNumU8FieldValue(&ptpCfg->isEnable, rxPtpCfg->isEnable, ret);
+	if(ret == EXT_TRUE)
+	{/* from disable to enable */
 	
-	_checkNumU8FieldValue(&cfgPtp->domainCfg, rxPtp->domainCfg, ret);
+	}
+#if 0	
+
+	_checkNumU8FieldValue(&ptpCfg->isSlaveOnly, rxPtpCfg->isSlaveOnly, ret);	
+#endif
+
+	_checkNumU8FieldValue(&ptpCfg->domain, rxPtpCfg->domain, ret);
 	
-	_checkNumU8FieldValue(&cfgPtp->priority1, rxPtp->priority1, ret);	
-	_checkNumU8FieldValue(&cfgPtp->priority2, rxPtp->priority2, ret);	
+	_checkNumU8FieldValue(&ptpCfg->priority1, rxPtpCfg->priority1, ret);	
+	_checkNumU8FieldValue(&ptpCfg->priority2, rxPtpCfg->priority2, ret);	
 
 	
-	_checkNumU8FieldValue(&cfgPtp->clockClass, rxPtp->clockClass, ret);	
-	_checkNumU8FieldValue(&cfgPtp->clockAccuracy, rxPtp->clockAccuracy, ret);
+	_checkNumU8FieldValue(&ptpCfg->clockClass, rxPtpCfg->clockClass, ret);	
+	_checkNumU8FieldValue(&ptpCfg->clockAccuracy, rxPtpCfg->clockAccuracy, ret);
 	
-	_checkNumU16FieldValue(&cfgPtp->offsetScaledLogVariance, rxPtp->offsetScaledLogVariance, ret);
+	_checkNumU16FieldValue(&ptpCfg->offsetScaledLogVariance, rxPtpCfg->offsetScaledLogVariance, ret);
 	
 	return ret;
 }
@@ -372,6 +379,9 @@ static char _compareProtocolConfig(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxC
 
 	_checkNumU16FieldValue(&runCfg->dest.dport, rxCfg->dest.dport, ret);	
 
+	_checkNumU8FieldValue(&runCfg->runtime.rtpTypeVideo, rxCfg->runtime.rtpTypeVideo, ret);	
+	_checkNumU8FieldValue(&runCfg->runtime.rtpTypeAudio, rxCfg->runtime.rtpTypeAudio, ret);	
+
 #if EXT_FPGA_AUX_ON	
 	_checkNumU16FieldValue(&runCfg->dest.sport, rxCfg->dest.sport, ret);	
 #endif
@@ -433,14 +443,14 @@ char extSysCompareParams(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 	{
 		EXT_DEBUGF(DEBUG_SYS_CTRL, "Reset %d", rxCfg->runtime.reset);
 		runCfg->runtime.reset = rxCfg->runtime.reset;
-		cmnSysCtrlDelayReset(SYS_REBOOT_DELAY_MS, &runCfg->runtime);
+		cmnSysCtrlDelayReset(SYS_REBOOT_DELAY_MS, runCfg);
 	}
 
 	if(FIELD_IS_CHANGED_U8(rxCfg->runtime.reboot) && (rxCfg->runtime.reboot != runCfg->runtime.reboot) ) 
 	{
 		EXT_DEBUGF(DEBUG_SYS_CTRL, "Reboot %d", rxCfg->runtime.reboot );
 		runCfg->runtime.reboot = rxCfg->runtime.reboot;
-		cmnSysCtrlDelayReboot(SYS_REBOOT_DELAY_MS, &runCfg->runtime);
+		cmnSysCtrlDelayReboot(SYS_REBOOT_DELAY_MS, runCfg);
 	}
 
 	if(! IS_STRING_NULL_OR_ZERO(rxCfg->hexData) )
@@ -540,7 +550,6 @@ static int _cmnSysConfigCtrl(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 	
 	if( SETUP_CHECK_TYPE(_SETUP_TYPE_MEDIA) )
 	{
-
 		cmnSysCfgSave(runCfg, EXT_CFG_MAIN);
 		fpga->opMediaWrite(fpga);
 		EXT_DEBUGF(EXT_DBG_ON, "FPGA configuration Media" );
@@ -548,6 +557,8 @@ static int _cmnSysConfigCtrl(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 
 	if( SETUP_CHECK_TYPE(_SETUP_TYPE_PTP) )	
 	{
+		cmnMuxSavePtpConfig(muxMain);
+		
 		cmnSysCfgSave(runCfg, EXT_CFG_MAIN);
 //		bspCmdReboot(NULL, NULL, 0);
 		EXT_DEBUGF(EXT_DBG_ON, "New PTP parameters" );

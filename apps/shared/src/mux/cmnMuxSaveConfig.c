@@ -191,3 +191,70 @@ int cmnMuxSaveAllConfig(MuxMain *muxMain)
 
 }
 
+int32_t	extPtpInit(EXT_RUNTIME_CFG		*runCfg);
+
+int cmnMuxSavePtpConfig(MuxMain *muxMain)
+{
+
+	FILE *f;
+	int res = EXIT_SUCCESS;
+	MuxPtpConfig *ptpConfig = &muxMain->runCfg.ptpConfig;
+	MuxPtpRuntime *ptpRuntime = &muxMain->runCfg.ptpRuntime;
+
+	cmnKillProcess(PTP_EXE);
+	muxPtpDestory(ptpRuntime);
+
+
+	f = fopen(EXT_CONFIG_FILE_PTPD, "w");
+	if (!f)
+	{
+		MUX_ERROR("PTP Configuration file '%s' is not found", EXT_CONFIG_FILE_PTPD);
+		return EXIT_FAILURE;
+	}
+
+	_savePrompt(f);
+
+	res = fprintf(f, "\n\n[global]\ndomainNumber\t%d\n\n", ptpConfig->domain);
+	res = fprintf(f, "\npriority1\t%d\npriority2\t%d\n\n", ptpConfig->priority1, ptpConfig->priority2);
+	res = fprintf(f, "\nclockClass\t%d\nclockAccuracy\t%d\n\n", ptpConfig->clockClass, ptpConfig->clockAccuracy);
+	res = fprintf(f, "\noffsetScaledLogVariance\t%d\n\n", ptpConfig->offsetScaledLogVariance);
+//	res = fprintf(f, "utc_offset\t%d\n\n", 0);
+	res = fprintf(f, "\nlogging_level\t%d\nverbose\t\t%d\n\n", 4, 0);
+
+	fclose(f);
+
+	extPtpInit(&muxMain->runCfg);
+
+	return res;
+
+}
+
+
+int cmnMuxSaveFactoryFlags(	EXT_RUNTIME_CFG	 *runCfg)
+{
+	FILE *f;
+	f = fopen(MUX_FACTORY_FLAGS_FILE, "w");
+	if (!f)
+	{
+		MUX_ERROR("Factory flags file '%s' is not found", MUX_FACTORY_FLAGS_FILE);
+		return EXIT_FAILURE;
+	}
+
+//	if(runCfg->isMacConfiged )
+	{
+		fprintf(f, "MAC_ADDRESS=%.2X:%.2X:%.2X:%.2X:%.2X:%.2X\n\n", 
+			runCfg->local.mac.address[0], runCfg->local.mac.address[1], runCfg->local.mac.address[2], 
+			runCfg->local.mac.address[3], runCfg->local.mac.address[4], runCfg->local.mac.address[5] );
+		EXT_INFOF("MAC_ADDRESS=%.2X:%.2X:%.2X:%.2X:%.2X:%.2X\n\n", 
+			runCfg->local.mac.address[0], runCfg->local.mac.address[1], runCfg->local.mac.address[2], 
+			runCfg->local.mac.address[3], runCfg->local.mac.address[4], runCfg->local.mac.address[5] );
+
+	}
+
+	fclose(f);
+
+	MUX_INFO("Factory flags file '%s' set successfully", MUX_FACTORY_FLAGS_FILE);
+	return EXIT_SUCCESS;
+
+}
+

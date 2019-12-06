@@ -95,7 +95,7 @@ static int clock_management_get_response(struct PtpClock *c, struct PtpPort *p, 
 	else
 	{
 #if PTP_NOISE_DEBUG			
-		pr_err("no response of GET MGMT msg...");
+//		pr_err("no response of GET MGMT msg...");
 #endif
 	}
 	
@@ -137,8 +137,7 @@ static int clock_management_set(struct PtpClock *c, struct PtpPort *p, int id, s
 			break;
 		case TLV_SUBSCRIBE_EVENTS_NP:
 			sen = (struct subscribe_events_np *)tlv->data;
-			clock_update_subscription(c, req, sen->bitmask,
-						  sen->duration);
+			clock_update_subscription(c, req, sen->bitmask, sen->duration);
 			respond = 1;
 			break;
 	}

@@ -113,7 +113,7 @@ void clock_follow_up_info(struct PtpClock *c, struct follow_up_info_tlv *f);
  * @return     One if the management action caused a change that
  *             implies a state decision event, zero otherwise.
  */
-//int clock_manage(struct PtpClock *c, struct PtpPort *p, struct ptp_message *msg);
+int clock_manage(struct PtpClock *c, struct PtpPort *p, struct ptp_message *msg);
 
 /**
  * Send notification about an event to all subscribers.

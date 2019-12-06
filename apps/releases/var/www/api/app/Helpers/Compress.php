@@ -2,6 +2,8 @@
 
 namespace App\Helpers;
 
+use App\Base\Logger;
+
 class Compress
 {
     static function compressLogFiles($filesPath = array(), $filesName = array() , $destination = '',$overwrite = true)
@@ -50,13 +52,26 @@ class Compress
     {
         //if the compress file already exists and overwrite is false, return false
         if(file_exists($destination) && !$overwrite) { return false; }
+
+        //check if files exists
+        $newFilesPath = array();
+        foreach ($filesPath as $index => $path)
+        {
+            if (glob($path))
+                $newFilesPath[] = $path;
+        }
         
-        $stringPathFiles = implode(" ", $filesPath);
+        $stringPathFiles = implode(" ", $newFilesPath);
         $command         = "tar -zcvf $destination $stringPathFiles";
 
-        exec($command);
-       
-        return $destination;
+        exec($command, $output, $returnVar);
+        
+        if ($returnVar)
+        {
+            Logger::getInstance()->addError('compress error: '. json_encode($output));
+            return false;
+        }
+        return true;
     }
     
     /*

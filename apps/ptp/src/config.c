@@ -198,93 +198,143 @@ static struct config_enum tsproc_enu[] =
 #ifdef	MUX_BOARD
 
 struct config_item config_tab[] = {
-	PORT_ITEM_INT("announceReceiptTimeout", 3, 2, UINT8_MAX),
-	GLOB_ITEM_INT("assume_two_step", 0, 0, 1),
-	PORT_ITEM_INT("boundary_clock_jbod", 0, 0, 1),
-	GLOB_ITEM_INT("check_fup_sync", 0, 0, 1),
-	GLOB_ITEM_INT("clockAccuracy", 0xfe, 0, UINT8_MAX),
-	GLOB_ITEM_INT("clockClass", 248, 0, UINT8_MAX),
-	GLOB_ITEM_ENU("clock_servo", CLOCK_SERVO_PI, clock_servo_enu),
-	GLOB_ITEM_ENU("clock_type", CLOCK_TYPE_ORDINARY, clock_type_enu),
-	GLOB_ITEM_ENU("dataset_comparison", DS_CMP_IEEE1588, dataset_comp_enu),
-	PORT_ITEM_INT("delayAsymmetry", 0, INT_MIN, INT_MAX),
-	PORT_ITEM_ENU("delay_filter", FILTER_MOVING_MEDIAN, delay_filter_enu),
-	PORT_ITEM_INT("delay_filter_length", 10, 1, INT_MAX),
-	PORT_ITEM_ENU("delay_mechanism", DM_E2E, delay_mech_enu),
-	GLOB_ITEM_INT("dscp_event", 0, 0, 63),
-	GLOB_ITEM_INT("dscp_general", 0, 0, 63),
-	GLOB_ITEM_INT("domainNumber", 0, 0, 127),
-	PORT_ITEM_INT("egressLatency", 0, INT_MIN, INT_MAX),
 	PORT_ITEM_INT("fault_badpeernet_interval", 16, INT32_MIN, INT32_MAX),
-	PORT_ITEM_INT("fault_reset_interval", 4, INT8_MIN, INT8_MAX),
-	GLOB_ITEM_DBL("first_step_threshold", 0.00002, 0.0, DBL_MAX),
-	PORT_ITEM_INT("follow_up_info", 0, 0, 1),
+
+	/* global */
 	GLOB_ITEM_INT("free_running", 0, 0, 1),
 	PORT_ITEM_INT("freq_est_interval", 1, 0, INT_MAX),
+	
+	GLOB_ITEM_INT("dscp_event", 0, 0, 63),
+	GLOB_ITEM_INT("dscp_general", 0, 0, 63),
+	
+	GLOB_ITEM_ENU("dataset_comparison", DS_CMP_IEEE1588, dataset_comp_enu),
 	GLOB_ITEM_INT("G.8275.defaultDS.localPriority", 128, 1, UINT8_MAX),
-	PORT_ITEM_INT("G.8275.portDS.localPriority", 128, 1, UINT8_MAX),
-	GLOB_ITEM_INT("gmCapable", 1, 0, 1),
-	PORT_ITEM_INT("hybrid_e2e", 0, 0, 1),
-	PORT_ITEM_INT("ignore_transport_specific", 0, 0, 1),
-	PORT_ITEM_INT("ingressLatency", 0, INT_MIN, INT_MAX),
-	PORT_ITEM_INT("inhibit_multicast_service", 0, 0, 1),
-	GLOB_ITEM_INT("initial_delay", 0, 0, INT_MAX),
-	GLOB_ITEM_INT("kernel_leap", 1, 0, 1),
+
+	/* port data set */
 	PORT_ITEM_INT("logAnnounceInterval", 1, INT8_MIN, INT8_MAX),
+	PORT_ITEM_INT("logSyncInterval", 0, INT8_MIN, INT8_MAX),
 	PORT_ITEM_INT("logMinDelayReqInterval", 0, INT8_MIN, INT8_MAX),
 	PORT_ITEM_INT("logMinPdelayReqInterval", 0, INT8_MIN, INT8_MAX),
-	PORT_ITEM_INT("logSyncInterval", 0, INT8_MIN, INT8_MAX),
-	GLOB_ITEM_INT("logging_level", LOG_INFO, PRINT_LEVEL_MIN, PRINT_LEVEL_MAX), /* same as definitions in libCmn */
-	PORT_ITEM_INT("masterOnly", 0, 0, 1),
-	GLOB_ITEM_STR("message_tag", NULL),
-	GLOB_ITEM_STR("manufacturerIdentity", "00:00:00"),
-	GLOB_ITEM_INT("max_frequency", 900000000, 0, INT_MAX),
-	PORT_ITEM_INT("min_neighbor_prop_delay", -20000000, INT_MIN, -1),
-	PORT_ITEM_INT("neighborPropDelayThresh", 20000000, 0, INT_MAX),
-	PORT_ITEM_INT("net_sync_monitor", 0, 0, 1),
-	PORT_ITEM_ENU("network_transport", TRANS_UDP_IPV4, nw_trans_enu),
-	GLOB_ITEM_INT("ntpshm_segment", 0, INT_MIN, INT_MAX),
-	GLOB_ITEM_INT("offsetScaledLogVariance", 0xffff, 0, UINT16_MAX),
-	PORT_ITEM_INT("path_trace_enabled", 0, 0, 1),
-	GLOB_ITEM_DBL("pi_integral_const", 0.0, 0.0, DBL_MAX),
-	GLOB_ITEM_DBL("pi_integral_exponent", 0.4, -DBL_MAX, DBL_MAX),
-	GLOB_ITEM_DBL("pi_integral_norm_max", 0.3, DBL_MIN, 2.0),
-	GLOB_ITEM_DBL("pi_integral_scale", 0.0, 0.0, DBL_MAX),
-	GLOB_ITEM_DBL("pi_proportional_const", 0.0, 0.0, DBL_MAX),
-	GLOB_ITEM_DBL("pi_proportional_exponent", -0.3, -DBL_MAX, DBL_MAX),
-	GLOB_ITEM_DBL("pi_proportional_norm_max", 0.7, DBL_MIN, 1.0),
-	GLOB_ITEM_DBL("pi_proportional_scale", 0.0, 0.0, DBL_MAX),
-	GLOB_ITEM_INT("priority1", 128, 0, UINT8_MAX),
-	GLOB_ITEM_INT("priority2", 128, 0, UINT8_MAX),
-	GLOB_ITEM_STR("productDescription", ";;"),
-//	PORT_ITEM_STR("ptp_dst_mac", "01:1B:19:00:00:00"),
-	PORT_ITEM_STR("ptp_dst_mac", "68:97:E8:00:01:00"),
-	PORT_ITEM_STR("p2p_dst_mac", "01:80:C2:00:00:0E"),
-	GLOB_ITEM_STR("revisionData", ";;"),
-	GLOB_ITEM_INT("sanity_freq_limit", 200000000, 0, INT_MAX),
-	GLOB_ITEM_INT("slaveOnly", 0, 0, 1),
-	GLOB_ITEM_DBL("step_threshold", 0.0, 0.0, DBL_MAX),
-	GLOB_ITEM_INT("summary_interval", 0, INT_MIN, INT_MAX),
+	PORT_ITEM_INT("announceReceiptTimeout", 3, 2, UINT8_MAX),
 	PORT_ITEM_INT("syncReceiptTimeout", 0, 0, UINT8_MAX),
+	PORT_ITEM_INT("delayAsymmetry", 0, INT_MIN, INT_MAX),
+	PORT_ITEM_INT("fault_reset_interval", 4, INT8_MIN, INT8_MAX),
+	PORT_ITEM_INT("neighborPropDelayThresh", 20000000, 0, INT_MAX),
+	PORT_ITEM_INT("masterOnly", 0, 0, 1),
+	PORT_ITEM_INT("G.8275.portDS.localPriority", 128, 1, UINT8_MAX),
+
+	/* runtime options */
+	GLOB_ITEM_INT("assume_two_step", 0, 0, 1),
+	PORT_ITEM_INT("path_trace_enabled", 0, 0, 1),
+	PORT_ITEM_INT("follow_up_info", 0, 0, 1),
+	PORT_ITEM_INT("hybrid_e2e", 0, 0, 1),
+	PORT_ITEM_INT("inhibit_multicast_service", 0, 0, 1),
+	PORT_ITEM_INT("net_sync_monitor", 0, 0, 1),
 	GLOB_ITEM_INT("tc_spanning_tree", 0, 0, 1),
-	GLOB_ITEM_INT("timeSource", INTERNAL_OSCILLATOR, 0x10, 0xfe),
-	GLOB_ITEM_ENU("time_stamping", TS_HARDWARE, timestamping_enu),
-	PORT_ITEM_INT("transportSpecific", 0, 0, 0x0F),
-	PORT_ITEM_ENU("tsproc_mode", TSPROC_FILTER, tsproc_enu),
-	GLOB_ITEM_INT("twoStepFlag", 1, 0, 1),
 	GLOB_ITEM_INT("tx_timestamp_timeout", 1, 1, INT_MAX),
-	PORT_ITEM_INT("udp_ttl", 1, 1, 255),
-	PORT_ITEM_INT("udp6_scope", 0x0E, 0x00, 0x0F),
-	GLOB_ITEM_STR("uds_address", PTP_RUN_HOME"/"PTP_EXE),
 	PORT_ITEM_INT("unicast_listen", 0, 0, 1),
 	PORT_ITEM_INT("unicast_master_table", 0, 0, INT_MAX),
 	PORT_ITEM_INT("unicast_req_duration", 3600, 10, INT_MAX),
+
 	GLOB_ITEM_INT("use_syslog", 1, 0, 1),
-	GLOB_ITEM_STR("userDescription", ""),
+	GLOB_ITEM_INT("summary_interval", 0, INT_MIN, INT_MAX),
+	GLOB_ITEM_INT("kernel_leap", 1, 0, 1),
+	GLOB_ITEM_INT("check_fup_sync", 0, 0, 1),
+	
+	/* Servo */	
+	GLOB_ITEM_ENU("clock_servo", CLOCK_SERVO_PI, clock_servo_enu),
+	GLOB_ITEM_INT("sanity_freq_limit", 200000000, 0, INT_MAX),
+	GLOB_ITEM_INT("ntpshm_segment", 0, INT_MIN, INT_MAX),
+
+#if 0	
+	GLOB_ITEM_DBL("pi_proportional_const", 0.0, 0.0, DBL_MAX),
+	GLOB_ITEM_DBL("pi_integral_const", 0.0, 0.0, DBL_MAX),
+#else	
+	/* use configuration for hardware clock to make lock quick. 12.04, 2019 */
+	GLOB_ITEM_DBL("pi_proportional_const", 0.7, 0.0, DBL_MAX),	
+	GLOB_ITEM_DBL("pi_integral_const", 0.3, 0.0, DBL_MAX),
+#endif
+
+	GLOB_ITEM_DBL("pi_proportional_scale", 0.0, 0.0, DBL_MAX),
+	GLOB_ITEM_DBL("pi_proportional_exponent", -0.3, -DBL_MAX, DBL_MAX),
+	GLOB_ITEM_DBL("pi_proportional_norm_max", 0.7, DBL_MIN, 1.0),
+	
+	GLOB_ITEM_DBL("pi_integral_scale", 0.0, 0.0, DBL_MAX),
+	GLOB_ITEM_DBL("pi_integral_exponent", 0.4, -DBL_MAX, DBL_MAX),
+	GLOB_ITEM_DBL("pi_integral_norm_max", 0.3, DBL_MIN, 2.0),
+	GLOB_ITEM_DBL("step_threshold", 0.0, 0.0, DBL_MAX),
+	GLOB_ITEM_DBL("first_step_threshold", 0.00002, 0.0, DBL_MAX),
+
+	/* transport options */	
+	PORT_ITEM_INT("transportSpecific", 0, 0, 0x0F),
+//	PORT_ITEM_STR("ptp_dst_mac", "01:1B:19:00:00:00"),
+	PORT_ITEM_STR("ptp_dst_mac", "68:97:E8:00:01:00"),
+	PORT_ITEM_STR("p2p_dst_mac", "01:80:C2:00:00:0E"),
+	
+	PORT_ITEM_INT("udp_ttl", 1, 1, 255),
+	PORT_ITEM_INT("udp6_scope", 0x0E, 0x00, 0x0F),
+
+	/* default interface options */
+	GLOB_ITEM_ENU("clock_type", CLOCK_TYPE_ORDINARY, clock_type_enu),
+	PORT_ITEM_ENU("network_transport", TRANS_UDP_IPV4, nw_trans_enu),
+	PORT_ITEM_ENU("delay_mechanism", DM_E2E, delay_mech_enu),
+
+	/* TS process */
+	PORT_ITEM_ENU("tsproc_mode", TSPROC_FILTER, tsproc_enu),
+	PORT_ITEM_ENU("delay_filter", FILTER_MOVING_MEDIAN, delay_filter_enu),
+	PORT_ITEM_INT("delay_filter_length", 10, 1, INT_MAX),
+	
+	PORT_ITEM_INT("ingressLatency", 0, INT_MIN, INT_MAX),
+	PORT_ITEM_INT("egressLatency", 0, INT_MIN, INT_MAX),
+	PORT_ITEM_INT("boundary_clock_jbod", 0, 0, 1),
+
+	GLOB_ITEM_INT("gmCapable", 1, 0, 1),
+	PORT_ITEM_INT("ignore_transport_specific", 0, 0, 1),
+	GLOB_ITEM_INT("initial_delay", 0, 0, INT_MAX),
+	GLOB_ITEM_STR("message_tag", NULL),
+	GLOB_ITEM_INT("max_frequency", 900000000, 0, INT_MAX),
+	PORT_ITEM_INT("min_neighbor_prop_delay", -20000000, INT_MIN, -1),
+	
+
+	GLOB_ITEM_INT("timeSource", INTERNAL_OSCILLATOR, 0x10, 0xfe),
+	
+/* following are modified, and fixed */
+	GLOB_ITEM_INT("twoStepFlag", 1, 0, 1),
+	GLOB_ITEM_INT("slaveOnly", 1, 0, 1),
+	GLOB_ITEM_STR("uds_address", PTP_RUN_HOME"/"PTP_EXE),
+	GLOB_ITEM_ENU("time_stamping", TS_SOFTWARE, timestamping_enu),
+
+	/* clock description */
+	GLOB_ITEM_STR("productDescription", "PTP Clock of MuxLab;;"),
+	GLOB_ITEM_STR("revisionData", "01 02;;"),
+	GLOB_ITEM_STR("manufacturerIdentity", "03:20:00"),
+	GLOB_ITEM_STR("userDescription", "Mux774"),
+	
+	
+/* following items are read from file and modifiable  */
+	GLOB_ITEM_INT("domainNumber", 0, 0, 127),
+
+	GLOB_ITEM_INT("priority1", 255, 0, UINT8_MAX),
+	GLOB_ITEM_INT("priority2", 255, 0, UINT8_MAX),
+	
+	GLOB_ITEM_INT("clockClass", 248, 0, UINT8_MAX),
+	GLOB_ITEM_INT("clockAccuracy", 0xfe, 0, UINT8_MAX),
+	GLOB_ITEM_INT("offsetScaledLogVariance", 0xffff, 0, UINT16_MAX),
+
+	/*
+	* normally master from client is configured as 0, eg, not update for wall clock. JL, 12.04, 2019
+	*/
+#if 0
 	GLOB_ITEM_INT("utc_offset", CURRENT_UTC_OFFSET, 0, INT_MAX),
+#else	
+	GLOB_ITEM_INT("utc_offset", 0, 0, INT_MAX),
+#endif
+
+	GLOB_ITEM_STR("ptp_log", PTP_RUN_HOME"/"PTP_EXE".log"),
+	GLOB_ITEM_INT("logging_level", LOG_INFO, PRINT_LEVEL_MIN, PRINT_LEVEL_MAX), /* same as definitions in libCmn */
 	GLOB_ITEM_INT("verbose", 0, 0, 1),
 	
-	GLOB_ITEM_STR("ptp_log", PTP_RUN_HOME"/"PTP_EXE".log"),
+	
 };
 
 #else

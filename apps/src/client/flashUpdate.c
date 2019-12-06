@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
 	uint32_t pageCount = 2;
 	char	fileName[256];
 	char	cmd[256];
-	int isWrite = EXT_FALSE;
+//	int isWrite = EXT_FALSE;
 	int opt;
 	int cmdType = _CMD_READ;
 	

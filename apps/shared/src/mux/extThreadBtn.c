@@ -109,7 +109,7 @@ static int _blinkTimerCallback(int interval, void *param)
 	struct ButtonCtrl *btn = (struct ButtonCtrl *)param;
 
 	MUX_DEBUG("Blink after %d ms", (cmnGetTimeMs() - btn->startTime) );
-	cmnSysCtrlBlinkPowerLED(EXT_TRUE);
+	cmnSysCtrlBlinkPowerLED(EXT_TRUE);	/* from 6 second, it begin to blink */
 
 	return EXIT_SUCCESS;
 }
@@ -122,6 +122,7 @@ static int _muxThBtnMain(CmnThread *th)
 	MuxMain *muxMain = (MuxMain *)btn->data;
 	int count = 0;
 
+	cmnSysCtrlBlinkPowerLED(EXT_FALSE);
 	btn->status = _BTN_STATUS_NONE;
 	while(1)
 	{
@@ -131,7 +132,7 @@ static int _muxThBtnMain(CmnThread *th)
 
 		if(btn->event == BTN_EVENT_PRESSED && btn->status == _BTN_STATUS_NONE )
 		{
-			MUX_DEBUG("Button pressed now" );
+			MUX_DEBUG("Button pressed now, timeout: %d second", btn->timeout );
 			btn->status = _BTN_STATUS_PRESSED;
 			btn->startTime = cmnGetTimeMs();
 			count = 0;
@@ -145,14 +146,14 @@ static int _muxThBtnMain(CmnThread *th)
 
 			if(count/1000 >= btn->timeout )
 			{
-				cmnSysCtrlBlinkPowerLED(EXT_TRUE);
+				cmnSysCtrlBlinkPowerLED(EXT_FALSE);	/* after blink and release button, LED is ON */
 				MUX_WARN("Button pressed for about %d seconds, so reset now...", count/1000);
-				cmnSysCtrlDelayReset(SYS_REBOOT_DELAY_MS_4_BTN, &muxMain->runCfg.runtime);
+				cmnSysCtrlDelayReset(SYS_REBOOT_DELAY_MS_4_BTN, &muxMain->runCfg);
 			}
 			else
 			{
 				MUX_INFO("Button pressed, reboot now...");
-				cmnSysCtrlDelayReboot(SYS_REBOOT_DELAY_MS_4_BTN, &muxMain->runCfg.runtime);
+				cmnSysCtrlDelayReboot(SYS_REBOOT_DELAY_MS_4_BTN, &muxMain->runCfg);
 			}
 
 			/* call function or set event to manager thread */

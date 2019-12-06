@@ -158,7 +158,7 @@ cJSON *cmnJsonSystemGetSubItem(cJSON *sysObj, char *item, int index)
 	itemObj = cJSON_GetObjectItem(sysObj, item);
 	if (itemObj== NULL)
 	{
-		MUX_ERROR("No data for '%s' is found", item);
+//		MUX_ERROR("No data for '%s' is found", item);
 		return NULL;
 	}
 	

@@ -93,6 +93,10 @@ int	sysFpgaTxConfig(FpgaConfig *fpga)
 		address[0], address[1], address[2], address[3], address[4], address[5], cmnSysNetAddress(ip), runCfg->local.vport, runCfg->local.aport);
 #endif
 
+	/* write video/audio payload type */
+	_extFpgaWriteByte(&fpga->txAddress->streamVideo->rtpPayload, &runCfg->runtime.rtpTypeVideo);
+	_extFpgaWriteByte(&fpga->txAddress->streamAudio->rtpPayload, &	runCfg->runtime.rtpTypeAudio);
+
 	/* dest */
 	/* video */
 	if(cmnSysNetMulticastIP4Mac(runCfg->dest.ip, &destMac) == EXIT_SUCCESS)
@@ -345,9 +349,11 @@ int sysFpgaTxReadParams(FpgaConfig *fpga)
 		FIELD_INVALIDATE_U8(runCfg->runtime.aSampleRate);
 		FIELD_INVALIDATE_U8(runCfg->runtime.aPktSize);
 
+#if 0	/* use these params to configure FPGA */
 		FIELD_INVALIDATE_U8(runCfg->runtime.rtpTypeVideo);
 		FIELD_INVALIDATE_U8(runCfg->runtime.rtpTypeAudio);
 		FIELD_INVALIDATE_U8(runCfg->runtime.rtpTypeAnc);
+#endif
 
 		FIELD_INVALIDATE_U8(runCfg->runtime.vpid );
 		
@@ -355,15 +361,19 @@ int sysFpgaTxReadParams(FpgaConfig *fpga)
 	}
 
 
+#if 0
+	/* not read payload type, only write to fpga. 12.04, 2019 */
 	_extFpgaReadByte(&fpga->txAddress->streamVideo->rtpPayload, &_chValue);
 	runCfg->runtime.rtpTypeVideo = (_chValue&0x7F);
 
 	_extFpgaReadByte(&fpga->txAddress->streamAudio->rtpPayload, &_chValue);
 	runCfg->runtime.rtpTypeAudio = (_chValue&0x7F);
-
+	
 #if WITH_ANCILLIARY_STREAM
 	_extFpgaReadByte(&fpga->txAddress->streamAnc->rtpPayload, &_chValue);
 	runCfg->runtime.rtpTypeAnc = (_chValue&0x7F);
+#endif
+
 #endif
 
 	/* write timestamp */
@@ -626,8 +636,10 @@ int sysFpgaTxPollUpdateParams(void *data)
 		return EXIT_FAILURE;
 	}
 
-	sysFpgaWritePtpTimestamp(runCfg);
-
+	if(EXT_IS_PTP_ENABLED(runCfg) )
+	{
+		sysFpgaWritePtpTimestamp(runCfg);
+	}
 
 	_extFpgaReadByte(&fpga->txAddress->media->paramStatus, &_chValue);
 //	EXT_DEBUGF(MUX_DEBUG_FPGA, "params status:0x%x", _chValue);

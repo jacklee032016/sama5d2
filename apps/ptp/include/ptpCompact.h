@@ -761,6 +761,9 @@ void stats_reset(struct stats *stats);
 #define	PTP_GET_SYS_TIME_MONOTONIC( timeSpecNow)		\
 			PTP_GET_SYS_TIME_NOW(CLOCK_MONOTONIC, (timeSpecNow) )
 			
+struct PtpFilter;
+void filter_destroy(struct PtpFilter *filter);
+
 
 #endif
 

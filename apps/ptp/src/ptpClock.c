@@ -24,6 +24,8 @@
 #include <time.h>
 #include <sys/queue.h>
 
+//#include "libCmnSys.h"
+
 #include "clock.h"
 #include "missing.h"
 #include "port.h"
@@ -36,8 +38,6 @@
 
 #include "clockPrivate.h"
 #include "portPrivate.h"
-
-#include "libCmnSys.h"
 
 #if PTP_FPGA_UPDATE
 EXT_RUNTIME_CFG		_runCfg;
@@ -579,7 +579,9 @@ enum servo_state ptpClockSynchronize(struct PtpClock *c, tmv_t ingress, tmv_t or
 	}
 
 	
-	/* ingress is local timestamp for FollowUp and Sync */
+	/* ingress is local timestamp for FollowUp and Sync
+	* return freq adjustment and locking state
+	*/
 	adj = servo_sample(c->servo, tmv_to_nanoseconds(c->master_offset), tmv_to_nanoseconds(ingress), weight, &state);
 	c->servo_state = state;
 

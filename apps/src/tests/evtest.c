@@ -844,8 +844,7 @@ static char* scan_devices(void)
 		int fd = -1;
 		char name[256] = "???";
 
-		snprintf(fname, sizeof(fname),
-			 "%s/%s", DEV_INPUT_EVENT, namelist[i]->d_name);
+		snprintf(fname, sizeof(fname), DEV_INPUT_EVENT"/%s", namelist[i]->d_name);
 		fd = open(fname, O_RDONLY);
 		if (fd < 0)
 			continue;

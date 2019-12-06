@@ -114,6 +114,10 @@ class DeviceController extends Controller
                 //$arrParameters['data']['system']['ver'] = Params::VERSION;
                 unset($arrParameters['data']['others']);
                 $data = $arrParameters['data'] + $dataList;
+                //update device type if necessary
+                $settings = new Settings();
+                $settings->setDeviceTypeByGetParam($data);
+                //
                 $this->arrSuccess['data'] = $data;
                 return $response->withJson($this->arrSuccess);
             }
@@ -378,7 +382,7 @@ class DeviceController extends Controller
     {
         
         $validation = $this->Validator->validate($request, [
-            "domainNumber" => v::intVal(),
+            "domainNumber" => v::between(0,127),//v::intVal(),
             "enable" => v::in(["1", "0"]),
         ]);
         
@@ -388,10 +392,10 @@ class DeviceController extends Controller
             return $response->withJson($this->arrFailed);
         }
        
-        $data["ptp"]["isEnable"] = $request->getParam("isEnable");
-        $data["ptp"]["domainNumber"] = $request->getParam("domainNumber");
+        $data["ptp"]["isEnable"] = intval($request->getParam("enable"));
+        $data["ptp"]["domainNumber"] = intval($request->getParam("domainNumber"));
         
-/*        $deviceResponse= $this->muxProtocol->cmd_set_param($data);
+        $deviceResponse= $this->muxProtocol->cmd_set_param($data);
         
         //check if good
         if ($deviceResponse)
@@ -405,7 +409,7 @@ class DeviceController extends Controller
         }
         $errorMessage = (!empty($arrParameters))? $arrParameters['pwd-msg'] : "";
         Logger::getInstance()->addError('set param api error' . $errorMessage);
-*/        return $response->withJson($this->arrFailed);
+        return $response->withJson($this->arrFailed);
     }
     
     
@@ -1159,62 +1163,49 @@ class DeviceController extends Controller
         $productModelReceived = substr($fwHeader,3,9);
         
         //get device type - TX or RX
-        $parameters = $this->muxProtocol->cmd_get_param();
-
-        if ($parameters)
+        $settings   = new Settings();
+        $deviceType = $settings->getDeviceType();
+                
+        if ($deviceType == 'TX')
         {
-            $arrParameters = $this->muxProtocol->hex_command_to_text($parameters[0]);
+            $device = Params::MCU_UPGRADE_VALIDATION."-TX";
+        } else {
+            $device = Params::MCU_UPGRADE_VALIDATION."-RX";
+        }
+
+        if ($productModelReceived != $device)
+        {
+            $this->arrFailed["data"] = ["fileToUpload"=>"Firmware is not compatible!"];
+            return $response->withJson($this->arrFailed);
+        }
+        
+        // Save the firmware to a file
+        $fp = fopen(Params::FIRMWARE_MCU_FILE, 'w');
+        if (!$fp)
+        {
+            $this->arrFailed["data"] = ["fileToUpload"=>"could not open firmware file!"];
+            return $response->withJson($this->arrFailed);
+        }
+        
+        fwrite($fp,$fwData);
+        fclose($fp);
+        
+        //rebooting
+        $data = array("system" => array("reboot" => 1));
+        $deviceResponse = $this->muxProtocol->cmd_set_param($data);
+        
+        //check if good
+        if ($deviceResponse)
+        {
+            $arrParameters = $this->muxProtocol->hex_command_to_text($deviceResponse[0]);
             
             if (!empty($arrParameters) && $arrParameters['login-ack'] == 'OK')
             {
-                $isTx = $arrParameters['data']['system']['isTx'];
-                
-                if ($isTx)
-                {
-                    $device = Params::MCU_UPGRADE_VALIDATION."-TX";
-                } else {
-                    $device = Params::MCU_UPGRADE_VALIDATION."-RX";
-                }
-
-                if ($productModelReceived != $device)
-                {
-                    $this->arrFailed["data"] = ["fileToUpload"=>"Firmware is not compatible!"];
-                    return $response->withJson($this->arrFailed);
-                }
-                
-                // Save the firmware to a file
-                $fp = fopen(Params::FIRMWARE_MCU_FILE, 'w');
-                if (!$fp)
-                {
-                    $this->arrFailed["data"] = ["fileToUpload"=>"could not open firmware file!"];
-                    return $response->withJson($this->arrFailed);
-                }
-                
-                fwrite($fp,$fwData);
-                fclose($fp);
-                
-                //rebooting
-                $data = array("system" => array("reboot" => 1));
-                $deviceResponse = $this->muxProtocol->cmd_set_param($data);
-                
-                //check if good
-                if ($deviceResponse)
-                {
-                    $arrParameters = $this->muxProtocol->hex_command_to_text($deviceResponse[0]);
-                    
-                    if (!empty($arrParameters) && $arrParameters['login-ack'] == 'OK')
-                    {
-                        return $response->withJson($this->arrSuccess);
-                    }
-                }
-                $errorMessage = (!empty($arrParameters))? $arrParameters["pwd-msg"]: "";
-                Logger::getInstance()->addError('reboot failed ' . $errorMessage);
-                return $response->withJson($this->arrFailed);
+                return $response->withJson($this->arrSuccess);
             }
-        }
-        $errorMessage = (!empty($arrParameters))? $arrParameters["pwd-msg"]: "";
-        $this->arrFailed["data"] = $errorMessage;
- 
+        } 
+        //just in case muxMgr - jack manager - is not working properly
+        $this->arrFailed["data"] = ["reboot" => "manual reboot"];
         return $response->withJson($this->arrFailed);
     }
     
@@ -1303,62 +1294,49 @@ class DeviceController extends Controller
         $productModelReceived = substr($fwHeader,3,9);
         
         //get device type - TX or RX
-        $parameters = $this->muxProtocol->cmd_get_param();
-        
-        if ($parameters)
+        $settings   = new Settings();
+        $deviceType = $settings->getDeviceType();
+                
+        if ($deviceType == 'TX')
         {
-            $arrParameters = $this->muxProtocol->hex_command_to_text($parameters[0]);
+            $device = Params::FPGA_UPGRADE_VALIDATION."-TX";
+        } else {
+            $device = Params::FPGA_UPGRADE_VALIDATION."-RX";
+        }
+        
+        if ($productModelReceived != $device)
+        {
+            $this->arrFailed["data"] = ["fileToUpload"=>"Firmware is not compatible!"];
+            return $response->withJson($this->arrFailed);
+        }
+        
+        // Save the firmware to a file
+        $fp = fopen(Params::FIRMWARE_FPGA_FILE, 'w');
+        if (!$fp)
+        {
+            $this->arrFailed["data"] = ["fileToUpload"=>"could not open firmware file!"];
+            return $response->withJson($this->arrFailed);
+        }
+        
+        fwrite($fp,$fwData);
+        fclose($fp);
+        
+        //rebooting
+        $data = array("system" => array("reboot" => 1));
+        $deviceResponse = $this->muxProtocol->cmd_set_param($data);
+        
+        //check if good
+        if ($deviceResponse)
+        {
+            $arrParameters = $this->muxProtocol->hex_command_to_text($deviceResponse[0]);
             
             if (!empty($arrParameters) && $arrParameters['login-ack'] == 'OK')
             {
-                $isTx = $arrParameters['data']['system']['isTx'];
-                
-                if ($isTx)
-                {
-                    $device = Params::FPGA_UPGRADE_VALIDATION."-TX";
-                } else {
-                    $device = Params::FPGA_UPGRADE_VALIDATION."-RX";
-                }
-                
-                if ($productModelReceived != $device)
-                {
-                    $this->arrFailed["data"] = ["fileToUpload"=>"Firmware is not compatible!"];
-                    return $response->withJson($this->arrFailed);
-                }
-                
-                // Save the firmware to a file
-                $fp = fopen(Params::FIRMWARE_FPGA_FILE, 'w');
-                if (!$fp)
-                {
-                    $this->arrFailed["data"] = ["fileToUpload"=>"could not open firmware file!"];
-                    return $response->withJson($this->arrFailed);
-                }
-                
-                fwrite($fp,$fwData);
-                fclose($fp);
-                
-                //rebooting
-                $data = array("system" => array("reboot" => 1));
-                $deviceResponse = $this->muxProtocol->cmd_set_param($data);
-                
-                //check if good
-                if ($deviceResponse)
-                {
-                    $arrParameters = $this->muxProtocol->hex_command_to_text($deviceResponse[0]);
-                    
-                    if (!empty($arrParameters) && $arrParameters['login-ack'] == 'OK')
-                    {
-                        return $response->withJson($this->arrSuccess);
-                    }
-                }
-                $errorMessage = (!empty($arrParameters))? $arrParameters["pwd-msg"]: "";
-                Logger::getInstance()->addError('reboot failed ' . $errorMessage);
-                return $response->withJson($this->arrFailed);
+                return $response->withJson($this->arrSuccess);
             }
         }
-        $errorMessage = (!empty($arrParameters))? $arrParameters["pwd-msg"]: "";
-        $this->arrFailed["data"] = $errorMessage;
-        
+        //just in case muxMgr - jack manager - is not working properly
+        $this->arrFailed["data"] = ["reboot" => "manual reboot"];
         return $response->withJson($this->arrFailed);
     }
 }

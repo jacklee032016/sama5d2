@@ -310,10 +310,11 @@ struct parent_ds {
 	unsigned int path_length;
 };
 
-#define CURRENT_UTC_OFFSET  37 /* 1 Jan 2017 */
-#define INTERNAL_OSCILLATOR 0xA0
+#define CURRENT_UTC_OFFSET			37 /* 1 Jan 2017 */
+#define INTERNAL_OSCILLATOR		0xA0
 
-struct timePropertiesDS {
+struct timePropertiesDS
+{
 	Integer16    currentUtcOffset;
 	UInteger8    flags;
 	Enumeration8 timeSource;

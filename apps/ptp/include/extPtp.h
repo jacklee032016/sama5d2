@@ -29,7 +29,9 @@
 
 #define	EXT_PTP_DEVICE_NAME			"eth0"
 
+#if 0 //ndef	EXT_CONFIG_FILE_PTPD
 #define	EXT_CONFIG_FILE_PTPD			CONFIG_FILE_HOME_DIR"/muxPtpd.cfg"
+#endif
 
 #define	EXT_CONFIG_FILE_PHCD			CONFIG_FILE_HOME_DIR"/muxPhcd.cfg"	/* Ptp Hardware Clock controller */
 

@@ -21,6 +21,9 @@ LOCAL_ALL := \
 		fwUpdate \
 		ptpc \
 		sfpCtrl \
+		btnCtrl \
+
+NOT_USED := \
 		hello \
 		
 
@@ -57,6 +60,10 @@ ptpc:$(OBJ_DIR)/ptpc.o
 	$(MOVE) $@ $(BIN_DIR)/usr/bin  
 	
 sfpCtrl:$(OBJ_DIR)/sfpCtrl.o
+	$(CC) -s -o $@ $^ $(LDFLAGS)
+	$(MOVE) $@ $(BIN_DIR)/usr/bin  
+	
+btnCtrl:$(OBJ_DIR)/btnCtrl.o
 	$(CC) -s -o $@ $^ $(LDFLAGS)
 	$(MOVE) $@ $(BIN_DIR)/usr/bin  
 	

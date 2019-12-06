@@ -112,29 +112,33 @@ completeMediaPage();
 
 function completeMediaPage()
 {
-    $("#product-name").val(device.system.product);
-    $("#model").val(device.system.model);
-    $("#custom-name").val(device.system.name);
-    $("#firmware-version").val(device.system.ver+" ("+device.system.built+")");
-    $("#fpga-version").val(device.system.fpgaVer+" ("+device.system.fpgaBuilt+")");
-    if (device.security.get_status) {
-        $("#security-check").val("PASS");
+    if (device) {
+	    $("#product-name").val(device.system.product);
+	    $("#model").val(device.system.model);
+	    $("#custom-name").val(device.system.name);
+	    $("#firmware-version").val(device.system.ver+" ("+device.system.built+")");
+	    $("#fpga-version").val(device.system.fpgaVer+" ("+device.system.fpgaBuilt+")");
+	    if (device.security.get_status) {
+	        $("#security-check").val("PASS");
+	    } else {
+	        $("#security-check").val("FAILED");
+	    }
+	    $("#mac-address").val(device.system.mac);
+	    $("#ip-address").val(device.system.ip);
+	    $("#subnet-mask").val(device.system.mask);
+	    $("#gateway").val(device.system.gateway);
+	    if (device.system.isDhcp){
+	        $("#dhcp").val("YES");
+	    } else {
+	        $("#dhcp").val("NO");
+	    }
+	    $("#baudrate").val(device.rs232.baudrate);
+	    $("#databits").val(device.rs232.databit);
+	    $("#parity").val(device.rs232.parity);
+	    $("#stop-bits").val(device.rs232.stopbit);
     } else {
-        $("#security-check").val("FAILED");
+        alert ("no previous data found");
     }
-    $("#mac-address").val(device.system.mac);
-    $("#ip-address").val(device.system.ip);
-    $("#subnet-mask").val(device.system.mask);
-    $("#gateway").val(device.system.gateway);
-    if (device.system.isDhcp){
-        $("#dhcp").val("YES");
-    } else {
-        $("#dhcp").val("NO");
-    }
-    $("#baudrate").val(device.rs232.baudrate);
-    $("#databits").val(device.rs232.databit);
-    $("#parity").val(device.rs232.parity);
-    $("#stop-bits").val(device.rs232.stopbit);
 }
 
 

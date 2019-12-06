@@ -49,4 +49,6 @@ struct transport
 	int (*protocol_addr)(struct transport *t, uint8_t *addr);
 };
 
+int sk_receive(int fd, void *buf, int buflen, struct address *addr, struct hw_timestamp *hwts, int flags);
+
 #endif

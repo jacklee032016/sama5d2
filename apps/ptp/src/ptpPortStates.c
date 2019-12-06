@@ -29,20 +29,21 @@ static void _portStateDebug(struct PtpPort *p, enum PORT_STATE next, enum PORT_E
 
 int portIsEnabled(struct PtpPort *p)
 {
-	switch (p->state) {
-	case PS_INITIALIZING:
-	case PS_FAULTY:
-	case PS_DISABLED:
-		return 0;
-		
-	case PS_LISTENING:
-	case PS_PRE_MASTER:
-	case PS_MASTER:
-	case PS_GRAND_MASTER:
-	case PS_PASSIVE:
-	case PS_UNCALIBRATED:
-	case PS_SLAVE:
-		break;
+	switch (p->state)
+	{
+		case PS_INITIALIZING:
+		case PS_FAULTY:
+		case PS_DISABLED:
+			return 0;
+			
+		case PS_LISTENING:
+		case PS_PRE_MASTER:
+		case PS_MASTER:
+		case PS_GRAND_MASTER:
+		case PS_PASSIVE:
+		case PS_UNCALIBRATED:
+		case PS_SLAVE:
+			break;
 	}
 	return 1;
 }

@@ -37,43 +37,44 @@ struct servo *servo_create(struct PtpConfig *cfg, enum servo_type type, int fadj
 	struct servo *servo;
 
 	switch (type) {
-	case CLOCK_SERVO_PI:
-		servo = pi_servo_create(cfg, fadj, sw_ts);
-		break;
-	case CLOCK_SERVO_LINREG:
-		servo = linreg_servo_create(fadj);
-		break;
-	case CLOCK_SERVO_NTPSHM:
-		servo = ntpshm_servo_create(cfg);
-		break;
-	case CLOCK_SERVO_NULLF:
-		servo = nullf_servo_create();
-		break;
-	default:
-		return NULL;
+		case CLOCK_SERVO_PI:
+			servo = pi_servo_create(cfg, fadj, sw_ts);
+			break;
+		case CLOCK_SERVO_LINREG:
+			servo = linreg_servo_create(fadj);
+			break;
+		case CLOCK_SERVO_NTPSHM:
+			servo = ntpshm_servo_create(cfg);
+			break;
+		case CLOCK_SERVO_NULLF:
+			servo = nullf_servo_create();
+			break;
+		default:
+			return NULL;
 	}
 
 	if (!servo)
 		return NULL;
 
-	servo_step_threshold = config_get_double(cfg, NULL, "step_threshold");
+	servo_step_threshold = config_get_double(cfg, NULL, "step_threshold");/* default 0 second */
 	if (servo_step_threshold > 0.0) {
 		servo->step_threshold = servo_step_threshold * NSEC_PER_SEC;
-	} else {
+	}
+	else {
 		servo->step_threshold = 0.0;
 	}
 
-	servo_first_step_threshold =
-		config_get_double(cfg, NULL, "first_step_threshold");
-
-	if (servo_first_step_threshold > 0.0) {
-		servo->first_step_threshold =
-			servo_first_step_threshold * NSEC_PER_SEC;
-	} else {
+	servo_first_step_threshold = config_get_double(cfg, NULL, "first_step_threshold");/* default 20us */
+	if (servo_first_step_threshold > 0.0)
+	{
+		servo->first_step_threshold = servo_first_step_threshold * NSEC_PER_SEC;
+	}
+	else
+	{
 		servo->first_step_threshold = 0.0;
 	}
 
-	servo_max_frequency = config_get_int(cfg, NULL, "max_frequency");
+	servo_max_frequency = config_get_int(cfg, NULL, "max_frequency");/* default 900MHz */
 	servo->max_frequency = max_ppb;
 	if (servo_max_frequency && servo->max_frequency > servo_max_frequency) {
 		servo->max_frequency = servo_max_frequency;

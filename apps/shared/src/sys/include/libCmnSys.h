@@ -414,5 +414,9 @@ int cmnSysI2cSi5351VcxoControl(unsigned long clkFreq);
 
 int sysFpgaWritePtpTimestamp(void 	*fpga);
 
+int	extSysNetInit(MuxMain		*muxMain);
+
+int32_t	extPtpInit(EXT_RUNTIME_CFG		*runCfg);
+
 #endif
 

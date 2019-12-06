@@ -45,7 +45,8 @@ static int _clockAddPort(struct PtpClock *c, int phc_index, enum timestamp_type 
 		return -1;
 	}
 	
-	LIST_FOREACH(piter, &c->clkPorts, list) {
+	LIST_FOREACH(piter, &c->clkPorts, list)
+	{
 		lastp = piter;
 	}
 	
@@ -163,7 +164,8 @@ struct PtpClock *clock_create(enum CLOCK_TYPE type, struct PtpConfig *config, co
 		return NULL;
 	}
 	
-	if (!config_get_int(config, NULL, "gmCapable") || c->dds.flags & DDS_SLAVE_ONLY) {
+	if (!config_get_int(config, NULL, "gmCapable") || c->dds.flags & DDS_SLAVE_ONLY)
+	{
 		c->dds.clockQuality.clockClass = 255;
 	}
 	c->default_dataset.localPriority = config_get_int(config, NULL, "G.8275.defaultDS.localPriority");
@@ -179,7 +181,9 @@ struct PtpClock *clock_create(enum CLOCK_TYPE type, struct PtpConfig *config, co
 	timestamping = config_get_int(config, NULL, "time_stamping");
 	if (timestamping == TS_SOFTWARE) {
 		sw_ts = 1;
-	} else {
+	}
+	else
+	{
 		sw_ts = 0;
 	}
 

@@ -261,7 +261,8 @@ void cmnSysCfgFromFactory( EXT_RUNTIME_CFG *cfg )
 	cfg->isConfigFpga = EXT_TRUE;
 	memset(&cfg->firmUpdateInfo, 0, sizeof(EXT_FM_UPDATE));
 
-	muxPtpDefaultConfig(&cfg->ptpRuntime);
+	muxPtpDefaultConfig(&cfg->ptpConfig );
+//	muxPtpDefaultConfig(&cfg->ptpRuntime);
 
 #ifdef	X86
 	cfg->sc.isExist = EXT_TRUE;

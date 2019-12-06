@@ -3,6 +3,25 @@ IP Command progressive testing
 Jack Lee, 08.07, 2019
 
 
+apiClient -c set -d  '{"system":{"mac":"02:01:03:04:05:06"}}'
+
+apiClient -c set -d  '{"video":{"payloadType":96}}'
+apiClient -c set -d  '{"audio":{"payloadType":97}}'
+
+apiClient -c set -d  '{"system":{"reset":1}}'
+
+12.02, 2019
+------------------------------
+apiClient -c set -d  '{"ptp":{"isEnable": 0, "domainNumber": 23, "priority1":8, "priority2":56, "clockClass":249, "clockAccuracy":251,"offsetScaledLogVariance":1}}'
+	
+# default value	
+apiClient -c set -d  '{"ptp":{"isEnable": 1, "domainNumber": 127, "priority1":254, "priority2":254, "clockClass":248, "clockAccuracy":254,"offsetScaledLogVariance":1}}'
+
+apiClient -c set -d  '{"ptp":{"isEnable": 0}}'
+apiClient -c set -d  '{"ptp":{"isEnable": 1}}'
+
+apiClient -c set -d  '{"ptp":{"domainNumber": 127}}'
+apiClient -c set -d  '{"ptp":{"domainNumber": 0}}'
 
 apiClient -c set -d  '{"system":{"sfpCfg":0}}'
 apiClient -c set -d  '{"system":{"sfpCfg":5}}'
@@ -94,11 +113,15 @@ apiClient -c set -a 192.168.168.101 -m "02:01:03:04:05:06" -d  '{"anc":{"sdp2":"
 
 
 SDP:
+./Linux.bin.X86/usr/bin/apiClient -c set -a 192.168.168.103 -d  '{"sdp":[
+    {"media": "video", "ip":"192.168.168.102", "port":80, "uri":"api/video/sdp"},
+    {"media": "audio", "ip":"192.168.168.102", "port":80, "uri":"api/audio/sdp"}]}'
+
+
 apiClient -c set -a 192.168.168.101 -m "02:01:03:04:05:06" -d  '{"sdp":[
     {"media": "video", "ip":"192.168.167.155", "port":8080, "uri":"videoSdp3"},
     {"media": "audio", "ip":"192.168.167.165", "port":8080, "uri":"audioSdp3"},
     {"media": "anc", "ip":"192.168.167.175", "port":8080, "uri":"ancSdp3"}]}'
-
 
 security chip:
 

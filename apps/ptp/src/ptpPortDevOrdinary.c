@@ -7,6 +7,8 @@
 #include "port.h"
 #include "portPrivate.h"
 #include "clockPrivate.h"
+#include "unicast_service.h"
+#include "unicast_client.h"
 
 
 static int __setSyncTxTmo(struct PtpPort *p)
@@ -171,7 +173,8 @@ static int _setMannoTmo(struct PtpPort *p)
 
 static int __incapableIgnore(struct PtpPort *p, struct ptp_message *m)
 {
-	if (port_capable(p)) {
+	if (port_capable(p))
+	{
 		return 0;
 	}
 	if (msg_type(m) == ANNOUNCE || msg_type(m) == SYNC) {

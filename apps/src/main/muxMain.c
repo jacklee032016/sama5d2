@@ -210,7 +210,7 @@ int main(int argc, char **argv)
 
 	cmnThreadSetName(CMN_THREAD_NAME_MAIN);
 //	putenv("http_proxy");
-	unsetenv("http_proxy");/* Kill the http_proxy */
+//	unsetenv("http_proxy");/* Kill the http_proxy */
 
 	srandom(cmnGetTimeMs() + (getpid() << 16));
 
@@ -276,14 +276,6 @@ int main(int argc, char **argv)
 	}
 #endif
 
-#if 0
-	av_register_all();
-#endif
-
-#if 0
-	cmnMediaInit(&muxMain->mediaCaptureConfig);
-#endif
-
 	plugin = muxMain->plugins;
 	while(plugin)
 	{
@@ -347,12 +339,15 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
+#if 0
 	res =  muxMain->initThread(muxMain, &threadButton, muxMain);
 	if(res < 0)
 	{
 		MUX_ERROR("failed when '%s' initializing", threadButton.name );
 		exit(1);
 	}
+#endif
+
 	res =  muxMain->initThread(muxMain, &threadLed, muxMain);
 	if(res < 0)
 	{

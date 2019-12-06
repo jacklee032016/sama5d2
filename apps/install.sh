@@ -35,7 +35,7 @@ SRCDIR=`echo $2 | sed 's/\/\//\//g'`
 
 	# muxConfig.dat: default no configurtion data. It is created with hardware detection
 	CONFIG_FILES="muxSys.conf muxLab.png muxMain.conf  
-		muxSystem.json muxPtpd.cfg muxPhcd.cfg
+		muxSystem.json muxPtpd.cfg muxBtn.conf
 		"
 	
 	echo ""

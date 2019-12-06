@@ -4,19 +4,11 @@ namespace App\Models;
 
 use App\Base\Logger;
 use App\Params;
-use App\Helpers\TZList;
 
 class Settings
 {
-    private $settings_file   = Params::SETTINGS_FILE;
-    private $dns1            = Params::DEFAULT_DNS1;
-    private $dns2            = Params::DEFAULT_DNS2;
-    private $tz              = Params::DEFAULT_TZ;
-    private $ntp             = Params::DEFAULT_NTP;
-//    private $resolution      = Params::DEFAULT_RESOLUTION;
-//    private $colorDepth      = Params::DEFAULT_COLOR_DEPTH;
-//    private $colorSpace      = Params::DEFAULT_COLOR_SPACE;
-    private $resolutionMode  = Params::DEFAULT_RESOLUTION_MODE;
+    private $settings_file = Params::SETTINGS_FILE;
+    private $deviceType    = Params::DEFAULT_DEVICE_TYPE;
     
     public function __construct()
     {
@@ -47,16 +39,7 @@ class Settings
     
     protected function fileWrite()
     {
-        $data = json_encode(array (
-            "dns1"            => $this->dns1,
-            "dns2"            => $this->dns2,
-            "tz"              => $this->tz,
-            "ntp"             => $this->ntp,
-//            "resolution"      => $this->resolution,
-//            "colorDepth"      => $this->colorDepth,
-//            "colorSpace"      => $this->colorSpace,
-            "resolutionMode"  => $this->resolutionMode,
-        ));
+        $data = json_encode(array ("deviceType" => $this->deviceType));
         
         $nBytes = file_put_contents($this->settings_file, $data);
         if (!$nBytes)
@@ -81,87 +64,36 @@ class Settings
         }
     }
     
-    public function getDns1()
+    public function getDeviceType()
     {
-        return $this->dns1;
+        return $this->deviceType;
     }
     
-    public function getDns2()
+    public function setDeviceType($deviceType)
     {
-        return $this->dns2;
-    }
-    
-    public function getTZ()
-    {
-        $tzList   = TZList::getTZList();
-        
-        $location = $this->tz;
-        $data = array("location" => $location, "tz_string" => $tzList[$location]);
-        return $data;
-    }
-    
-    public function getNtp()
-    {
-        return $this->ntp;
-    }
-    
-    public function getResolutionMode()
-    {
-        return $this->resolutionMode;
-    }
-    
-/*    public function getResolutionColors()
-    {
-        return array("resolution" => $this->resolution, "colorDepth" => $this->colorDepth, "colorSpace" => $this->colorSpace);
-    }*/
-    
-    public function setResolutionMode($mode)
-    {
-        $this->resolutionMode = $mode;
-        $this->fileWrite();
-    }
-    
-    
-    public function setNtp($ntp)
-    {
-        $this->ntp = $ntp;
-        $this->fileWrite();
-    }
-    
-    public function setTz($tz)
-    {
-        if (empty($tz))
+        if ($deviceType == 'TX' || $deviceType == 'RX')
         {
-            Logger::getInstance()->addError('SETTINGS: time zone can not be empty');
-            throw new \Exception('SETTINGS: time zone can not be empty');
-        }
-        
-        $tzList = TZList::getTZList();
-        if (!array_key_exists($tz, $tzList))
-        {
-            Logger::getInstance()->addError('SETTINGS: time zone does not exist');
-            throw new \Exception('SETTINGS: time zone does not exist');
-        }
-        
-        $this->tz = $tz;
-        $this->fileWrite();
-    }
-    
-    public function checkAndUpdateDns($dns1, $dns2)
-    {
-        if (empty($dns1) || empty($dns2))
-        {
-            Logger::getInstance()->addError('SETTINGS: dns can not be empty');
-            throw new \Exception('SETTINGS: dns can not be empty');
-        }
-
-        if ($this->dns1 != $dns1 || $this->dns2 != $dns2)
-        {
-            $this->dns1 = $dns1;
-            $this->dns2 = $dns2;
+            $this->deviceType = $deviceType;
             $this->fileWrite();
-            return true;
+        } else {
+            Logger::getInstance()->addError('SETTINGS: device type must be RX or TX');
         }
-        return false;
+    }
+    
+    public function setDeviceTypeByGetParam($data)
+    {
+        if (isset($data['system']['isTx']))
+        {
+            if ($data['system']['isTx'])
+            {
+                if ($this->deviceType != "TX")
+                    $this->setDeviceType("TX");
+            } else {
+                if ($this->deviceType != "RX")
+                    $this->setDeviceType("RX");
+            }
+        } else {
+            Logger::getInstance()->addError('SETTINGS: isTx system param not set');
+        }
     }
 }

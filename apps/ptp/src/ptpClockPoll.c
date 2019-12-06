@@ -42,14 +42,19 @@ static void clock_update_slave(struct PtpClock *c)
 	c->tds.currentUtcOffset        = msg->announce.currentUtcOffset;
 	c->tds.flags                   = msg->header.flagField[1];
 	c->tds.timeSource              = msg->announce.timeSource;
-	if (!(c->tds.flags & PTP_TIMESCALE)) {
+	
+	if (!(c->tds.flags & PTP_TIMESCALE))
+	{
 		pr_warning("foreign master not using PTP timescale");
 	}
-	if (c->tds.currentUtcOffset < c->utc_offset) {
+	
+	if (c->tds.currentUtcOffset < c->utc_offset)
+	{
 		pr_warning("running in a temporal vortex,  UtcOffset announced: %d, configured: %d", c->tds.currentUtcOffset, c->utc_offset);
 	}
-	if ((c->tds.flags & UTC_OFF_VALID && c->tds.flags & TIME_TRACEABLE) ||
-	    (c->tds.currentUtcOffset > c->utc_offset)) {
+	
+	if ((c->tds.flags & UTC_OFF_VALID && c->tds.flags & TIME_TRACEABLE) || (c->tds.currentUtcOffset > c->utc_offset))
+	{
 		pr_info("updating UTC offset to %d", c->tds.currentUtcOffset);
 		c->utc_offset = c->tds.currentUtcOffset;
 	}

@@ -41,49 +41,6 @@ cJSON *extSystemGetKey(cJSON *sysObj, char *item, int index, char *key)
 	return destObj;
 }
 
-static int	_extSysNetInit(MuxMain		*muxMain)
-{
-	char *ifName = MUX_ETH_DEVICE;
-	EXT_RUNTIME_CFG		*runCfg = &muxMain->runCfg;
-	EXT_MAC_ADDRESS _macAddr;
-	
-	runCfg->local.ip = cmnSysNetGetIp(ifName);
-	runCfg->ipMask = cmnSysNetGetMask(ifName);
-	runCfg->ipGateway = cmnSysNetGetDefaultGw(ifName);
-
-	if(cmnSysNetGetMacAddress(ifName, &_macAddr) == EXIT_FAILURE)
-	{
-		return EXIT_FAILURE;
-	}
-		
-	EXT_DEBUGF(EXT_DEBUG_INIT, "IP: %s, 0x%x", cmnSysNetAddress(runCfg->local.ip), runCfg->local.ip);
-	EXT_DEBUGF(EXT_DEBUG_INIT, "MASK: %s, 0x%x", cmnSysNetAddress(runCfg->ipMask), runCfg->ipMask);
-	EXT_DEBUGF(EXT_DEBUG_INIT, "Gateway: %s, 0x%x", cmnSysNetAddress(runCfg->ipGateway), runCfg->ipGateway) ;
-
-	if(runCfg->isMacConfiged == EXT_TRUE)
-	{/* MAC has been set by client, so use local address directly */
-		if(! MAC_ADDR_IS_EQUAL(&runCfg->local.mac, &_macAddr) )
-		{
-			EXT_ERRORF("MAC address is not correct: %.2x:%.2x:%.2x:%.2x:%.2x:%.2x(configured)!=%.2x:%.2x:%.2x:%.2x:%.2x:%.2x(local)", 
-				runCfg->local.mac.address[0], runCfg->local.mac.address[1], runCfg->local.mac.address[2], 
-				runCfg->local.mac.address[3], runCfg->local.mac.address[4], runCfg->local.mac.address[5], 
-				_macAddr.address[0], _macAddr.address[1], _macAddr.address[2],
-				_macAddr.address[3], _macAddr.address[4], _macAddr.address[5]);
-
-			memcpy(&runCfg->local.mac, &_macAddr, EXT_MAC_ADDRESS_LENGTH);
-		}
-	}
-	else
-	{/* MAC is still not been set by client, so use local address directly */
-		memcpy(&runCfg->local.mac, &_macAddr, EXT_MAC_ADDRESS_LENGTH);
-	}
-
-	EXT_DEBUGF(EXT_DEBUG_INIT, "Mac: %.2X:%.2X:%.2X:%.2X:%.2X:%.2X" , runCfg->local.mac.address[0], runCfg->local.mac.address[1], runCfg->local.mac.address[2], 
-		runCfg->local.mac.address[3], runCfg->local.mac.address[4], runCfg->local.mac.address[5] );
-
-	return EXIT_SUCCESS;
-}
-
 
 static int	_extSysJsonInit(MuxMain		*muxMain)
 {
@@ -122,29 +79,6 @@ static int	_extSysJsonInit(MuxMain		*muxMain)
 #endif
 }
 
-
-int32_t	extPtpInit(EXT_RUNTIME_CFG		*runCfg)
-{
-	/* initialize runtime to uninitialied state */
-	muxPtpInitData(&runCfg->ptpRuntime);
-
-	if(runCfg->ptpRuntime.isEnable)
-	{
-		/* start PTP Daemon */
-		if(muxPtpInit(&runCfg->ptpRuntime) == NULL)
-		{
-			MUX_ERROR("PTP Client initialization failed");
-			return EXIT_FAILURE;
-		}
-		MUX_INFO("Initialization: PTP Controller checked successfully!");
-	}
-	else
-	{
-		MUX_WARN("nitialization: PTP is disabled");
-	}
-
-	return EXIT_SUCCESS;
-}
 
 
 int32_t	extSystemInit(MuxMain		*muxMain)
@@ -215,7 +149,7 @@ int32_t	extSystemInit(MuxMain		*muxMain)
 
 	MUX_INFO("Initialization: Configuration checked successfully!");
 
-	if(_extSysNetInit(muxMain)== EXIT_FAILURE)
+	if(extSysNetInit(muxMain)== EXIT_FAILURE)
 	{
 		MUX_ERROR("Network initialization failed");
 		return EXIT_FAILURE;
@@ -224,6 +158,7 @@ int32_t	extSystemInit(MuxMain		*muxMain)
 
 
  	/* must before JSON init, because JSON will access it*/
+	runCfg->ptpRuntime.pmc = NULL;
 	extPtpInit(runCfg);
 
 	if(_extSysJsonInit(muxMain)== EXIT_FAILURE)

@@ -195,46 +195,52 @@
     
     function completeSettingsForm()
     {
-        //anc     = device.anc[0];
-        video     = device.video[0];
-        audio     = device.audio[0];
-        
-        $("#video-address").val(video.ip);
-        $("#video-port").val(video.port);
-        $("#audio-address").val(audio.ip);
-        $("#audio-port").val(audio.port);
-        //$("#anc-address").val(anc.ip);
-        //$("#anc-port").val(anc.port);
-        
-        $('#forceStream').prop('checked', false);
-        if (device.system.forceStream != 0)
-            $('#forceStream').prop('checked', true);
-        
-        resolution = video.width+"x"+video.height;
-        $("#resolution").text(resolution);
-        $("#fps").text(video.fps);
-        $("#color-space").text(video.colorSpace);
-        $("#color-depth").text(video.depth);
-        $("#intlce").text(video.intlce);
-        $("#audio-channels").text(audio.channels);
-        $("#audio-rate").text(audio.sample);
-        $("#audio-pkt").text(audio.pktSize);
+        if (device)
+        {
+	        //anc     = device.anc[0];
+	        video     = device.video[0];
+	        audio     = device.audio[0];
+	        
+	        $("#video-address").val(video.ip);
+	        $("#video-port").val(video.port);
+	        $("#audio-address").val(audio.ip);
+	        $("#audio-port").val(audio.port);
+	        //$("#anc-address").val(anc.ip);
+	        //$("#anc-port").val(anc.port);
+	        
+	        $('#forceStream').prop('checked', false);
+	        if (device.system.forceStream != 0)
+	            $('#forceStream').prop('checked', true);
+	        
+	        resolution = video.width+"x"+video.height;
+	        $("#resolution").text(resolution);
+	        $("#fps").text(video.fps);
+	        $("#color-space").text(video.colorSpace);
+	        $("#color-depth").text(video.depth);
+	        $("#intlce").text(video.intlce);
+	        $("#audio-channels").text(audio.channels);
+	        $("#audio-rate").text(audio.sample);
+	        $("#audio-pkt").text(audio.pktSize);
+        }
     }
     
     function completeSDPForm()
     {
-        // sdp info
-        $.each(device.sdp, function (i, item)
+        if (device)
         {
-            if (item.media == "video")
-            {
-                $("#sdp-video").text("http://"+item.ip+":"+item.port+"/"+item.uri);
-            }
-            if (item.media == "audio")
-            {
-                $("#sdp-audio").text("http://"+item.ip+":"+item.port+"/"+item.uri);
-            }
-        });
+	        // sdp info
+	        $.each(device.sdp, function (i, item)
+	        {
+	            if (item.media == "video")
+	            {
+	                $("#sdp-video").text("http://"+item.ip+":"+item.port+"/"+item.uri);
+	            }
+	            if (item.media == "audio")
+	            {
+	                $("#sdp-audio").text("http://"+item.ip+":"+item.port+"/"+item.uri);
+	            }
+	        });
+        }
     }
     
     function completeMediaPage()

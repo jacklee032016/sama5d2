@@ -14,14 +14,15 @@ class LogManager
     
     public function backup()
     {
-        $compressedFileName    = self::COMPRESSED_FILE_NAME .date('Ymd-His') .'.tar.gz';
-        $dir                   = str_replace("/api/app/Base", "", __DIR__);
-        $compressedFilePath    = $dir . '/' . $compressedFileName;
-        $logFilesName          = $dir.'/'.Params::DEFAULT_LOG_NAME."*";
+        $compressedFileName = self::COMPRESSED_FILE_NAME .date('Ymd-His') .'.tar.gz';
+        $dirLog             = "/var/log/";
+        $dirWeb             = "/var/www/";
+        $compressedFilePath = $dirWeb.$compressedFileName;
+        $logFilesName       = $dirLog."*.log";
         
-        $this->removeOldCompress($dir);
+        $this->removeOldCompress($dirWeb);
         
-        $filesPathToCompress = array($logFilesName, Params::DEFAULT_LOG_FW);
+        $filesPathToCompress = array($logFilesName, "/var/tmp/".Params::DEFAULT_LOG_NAME."*");
       
         if ( Compress::compressUnixLogFiles($filesPathToCompress, $compressedFilePath))
         {

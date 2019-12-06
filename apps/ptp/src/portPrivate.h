@@ -192,6 +192,7 @@ struct ptp_message *port_signaling_construct(struct PtpPort *p,
 int port_tx_announce(struct PtpPort *p, struct address *dst);
 int port_tx_sync(struct PtpPort *p, struct address *dst);
 int portMsgProAnnounce(struct PtpPort *p, struct ptp_message *m);
+int portMsgProDelayReq(struct PtpPort *p, struct ptp_message *m);
 void portMsgProDelayResp(struct PtpPort *p, struct ptp_message *m);
 void portMsgProFollowUp(struct PtpPort *p, struct ptp_message *m);
 int portMsgProPDelayReq(struct PtpPort *p, struct ptp_message *m);

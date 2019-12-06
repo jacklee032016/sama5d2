@@ -404,6 +404,7 @@ int unicast_service_grant(struct PtpPort *p, struct ptp_message *m,
 	return unicast_service_reply(p, m, req, req->durationField);
 }
 
+/* create unicast service in one PtpPort to receive SIGNAL message. JL */
 int unicast_service_initialize(struct PtpPort *p)
 {
 	struct PtpConfig *cfg = clock_config(p->clock);
@@ -411,7 +412,8 @@ int unicast_service_initialize(struct PtpPort *p)
 	if (!config_get_int(cfg, p->name, "unicast_listen")) {
 		return 0;
 	}
-	if (config_set_section_int(cfg, p->name, "hybrid_e2e", 1)) {
+	if (config_set_section_int(cfg, p->name, "hybrid_e2e", 1))
+	{
 		return -1;
 	}
 	p->unicast_service = calloc(1, sizeof(*p->unicast_service));
@@ -425,8 +427,7 @@ int unicast_service_initialize(struct PtpPort *p)
 		free(p->unicast_service);
 		return -1;
 	}
-	p->inhibit_multicast_service =
-		config_get_int(cfg, p->name, "inhibit_multicast_service");
+	p->inhibit_multicast_service = config_get_int(cfg, p->name, "inhibit_multicast_service");
 
 	return 0;
 }

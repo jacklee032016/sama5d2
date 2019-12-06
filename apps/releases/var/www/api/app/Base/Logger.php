@@ -6,7 +6,7 @@ use App\Params;
 use App\Models\LogLevel;
 
 /* Logger class:  
- * - It's a wrapper for monolog logger //        Logger::getInstance()->addError("get param failed " . $errorMessage);
+ * - It's a wrapper for monolog logger
 
  */  
 class Logger{
@@ -17,7 +17,9 @@ class Logger{
     
     private static $day = "";
 
-    private static $enabled = FALSE;
+    private static $enabled = TRUE;
+    
+    private static $enabledDebug = FALSE;
     
     public static function getLogLevelList()
     {
@@ -38,7 +40,7 @@ class Logger{
     // open log file
     private function lopen(){
         // define log file path and name
-        $lfile = "/tmp/logFile";
+        $lfile = "/var/tmp/".Params::DEFAULT_LOG_NAME;
         // define the current date (it will be appended to the log file name)
         $today = date('Y-m-d');
         // open log file for writing only; place the file pointer at the end of the file
@@ -50,7 +52,7 @@ class Logger{
     
     public function addDebug($message, array $context = array())
     {
-        if (self::$enabled == TRUE)
+        if (self::$enabledDebug == TRUE && self::$enabled == TRUE)
         {
             $fp = $this->lopen();
             // define script name

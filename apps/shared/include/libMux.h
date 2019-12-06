@@ -24,6 +24,7 @@
 
 
 #define	MUX_MAIN_CONFIG_FILE				CONFIG_FILE_HOME_PROJECT"muxMain.conf"
+#define	MUX_BTN_CONFIG_FILE				CONFIG_FILE_HOME_PROJECT"muxBtn.conf"
 
 
 #ifdef	WIN32
@@ -48,6 +49,7 @@
 #define	MUX_SYSTEM_INIT_FLAGS			CONFIG_FILE_HOME_PROJECT"flags.dat"
 
 #define	MUX_SYSTEM_SYS_CONFIG			CONFIG_FILE_HOME_PROJECT"muxSys.conf"
+
 
 
 #define	CRON_TASK_FILE						"/var/spool/cron/crontabs/root"
@@ -1208,6 +1210,8 @@ int cmnMuxPlayerParseConfig(const char *filename, MuxPlayerConfig *cfg);
 int cmnMuxSavePlayerConfig( MuxPlayerConfig *cfg);
 int cmnMuxSaveAllConfig(MuxMain *muxMain);
 
+int cmnMuxSavePtpConfig(MuxMain *muxMain);
+int cmnMuxSaveFactoryFlags(	EXT_RUNTIME_CFG	 *runCfg);
 
 int cmnMuxJsonControllerReply(struct DATA_CONN *dataConn, int status, const char *fmt, ... );
 

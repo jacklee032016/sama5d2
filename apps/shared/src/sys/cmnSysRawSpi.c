@@ -62,6 +62,7 @@ typedef	struct
 }FLASH_ID_T;
 
 /* specs, p.43. */
+#if 0
 static FLASH_ID_T _n25q512 =
 {
 	.manuId = 0x20,
@@ -69,7 +70,7 @@ static FLASH_ID_T _n25q512 =
 	.memCap = 0x20,
 	.dataLength = 0x10,
 };
-
+#else
 static FLASH_ID_T _n25q256 =
 {
 	.manuId = 0x20,
@@ -77,7 +78,7 @@ static FLASH_ID_T _n25q256 =
 	.memCap = 0x19,
 	.dataLength = 0x10,
 };
-
+#endif
 
 /* send command to SPI slave and receive reply from it
 * cmdData and replyData have same length
@@ -441,18 +442,20 @@ static int _makeCrc32Table(uint32_t *crc32_table)
 	return 1;
 }
 
+#if 0
 static uint32_t _makeCrc(uint32_t crc, uint8_t *string, uint32_t size, uint32_t *crc32_table) 
 {
 	while(size--)
 		crc = (crc >> 8)^(crc32_table[(crc ^ *string++)&0xff]);
 	return crc;
 }
+#endif
 
 /* one or less than one page */
 int _writeOnePage(int flashFd, uint32_t startAddr, int pageNo, uint8_t *writeData, int size)
 {
 	uint8_t readData[SPI_PAGE_SIZE];	
-	size_t  readLength = 0;
+//	size_t  readLength = 0;
 
 //	uint32_t crc32_tableW[256];
 //	uint32_t crc32_tableR[256];
@@ -594,7 +597,7 @@ int cmnSysRawSpiFlashWriteFile(int flashFd, char *filename, uint32_t startAddr)
 
 	int i;
 	uint32_t crc32_table[256];
-	uint32_t file_crc = INVALIDATE_VALUE_U32, read_crc = INVALIDATE_VALUE_U32;
+//	uint32_t file_crc = INVALIDATE_VALUE_U32, read_crc = INVALIDATE_VALUE_U32;
 	FILE *fp = NULL;
 	int fileSize;
 	int sectorCount, pageCount;

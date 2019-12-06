@@ -38,9 +38,6 @@
 #define ALLOWED_LOST_RESPONSES 3
 
 
-int port_capable(struct PtpPort *p);
-void port_nrate_initialize(struct PtpPort *p);
-
 
 static void announce_to_dataset(struct ptp_message *m, struct PtpPort *p, struct dataset *out)
 {
@@ -284,8 +281,7 @@ static int path_trace_append(struct PtpPort *p, struct ptp_message *m,
 }
 
 
-int peer_prepare_and_send(struct PtpPort *p, struct ptp_message *msg,
-				 enum transport_event event)
+int peer_prepare_and_send(struct PtpPort *p, struct ptp_message *msg, enum transport_event event)
 {
 	int cnt;
 	if (msg_pre_send(msg)) {
@@ -484,7 +480,8 @@ static int port_pdelay_request(struct PtpPort *p)
 	msg->header.control            = CTL_OTHER;
 	msg->header.logMessageInterval = PORT_IS_IEEE8021_AS(p) ? p->logMinPdelayReqInterval : 0x7f;
 
-	if (unicast_client_enabled(p) && p->unicast_master_table->peer_name) {
+	if (unicast_client_enabled(p) && p->unicast_master_table->peer_name)
+	{
 		msg->address = p->unicast_master_table->peer_addr.address;
 		msg->header.flagField[0] |= UNICAST;
 	}

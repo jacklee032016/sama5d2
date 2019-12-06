@@ -178,7 +178,17 @@
                 </div>
             </div>
             <div class="form-group col">
-
+                <DIV class="row">
+                    <H2>Logs</H2>
+                </DIV>
+                <div class="row pl-2">
+                    <label class="col col-form-label">Get log files.</label>
+                </div>
+                <div class="row pl-2 pt-3">
+                    <div class="col">
+                        <button type="button" name="submit" id="btnDownload" class="btn btn-secondary">Download</button>
+                    </div>
+                </div>
             </div>
         </div>
         
@@ -263,35 +273,47 @@ $("#btnResetSDF").click(function() {
 
 function completeSettingsPage()
 {
-    $.each(device.rs232List.baudrate, function (i, item) { $('#baudrate').append($('<option>', {value: item,text : item }));});
-    $.each(device.rs232List.databits, function (i, item) { $('#databits').append($('<option>', {value: item,text : item }));});
-    $.each(device.rs232List.parity, function (i, item) { $('#parity').append($('<option>', {value: item,text : item }));});
-    $.each(device.rs232List.stopbits, function (i, item) { $('#stopbits').append($('<option>', {value: item,text : item }));});
-    completeNetworkForm();
-    completeRs232Form();
-    completeSfdForm();
+    if (device)
+    {    
+	    $.each(device.rs232List.baudrate, function (i, item) { $('#baudrate').append($('<option>', {value: item,text : item }));});
+	    $.each(device.rs232List.databits, function (i, item) { $('#databits').append($('<option>', {value: item,text : item }));});
+	    $.each(device.rs232List.parity, function (i, item) { $('#parity').append($('<option>', {value: item,text : item }));});
+	    $.each(device.rs232List.stopbits, function (i, item) { $('#stopbits').append($('<option>', {value: item,text : item }));});
+	    completeNetworkForm();
+	    completeRs232Form();
+	    completeSfdForm();
+    }
 }
 
 function completeSfdForm()
 {
-    $("#sdfPort").val(device.system.sfpCfg);
+    if (device)
+    {    
+        $("#sdfPort").val(device.system.sfpCfg);
+    }
 }
 
 function completeRs232Form()
 {
-    $("#baudrate").val(device.rs232.baudrate);
-    $("#databits").val(device.rs232.databit);
-    $("#parity").val(device.rs232.parity);
-    $("#stopbits").val(device.rs232.stopbit);
+    if (device)
+    {    
+	    $("#baudrate").val(device.rs232.baudrate);
+	    $("#databits").val(device.rs232.databit);
+	    $("#parity").val(device.rs232.parity);
+	    $("#stopbits").val(device.rs232.stopbit);
+	}
 }
 
 function completeNetworkForm() 
 {
-    $("select#isDhcp").val(device.system.isDhcp);
-    $("#ip").val(device.system.ip);
-    $("#mask").val(device.system.mask);
-    $("#gateway").val(device.system.gateway);
-    $("#mac").val(device.system.mac);
+    if (device)
+    {    
+	    $("select#isDhcp").val(device.system.isDhcp);
+	    $("#ip").val(device.system.ip);
+	    $("#mask").val(device.system.mask);
+	    $("#gateway").val(device.system.gateway);
+	    $("#mac").val(device.system.mac);
+	}
 }
 
 function dhcpEnable() 
@@ -331,6 +353,10 @@ $("form#formUpgradeFPGA").submit(function(e) {
 
 $("#btnApplySDF").click(function() {
     setSfd();
+});
+
+$("#btnDownload").click(function() {
+    getLog();
 });
 
 $("#btnReboot").click(function() {
@@ -374,6 +400,7 @@ function rebootMessage()
     window.setTimeout( function()
     {
         window.clearInterval(threeDots);
+        $('#message').css("display", "none");
         loadContent('settings.html');
     }, 40000);
 }
@@ -530,6 +557,33 @@ function setRs232()
     });
 }
 
+function getLog()
+{
+    var token = $.cookie("token");
+    $.ajax({
+        method: "GET",
+        url: apiUrl + "/log",
+        headers: {"Authorization": token},
+        success: function(response) {
+            if (response.status == "success")
+            {
+                data = response.data;
+                location.href = data['file'];
+            }
+            else
+            {
+                alert("error while downloading logs");
+            }
+        },
+        error: function (jqXHR, status) {
+            if (jqXHR.status == 401) //token not valid or expired
+            {
+                loadContent('userlogin.html', 'Please login');
+            }
+        }
+    });
+}
+
 function rebootDevice()
 {
     var token = $.cookie("token");
@@ -544,9 +598,7 @@ function rebootDevice()
             }
             else
             {
-                $('#message').css("display", "block");
-                $('#message').html("Unable to communicate correctly");
-                $("#content").html("");
+                alert("error while rebooting device");
             }
         },
         error: function (jqXHR, status) {
@@ -591,13 +643,15 @@ function resetDevice()
                 window.setTimeout( function()
                 {
                     window.clearInterval(threeDots);
+                    $('#message').css("display", "none");
                     loadContent('settings.html');
                 }, 40000);
             }
             else
             {
-                $('#message').css("display", "block");
-                $('#message').html("Unable to communicate correctly");
+                alert("error while reseting device");
+                //$('#message').css("display", "block");
+                //$('#message').html("Unable to communicate correctly");
                 //$("#content").html("");
             }
         },
@@ -659,10 +713,7 @@ function upgradeDeviceFPGA(element, event)
 {
     var formData   = new FormData(element);
     var token      = $.cookie("token");
-    var urlUpgrade = apiUrl + "/device/upgrade";
-    if (element.id == "formUpgradeFPGA"){
-        urlUpgrade = apiUrl + "/device/upgradeFPGA";
-    }
+    urlUpgrade = apiUrl + "/device/upgradeFPGA";
     $('#message').css("display", "block");
     $('#message').html("Uploading upgrade file");
 
@@ -699,6 +750,7 @@ function upgradeDeviceFPGA(element, event)
                 {
                     window.clearInterval(threeDots);
                     //$('#message').html("Upgrade done");
+                    $('#message').css("display", "none");
                     location.reload();
                     //$('#message').css("display", "none");
                 }, 120000);
@@ -706,9 +758,16 @@ function upgradeDeviceFPGA(element, event)
             else
             {
                 if (response.data.fileToUpload)
+                {
                     alert(response.data.fileToUpload);
-                else
+                    $('#message').css("display", "none");
+                } else if (response.data.reboot){
+                    alert("System error. Please reboot manually and wait 2 minutes to finish the upgrade process.");
+                    $('#message').css("display", "none");
+                } else {
                     alert('Upgrade Error '+response.data);
+                    $('#message').css("display", "none");
+                }
             }
         },     
         error: function (jqXHR, status) {
@@ -761,6 +820,7 @@ function upgradeDevice(element, event)
                 {
                     window.clearInterval(threeDots);
                     //$('#message').html("Upgrade done");
+                    $('#message').css("display", "none");
                     location.reload();
                     //$('#message').css("display", "none");
                 }, 140000);
@@ -770,7 +830,10 @@ function upgradeDevice(element, event)
                 if (response.data.fileToUpload){
                     alert(response.data.fileToUpload);
                     $('#message').css("display", "none");
-                }else{
+                } else if (response.data.reboot){
+                    alert("System error. Please reboot manually and wait 3 minutes to finish the upgrade process.");
+                    $('#message').css("display", "none");
+                } else {
                     alert('Upgrade Error '+response.data);
                     $('#message').css("display", "none");
                 }

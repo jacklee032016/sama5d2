@@ -3,7 +3,7 @@
         <H2>video/audio settings</H2>
     </DIV>
     <div class="form-group row pl-2">
-        <label for="input-type" class="col-2 col-form-label">Input Type:</label>
+        <label for="input-type" class="col-3 col-form-label">Input Type:</label>
         <div class="col-3">
             <SELECT id="input-type" class="form-control" name="input-type" onchange="changeInputType()">
                 <OPTION value="manual">Manual</OPTION>
@@ -13,8 +13,8 @@
     </div>
     <form id="fmSDP" style="display:none;">
         <div class="form-group row pl-2 mb-1">
-            <label for="sdp-video" class="col-2 col-form-label">SDP Video:</label>
-            <div class="col-10">
+            <label for="sdp-video" class="col-3 col-form-label">SDP Video:</label>
+            <div class="col-8">
 	            <div class="row">
                     <div class="col-0 pl-3">
                         <label class="col-0 col-form-label">http://</label>
@@ -38,7 +38,7 @@
             </div>
         </div>
         <div class="form-group row pl-2 mb-1">
-            <label for="sdp-audio" class="col-2 col-form-label">SDP Audio:</label>
+            <label for="sdp-audio" class="col-3 col-form-label">SDP Audio:</label>
             <div class="col-8">
                 <div class="row">
                     <div class="col-0 pl-3">
@@ -96,13 +96,13 @@
     </form>
     <form id="fmSettings">
 	    <div class="form-group row pl-2 mb-1">
-	        <label for="video-address" class="col-2 col-form-label">Video Address:</label>
+	        <label for="video-address" class="col-3 col-form-label">Video Address:</label>
 	        <div class="col-3">
 	            <input type="text" class="form-control" maxlength="18" autocomplete=off name="video-address" id="video-address" required>
 	        </div>
 	    </div>
 	    <div class="form-group row pl-2 mb-1">
-	        <label for="audio-address" class="col-2 col-form-label">Audio Address:</label>
+	        <label for="audio-address" class="col-3 col-form-label">Audio Address:</label>
 	        <div class="col-3">
 	            <input type="text" class="form-control" maxlength="18" autocomplete=off name="audio-address" id="audio-address" required>
 	        </div>
@@ -114,13 +114,13 @@
 	        </div>
 	    </div>  -->
 	    <div class="form-group row pl-2 mb-1">
-	        <label for="video-port" class="col-2 col-form-label">Video Port:</label>
+	        <label for="video-port" class="col-3 col-form-label">Video Port:</label>
 	        <div class="col-3">
 	            <input type="text" class="form-control" maxlength="18" autocomplete=off name="video-port" id="video-port" required>
 	        </div>
 	    </div>
 	    <div class="form-group row pl-2 mb-3">
-	        <label for="audio-port" class="col-2 col-form-label">Audio Port:</label>
+	        <label for="audio-port" class="col-3 col-form-label">Audio Port:</label>
 	        <div class="col-3">
 	            <input type="text" class="form-control" maxlength="18" autocomplete=off name="audio-port" id="audio-port" required>
 	        </div>
@@ -132,55 +132,55 @@
 	        </div>  
 	    </div> -->
         <div class="form-group row pl-2 mb-1">
-	        <label for="input-type" class="col-2 col-form-label">Resolution:</label>
+	        <label for="input-type" class="col-3 col-form-label">Resolution:</label>
 	        <div class="col-3">
 	            <SELECT id="resolution" class="form-control" name="resolution">
 	            </SELECT>
 	        </div>
         </div>
         <div class="form-group row pl-2 mb-1">
-            <label for="fps" class="col-2 col-form-label">FPS:</label>
+            <label for="fps" class="col-3 col-form-label">FPS:</label>
             <div class="col-3">
                 <input type="text" class="form-control" maxlength="18" autocomplete=off name="fps" id="fps" required>
             </div>
         </div>
         <div class="form-group row pl-2 mb-1">
-            <label for="color-depth" class="col-2 col-form-label">Color Depth:</label>
+            <label for="color-depth" class="col-3 col-form-label">Color Depth:</label>
             <div class="col-3">
                 <SELECT id="color-depth" class="form-control" name="color-depth">
                 </SELECT>
             </div>
         </div>
         <div class="form-group row pl-2 mb-1">
-            <label for="color-space" class="col-2 col-form-label">Color Space:</label>
+            <label for="color-space" class="col-3 col-form-label">Color Space:</label>
             <div class="col-3">
                 <SELECT id="color-space" class="form-control" name="color-space">
                 </SELECT>
             </div>
         </div>
         <div class="form-group row pl-2 mb-3">
-            <label for="intlce" class="col-2 col-form-label">Interlaced:</label>
+            <label for="intlce" class="col-3 col-form-label">Interlaced:</label>
             <div class="col-3">
                 <SELECT id="intlce" class="form-control" name="intlce">
                 </SELECT>
             </div>
         </div>	    
         <div class="form-group row pl-2 mb-1">
-            <label for="audio-channels" class="col-2 col-form-label">Audio Channels:</label>
+            <label for="audio-channels" class="col-3 col-form-label">Audio Channels:</label>
             <div class="col-3">
                 <SELECT id="audio-channels" class="form-control" name="audio-channels">
                 </SELECT>
             </div>
         </div>
         <div class="form-group row pl-2 mb-1">
-            <label for="audio-rate" class="col-2 col-form-label">Audio Rate:</label>
+            <label for="audio-rate" class="col-3 col-form-label">Audio Rate:</label>
             <div class="col-3">
                 <SELECT id="audio-rate" class="form-control" name="audio-rate">
                 </SELECT>
             </div>
         </div>
         <div class="form-group row pl-2 mb-2">
-            <label for="audio-pkt" class="col-2 col-form-label">Audio PKT Size:</label>
+            <label for="audio-pkt" class="col-3 col-form-label">Audio PKT Size:</label>
             <div class="col-3">
                 <SELECT id="audio-pkt" class="form-control" name="audio-pkt">
                 </SELECT>
@@ -383,66 +383,75 @@
     
     function completeSettingsForm()
     {
-        video = device.video[0];
-        audio = device.audio[0];
-        
-        $("#video-address").val(video.ip);
-        $("#video-port").val(video.port);
-        $("#audio-address").val(audio.ip);
-        $("#audio-port").val(audio.port);
-        //$("#anc-address").val(anc.ip);
-        //$("#anc-port").val(anc.port);
-        
-        resolution = video.width+"x"+video.height;
-        $("#resolution").val(resolution);
-        $("#fps").val(video.fps);
-        $("#color-space").val(video.colorSpace);
-        $("#color-depth").val(video.depth);
-        $("#intlce").val(video.intlce);
-        $("#audio-channels").val(audio.channels);
-        $("#audio-rate").val(audio.sample);
-        $("#audio-pkt").val(audio.pktSize);
+        if (device)
+        {
+	        video = device.video[0];
+	        audio = device.audio[0];
+	        
+	        $("#video-address").val(video.ip);
+	        $("#video-port").val(video.port);
+	        $("#audio-address").val(audio.ip);
+	        $("#audio-port").val(audio.port);
+	        //$("#anc-address").val(anc.ip);
+	        //$("#anc-port").val(anc.port);
+	        
+	        resolution = video.width+"x"+video.height;
+	        $("#resolution").val(resolution);
+	        $("#fps").val(video.fps);
+	        $("#color-space").val(video.colorSpace);
+	        $("#color-depth").val(video.depth);
+	        $("#intlce").val(video.intlce);
+	        $("#audio-channels").val(audio.channels);
+	        $("#audio-rate").val(audio.sample);
+	        $("#audio-pkt").val(audio.pktSize);
+        }
     }
     
     function completeSDPForm()
     {
-        // sdp info
-        $.each(device.sdp, function (i, item)
+        if (device)
         {
-            if (item.media == "video")
-            {
-                $("#sdp-video-ip").val(item.ip);
-                $("#sdp-video-port").val(item.port);
-                $("#sdp-video-uri").val(item.uri);
-            }
-            if (item.media == "audio")
-            {
-                $("#sdp-audio-ip").val(item.ip);
-                $("#sdp-audio-port").val(item.port);
-                $("#sdp-audio-uri").val(item.uri);
-            }
-            /*if (item.media == "anc")
-            {
-                $("#sdp-anc-ip").val(item.ip);
-                $("#sdp-anc-port").val(item.port);
-                $("#sdp-anc-uri").val(item.uri);
-            }*/
-        });
+	        // sdp info
+	        $.each(device.sdp, function (i, item)
+	        {
+	            if (item.media == "video")
+	            {
+	                $("#sdp-video-ip").val(item.ip);
+	                $("#sdp-video-port").val(item.port);
+	                $("#sdp-video-uri").val(item.uri);
+	            }
+	            if (item.media == "audio")
+	            {
+	                $("#sdp-audio-ip").val(item.ip);
+	                $("#sdp-audio-port").val(item.port);
+	                $("#sdp-audio-uri").val(item.uri);
+	            }
+	            /*if (item.media == "anc")
+	            {
+	                $("#sdp-anc-ip").val(item.ip);
+	                $("#sdp-anc-port").val(item.port);
+	                $("#sdp-anc-uri").val(item.uri);
+	            }*/
+	        });
+        }
     }
     
     function completeMediaPage()
     {
-        $.each(device.videoList.resolution, function (i, item) { $('#resolution').append($('<option>', {value: item,text : item }));});
-        $.each(device.videoList.colorDepth, function (i, item) { $('#color-depth').append($('<option>', {value: item,text : item }));});
-        $.each(device.videoList.colorSpace, function (i, item) { $('#color-space').append($('<option>', {value: item,text : item }));});
-        $.each(device.videoList.intlce, function (i, item) { $('#intlce').append($('<option>', {value: item,text : item }));});
-        
-        $.each(device.audioList.audioChs, function (i, item) { $('#audio-channels').append($('<option>', {value: item,text : item }));});
-        $.each(device.audioList.audioRate, function (i, item) { $('#audio-rate').append($('<option>', {value: item,text : item }));});
-        $.each(device.audioList.audioPKT, function (i, item) { $('#audio-pkt').append($('<option>', {value: item,text : item }));});
-
-        completeSDPForm();
-        completeSettingsForm();
+        if (device)
+        {
+	        $.each(device.videoList.resolution, function (i, item) { $('#resolution').append($('<option>', {value: item,text : item }));});
+	        $.each(device.videoList.colorDepth, function (i, item) { $('#color-depth').append($('<option>', {value: item,text : item }));});
+	        $.each(device.videoList.colorSpace, function (i, item) { $('#color-space').append($('<option>', {value: item,text : item }));});
+	        $.each(device.videoList.intlce, function (i, item) { $('#intlce').append($('<option>', {value: item,text : item }));});
+	        
+	        $.each(device.audioList.audioChs, function (i, item) { $('#audio-channels').append($('<option>', {value: item,text : item }));});
+	        $.each(device.audioList.audioRate, function (i, item) { $('#audio-rate').append($('<option>', {value: item,text : item }));});
+	        $.each(device.audioList.audioPKT, function (i, item) { $('#audio-pkt').append($('<option>', {value: item,text : item }));});
+	
+	        completeSDPForm();
+	        completeSettingsForm();
+        }
     }
     
 	function IsValidated() {

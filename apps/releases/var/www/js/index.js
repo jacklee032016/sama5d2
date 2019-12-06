@@ -417,9 +417,10 @@ function getParam()
             }
             else
             {
-                $('#message').css("display", "block");
-                $('#message').html("Unable to communicate correctly");
-                $("#content").html("");
+                alert("error while getting device parameters");
+                //$('#message').css("display", "block");
+                //$('#message').html("Unable to communicate correctly");
+                //$("#content").html("");
             }
         },
         error: function (jqXHR, status) {
@@ -459,6 +460,28 @@ function getTypeInfo()
                     $("#id_mainProductName").text("500774-TX HDMI 2.0/ST2110 over IP Uncompressed Gateway Converter TX");
                 else
                     $("#id_mainProductName").text("500774-RX HDMI 2.0/ST2110 over IP Uncompressed Gateway Converter RX");
+            }
+            else
+            {
+                alert("error while getting device parameters. Using previous data.");
+                device = $.cookie("device");
+                if (device)
+                {
+                    isTx    = device.system.isTx;
+                    version = device.system.ver;
+                    built   = device.system.built;
+                    submit_main('info.html');
+                    if (isTx)
+                        $("#footer").html("&copy; MuxLab Inc. 500774 TX HDMI 2.0/ST2110 over IP (Version: "+version+'; Built: '+built+")");
+                    else 
+                        $("#footer").html("&copy; MuxLab Inc. 500774 RX HDMI 2.0/ST2110 over IP (Version: "+version+'; Built: '+built+")");
+                
+                    if (isTx)
+                        $("#id_mainProductName").text("500774-TX HDMI 2.0/ST2110 over IP Uncompressed Gateway Converter TX");
+                    else
+                        $("#id_mainProductName").text("500774-RX HDMI 2.0/ST2110 over IP Uncompressed Gateway Converter RX");
+                }
+                submit_main('info.html');
             }
         },
     });

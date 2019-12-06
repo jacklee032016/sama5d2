@@ -154,8 +154,33 @@ Used in state of SLACE or UNCALIBRATED;
 
 ### Slave always stay in state of **UNCALIBRATED**
 * No DELAY_REQUEST is sent out or no DELAY_RESPONSE is received
-    	
+   * DELAY_TIME timeout, the DELAY_REQUEST is sent:
+      * clear existed DELAY_REQUEST which has been sent out;
+	  * reset the timeout value of time:
+	     * based on portDS.logMinDelatReqInterval, which is updated by DELAY_RESPONSE from master;
+	  * sent and add into queue to wait receiving DELAY_RESPONSE;
+	  * when debug is off, it work much better;
 
+* Receive DELAY_RESPONSE:
+   * check it is response for the existing DELAY_REQUEST;
+   * begin ```E2E delay mechanism```: update t3 and t4, check t1, t2 has been set in Clock Servo;
+
+* Receive SYNC or FOLLOW_UP:
+   * if t1, t2, t3, t4 all have been set;
+   * begin timestamp process and SERVO process;
+   * update offset of timestamp and enter locked state, eg. from UNCALIBRATED to SLAVE;
+
+
+## ptp4l design
+### When software clock is used
+* only two-step mode can be used; one-step only used in hardware clock
+* When hardware clock is used, the timestamp of every PTP message is filled by driver, user space software will not write any timestamp;
+* When software clock is used:
+   * timestamp of ANNOUNCE and SYNC message is 0;
+   * timestamp of FOLLOW_UP is current local time stamp, so the time is updated to current time if master is ptp4l;
+      * timestamp of local time is fetched after every message is sent out;
+	  * this timestamp is maintainent in user space and fill the timestamp of FOLLOW_UP message or DELAY_REQUEST message;
+	  
 
 **Questions**:
 

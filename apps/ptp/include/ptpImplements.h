@@ -582,6 +582,9 @@ enum {
 	DS_CMP_G8275,
 };
 
+
+struct PtpClock;
+
 /**
  * BMC state decision algorithm.
  * @param c  The local clock.

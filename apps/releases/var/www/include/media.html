@@ -1,7 +1,10 @@
 <script type="text/javascript">
 checkDevice();
-if (device.system.isTx)
-    loadContent("mediaTx.html");
-else 
-    loadContent("mediaRx.html");
+if (device)
+{
+    if (device.system.isTx)
+        loadContent("mediaTx.html");
+    else 
+        loadContent("mediaRx.html");
+}
 </SCRIPT>

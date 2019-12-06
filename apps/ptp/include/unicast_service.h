@@ -35,8 +35,7 @@ struct tlv_extra;
  * @param extra  The TLV containing the request.
  * @return       SERVICE_GRANTED, SERVICE_DENIED, or SERVICE_DISABLED.
  */
-int unicast_service_add(struct PtpPort *p, struct ptp_message *m,
-			struct tlv_extra *extra);
+int unicast_service_add(struct PtpPort *p, struct ptp_message *m, struct tlv_extra *extra);
 
 /**
  * Frees all of the resources associated with a port's unicast service.
@@ -51,8 +50,7 @@ void unicast_service_cleanup(struct PtpPort *p);
  * @param extra  The TLV containing the request.
  * @return       Zero on success, non-zero otherwise.
  */
-int unicast_service_deny(struct PtpPort *p, struct ptp_message *m,
-			 struct tlv_extra *extra);
+int unicast_service_deny(struct PtpPort *p, struct ptp_message *m, struct tlv_extra *extra);
 
 /**
  * Responds to a unicast service request with a grant.

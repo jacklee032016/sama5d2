@@ -194,14 +194,14 @@ int main(int argc, char *argv[])
 {
 	char *configFile = NULL, *req_phc = NULL, *progname;
 	enum CLOCK_TYPE type = CLOCK_TYPE_ORDINARY;
-	int c, err = -1, index, print_level;
+	int c, err = -1;//, index; //, print_level;
 	struct PtpClock *clock = NULL;
-	struct option *opts;
+//	struct option *opts;
 	struct PtpConfig *cfg;
-	int _domainNumber = 0;
-
 
 	log_stru_t	muxLog;
+	muxLog.llevel  = CMN_LOG_ERR;/* disable debug before log engine works */
+
 
 #if 0
 	if (handle_term_signals())
@@ -213,7 +213,7 @@ int main(int argc, char *argv[])
 	if (!cfg) {
 		return -1;
 	}
-	opts = config_long_options(cfg);
+//	opts = config_long_options(cfg);
 
 	/* Process the command line arguments. */
 	progname = strrchr(argv[0], '/');	
@@ -306,23 +306,10 @@ int main(int argc, char *argv[])
 		}
 	}
 #else
-	while (EOF != (c = getopt_long(argc, argv, "d:", opts, &index)))
-	{
-		switch (c)
-		{
-			case 'p':
-				_domainNumber = atoi(optarg);
-				break;
-			case '?':
-			default:
-				usage(progname);
-				goto out;
-		}
-	}
 
 #endif
 
-#if 0
+#if 1
 	/* only one interface is added, so it only works in ORDINARY mode; UDS port is other type of ptp interface */
 	if (!config_create_interface(EXT_PTP_DEVICE_NAME, cfg))
 	{

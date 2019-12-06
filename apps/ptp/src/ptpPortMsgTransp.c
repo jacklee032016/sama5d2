@@ -99,7 +99,9 @@ int portMsgProPDelayReq(struct PtpPort *p, struct ptp_message *m)
 	}
 	if (p->timestamping == TS_P2P1STEP) {
 		goto out;
-	} else if (msg_sots_missing(rsp)) {
+	}
+	else if (msg_sots_missing(rsp))
+	{
 		pr_err("missing timestamp on transmitted peer delay response");
 		err = -1;
 		goto out;

@@ -225,6 +225,13 @@ typedef	enum _MUX_MEDIA_TYPE
 
 #define	CONFIG_FILE_HOME_PROJECT			RUN_HOME_DIR"/etc/mLab/"
 
+
+#define	MUX_FACTORY_FLAGS_FILE			RUN_HOME_DIR"/var/factory.sh"
+
+#ifndef EXT_CONFIG_FILE_PTPD
+#define	EXT_CONFIG_FILE_PTPD				RUN_HOME_DIR"/etc/mLab/muxPtpd.cfg"
+#endif
+
 #define	PTP_EXE								"muxPtpd"
 
 #define ADD_ELEMENT(header, element)	\
@@ -492,7 +499,7 @@ int cmnGetIntegerFromJsonObject(cJSON* json, const char * key);
 
 
 void cmnForkCommand(const char *cmd);
-void cmnKillProcess(char * processName);
+int cmnKillProcess(char * processName);
 
 /* parse configuration file */
 void cmnParseGetArg(char *buf, int buf_size, const char **pp);

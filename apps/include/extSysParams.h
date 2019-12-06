@@ -1250,15 +1250,18 @@ struct	_EXT_RUNTIME_CFG
 
 	unsigned char			fpgaAuto;			/* RX auto configured itself */
 	
+#if 1
+	MuxPtpConfig			ptpConfig;
+#endif
+
+	
 	MuxRunTimeParam		runtime;				/* must be saved */
 	MuxSetupData		setupData;
-
-	MuxPtpRuntime		ptpRuntime;
-
 
 	unsigned char			endMagic[EXT_MAGIC_SIZE];
 
 
+	MuxPtpRuntime		ptpRuntime;
 	char					hexData[128];//HEX_DATA_MAX_LENGTH]; /* string, for RS232 data */
 
 
@@ -1401,6 +1404,10 @@ char extTxMulticastIP2Mac(EXT_RUNTIME_CFG *runCfg);
 
 #define	EXT_IS_TX(runCfg)	\
 			((runCfg)->isTx != 0 )
+
+#define	EXT_IS_PTP_ENABLED(runCfg)	\
+			((runCfg)->ptpConfig.isEnable != 0 )
+
 
 
 #define	EXT_IS_DIP_ON(runCfg) \

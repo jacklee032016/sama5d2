@@ -6,7 +6,7 @@ class Params
 {
     const ENV            = 'PROD'; //PROD DEV
     const USER_FILE      = '/tmp/user.file';
-    const SETTINGS_FILE  = '/tmp/settings.file';
+    const SETTINGS_FILE  = '/var/www/settings.file';
     const LOG_LEVEL_FILE = '/tmp/log.file';
     const VERSION        = '1.0.0';
     
@@ -29,13 +29,13 @@ class Params
 //    const DEFAULT_RESOLUTION       = "1080P_60";
 //    const DEFAULT_COLOR_DEPTH      = "8";
 //    const DEFAULT_COLOR_SPACE      = "RGB444";
-    const DEFAULT_RESOLUTION_MODE  = "AUTO";
-    
-    const DEFAULT_DNS1      = "8.8.8.8";
+    const DEFAULT_RESOLUTION_MODE = "AUTO";
+    const DEFAULT_DEVICE_TYPE     = ""; //device => getParam will set to TX or RX
+
     const DEFAULT_DNS2      = "4.2.2.1";
     const DEFAULT_TZ        = "America/New York";
     const DEFAULT_NTP       = "pool.ntp.org";
-    const DEFAULT_LOG_NAME  = "Muxlab500769_logfile_";
+    const DEFAULT_LOG_NAME  = "webrestapi";
     const DEFAULT_LOG_FW    = "/tmp/muxMedia.log";
     const DEFAULT_LOG_LEVEL = "ERROR";
     
@@ -76,7 +76,7 @@ class Params
     const PROD_PROTOCOL_ORIGIN_ADDRESS      = '127.0.0.1';
     const PROD_PROTOCOL_ORIGIN_PORT         = 3601;
     
-    const DEV_PROTOCOL_DESTINATION_ADDRESS_UDP = '192.168.168.100';//'192.168.168.100';//'192.168.168.103';// peter controller
+    const DEV_PROTOCOL_DESTINATION_ADDRESS_UDP = '192.168.168.101';//'192.168.168.100';//'192.168.168.103';// peter controller
     const DEV_PROTOCOL_DESTINATION_ADDRESS_TCP = '127.0.0.1';//'192.168.168.100';//'192.168.168.103';// jack controller
-    const DEV_PROTOCOL_ORIGIN_ADDRESS          = '192.168.168.101';// my pc ip
+    const DEV_PROTOCOL_ORIGIN_ADDRESS          = '192.168.168.104';// my pc ip
 }

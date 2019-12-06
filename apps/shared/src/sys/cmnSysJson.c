@@ -21,6 +21,31 @@
 	cJSON_ReplaceItemInObject((obj), (strKey), cJSON_CreateNumber((intValue)) )
 #endif
 
+
+#if 0
+static int _cmnSysJsonUpdateAnc(EXT_RUNTIME_CFG *runCfg, cJSON *obj)
+{
+	/* protocol */
+	CJSON_REPLACE_STRING(obj, FIELD_ANC_IP, cmnSysNetAddress(runCfg->dest.ancIp) );
+	CJSON_REPLACE_INTEGRE(obj, FIELD_ANC_PORT, runCfg->dest.dport );
+	CJSON_REPLACE_STRING(obj, FIELD_ANC_SDP, runCfg->sdpUriAnc.uri );
+	CJSON_REPLACE_INTEGRE(obj, FIELD_SDP_PAYLOAD_TYPE, runCfg->runtime.vpid );
+	CJSON_REPLACE_INTEGRE(obj, FIELD_SDP_PAYLOAD_TYPE, runCfg->runtime.rtpTypeAnc );
+	
+	return EXIT_SUCCESS;
+}
+
+
+static int _cmnSysJsonUpdateIR(EXT_RUNTIME_CFG *runCfg, cJSON *obj)
+{
+	/* data, use same field names as RS232 */
+	CJSON_REPLACE_STRING(obj, FIELD_RS232_DATA,  "" );
+	CJSON_REPLACE_INTEGRE(obj, FIELD_RS232_IS_FEEDBACK, 0);
+	CJSON_REPLACE_INTEGRE(obj, FIELD_RS232_WAIT_TIME, 0);
+	return EXIT_SUCCESS;
+}
+#endif
+
 static int _cmnSysJsonUpdateOthers(EXT_RUNTIME_CFG *runCfg, cJSON *obj)
 {
 	CJSON_REPLACE_INTEGRE(obj, FIELD_OTHERS_AUTHEN, runCfg->muxMain->isAuthen );
@@ -48,15 +73,6 @@ static int _cmnSysJsonUpdateOthers(EXT_RUNTIME_CFG *runCfg, cJSON *obj)
 	return EXIT_SUCCESS;
 }
 
-static int _cmnSysJsonUpdateIR(EXT_RUNTIME_CFG *runCfg, cJSON *obj)
-{
-	/* data, use same field names as RS232 */
-	CJSON_REPLACE_STRING(obj, FIELD_RS232_DATA,  "" );
-	CJSON_REPLACE_INTEGRE(obj, FIELD_RS232_IS_FEEDBACK, 0);
-	CJSON_REPLACE_INTEGRE(obj, FIELD_RS232_WAIT_TIME, 0);
-	return EXIT_SUCCESS;
-}
-
 static int _cmnSysJsonUpdateSecurity(EXT_RUNTIME_CFG *runCfg, cJSON *obj)
 {
 	CJSON_REPLACE_STRING(obj, FIELD_SECURITY_GET_ID, "");
@@ -68,35 +84,52 @@ static int _cmnSysJsonUpdateSecurity(EXT_RUNTIME_CFG *runCfg, cJSON *obj)
 
 static int _cmnSysJsonUpdatePtp(EXT_RUNTIME_CFG *runCfg, cJSON *obj)
 {
-	MuxPtpRuntime *ptpRuntime = &runCfg->ptpRuntime;
+	MuxPtpRuntime *ptpRuntime = &runCfg->ptpRuntime;	
+	MuxPtpConfig *ptpConfig = &runCfg->ptpConfig;
 	char msg[32];
+	int isOK = EXT_FALSE;
 	
-	if(runCfg->ptpRuntime.isEnable) 
+
+	/**** configuration ****/
+	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_IS_ENABLE, ptpConfig->isEnable);
+//	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_IS_SLAVE_ONLY, ptpRuntime->isSlaveOnly);
+	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_DOMAIN_NUM , ptpConfig->domain );
+	
+	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_PRIORITY_1, ptpConfig->priority1);
+	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_CLOCK_CLASS, ptpConfig->clockClass);
+	snprintf(msg, sizeof(msg), "0x%2x", ptpConfig->clockAccuracy);
+	CJSON_REPLACE_STRING(obj, FIELD_PTP_CLOCK_ACCURACY, msg);
+	snprintf(msg, sizeof(msg), "0x%4x", ptpConfig->offsetScaledLogVariance);
+	CJSON_REPLACE_STRING(obj, FIELD_PTP_OFFSET_LOG, msg);
+	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_PRIORITY_2, ptpConfig->priority2);
+
+	
+	if(EXT_IS_PTP_ENABLED(runCfg) ) 
 	{
+		if(ptpRuntime->pmc == NULL )
+		{
+			muxPtpInit(ptpRuntime, ptpConfig->domain);
+		}
+		
 		if(muxPtpRetrieve(ptpRuntime) == EXIT_FAILURE) 
 		{
 			MUX_ERROR("PTP runtime can't be contacted now");
-//			muxPtpInitData(&runCfg->ptpRuntime);
+			snprintf(runCfg->ptpRuntime.msg, sizeof(runCfg->ptpRuntime.msg), "%s", "PTP connection failed");	
+		}
+		else
+		{
+			isOK = EXT_TRUE;
 		}
 	}
 	else
-	{/* else if disable, the default data must be re-initialized because of enable/disable dynamically */
-		muxPtpInitData(&runCfg->ptpRuntime);
+	{
 		snprintf(runCfg->ptpRuntime.msg, sizeof(runCfg->ptpRuntime.msg), "%s", "PTP is disabled");	
 	}
-
-	/* configuration */
-	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_IS_ENABLE, ptpRuntime->isEnable);
-	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_IS_SLAVE_ONLY, ptpRuntime->isSlaveOnly);
-	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_DOMAIN_NUM , ptpRuntime->domainCfg );
 	
-	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_PRIORITY_1, ptpRuntime->priority1);
-	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_CLOCK_CLASS, ptpRuntime->clockClass);
-	snprintf(msg, sizeof(msg), "0x%2x", ptpRuntime->clockAccuracy);
-	CJSON_REPLACE_STRING(obj, FIELD_PTP_CLOCK_ACCURACY, msg);
-	snprintf(msg, sizeof(msg), "0x%4x", ptpRuntime->offsetScaledLogVariance);
-	CJSON_REPLACE_STRING(obj, FIELD_PTP_OFFSET_LOG, msg);
-	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_PRIORITY_2, ptpRuntime->priority2);
+	if(isOK == EXT_FALSE )
+	{/* else if disable, the default data must be re-initialized because of enable/disable dynamically */
+		muxPtpInitData(&runCfg->ptpRuntime);
+	}
 	
 	CJSON_REPLACE_STRING(obj, FIELD_PTP_CLOCK_ID, muxPtpId2Str(&ptpRuntime->clockId) );
 	CJSON_REPLACE_STRING(obj, FIELD_PTP_PORT_ID,  muxPtpId2Str(&ptpRuntime->portId) );
@@ -218,18 +251,6 @@ static int _cmnSysJsonUpdateSdp(EXT_RUNTIME_CFG *runCfg, cJSON *objArray)
 	return EXIT_SUCCESS;
 }
 
-static int _cmnSysJsonUpdateAnc(EXT_RUNTIME_CFG *runCfg, cJSON *obj)
-{
-	/* protocol */
-	CJSON_REPLACE_STRING(obj, FIELD_ANC_IP, cmnSysNetAddress(runCfg->dest.ancIp) );
-	CJSON_REPLACE_INTEGRE(obj, FIELD_ANC_PORT, runCfg->dest.dport );
-	CJSON_REPLACE_STRING(obj, FIELD_ANC_SDP, runCfg->sdpUriAnc.uri );
-	CJSON_REPLACE_INTEGRE(obj, FIELD_SDP_PAYLOAD_TYPE, runCfg->runtime.vpid );
-	CJSON_REPLACE_INTEGRE(obj, FIELD_ANC_VP_ID, runCfg->runtime.rtpTypeAnc );
-	
-	return EXIT_SUCCESS;
-}
-
 static int _cmnSysJsonUpdateAudio(EXT_RUNTIME_CFG *runCfg, cJSON *obj)
 {
 	/* protocol */
@@ -245,7 +266,7 @@ static int _cmnSysJsonUpdateAudio(EXT_RUNTIME_CFG *runCfg, cJSON *obj)
 	CJSON_REPLACE_STRING(obj, FIELD_AUDIO_PKT_SIZE, CMN_FIND_A_PKTSIZE(runCfg->runtime.aPktSize) );
 
 	CJSON_REPLACE_STRING(obj, FIELD_AUDIO_SESSION_ID, (const char *)runCfg->runtime.aSession );
-	CJSON_REPLACE_INTEGRE(obj, FIELD_ANC_VP_ID, runCfg->runtime.rtpTypeAudio);
+	CJSON_REPLACE_INTEGRE(obj, FIELD_SDP_PAYLOAD_TYPE, runCfg->runtime.rtpTypeAudio);
 	
 	return EXIT_SUCCESS;
 }
@@ -265,7 +286,7 @@ static int _cmnSysJsonUpdateVideo(EXT_RUNTIME_CFG *runCfg, cJSON *obj)
 
 	/* all interface: Ip Cmd, REST, SDP all use the format of SDP */
 #if 1
-	CJSON_REPLACE_STRING(obj, FIELD_VIDEO_FRAME_RATE, CMN_FIND_V_FRAME_RATE(runCfg->runtime.vFrameRate) );	/* foR SDP format */
+	CJSON_REPLACE_STRING(obj, FIELD_VIDEO_FRAME_RATE, CMN_FIND_V_FRAME_RATE(runCfg->runtime.vFrameRate) );	/* for SDP format */
 #else	
 	CJSON_REPLACE_STRING(obj, FIELD_VIDEO_FRAME_RATE, CMN_FIND_V_FPS_4_REST(runCfg->runtime.vFrameRate) );		/* for REST API/IpCmd */
 #endif
@@ -281,7 +302,7 @@ static int _cmnSysJsonUpdateVideo(EXT_RUNTIME_CFG *runCfg, cJSON *obj)
 	EXT_INFOF("Update cfg:%p; %dx%d; fps:%d; ColorSpace:%d; depth:%d; intlc:%d", 
 		runCfg, runCfg->runtime.vWidth, runCfg->runtime.vHeight, runCfg->runtime.vFrameRate, runCfg->runtime.vColorSpace, runCfg->runtime.vDepth, runCfg->runtime.vIsInterlaced);
 	
-	CJSON_REPLACE_INTEGRE(obj, FIELD_ANC_VP_ID, runCfg->runtime.rtpTypeVideo);
+	CJSON_REPLACE_INTEGRE(obj, FIELD_SDP_PAYLOAD_TYPE, runCfg->runtime.rtpTypeVideo);
 	return EXIT_SUCCESS;
 }
 
@@ -368,7 +389,6 @@ int cmnSysJsonUpdate(MuxMain *muxMain)
 		MUX_ERROR("Update '%s' JSON failed", MUX_REST_URI_VIDEO);
 	}
 
-	TRACE();
 	itemObj = cmnJsonSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_AUDIO, 0);
 	if(!itemObj ||_cmnSysJsonUpdateAudio(&muxMain->runCfg, itemObj))
 	{
@@ -395,7 +415,6 @@ int cmnSysJsonUpdate(MuxMain *muxMain)
 		MUX_ERROR("Update '%s' JSON failed", MUX_REST_URI_RS232);
 	}
 
-	TRACE();
 	itemObj = cmnJsonSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_SECURITY, INVALIDATE_VALUE_U32);
 	if(!itemObj ||_cmnSysJsonUpdateSecurity(&muxMain->runCfg, itemObj))
 	{
@@ -410,22 +429,18 @@ int cmnSysJsonUpdate(MuxMain *muxMain)
 	}
 #endif
 
-	TRACE();
 	itemObj = cmnJsonSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_PTP, INVALIDATE_VALUE_U32);
-	TRACE();
 	if(!itemObj ||_cmnSysJsonUpdatePtp(&muxMain->runCfg, itemObj))
 	{
 		MUX_ERROR("Update '%s' JSON failed", MUX_REST_URI_PTP);
 	}
 
-	TRACE();
 	itemObj = cmnJsonSystemGetSubItem(muxMain->systemJson, MUX_REST_URI_OTHERS, INVALIDATE_VALUE_U32);
 	if(!itemObj ||_cmnSysJsonUpdateOthers(&muxMain->runCfg, itemObj))
 	{
 		MUX_ERROR("Update '%s' JSON failed", MUX_REST_URI_OTHERS);
 	}
 	
-	TRACE();
 	return EXIT_SUCCESS;
 }
 

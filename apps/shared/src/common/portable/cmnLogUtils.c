@@ -39,7 +39,7 @@ static log_stru_t logobj =
 	/* in order to prompt by logobj when it is used by standalone program such as test */
 #ifndef   __CMN_RELEASE__
 	lstyle		:	USE_CONSOLE,
-	llevel		: 	CMN_LOG_DEBUG,
+	llevel		: 	CMN_LOG_WARNING,
 	lfacility		:	CMN_LOG_DEBUG,
 #else
 	lstyle		:	USE_SYSLOG,

@@ -19,17 +19,26 @@
 #define		PTPC_ERROR_SYS_CREATE_CLIENT		502
 
 
+#define	MUX_PTP_DEFAULT_PRIORITY_1					254
+#define	MUX_PTP_DEFAULT_PRIORITY_2					254
+
+#define	MUX_PTP_PRIORITY_MAX							MUX_PTP_DEFAULT_PRIORITY_1
+
+#define	MUX_PTP_DEFAULT_CLOCK_CLASS					248 		/* p.55, table 5, default */
+#define	MUX_PTP_DEFAULT_CLOCK_ACCURACY				0xFE	/* p.56, table 6, unknown */
+#define	MUX_PTP_DEFAULT_OFFSET_VARIANCE				0xFFFF
+
 typedef	struct _MUX_PTP_ID
 {
 	unsigned char	id[8];
 }MUX_PTP_ID;
 
 
-typedef	struct _MuxPtpRuntime
+typedef	struct _MuxPtpConfig
 {
 	/* configuration */
 	unsigned char		isEnable;
-	unsigned char		domainCfg;
+	unsigned char		domain;
 	
 	/************ default dataset ******************/
 	unsigned char		isTwoStep;
@@ -43,9 +52,14 @@ typedef	struct _MuxPtpRuntime
 
 	unsigned char		priority2;
 
+}MuxPtpConfig;
+
+
+typedef	struct _MuxPtpRuntime
+{
 	/* data read dynamically */
 
-//	unsigned short	domain;
+	unsigned char		domain;
 
 
 	MUX_PTP_ID		clockId;
@@ -80,7 +94,7 @@ typedef	struct _MuxPtpRuntime
 
 char *muxPtpId2Str(MUX_PTP_ID *id);
 
-void *muxPtpInit(void *_muxPtp);
+void *muxPtpInit(void *_muxPtp, unsigned char domain);
 void muxPtpDestory(void *_muxPtp);
 
 int muxPtpRetrieve(void *_muxPtp);

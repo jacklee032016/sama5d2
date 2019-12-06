@@ -305,6 +305,8 @@ void extCfgFactoryKeepMac( EXT_RUNTIME_CFG *cfg )
 {
 	EXT_MAC_ADDRESS macAddress;
 	
+	cmnMuxSaveFactoryFlags(cfg);
+	
 	unsigned char isMacConfiged = cfg->isMacConfiged;
 	memcpy(&macAddress, &cfg->local.mac, sizeof(EXT_MAC_ADDRESS));
 
@@ -314,6 +316,7 @@ void extCfgFactoryKeepMac( EXT_RUNTIME_CFG *cfg )
 	cfg->isMacConfiged = isMacConfiged;
 
 	cmnSysCfgSave(cfg, EXT_CFG_MAIN);
+
 }
 
 

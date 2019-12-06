@@ -62,7 +62,12 @@ struct PtpClock
 	struct foreign_clock *best;
 	struct ClockIdentity best_id;
 
+#if 0
 	LIST_HEAD(ports_head, ClockPort)	clkPorts;	/* ports_head is name of new struct, port is `struct port`; ports is field name; UDS port is not in this list */
+#else
+	LIST_HEAD(ports_head, PtpPort)	clkPorts;
+#endif
+
 	struct PtpPort					*uds_port;
 	
 	struct pollfd *pollfd;
@@ -420,6 +425,27 @@ enum CLOCK_TYPE clock_type(struct PtpClock *c)
 
 #define	clock_type(clock) \
 	((clock)->type)
+
+
+void clock_update_grandmaster(struct PtpClock *c);
+void clock_prune_subscriptions(struct PtpClock *c);
+void clock_update_subscription(struct PtpClock *c, struct ptp_message *req, uint8_t *bitmask, uint16_t duration);
+int clock_management_fill_response(struct PtpClock *c, struct PtpPort *p,
+					  struct ptp_message *req,
+					  struct ptp_message *rsp, int id);
+void clock_get_subscription(struct PtpClock *c, struct ptp_message *req, uint8_t *bitmask, uint16_t *duration);
+void clock_flush_subscriptions(struct PtpClock *c);
+
+
+int port_capable(struct PtpPort *p);
+void port_nrate_initialize(struct PtpPort *p);
+void port_clear_fda(struct PtpPort *p, int count);
+void flush_peer_delay(struct PtpPort *p);
+
+int peer_prepare_and_send(struct PtpPort *p, struct ptp_message *msg, enum transport_event event);
+void fc_prune(struct foreign_clock *fc);
+int unicast_client_enabled(struct PtpPort *p);
+
 
 #endif
 

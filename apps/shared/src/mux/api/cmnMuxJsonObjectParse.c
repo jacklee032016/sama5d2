@@ -75,6 +75,18 @@ void cmnMuxClearConfig(EXT_RUNTIME_CFG *rxCfg)
 	FIELD_INVALIDATE_U8(rxCfg->setupData.isFeedBack);
 	FIELD_INVALIDATE_U16(rxCfg->setupData.waitMs );
 
+	/* clear PTP configuration */
+	FIELD_INVALIDATE_U8(rxCfg->ptpConfig.isEnable);
+	FIELD_INVALIDATE_U8(rxCfg->ptpConfig.domain);
+	FIELD_INVALIDATE_U8(rxCfg->ptpConfig.isTwoStep);
+	FIELD_INVALIDATE_U8(rxCfg->ptpConfig.isSlaveOnly);
+
+	FIELD_INVALIDATE_U8(rxCfg->ptpConfig.priority1);
+	FIELD_INVALIDATE_U8(rxCfg->ptpConfig.clockClass);
+	FIELD_INVALIDATE_U8(rxCfg->ptpConfig.clockAccuracy);
+	FIELD_INVALIDATE_U8(rxCfg->ptpConfig.offsetScaledLogVariance);
+	FIELD_INVALIDATE_U8(rxCfg->ptpConfig.priority2);
+
 }
 
 
@@ -333,6 +345,14 @@ int	cmnMuxObjectParseVideo(struct DATA_CONN *dataConn, cJSON *dataObj)
 		isFound = EXT_TRUE;
 	}
 
+	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_SDP_PAYLOAD_TYPE);
+	if( FIELD_IS_CHANGED_U32(intValue) )
+	{
+		rxCfg->runtime.rtpTypeVideo = (unsigned char)intValue;
+		isFound = EXT_TRUE;
+	}
+
+
 	if(isFound == EXT_FALSE )
 	{
 		DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "No validated field is found in '%s' packet", MUX_REST_URI_VIDEO );
@@ -422,6 +442,13 @@ int	cmnMuxObjectParseAudio(struct DATA_CONN *dataConn, cJSON *dataObj)
 			return EXIT_FAILURE;
 		}
 		rxCfg->runtime.aPktSize = (unsigned char)intValue;
+		isFound = EXT_TRUE;
+	}
+
+	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_SDP_PAYLOAD_TYPE);
+	if( FIELD_IS_CHANGED_U32(intValue) )
+	{
+		rxCfg->runtime.rtpTypeAudio = (unsigned char)intValue;
 		isFound = EXT_TRUE;
 	}
 
@@ -858,21 +885,23 @@ int	cmnMuxObjectParsePtp(struct DATA_CONN *dataConn, cJSON *dataObj)
 	
 	MuxMain *muxMain = SYS_MAIN(dataConn);
 	EXT_RUNTIME_CFG *rxCfg = &muxMain->rxCfg;
-	MuxPtpRuntime *ptpRuntime = &rxCfg->ptpRuntime;
+	MuxPtpConfig *ptpConfig = &rxCfg->ptpConfig;
 
 	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_PTP_IS_ENABLE);
 	if( FIELD_IS_CHANGED_U32(intValue) )
 	{
-		ptpRuntime->isEnable = (intValue==0)?0:1;
+		ptpConfig->isEnable = (intValue==0)?0:1;
 		isFound = 1;
 	}
 
+#if 0
 	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_PTP_IS_SLAVE_ONLY);
 	if( FIELD_IS_CHANGED_U32(intValue) )
 	{
-		ptpRuntime->isSlaveOnly = (intValue==0)?0:1;
+		ptpConfig->isSlaveOnly = (intValue==0)?0:1;
 		isFound = 1;
 	}
+#endif
 
 	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_PTP_DOMAIN_NUM);
 	if( FIELD_IS_CHANGED_U32(intValue)  )
@@ -882,7 +911,7 @@ int	cmnMuxObjectParsePtp(struct DATA_CONN *dataConn, cJSON *dataObj)
 			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s': %d in %s item is out of range (0~127)", FIELD_PTP_DOMAIN_NUM, intValue, MUX_REST_URI_PTP);
 			return EXIT_FAILURE;
 		}
-		ptpRuntime->domainCfg =(unsigned char ) intValue;
+		ptpConfig->domain =(unsigned char ) intValue;
 		isFound = 1;
 	}
 	
@@ -894,7 +923,7 @@ int	cmnMuxObjectParsePtp(struct DATA_CONN *dataConn, cJSON *dataObj)
 			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s': %d in %s item is out of range (0~127)", FIELD_PTP_PRIORITY_1, intValue, MUX_REST_URI_PTP);
 			return EXIT_FAILURE;
 		}
-		ptpRuntime->priority1 = (unsigned char )intValue;
+		ptpConfig->priority1 = (unsigned char )intValue;
 		isFound = 1;
 	}
 
@@ -906,7 +935,7 @@ int	cmnMuxObjectParsePtp(struct DATA_CONN *dataConn, cJSON *dataObj)
 			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s': %d in %s item is out of range (0~127)", FIELD_PTP_PRIORITY_2, intValue, MUX_REST_URI_PTP);
 			return EXIT_FAILURE;
 		}
-		ptpRuntime->priority2 = (unsigned char )intValue;
+		ptpConfig->priority2 = (unsigned char )intValue;
 		isFound = 1;
 	}
 
@@ -918,7 +947,7 @@ int	cmnMuxObjectParsePtp(struct DATA_CONN *dataConn, cJSON *dataObj)
 			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s': %d in %s item is out of range (0~127)", FIELD_PTP_CLOCK_CLASS, intValue, MUX_REST_URI_PTP);
 			return EXIT_FAILURE;
 		}
-		ptpRuntime->clockClass= (unsigned char )intValue;
+		ptpConfig->clockClass= (unsigned char )intValue;
 		isFound = 1;
 	}
 
@@ -930,7 +959,7 @@ int	cmnMuxObjectParsePtp(struct DATA_CONN *dataConn, cJSON *dataObj)
 			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s': %d in %s item is out of range (0~127)", FIELD_PTP_CLOCK_ACCURACY, intValue, MUX_REST_URI_PTP);
 			return EXIT_FAILURE;
 		}
-		ptpRuntime->clockAccuracy= (unsigned char )intValue;
+		ptpConfig->clockAccuracy= (unsigned char )intValue;
 		isFound = 1;
 	}
 
@@ -942,7 +971,7 @@ int	cmnMuxObjectParsePtp(struct DATA_CONN *dataConn, cJSON *dataObj)
 			DATA_CONN_ERR(dataConn, IPCMD_ERR_DATA_ERROR, "Field '%s': %d in %s item is out of range (0~127)", FIELD_PTP_OFFSET_LOG, intValue, MUX_REST_URI_PTP);
 			return EXIT_FAILURE;
 		}
-		ptpRuntime->offsetScaledLogVariance = (unsigned short )intValue;
+		ptpConfig->offsetScaledLogVariance = (unsigned short )intValue;
 		isFound = 1;
 	}
 

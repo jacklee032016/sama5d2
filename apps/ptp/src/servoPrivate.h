@@ -24,6 +24,11 @@ struct servo {
 	double max_frequency;
 	double step_threshold;
 	double first_step_threshold;
+
+	/*
+	* only set as 1 when it is servo is created; after first enter into JUMP or CLOCK state, it set as 0, and never return to 0
+	* So, re-sync will be some slow to make offset is big enough than 
+	*/
 	int first_update;
 
 	void (*destroy)(struct servo *servo);

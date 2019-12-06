@@ -51,8 +51,8 @@ int main(int argc, char *argv[])
 	printf("PTP domain number:%d\n", domain);
 
 //	handle_term_signals();
-	muxPtp->domainCfg = domain;
-	if(muxPtpInit(muxPtp) == NULL )
+//	muxPtp->domainCfg = domain;
+	if(muxPtpInit(muxPtp, (unsigned char)domain) == NULL )
 	{
 		MUX_ERROR("PTP Client initialization failed");
 		goto out;

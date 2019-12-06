@@ -487,7 +487,7 @@ int cmnGetPidByName(char *prog_name)
 
 
 
-void cmnKillProcess(char * processName)
+int cmnKillProcess(char * processName)
 {
 	pid_t pid=-1;
 	char cmd[128]="\0";
@@ -497,8 +497,9 @@ void cmnKillProcess(char * processName)
 		if(pid<0)
 		{
 			fprintf(stderr, "Process '%s' is not found\n", processName);
-			break;
+			return EXIT_FAILURE;
 		}
+		
 		sprintf(cmd,"kill -9 %d",pid);
 		if(system(cmd) < 0)
 		{
@@ -507,7 +508,8 @@ void cmnKillProcess(char * processName)
 		
 		pid=-1;
 	}
-	return ;
+	
+	return EXIT_SUCCESS;
 }
 
 
@@ -516,15 +518,15 @@ void cmnForkCommand(const char *cmd)
 	char command[1024];
 	snprintf(command, sizeof(command), "%s >> /dev/null" , cmd);
 	
-	if(!fork()) 
+//	if(!fork()) /* not fork itself, just run a command */
 	{
 		if(system(command) < 0)
 		{
 			fprintf(stderr, "Execute '%s' failed\n", command);
 		}
-		exit(0);
+//		exit(0);
 	}
-	sleep(1); /* one second */
+//	sleep(1); /* one second */
 	return;
 }
 

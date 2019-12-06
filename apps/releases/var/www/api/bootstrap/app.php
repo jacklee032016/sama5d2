@@ -89,10 +89,10 @@ $container['FileController'] = function($container) {
 $container['ScheduleController'] = function($container) {
     return new \App\Controllers\ScheduleController($container);
 };
-
+*/
 $container['LogController'] = function($container) {
-    return new \App\Controllers\LogController;
-};*/
+    return new \App\Controllers\LogController($container);
+};
 
 v::with('App\\Validation\\Rules\\');
 

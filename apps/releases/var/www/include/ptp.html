@@ -5,7 +5,7 @@
         <div class="form-group row pl-2 mb-1">
             <label for="ptp-enable" class="col-3 col-form-label">PTP:</label>
             <div class="col-3">
-                <SELECT id="isEnable" class="form-control" name="isEnable" disabled onchange="ptpEnable()">
+                <SELECT id="isEnable" class="form-control" name="isEnable" onchange="ptpEnable()">
                     <OPTION value="1">Enabled</OPTION>
                     <OPTION value="0">Disabled</OPTION>
                 </SELECT>
@@ -14,9 +14,9 @@
         
         <div id="ptpEnableSetting">
             <div class="form-group row pl-2 mb-1">
-                <label for="ptp-domain-number" class="col-3 col-form-label">Domain Number:</label>
+                <label for="ptp-domain-number" class="col-3 col-form-label">Domain Number (0-127):</label>
                 <div class="col-3">
-                    <input type="text" class="form-control" disabled name="ptp-domain-number" id="ptp-domain-number">
+                    <input type="text" class="form-control" name="ptp-domain-number" id="ptp-domain-number">
                 </div>
             </div>
 	        <div class="form-group row pl-2 mb-1">
@@ -43,6 +43,12 @@
 	                <label id="ptp-port-state" class="col-form-label"></label>
 	            </div>
 	        </div>
+	        <div class="form-group row pl-2 pt-2">
+                <div class="col-3 offset-2">
+                    <button type="button" class="btn btn-secondary" id="btnApplyPtp" name="btnApplyPtp">Apply</button>
+                    <button type="button" class="btn btn-secondary" id="btnResetPtp" name="btnResetPtp">Reset</button>
+                </div>
+            </div>
         </div>
 	    <DIV class="row">
 	        <H2>Master info</H2>
@@ -107,13 +113,16 @@
 
  
 <script type="text/javascript">
+    checkDevice();
     completePtpPage();
+    ptpEnable();
     
-    $("#btnResetSettings").click(function() {
+    $("#btnResetPtp").click(function() {
         completePtpPage();
+        ptpEnable();
     });
 
-    $("#btnSubmitPtp").click(function() {
+    $("#btnApplyPtp").click(function() {
         
         if ($("select#isEnable").val() == device.ptp.isEnable && $("#ptp-domain-number").val() == device.ptp.domainNumber)
         {
@@ -151,31 +160,44 @@
         return false;        
     });
     
+    function ptpEnable()
+    {
+        var enable = $("#isEnable").val();
+        if (enable == 1) {
+            $("#ptp-domain-number").removeAttr("disabled");
+        } else {
+            $("#ptp-domain-number").attr("disabled", "disabled");
+        }
+    }
+    
     function completePtpPage()
     {
-        if (device.ptp.isEnable == 1)
-            $("select#isEnable").val(device.ptp.isEnable);
-        else
-            $("select#isEnable").val(0);
-        $("#ptp-domain-number").val(device.ptp.domainNumber);
-        if (device.ptp.isSlaveOnly == 1)
-            $("#ptp-master-slave").text("Slave");
-        else
-            $("#ptp-master-slave").text("Master or Slave");
-        $("#ptp-clock-id").text(device.ptp.clockId);
-        $("#ptp-port-id").text(device.ptp.portId);
-        $("#ptp-port-state").text(device.ptp.portState);
-        if (device.ptp.masterPresent == 1)
-            $("#ptp-master-present").text("Present");
-        else
-            $("#ptp-master-present").text("Not Present");
-        $("#ptp-master-id").text(device.ptp.masterID);
-        $("#ptp-source-port-id").text(device.ptp.sourcePortId);
-        $("#ptp-master-priority").text(device.ptp.mPriority1);
-        $("#ptp-master-clock-accuracy").text(device.ptp.mClockAccuracy);
-        $("#ptp-master-clock-class").text(device.ptp.mClockClass);
-        $("#ptp-master-offset-scaled").text(device.ptp.mOffsetScaledLogVariance);
-        $("#ptp-master-priority-2").text(device.ptp.mPriority2);
+        if (device)
+        {
+	        if (device.ptp.isEnable == 1)
+	            $("select#isEnable").val(device.ptp.isEnable);
+	        else
+	            $("select#isEnable").val(0);
+	        $("#ptp-domain-number").val(device.ptp.domainNumber);
+	        if (device.ptp.isSlaveOnly == 1)
+	            $("#ptp-master-slave").text("Slave");
+	        else
+	            $("#ptp-master-slave").text("Master or Slave");
+	        $("#ptp-clock-id").text(device.ptp.clockId);
+	        $("#ptp-port-id").text(device.ptp.portId);
+	        $("#ptp-port-state").text(device.ptp.portState);
+	        if (device.ptp.masterPresent == 1)
+	            $("#ptp-master-present").text("Present");
+	        else
+	            $("#ptp-master-present").text("Not Present");
+	        $("#ptp-master-id").text(device.ptp.masterID);
+	        $("#ptp-source-port-id").text(device.ptp.sourcePortId);
+	        $("#ptp-master-priority").text(device.ptp.mPriority1);
+	        $("#ptp-master-clock-accuracy").text(device.ptp.mClockAccuracy);
+	        $("#ptp-master-clock-class").text(device.ptp.mClockClass);
+	        $("#ptp-master-offset-scaled").text(device.ptp.mOffsetScaledLogVariance);
+	        $("#ptp-master-priority-2").text(device.ptp.mPriority2);
+        }
     }
 	
 </SCRIPT>

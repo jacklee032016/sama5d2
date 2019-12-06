@@ -11,6 +11,11 @@
 MUX_LAB_HOME=/opt/mLab
 
 chown www-data /var/www
+rm -rf /var/www/LogsArchive_*
+
+if [ -f /var/factory.sh ]; then
+    /opt/mLab/reset.sh
+fi
 
 if [ -f /var/www/upgrade ]; then
     sleep 1
@@ -37,8 +42,8 @@ echo "install w1 DS28e15 driver..."
 insmod $MUX_LAB_HOME/drv/w1Ds28e15.ko
 echo ""
 
-echo "start PTP service..."
-muxPtpd 
+echo "start Button service..."
+btnCtrl 
 echo ""
 
 echo "start REST API service..."

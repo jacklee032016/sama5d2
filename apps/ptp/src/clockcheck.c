@@ -22,23 +22,24 @@
 
 #include "ptpCompact.h"
 
-#define CHECK_MIN_INTERVAL 100000000
-#define CHECK_MAX_FREQ 900000000
+#define CHECK_MIN_INTERVAL		100000000
+#define CHECK_MAX_FREQ		900000000
 
 struct clockcheck
 {
 	/* Sanity frequency limit */
-	int freq_limit;
+	int		freq_limit;
 	/* Frequency was set at least once */
-	int freq_known;
-	/* Current frequency */
-	int current_freq;
-	/* Maximum and minimum frequency since last update */
-	int max_freq;
-	int	min_freq;
+	int		freq_known;
 	
-	uint64_t last_ts;
-	uint64_t last_mono_ts;
+	/* Current frequency */
+	int			current_freq;
+	/* Maximum and minimum frequency since last update */
+	int			max_freq;
+	int			min_freq;
+	
+	uint64_t		last_ts;
+	uint64_t		last_mono_ts;
 };
 
 struct clockcheck *clockcheck_create(int freq_limit)
@@ -83,21 +84,19 @@ int clockcheck_sample(struct clockcheck *cc, uint64_t ts)
 	if (mono_interval < CHECK_MIN_INTERVAL)
 		return ret;
 
-	if (cc->last_ts && cc->max_freq <= CHECK_MAX_FREQ) {
-		max_foffset = 1e9 * (interval /
-				     (1.0 + cc->min_freq / 1e9) /
-				     mono_interval - 1.0);
-		min_foffset = 1e9 * (interval /
-				     (1.0 + cc->max_freq / 1e9) /
-				     mono_interval - 1.0);
+	if (cc->last_ts && cc->max_freq <= CHECK_MAX_FREQ)
+	{
+		max_foffset = 1e9 * (interval /(1.0 + cc->min_freq / 1e9) / mono_interval - 1.0);
+		min_foffset = 1e9 * (interval /(1.0 + cc->max_freq / 1e9) / mono_interval - 1.0);
 
-		if (min_foffset > cc->freq_limit) {
-			pr_warning("clockcheck: clock jumped forward or"
-					" running faster than expected!");
+		if (min_foffset > cc->freq_limit)
+		{
+			pr_warning("clockcheck: clock jumped forward or running faster than expected!");
 			ret = 1;
-		} else if (max_foffset < -cc->freq_limit) {
-			pr_warning("clockcheck: clock jumped backward or"
-					" running slower than expected!");
+		}
+		else if (max_foffset < -cc->freq_limit)
+		{
+			pr_warning("clockcheck: clock jumped backward or running slower than expected!");
 			ret = 1;
 		}
 	}

@@ -32,7 +32,8 @@ static long realtime_nominal_tick;
 void clockadj_init(clockid_t clkid)
 {
 #ifdef _SC_CLK_TCK
-	if (clkid == CLOCK_REALTIME) {
+	if (clkid == CLOCK_REALTIME)
+	{
 		/* This is USER_HZ in the kernel. */
 		realtime_hz = sysconf(_SC_CLK_TCK);
 		if (realtime_hz > 0)
@@ -40,6 +41,8 @@ void clockadj_init(clockid_t clkid)
 			/* This is TICK_USEC in the kernel. */
 			realtime_nominal_tick = (1000000 + realtime_hz / 2) / realtime_hz;
 		}
+
+		pr_debug("realtime_hz:%ld; realtime_nominal_tick:%ls", realtime_hz, realtime_nominal_tick);
 	}
 #endif
 }
@@ -70,9 +73,12 @@ double clockadj_get_freq(clockid_t clkid)
 	struct timex tx;
 	memset(&tx, 0, sizeof(tx));
 	
-	if (clock_adjtime(clkid, &tx) < 0) {
+	if (clock_adjtime(clkid, &tx) < 0)
+	{
 		pr_err("failed to read out the clock frequency adjustment: %m");
-	} else {
+	}
+	else
+	{
 		f = tx.freq / 65.536;
 		if (clkid == CLOCK_REALTIME && realtime_nominal_tick && tx.tick)
 			f += 1e3 * realtime_hz * (tx.tick - realtime_nominal_tick);
@@ -85,7 +91,7 @@ void printDateString(struct timeval *tv)
 	time_t nowtime;
 
 	struct tm *nowtm;
-	char tmbuf[64], buf[64];
+	char tmbuf[64];//, buf[64];
 	nowtime = tv->tv_sec;
 
 	nowtm = localtime(&nowtime);
@@ -130,7 +136,7 @@ void clockadj_step(clockid_t clkid, int64_t step)
 	if (clock_adjtime(clkid, &tx) < 0)
 	{
 		pr_err("failed to step clock: %m: sec:%ld; n_sec:%ld", tx.time.tv_sec, tx.time.tv_usec );
-		printDateString(&tx);
+		printDateString(&tx.time);
 	}
 }
 

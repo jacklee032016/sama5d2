@@ -1,6 +1,14 @@
 Work logs for Application Development
 #########################################
 
+
+12.06, 2019
+---------------------------
+* web pages update;
+* RTP Payload Type of video/audio streams can be configured to FPGA by API in TX;
+* 
+
+
 10.31, 2019
 ---------------------------
 

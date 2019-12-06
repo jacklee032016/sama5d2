@@ -25,5 +25,8 @@ $app->get('/device/notAuthParam', 'DeviceController:getNotAuthParam');
     //rs232 end points
     $app->put('/rs232/sendData', 'Rs232Controller:sendData');
     $app->put('/rs232/configuration', "Rs232Controller:setConfiguration");
+    
+    $app->get('/log', 'LogController:getLog');
+    
 //})->add(new AuthMiddleware($container));
     

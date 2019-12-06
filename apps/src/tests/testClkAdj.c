@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <sys/timex.h>
 #include <stdio.h>
+#include <stdlib.h> /* atoi */
 
 /*
 * busybox: date -s 2010.02.17-19:14:32
@@ -13,7 +14,7 @@ void printDateString(long int second)
 	time_t nowtime;
 
 	struct tm *nowtm;
-	char tmbuf[64], buf[64];
+	char tmbuf[64];//, buf[64];
 
 	struct timeval tv;
 	gettimeofday(&tv,NULL);
@@ -34,14 +35,14 @@ int readTime(void)
 		printf("read failed:%m\n");
 		return 1;
 	}
-	printf("CLOCK_REALTIME: %d\n", ts.tv_sec);
+	printf("CLOCK_REALTIME: %ld\n", ts.tv_sec);
 
 	if(clock_gettime(CLOCK_MONOTONIC, &ts)< 0)
 	{
 		printf("read failed:%m\n");
 		return 1;
 	}
-	printf("CLOCK_MONOTONIC: %d\n", ts.tv_sec);
+	printf("CLOCK_MONOTONIC: %ld\n", ts.tv_sec);
 
 	return 0;	
 }
