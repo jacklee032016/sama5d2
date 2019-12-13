@@ -314,7 +314,7 @@ struct PtpClock *clock_create(enum CLOCK_TYPE type, struct PtpConfig *config, co
 		max_adj = sysclk_max_freq();
 		sysclk_set_leap(0);
 	}
-	
+
 	c->utc_offset_set = 0;
 	c->leap_set = 0;
 	c->time_flags = c->utc_timescale ? 0 : PTP_TIMESCALE;
@@ -345,6 +345,7 @@ struct PtpClock *clock_create(enum CLOCK_TYPE type, struct PtpConfig *config, co
 		c->dscmp = dscmp;
 	}
 	
+TRACE();	
 	c->tsproc = tsproc_create(config_get_int(config, NULL, "tsproc_mode"),
 				  config_get_int(config, NULL, "delay_filter"),
 				  config_get_int(config, NULL, "delay_filter_length"));
@@ -353,6 +354,7 @@ struct PtpClock *clock_create(enum CLOCK_TYPE type, struct PtpConfig *config, co
 		return NULL;
 	}
 	
+TRACE();	
 	c->initial_delay = dbl_tmv(config_get_int(config, NULL, "initial_delay"));
 	c->master_local_rr = 1.0;
 	c->nrr = 1.0;

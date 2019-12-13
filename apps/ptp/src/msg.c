@@ -386,7 +386,7 @@ int ptpMsgReceive(struct ptp_message *m, int cnt)
 	if (cnt < pdulen)
 		return -EBADMSG;
 
-#if PTP_NOISE_DEBUG
+#if 0//PTP_NOISE_DEBUG
 	pr_info("Receiving MSG %s with length %d, total %d", ptpMsgTypeString(type), pdulen, cnt);
 #endif
 

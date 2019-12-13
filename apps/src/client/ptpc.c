@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
 		goto out;
 	}
 
-	if(muxPtpRetrieve(muxPtp) == EXIT_FAILURE)
+	if(muxPtpRetrieve(muxPtp, (unsigned char) domain) == EXIT_FAILURE)
 	{
 		MUX_ERROR("Retrive status from PTP daemon failed");
 		goto out;

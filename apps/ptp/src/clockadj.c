@@ -42,7 +42,7 @@ void clockadj_init(clockid_t clkid)
 			realtime_nominal_tick = (1000000 + realtime_hz / 2) / realtime_hz;
 		}
 
-		pr_debug("realtime_hz:%ld; realtime_nominal_tick:%ls", realtime_hz, realtime_nominal_tick);
+		pr_debug("realtime_hz:%ld; realtime_nominal_tick:%ld", realtime_hz, realtime_nominal_tick);
 	}
 #endif
 }

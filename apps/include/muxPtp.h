@@ -4,6 +4,8 @@
 #ifndef	__MUX_PTP_H__
 #define	__MUX_PTP_H__
 
+#include <stdint.h>
+
 #define		PTPC_NOISE_DEBUG			EXT_DBG_OFF
 
 #define		PTPC_ERROR_OK						200		/* everything is OK */
@@ -52,7 +54,7 @@ typedef	struct _MuxPtpConfig
 
 	unsigned char		priority2;
 
-}MuxPtpConfig;
+}__attribute__((packed)) MuxPtpConfig;
 
 
 typedef	struct _MuxPtpRuntime
@@ -75,6 +77,7 @@ typedef	struct _MuxPtpRuntime
 	unsigned char		masterPresent;
 	MUX_PTP_ID		sourceId;	/* source port */
 	unsigned short	sourceIndex;
+	uint64_t			offset;		/* offset from master, nanosecond */
 
 	/* dataset of parent */
 	unsigned char		gmPriority1;
@@ -89,7 +92,7 @@ typedef	struct _MuxPtpRuntime
 	char				msg[256];
 
 	void				*pmc;
-}MuxPtpRuntime;
+}__attribute__((packed)) MuxPtpRuntime;
 
 
 char *muxPtpId2Str(MUX_PTP_ID *id);
@@ -97,7 +100,9 @@ char *muxPtpId2Str(MUX_PTP_ID *id);
 void *muxPtpInit(void *_muxPtp, unsigned char domain);
 void muxPtpDestory(void *_muxPtp);
 
-int muxPtpRetrieve(void *_muxPtp);
+int muxPtpRetrieve(void *_muxPtp, unsigned char domain);
+int muxPtpPoll(void *_muxPtp, unsigned char domain);
+
 int muxPtpDebug(void *_muxPtp);
 
 int muxPtpDefaultConfig(void *_muxPtp);

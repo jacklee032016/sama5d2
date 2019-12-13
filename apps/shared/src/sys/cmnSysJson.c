@@ -111,7 +111,7 @@ static int _cmnSysJsonUpdatePtp(EXT_RUNTIME_CFG *runCfg, cJSON *obj)
 			muxPtpInit(ptpRuntime, ptpConfig->domain);
 		}
 		
-		if(muxPtpRetrieve(ptpRuntime) == EXIT_FAILURE) 
+		if(muxPtpRetrieve(ptpRuntime, ptpConfig->domain) == EXIT_FAILURE) 
 		{
 			MUX_ERROR("PTP runtime can't be contacted now");
 			snprintf(runCfg->ptpRuntime.msg, sizeof(runCfg->ptpRuntime.msg), "%s", "PTP connection failed");	
@@ -142,6 +142,8 @@ static int _cmnSysJsonUpdatePtp(EXT_RUNTIME_CFG *runCfg, cJSON *obj)
 
 	CJSON_REPLACE_STRING(obj, FIELD_PTP_MASTER_ID, muxPtpId2Str(&ptpRuntime->masterId) );
 	CJSON_REPLACE_STRING(obj, FIELD_PTP_SRC_PORT_ID, muxPtpId2Str(&ptpRuntime->sourceId) );
+
+	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_M_OFFSET, ptpRuntime->offset );
 	
 	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_M_PRIORITY_1, ptpRuntime->gmPriority1);
 	CJSON_REPLACE_INTEGRE(obj, FIELD_PTP_M_CLOCK_CLASS, ptpRuntime->gmClockClass);
@@ -267,6 +269,8 @@ static int _cmnSysJsonUpdateAudio(EXT_RUNTIME_CFG *runCfg, cJSON *obj)
 
 	CJSON_REPLACE_STRING(obj, FIELD_AUDIO_SESSION_ID, (const char *)runCfg->runtime.aSession );
 	CJSON_REPLACE_INTEGRE(obj, FIELD_SDP_PAYLOAD_TYPE, runCfg->runtime.rtpTypeAudio);
+
+	CJSON_REPLACE_INTEGRE(obj, FIELD_SDP_TTL, runCfg->runtime.ttlAudio);
 	
 	return EXIT_SUCCESS;
 }
@@ -303,6 +307,8 @@ static int _cmnSysJsonUpdateVideo(EXT_RUNTIME_CFG *runCfg, cJSON *obj)
 		runCfg, runCfg->runtime.vWidth, runCfg->runtime.vHeight, runCfg->runtime.vFrameRate, runCfg->runtime.vColorSpace, runCfg->runtime.vDepth, runCfg->runtime.vIsInterlaced);
 	
 	CJSON_REPLACE_INTEGRE(obj, FIELD_SDP_PAYLOAD_TYPE, runCfg->runtime.rtpTypeVideo);
+	
+	CJSON_REPLACE_INTEGRE(obj, FIELD_SDP_TTL, runCfg->runtime.ttlVideo );
 	return EXIT_SUCCESS;
 }
 

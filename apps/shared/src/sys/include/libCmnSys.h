@@ -5,6 +5,8 @@
 #include "libCmn.h"
 #include "libMux.h"
 
+#define	EXT_DEBUG_TIMESTAMP				1
+
 #define	EXT_CMN_SYS_HW_DEBUG			EXT_DBG_ON
 
 #define	EXT_DELAY_S(sec)		cmn_delay((sec)*1000)
@@ -412,7 +414,6 @@ int cmnSysI2cSi5351VcxoControl(unsigned long clkFreq);
 #define	FPGA_GET_PTP_TIMESTAMP_AUDIO()		\
 		(uint32_t)(cmnGetTimeUs()*1000/FPGA_TIMESTAMP_UNIT_AUDIO)
 
-int sysFpgaWritePtpTimestamp(void 	*fpga);
 
 int	extSysNetInit(MuxMain		*muxMain);
 

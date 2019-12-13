@@ -522,11 +522,11 @@ int32_t	extPtpInit(EXT_RUNTIME_CFG		*runCfg)
 			MUX_ERROR("PTP Client initialization failed");
 			return EXIT_FAILURE;
 		}
-		MUX_INFO("Initialization: PTP Controller checked successfully!");
+		MUX_INFO("Initialization: PTP Controller checked on domain %d successfully!", runCfg->ptpConfig.domain );
 	}
 	else
 	{
-		MUX_WARN("nitialization: PTP is disabled");
+		MUX_WARN("Initialization: PTP is disabled");
 	}
 
 	return EXIT_SUCCESS;

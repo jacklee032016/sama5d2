@@ -97,8 +97,8 @@ class VideoSdp(SdpResource):
             self.sys.get("name", "NoName")
         )
         str += "m=video %d RTP/AVP %d\n"%(media.get("port", 36000), self.payloadType)
-        str += "c=IN IP4 %s/64\n"%(
-            media.get("ip", "0.0.0.0")
+        str += "c=IN IP4 %s/%d\n"%(
+            media.get("ip", "0.0.0.0"), media.get("TTL", 32)
             )    ## IP/TTL
         fps = media.get("fps", "60")
         if fps == "23.98":
@@ -177,7 +177,7 @@ class AudioSdp(SdpResource):
             media.get("port", 36010), 
             self.payloadType
         )
-        str += "c=IN IP4 %s/64\n"%(media.get("ip","0.0.0.0") )    ## IP/TTL
+        str += "c=IN IP4 %s/%d\n"%(media.get("ip","0.0.0.0"), media.get("TTL", 32) )    ## IP/TTL
         str += "a=rtpmap:%d L%d/%s/%d\n"%(
             self.payloadType, 
             media.get("depth", 24), 

@@ -258,6 +258,9 @@ static char _compareMediaCfg(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 	_checkNumU8FieldValue(&runCfg->runtime.aPktSize, rxCfg->runtime.aPktSize, ret);	
 
 
+	_checkNumU8FieldValue(&runCfg->runtime.ttlVideo, rxCfg->runtime.ttlVideo, ret);	
+	_checkNumU8FieldValue(&runCfg->runtime.ttlAudio, rxCfg->runtime.ttlAudio, ret);	
+
 	_checkNumU8FieldValue(&runCfg->runtime.rtpTypeVideo, rxCfg->runtime.rtpTypeVideo, ret);	
 	_checkNumU8FieldValue(&runCfg->runtime.rtpTypeAudio, rxCfg->runtime.rtpTypeAudio, ret);	
 	_checkNumU8FieldValue(&runCfg->runtime.rtpTypeAnc, rxCfg->runtime.rtpTypeAnc, ret);	
@@ -378,6 +381,9 @@ static char _compareProtocolConfig(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxC
 	_checkNumU16FieldValue(&runCfg->dest.aport, rxCfg->dest.aport, ret);	
 
 	_checkNumU16FieldValue(&runCfg->dest.dport, rxCfg->dest.dport, ret);	
+
+	_checkNumU8FieldValue(&runCfg->runtime.ttlVideo, rxCfg->runtime.ttlVideo, ret);	
+	_checkNumU8FieldValue(&runCfg->runtime.ttlAudio, rxCfg->runtime.ttlAudio, ret);	
 
 	_checkNumU8FieldValue(&runCfg->runtime.rtpTypeVideo, rxCfg->runtime.rtpTypeVideo, ret);	
 	_checkNumU8FieldValue(&runCfg->runtime.rtpTypeAudio, rxCfg->runtime.rtpTypeAudio, ret);	
@@ -611,6 +617,7 @@ void cmnMuxCfgDebugData(EXT_RUNTIME_CFG *cfg)
 	printf("\tANC IP:%s; port:%d; URI:%s"EXT_NEW_LINE, cmnSysNetAddress(cfg->sdpUriAnc.ip), cfg->sdpUriAnc.port, cfg->sdpUriAnc.uri);
 
 	printf("\tRTP Payload Video:%d; Audio:%d; Anc:%d"EXT_NEW_LINE, cfg->runtime.rtpTypeVideo, cfg->runtime.rtpTypeAudio, cfg->runtime.rtpTypeAnc);
+	printf("\tTTL Video:%d; Audio:%d"EXT_NEW_LINE, cfg->runtime.ttlVideo, cfg->runtime.ttlAudio);
 
 	/* RS232 */
 	printf("%s"EXT_NEW_LINE"\tbitrate:%d; parity:%s; databits:%d; stopbits:%d"EXT_NEW_LINE, 

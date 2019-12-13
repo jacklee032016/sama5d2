@@ -9,6 +9,9 @@
 
 #include "muxFpga.h"
 
+#if EXT_DEBUG_TIMESTAMP
+FILE *offsetFp = NULL;
+#endif
 
 static char _fpgaVersion[128];
 
@@ -285,8 +288,8 @@ int sysFpgaRegistersDebug( char *data, unsigned int size)
 	index += snprintf(data+index, size-index, "RTP Payload :\tVideo:%d; Audio:%d; ANC: %d"EXT_NEW_LINE, 
 		runCfg->runtime.rtpTypeVideo, runCfg->runtime.rtpTypeAudio, runCfg->runtime.rtpTypeAnc );
 #else
-	index += snprintf(data+index, size-index, "RTP Payload :\tVideo:%d; Audio:%d"EXT_NEW_LINE, 
-		runCfg->runtime.rtpTypeVideo, runCfg->runtime.rtpTypeAudio );
+	index += snprintf(data+index, size-index, "RTP Payload :\tVideo:%d; Audio:%d; \tTTL :\tVideo:%d; Audio:%d"EXT_NEW_LINE, 
+		runCfg->runtime.rtpTypeVideo, runCfg->runtime.rtpTypeAudio, runCfg->runtime.ttlVideo, runCfg->runtime.ttlAudio  );
 #endif
 
 	FPGA_I2C_READ(EXT_FPGA_REG_ENABLE, &_chVal, 1);
@@ -387,6 +390,19 @@ int	sysFpgaInit(EXT_RUNTIME_CFG *runCfg )
 
 		printf(buf);
 	}
+
+#if EXT_DEBUG_TIMESTAMP
+	offsetFp = fopen(EXT_PTP_OFFSET_FILE, "w");
+	if (!offsetFp )
+	{
+		MUX_ERROR("PTP offset debug file '%s' is not found", EXT_PTP_OFFSET_FILE);
+		return EXIT_FAILURE;
+	}
+	else
+	{
+		EXT_INFOF("offset file %s opened now", EXT_PTP_OFFSET_FILE);
+	}
+#endif
 
 	return EXIT_SUCCESS;
 }

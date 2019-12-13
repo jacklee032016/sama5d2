@@ -41,11 +41,10 @@ static char *_bin2str(Octet *data, int len)
 
 
 /* initialize data before every retrieve */
-static int _muxPtpClear(void *_muxPtp)
+static int _muxPtpClear(MuxPtpRuntime *muxPtp, unsigned char _domain)
 {
 	int ret = EXIT_SUCCESS;
 
-	MuxPtpRuntime *muxPtp = (MuxPtpRuntime *)_muxPtp;
 	EXT_ASSERT((muxPtp!=NULL), "MuxPtp is null");
 
 	memset(&muxPtp->clockId, 0, sizeof(MUX_PTP_ID));
@@ -67,7 +66,7 @@ static int _muxPtpClear(void *_muxPtp)
 	muxPtp->gmClockAccuracy = 0xFF;
 	muxPtp->gmOffsetScaledLogVariance = 0xFFFF;;
 	muxPtp->gmPriority2 = 0xFF;
-	muxPtp->domain = 0xFF;
+	muxPtp->domain = _domain;
 
 	muxPtp->errCode = PTPC_ERROR_UN_INITIALIZED;
 	snprintf(muxPtp->msg, sizeof(muxPtp->msg), "%s", "Begin to access data from server" );	
@@ -104,7 +103,7 @@ static int muxPmcDataError(void *_muxPtp, int errCode, const char* frmt,...)
 	MuxPtpRuntime *muxPtp = (MuxPtpRuntime *)_muxPtp;
 	EXT_ASSERT((muxPtp!=NULL), "MuxPtp is null");
 	
-	_muxPtpClear(_muxPtp);
+	_muxPtpClear(muxPtp, muxPtp->domain);
 	
 	muxPtp->errCode = errCode;
 	memset(buf, 0, sizeof(buf));
@@ -432,6 +431,7 @@ static void muxPmcParse(void *_muxPtp, struct ptp_message *msg)
 #endif
 
 			/* initial muxPtp */
+			muxPtp->offset = tsn->master_offset;
 			muxPtp->masterPresent = (tsn->gmPresent)?EXT_TRUE:EXT_FALSE;
 			memcpy(muxPtp->masterId.id, tsn->gmIdentity.id, 8);
 			break;
@@ -755,7 +755,9 @@ void *muxPtpInit(void *_muxPtp, unsigned char domain)
 
 //	config_destroy(cfg);
 	muxPtp->pmc = _pmc;
-	muxPtp->domain = domain;
+
+	/* it will clear everytime when retrieve the data */
+//	muxPtp->domain = domain;
 	MUX_INFO("PTP Client: if:%s, domain: %d", iface_name, domain );
 	muxPtp->errCode = PTPC_ERROR_OK;
 	return _pmc;
@@ -766,8 +768,49 @@ out:
 	return NULL;
 }
 
+/* poll status and offset to debug */
+int muxPtpPoll(void *_muxPtp, unsigned char domain)
+{
+	int ret = EXIT_SUCCESS;
 
-int muxPtpRetrieve(void *_muxPtp)
+	MuxPtpRuntime *muxPtp = (MuxPtpRuntime *)_muxPtp;
+	EXT_ASSERT((muxPtp!=NULL), "MuxPtp is null");
+	
+	if(muxPtp->pmc == NULL )
+	{
+		muxPtpInit(muxPtp, domain);
+		if(muxPtp->pmc == NULL )
+		{
+			MUX_ERROR("pmc is null");
+			ret = EXIT_FAILURE;
+		}
+		goto out;
+	}
+
+	_muxPtpClear(muxPtp, domain);
+
+	/* port ID, port status, status name */
+	if(muxPtpSearchOneCommand(muxPtp, "PORT_DATA_SET") == EXIT_FAILURE)
+	{
+		ret = EXIT_FAILURE;
+		goto out;
+	}
+
+	/* gmPresent and gmIdentity */
+	if(muxPtpSearchOneCommand(muxPtp, "TIME_STATUS_NP") == EXIT_FAILURE)
+	{
+		ret = EXIT_FAILURE;
+		goto out;
+	}
+
+	muxPtp->errCode = PTPC_ERROR_OK;
+	
+out:
+	return ret;
+}
+
+/* domain name can be changed at anytime */
+int muxPtpRetrieve(void *_muxPtp, unsigned char domain)
 {
 	int ret = EXIT_SUCCESS;
 
@@ -781,7 +824,7 @@ int muxPtpRetrieve(void *_muxPtp)
 		goto out;
 	}
 
-	_muxPtpClear(muxPtp);
+	_muxPtpClear(muxPtp, domain);
 
 	/* port ID, port status, status name */
 	if(muxPtpSearchOneCommand(muxPtp, "PORT_DATA_SET") == EXIT_FAILURE)
@@ -830,7 +873,7 @@ int muxPtpDebug(void *_muxPtp)
 	}
 
 
-	EXT_INFOF("PTP Clock ID:%s; port:%s, state:%s(%d)", muxPtpId2Str(&muxPtp->clockId),  muxPtpId2Str(&muxPtp->portId), muxPtp->portStateName, muxPtp->portState);
+	EXT_INFOF("PTP Clock ID:%s; port:%s, state:%s(%d); offset:%lld ns", muxPtpId2Str(&muxPtp->clockId),  muxPtpId2Str(&muxPtp->portId), muxPtp->portStateName, muxPtp->portState, muxPtp->offset);
 //	EXT_INFOF("Default DS:TwoStep:%d, SlaveOnly:%d, priority1:%d, ClockClass:%d, ClockAccuracy:0x%2x, offsetScaledLogVariance:0x%4x; Priority2:%d", 
 //		muxPtp->isTwoStep, muxPtp->isSlaveOnly, muxPtp->priority1, muxPtp->clockClass, muxPtp->clockAccuracy, muxPtp->offsetScaledLogVariance, muxPtp->priority2);
 
@@ -872,7 +915,7 @@ int muxPtpInitData(void *_muxPtp)
 
 	muxPtpDestory(muxPtp);
 	
-	_muxPtpClear(muxPtp);
+	_muxPtpClear(muxPtp, muxPtp->domain);
 
 
 	return ret;

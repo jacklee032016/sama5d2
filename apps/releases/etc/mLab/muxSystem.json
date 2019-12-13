@@ -38,7 +38,8 @@
 					"depth": 16,
 					"payloadType":96,
 					"intlce": 1,
-					"sessionID": ""
+					"sessionID": "",
+					"TTL": 32
 				}
 			],
 
@@ -53,7 +54,8 @@
 					"depth": 24,
 					"payloadType":97,
 					"pktSize": "1ms",
-					"sessionID": ""
+					"sessionID": "",
+					"TTL": 32
 				}
 			],
 				
@@ -107,6 +109,7 @@
 				"priority2":255,
 				"masterPresent": 0,
 				"masterID": "00-00-00-ff-fe-00-00-00",
+				"offset": 0,
 				"sourcePortId":"00-00-00-ff-fe-00-00-00",
 				"mPriority1": 255,
 				"mClockClass": 255,

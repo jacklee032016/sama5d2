@@ -331,6 +331,7 @@ typedef	enum _CMD_TYPE
 #define	FIELD_SDP_URI								"uri"
 
 #define	FIELD_SDP_PAYLOAD_TYPE					"payloadType"
+#define	FIELD_SDP_TTL								"TTL"
 
 /* RS232 fields */
 #define	FIELD_RS232_BAUDRATE						"baudrate"
@@ -359,6 +360,7 @@ typedef	enum _CMD_TYPE
 #define	FIELD_PTP_MASTER_PRESENT					"masterPresent"
 #define	FIELD_PTP_MASTER_ID						"masterID"
 #define	FIELD_PTP_SRC_PORT_ID						"sourcePortId"
+#define	FIELD_PTP_M_OFFSET						"offset"		/* offset from master */
 #define	FIELD_PTP_M_PRIORITY_1					"mPriority1"
 #define	FIELD_PTP_M_CLOCK_CLASS					"mClockClass"
 #define	FIELD_PTP_M_CLOCK_ACCURACY				"mClockAccuracy"

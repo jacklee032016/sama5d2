@@ -1,8 +1,10 @@
 
 #include <unistd.h>
+#include <stdint.h>
+#include <inttypes.h>	/* PRi64*/
+
 #include <linux/reboot.h>
 #include <sys/reboot.h>
-#include <stdint.h>
 
 #include "libCmnSys.h"
 #include "mux7xx.h"
@@ -617,6 +619,67 @@ int fpgaReadParamRegisters(MediaRegisterAddress *addrMedia, EXT_RUNTIME_CFG *run
 }
 
 
+#if EXT_DEBUG_TIMESTAMP
+extern	FILE *offsetFp;
+#endif
+
+int sysFpgaWritePtpTimestamp(EXT_RUNTIME_CFG *runCfg)
+{
+	struct timeval tv;
+	unsigned char		isPtpLocked = 0;
+		
+	MuxPtpRuntime *ptpRuntime = &runCfg->ptpRuntime;	
+
+	if(muxPtpPoll(ptpRuntime, runCfg->ptpConfig.domain) == EXIT_SUCCESS)
+	{
+		if(ptpRuntime->portState == 9) /* SLAVE state*/
+		{
+			isPtpLocked = 1;
+		}
+	}
+	
+//	FpgaConfig 	*fpga =  (FpgaConfig 	*)data;
+
+//	EXT_ASSERT((fpga != NULL), "FPAG failed: %p", data);
+
+	gettimeofday(&tv,NULL);
+	uint64_t _ts = (uint64_t)tv.tv_sec * 1000000 + tv.tv_usec;
+	uint64_t _readTs;
+
+	FPGA_I2C_READ(F_REG_TX_GRAND_MASTER_TIMESTAMP, &_readTs, 8);
+	CMN_SYS_LED_SIGNAL_ON();
+	I2C_EXT_WRITE(0, EXT_I2C_PCA9554_CS_NONE, EXT_FPAG_ADDRESS_PTP, F_REG_TX_GRAND_MASTER_TIMESTAMP, 1, &_ts, 8);
+
+	I2C_EXT_WRITE(0, EXT_I2C_PCA9554_CS_NONE, EXT_FPAG_ADDRESS_PTP, F_REG_TX_PTP_LOCKED, 1, &isPtpLocked, 1);
+	CMN_SYS_LED_SIGNAL_OFF();
+
+#if EXT_DEBUG_TIMESTAMP
+	if(isPtpLocked )
+	{
+		char timestampStr[32];
+		struct tm *ptm;
+
+		ptm = localtime(&tv.tv_sec);
+//		strftime(timestampStr, sizeof(timestampStr), "%Y-%m-%d %H:%M:%S", ptm);
+		strftime(timestampStr, sizeof(timestampStr), "%H:%M:%S", ptm);
+		
+		EXT_INFOF("%s: %" PRId64, timestampStr, ptpRuntime->offset );
+		if(offsetFp)
+		{
+			fprintf(offsetFp, "%s: %" PRId64"\n", timestampStr, ptpRuntime->offset);
+			fflush(offsetFp);
+		}
+		else
+		{
+			EXT_ERRORF("offset file is not opened");
+		}
+	}
+#endif		
+
+	return EXIT_SUCCESS;
+}
+
+
 int sysFpgaTxPollUpdateParams(void *data)
 {
 #define	NEW_PARAM_AVAILABLE(chValue)		(chValue==0x01)
@@ -656,29 +719,6 @@ int sysFpgaTxPollUpdateParams(void *data)
 
 		SYS_UPDATE_SESSION_ID();
 	}
-
-	return EXIT_SUCCESS;
-}
-
-
-int sysFpgaWritePtpTimestamp(void 	*data)
-{
-	struct timeval tv;
-	
-	FpgaConfig 	*fpga =  (FpgaConfig 	*)data;
-
-	EXT_ASSERT((fpga != NULL), "FPAG failed: %p", data);
-
-	gettimeofday(&tv,NULL);
-	uint64_t _ts = (uint64_t)tv.tv_sec * 1000000 + tv.tv_usec;
-	uint64_t _readTs;
-
-	FPGA_I2C_READ(F_REG_TX_GRAND_MASTER_TIMESTAMP, &_readTs, 8);
-	CMN_SYS_LED_SIGNAL_ON();
-	I2C_EXT_WRITE(0, EXT_I2C_PCA9554_CS_NONE, EXT_FPAG_ADDRESS_PTP, F_REG_TX_GRAND_MASTER_TIMESTAMP, 1, &_ts, 8);
-	CMN_SYS_LED_SIGNAL_OFF();
-
-	EXT_INFOF("Grand Master Timestamp: \tRead: %llu; Write:%llu", _readTs, _ts );
 
 	return EXIT_SUCCESS;
 }

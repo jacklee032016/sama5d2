@@ -1069,8 +1069,12 @@ typedef	struct
 	unsigned char			aSession[SESSION_ID_MAX_SIZE];
 
 	unsigned char			rtpTypeVideo;
-	unsigned char			rtpTypeAudio;
+	unsigned char			rtpTypeAudio;	
 	unsigned char			rtpTypeAnc;
+
+	unsigned char			ttlVideo;
+	unsigned char			ttlAudio;
+
 
 	unsigned char			vpid;		/* VPID_CODE */
 
@@ -1531,6 +1535,8 @@ const MediaParam *extCmnVideoParamFind(EXT_RUNTIME_CFG *runCfg);
 char extCmnVideoParamPopulate(EXT_RUNTIME_CFG *runCfg, uint8_t index);
 
 
+#define	SDP_P_MEDIA_TTL_VIDEO						32
+#define	SDP_P_MEDIA_TTL_AUDIO						32
 #define	SDP_P_MEDIA_FORMAT_VIDEO				96
 #define	SDP_P_MEDIA_FORMAT_AUDIO				97
 #define	SDP_P_MEDIA_FORMAT_ANC					100

@@ -230,10 +230,15 @@ void cmnSysCfgFromFactory( EXT_RUNTIME_CFG *cfg )
 	cfg->runtime.vDepth = EXT_V_DEPTH_10;
 	cfg->runtime.vIsInterlaced = EXT_VIDEO_INTLC_INTERLACED;
 
+	cfg->runtime.ttlVideo = SDP_P_MEDIA_TTL_VIDEO;
+	cfg->runtime.ttlAudio = SDP_P_MEDIA_TTL_AUDIO;
+	
 	cfg->runtime.rtpTypeVideo = SDP_P_MEDIA_FORMAT_VIDEO;
 	cfg->runtime.rtpTypeAudio = SDP_P_MEDIA_FORMAT_AUDIO;
 	cfg->runtime.rtpTypeAnc = SDP_P_MEDIA_FORMAT_ANC;
 	cfg->runtime.vpid = SDP_P_MEDIA_VP_ID;
+
+	cfg->runtime.rtpTypeVideo = SDP_P_MEDIA_FORMAT_VIDEO;
 	
 //	memcpy(&cfg->videoMacLocal, &cfg->macAddress, EXT_MAC_ADDRESS_LENGTH);
 //	cfg->videoIpLocal = cfg->ipAddress;
@@ -378,6 +383,8 @@ void extSysClearConfig(EXT_RUNTIME_CFG *rxCfg)
 	FIELD_INVALIDATE_U8(rxCfg->runtime.reboot);
 	FIELD_INVALIDATE_U8(rxCfg->runtime.blink);
 
+	FIELD_INVALIDATE_U8(rxCfg->runtime.ttlVideo);
+	FIELD_INVALIDATE_U8(rxCfg->runtime.ttlAudio);
 
 	FIELD_INVALIDATE_U8(rxCfg->runtime.rtpTypeVideo);
 	FIELD_INVALIDATE_U8(rxCfg->runtime.rtpTypeAudio);

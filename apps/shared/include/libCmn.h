@@ -232,6 +232,9 @@ typedef	enum _MUX_MEDIA_TYPE
 #define	EXT_CONFIG_FILE_PTPD				RUN_HOME_DIR"/etc/mLab/muxPtpd.cfg"
 #endif
 
+#define	EXT_PTP_OFFSET_FILE				RUN_HOME_DIR"/var/run/ptpOffset.dat"
+
+
 #define	PTP_EXE								"muxPtpd"
 
 #define ADD_ELEMENT(header, element)	\

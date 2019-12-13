@@ -41,6 +41,8 @@ void cmnMuxClearConfig(EXT_RUNTIME_CFG *rxCfg)
 	FIELD_INVALIDATE_U8(rxCfg->runtime.reboot);
 	FIELD_INVALIDATE_U8(rxCfg->runtime.blink);
 
+	FIELD_INVALIDATE_U8(rxCfg->runtime.ttlVideo);
+	FIELD_INVALIDATE_U8(rxCfg->runtime.ttlAudio);
 
 	FIELD_INVALIDATE_U8(rxCfg->runtime.rtpTypeVideo);
 	FIELD_INVALIDATE_U8(rxCfg->runtime.rtpTypeAudio);
@@ -352,6 +354,12 @@ int	cmnMuxObjectParseVideo(struct DATA_CONN *dataConn, cJSON *dataObj)
 		isFound = EXT_TRUE;
 	}
 
+	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_SDP_TTL);
+	if( FIELD_IS_CHANGED_U32(intValue) )
+	{
+		rxCfg->runtime.ttlVideo = (unsigned char)intValue;
+		isFound = EXT_TRUE;
+	}
 
 	if(isFound == EXT_FALSE )
 	{
@@ -449,6 +457,13 @@ int	cmnMuxObjectParseAudio(struct DATA_CONN *dataConn, cJSON *dataObj)
 	if( FIELD_IS_CHANGED_U32(intValue) )
 	{
 		rxCfg->runtime.rtpTypeAudio = (unsigned char)intValue;
+		isFound = EXT_TRUE;
+	}
+
+	intValue = cmnGetIntegerFromJsonObject(dataObj, FIELD_SDP_TTL);
+	if( FIELD_IS_CHANGED_U32(intValue) )
+	{
+		rxCfg->runtime.ttlAudio = (unsigned char)intValue;
 		isFound = EXT_TRUE;
 	}
 

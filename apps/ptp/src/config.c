@@ -324,7 +324,8 @@ struct config_item config_tab[] = {
 	/*
 	* normally master from client is configured as 0, eg, not update for wall clock. JL, 12.04, 2019
 	*/
-#if 0
+#if 1
+	/* Radio Canada PTP server configuration */
 	GLOB_ITEM_INT("utc_offset", CURRENT_UTC_OFFSET, 0, INT_MAX),
 #else	
 	GLOB_ITEM_INT("utc_offset", 0, 0, INT_MAX),
