@@ -568,19 +568,25 @@ const	TYPE_NAME_T	_videoColorSpaces[] =
 const	TYPE_NAME_T	_videoFramerates[] =
 {
 	{
-		type	: EXT_V_FRAMERATE_T_23,
-		name	: "24000/1001",
+		type	: EXT_V_FRAMERATE_T_24,
+		name	: "24",
 		value : NULL,
 	},
 	{
-		type	: EXT_V_FRAMERATE_T_24,
-		name	: "24",
+		type	: EXT_V_FRAMERATE_T_23,
+		name	: "24000/1001",
 		value : NULL,
 	},
 
 	{
 		type	: EXT_V_FRAMERATE_T_25,
 		name	: "25",
+		value : NULL,
+	},
+	
+	{
+		type	: EXT_V_FRAMERATE_T_30,
+		name	: "30",
 		value : NULL,
 	},
 	{
@@ -590,26 +596,20 @@ const	TYPE_NAME_T	_videoFramerates[] =
 	},
 
 	{
-		type	: EXT_V_FRAMERATE_T_30,
-		name	: "30",
-		value : NULL,
-	},
-	
-	{
 		type	: EXT_V_FRAMERATE_T_50,
 		name	: "50",
 		value : NULL,
 	},
 	
-	{
-		type	: EXT_V_FRAMERATE_T_59,
-		name	: "60000/1001",
-		value : NULL,
-	},
-	
+	/* 60 and 60000/1001, so 60 must be first */
 	{
 		type	: EXT_V_FRAMERATE_T_60,
 		name	: "60",
+		value : NULL,
+	},
+	{
+		type	: EXT_V_FRAMERATE_T_59,
+		name	: "60000/1001",
 		value : NULL,
 	},
 	
@@ -915,6 +915,11 @@ int	cmnMuxTypeFindType(const TYPE_NAME_T *types, char *name)
 char *cmnMuxTypeFindName(const TYPE_NAME_T *types, int type)
 {
 	const TYPE_NAME_T *tmp = types;
+
+	if(type == INVALIDATE_VALUE_U8 || type == INVALIDATE_VALUE_U16 || type== INVALIDATE_VALUE_U32)
+	{
+		return "";
+	}
 
 	while(tmp->type != -1 && tmp->name != NULL ) 
 	{

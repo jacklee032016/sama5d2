@@ -53,14 +53,16 @@ static int	_sdpEventHandler(struct _CmnThread *th, void *_event)
 	/* update with new URL */
 //	memcpy(&sdpClient->url, sdpEvent->data, sizeof(HttpClientReq) );
 
-TRACE();
 	sdpClientFsmHandle(sdpClient, sdpEvent);
 	cmn_mutex_unlock(sdpClient->lock);
 
-//	if(sdpEvent->data)
-	{/*HttpClientReq */
-//		cmn_free(sdpEvent->data);
+#if 0
+	has been freed in _sdpcEventNewReq()
+	if(sdpEvent->event == SDPC_EVENT_NEW && sdpEvent->data)
+	{/*free HttpClientReq only when new request  */
+		cmn_free(sdpEvent->data);
 	}
+#endif
 	
 	cmn_free(sdpEvent);
 
@@ -240,6 +242,11 @@ int cmnMuxSdpTimerCallback(int interval, void *param)
 	struct SDP_CLIENT_CTX *sdpCtx = (struct SDP_CLIENT_CTX *)param;
 	EXT_ASSERT((sdpCtx != NULL), "Params fault in SDP timer callback");
 	EXT_ASSERT((sdpCtx->muxMain != NULL), "Params fault in SDP timer callback");
+
+	if(sdpCtx->muxMain->runCfg.fpgaAuto != FPGA_CFG_SDP )
+	{
+		return EXIT_SUCCESS;
+	}
 
 	_cmnMuxSdpAddRequest(&sdpCtx->muxMain->runCfg.sdpUriVideo, sdpCtx);
 	_cmnMuxSdpAddRequest(&sdpCtx->muxMain->runCfg.sdpUriAudio, sdpCtx);

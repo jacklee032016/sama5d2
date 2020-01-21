@@ -14,6 +14,8 @@ SRC += \
 		testMain.c \
 		evtest.c \
 		testClkAdj.c \
+		testTimers.c \
+		
 
 
 
@@ -32,7 +34,7 @@ LOCAL_ALL:=$(TESTS)
 include $(ROOT_DIR)/Makefile.post
 
 
-testMux:$(OBJ_DIR)/testMip.o $(OBJ_DIR)/testMain.o $(OBJ_DIR)/testSecure.o 
+testMux:$(OBJ_DIR)/testMip.o $(OBJ_DIR)/testMain.o $(OBJ_DIR)/testSecure.o $(OBJ_DIR)/testTimers.o 
 		$(CC) -o $@ $^ -lCmnSys $(LDFLAGS)
 		$(STRIP) $@
 		$(MOVE) $@ $(BIN_DIR)/usr/bin

@@ -51,7 +51,6 @@ static char _compareSystemCfg(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 	{
 		runCfg->local.ip = rxCfg->local.ip;
 
-		cmnSysEthernetConfig(runCfg );/* 09.23, 2019 */
 		ret = EXT_TRUE;
 	}
 	
@@ -97,7 +96,7 @@ static char _compareSystemCfg(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 			EXT_CFG_SET_DHCP(runCfg, (rxCfg->netMode) );
 			MUX_DEBUG("DHCP set as: %s", (rxCfg->netMode)? "YES":"NO");
 
-			cmnSysEthernetConfig(runCfg );
+//			cmnSysEthernetConfig(runCfg );
 
 			ret = EXT_TRUE;
 		}
@@ -119,13 +118,18 @@ static char _compareSystemCfg(EXT_RUNTIME_CFG *runCfg, EXT_RUNTIME_CFG *rxCfg)
 
 #if 1
 			/* only MAC is modified */
-			cmnSysEthernetConfig(runCfg);
+//			cmnSysEthernetConfig(runCfg);
 #else
 			/* save MAC address into u-boot env partition */
 			cmnSysSaveMac2Uboot(runCfg);
 #endif			
 			ret = EXT_TRUE;
 		}
+	}
+
+	if(ret == EXT_TRUE)
+	{
+		cmnSysEthernetConfig(runCfg );/* 01.14, 2020, changed */
 	}
 
 	if(strlen(rxCfg->name) )
@@ -596,28 +600,31 @@ void cmnMuxCfgDebugData(EXT_RUNTIME_CFG *cfg)
 			cfg->local.mac.address[3], cfg->local.mac.address[4], cfg->local.mac.address[5]);
 	printf("\tgateway:%s; isDhcp:%d; isDipOn:%d; reboot:%d; reset:%d; blink:%d"EXT_NEW_LINE, 
 		cmnSysNetAddress(cfg->ipGateway), cfg->netMode, cfg->isDipOn, cfg->runtime.reboot, cfg->runtime.reset, cfg->runtime.blink );
-	
-	printf("%s"EXT_NEW_LINE"\tIP:%s; port:%d; sdp:%s"EXT_NEW_LINE, MUX_REST_URI_VIDEO, cmnSysNetAddress(cfg->dest.ip), cfg->dest.vport, cfg->sdpUriVideo.uri );
+
+/* video */	
+	printf("%s"EXT_NEW_LINE"\tIP:%s; port:%d; TTL:%d; Payload:%d; sdp:%s"EXT_NEW_LINE, MUX_REST_URI_VIDEO, 
+		cmnSysNetAddress(cfg->dest.ip), cfg->dest.vport, cfg->runtime.ttlVideo, cfg->runtime.rtpTypeVideo, cfg->sdpUriVideo.uri );
 	printf("\twidth:%d; height:%d; fps:%d; colorspce:%d; depth=%d, interlaced:%d"EXT_NEW_LINE, 
 		cfg->runtime.vWidth, cfg->runtime.vHeight, cfg->runtime.vFrameRate, cfg->runtime.vColorSpace, cfg->runtime.vDepth, cfg->runtime.vIsInterlaced);
 	
-	printf("%s"EXT_NEW_LINE"\tIP:%s; port:%d; sdp:%s"EXT_NEW_LINE, 
-		MUX_REST_URI_AUDIO, cmnSysNetAddress(cfg->dest.audioIp), cfg->dest.aport, cfg->sdpUriAudio.uri );
+	printf("%s"EXT_NEW_LINE"\tIP:%s; port:%d; TTL:%d; Payload:%d; sdp:%s"EXT_NEW_LINE, MUX_REST_URI_AUDIO, 
+		cmnSysNetAddress(cfg->dest.audioIp), cfg->dest.aport, cfg->runtime.ttlAudio, cfg->runtime.rtpTypeAudio, cfg->sdpUriAudio.uri );
 	printf("\tChans:%d; pktSize:%d; sampleRate:%d; depth:%d"EXT_NEW_LINE, cfg->runtime.aChannels, cfg->runtime.aPktSize, cfg->runtime.aSampleRate, cfg->runtime.aDepth );
 
+#if WITH_ANCILLIARY_STREAM
 	printf("%s"EXT_NEW_LINE"\tIP:%s; port:%d; sdp:%s"EXT_NEW_LINE, 
 		MUX_REST_URI_ANC, cmnSysNetAddress(cfg->dest.ancIp), cfg->dest.dport, cfg->sdpUriAnc.uri );
 
 	printf("\%s:%s; "EXT_NEW_LINE, FIELD_SYS_CFG_MEDIA_AUTO, CMN_FIND_MEDIA_MODE(cfg->fpgaAuto) );
 //	printf("Audio:Chans:%d; depth:%d; pktSize:%d; sampleRate:%d", cfg->runtime.aChannels, cfg->runtime.aDepth, cfg->runtime.aPktSize, cfg->runtime.aSampleRate));
+#endif
 
 	printf("%s"EXT_NEW_LINE"\tVideo IP:%s; port:%d; URI:%s"EXT_NEW_LINE,
 		MUX_REST_URI_SDP, cmnSysNetAddress(cfg->sdpUriVideo.ip), cfg->sdpUriVideo.port, cfg->sdpUriVideo.uri);
 	printf("\tAudio IP:%s; port:%d; URI:%s"EXT_NEW_LINE, cmnSysNetAddress(cfg->sdpUriAudio.ip), cfg->sdpUriAudio.port, cfg->sdpUriAudio.uri);
+#if WITH_ANCILLIARY_STREAM
 	printf("\tANC IP:%s; port:%d; URI:%s"EXT_NEW_LINE, cmnSysNetAddress(cfg->sdpUriAnc.ip), cfg->sdpUriAnc.port, cfg->sdpUriAnc.uri);
-
-	printf("\tRTP Payload Video:%d; Audio:%d; Anc:%d"EXT_NEW_LINE, cfg->runtime.rtpTypeVideo, cfg->runtime.rtpTypeAudio, cfg->runtime.rtpTypeAnc);
-	printf("\tTTL Video:%d; Audio:%d"EXT_NEW_LINE, cfg->runtime.ttlVideo, cfg->runtime.ttlAudio);
+#endif
 
 	/* RS232 */
 	printf("%s"EXT_NEW_LINE"\tbitrate:%d; parity:%s; databits:%d; stopbits:%d"EXT_NEW_LINE, 

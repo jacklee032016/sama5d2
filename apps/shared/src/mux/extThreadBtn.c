@@ -198,6 +198,7 @@ static int _muxThLedInit(CmnThread *th, void *data)
 	MuxMain *muxMain = (MuxMain *)data;
 	struct LedCtrl *led = &_leds;
 
+	led->data = muxMain;
 	th->data = led;
 
 	led->timeout = BTN_TIMER_TIMEOUT;
@@ -265,23 +266,50 @@ static int _muxThLedMain(CmnThread *th)
 #define	CHANGE_ORDER_LEDS		1
 
 	struct LedCtrl *led = (struct LedCtrl *)th->data;
-//	MuxMain *muxMain = (MuxMain *)btn->data;
+	MuxMain *muxMain = (MuxMain *)led->data;
+	
+	EXT_RUNTIME_CFG		*runCfg = &muxMain->runCfg;
+
 	int status = EXT_FALSE;
 
 	status = sysFpgaReadVideoStatus();
 	led->videoStatus = status;
+#if 0	
 #if CHANGE_ORDER_LEDS
 	CMN_SYS_LED_ACT_CTRL((led->actStatus==EXT_TRUE)?LED_MODE_ON: LED_MODE_OFF);
 #else
 	CMN_SYS_LED_VIDEO_CTRL((led->videoStatus==EXT_TRUE)?LED_MODE_ON: LED_MODE_OFF);
 #endif
+#else
+	if(EXT_IS_TX(runCfg) )
+	{
+		CMN_SYS_LED_ACT_CTRL((led->actStatus==EXT_TRUE)?LED_MODE_ON: LED_MODE_OFF);
+	}
+	else
+	{
+		CMN_SYS_LED_VIDEO_CTRL((led->videoStatus==EXT_TRUE)?LED_MODE_ON: LED_MODE_OFF);
+	}	
+#endif
+
 
 	status = sysFpgaReadSfpStatus();
 	led->actStatus = status;
+
+#if 0	
 #if CHANGE_ORDER_LEDS
 	CMN_SYS_LED_VIDEO_CTRL((led->videoStatus==EXT_TRUE)?LED_MODE_ON: LED_MODE_OFF);
 #else
 	CMN_SYS_LED_ACT_CTRL((led->actStatus==EXT_TRUE)?LED_MODE_ON: LED_MODE_OFF);
+#endif
+#else
+	if(EXT_IS_TX(runCfg))
+	{
+		CMN_SYS_LED_VIDEO_CTRL((led->videoStatus==EXT_TRUE)?LED_MODE_ON: LED_MODE_OFF);
+	}
+	else
+	{
+		CMN_SYS_LED_ACT_CTRL((led->actStatus==EXT_TRUE)?LED_MODE_ON: LED_MODE_OFF);
+	}
 #endif
 
 	while(1)
@@ -292,10 +320,21 @@ static int _muxThLedMain(CmnThread *th)
 //		if( led->videoStatus != status )
 		{
 			led->videoStatus = status;
+#if 0
 #if CHANGE_ORDER_LEDS
 			CMN_SYS_LED_ACT_CTRL((led->videoStatus==EXT_TRUE)?LED_MODE_ON: LED_MODE_OFF);
 #else
 			CMN_SYS_LED_VIDEO_CTRL((led->videoStatus==EXT_TRUE)?LED_MODE_ON: LED_MODE_OFF);
+#endif
+#else
+			if(EXT_IS_TX(runCfg))
+			{
+				CMN_SYS_LED_ACT_CTRL((led->videoStatus==EXT_TRUE)?LED_MODE_ON: LED_MODE_OFF);
+			}
+			else
+			{
+				CMN_SYS_LED_VIDEO_CTRL((led->videoStatus==EXT_TRUE)?LED_MODE_ON: LED_MODE_OFF);
+			}
 #endif
 		}
 
@@ -303,11 +342,23 @@ static int _muxThLedMain(CmnThread *th)
 //		if( led->actStatus != status )
 		{
 			led->actStatus = status;
+#if 0
 #if CHANGE_ORDER_LEDS
 			CMN_SYS_LED_VIDEO_CTRL((led->actStatus==EXT_TRUE)?LED_MODE_ON: LED_MODE_OFF);
 #else
 			CMN_SYS_LED_ACT_CTRL((led->actStatus==EXT_TRUE)?LED_MODE_ON: LED_MODE_OFF);
 #endif
+#else
+			if(EXT_IS_TX(runCfg))
+			{
+				CMN_SYS_LED_VIDEO_CTRL((led->actStatus==EXT_TRUE)?LED_MODE_ON: LED_MODE_OFF);
+			}
+			else
+			{
+				CMN_SYS_LED_ACT_CTRL((led->actStatus==EXT_TRUE)?LED_MODE_ON: LED_MODE_OFF);
+			}
+#endif
+
 		}
 	}
 
@@ -333,10 +384,17 @@ static int _muxThPollInit(CmnThread *th, void *data)
 {
 	MuxMain *muxMain = (MuxMain *)data;
 
-	if(muxMain->mediaPollTime < 0)
-	{
-		MUX_ERROR("Poll Timeout parameter is wrong, check your configuration: %d seconds", muxMain->mediaPollTime);
-		return EXIT_FAILURE;
+	if(EXT_IS_TX(&muxMain->runCfg) )
+	{/* TX: poll fpga params */
+		if(muxMain->mediaPollTime < 0)
+		{
+			MUX_ERROR("Poll Timeout parameter is wrong, check your configuration: %d seconds", muxMain->mediaPollTime);
+			return EXIT_FAILURE;
+		}
+	}
+	else
+	{/* RX: VCXO control*/
+		
 	}
 
 	if(!muxMain->runCfg.fpgaCfg )
@@ -344,6 +402,13 @@ static int _muxThPollInit(CmnThread *th, void *data)
 		MUX_ERROR("FPGA is not initialized now");
 		return EXIT_FAILURE;
 	}
+	
+	if(sysFpgaPollThreadInit(muxMain->runCfg.fpgaCfg) == EXIT_FAILURE)
+	{
+		MUX_ERROR("Initialize FPGA thread failed");
+		return EXIT_FAILURE;
+	}
+
 
 	th->data = data;
 
@@ -360,9 +425,16 @@ static int _muxThPollMain(CmnThread *th)
 
 	while(1)
 	{
-		cmn_delay(muxMain->mediaPollTime*UNIT_K_HZ );
-
-		sysFpgaTxPollUpdateParams(muxMain->runCfg.fpgaCfg);
+		if(EXT_IS_TX(&muxMain->runCfg) )
+		{/* TX: poll fpga params */
+			cmn_delay(muxMain->mediaPollTime*UNIT_K_HZ );
+			sysFpgaTxPollUpdateParams(muxMain->runCfg.fpgaCfg);
+		}
+		else
+		{/* RX: VCXO control */
+			cmn_delay(100);
+			sysFpgaReadClockParams(muxMain->runCfg.fpgaCfg);
+		}
 	}
 
 	return EXIT_SUCCESS;

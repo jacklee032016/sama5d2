@@ -216,7 +216,7 @@ void cmnSysCfgFromFactory( EXT_RUNTIME_CFG *cfg )
 	cfg->ipSvr811 = CFG_MAKE_IP_ADDRESS( ETHERNET_CONF_IPADDR0, ETHERNET_CONF_IPADDR1, CONF_SVR811_IPADDR2, CONF_SVR811_IPADDR3 );
 	cfg->portSvr811 = CONF_SVR811_PORT;
 	
-	cfg->fpgaAuto = FPGA_CFG_AUTO;
+	cfg->fpgaAuto = FPGA_CFG_SDP;
 	
 	cfg->runtime.aChannels = 12;
 	cfg->runtime.aSampleRate= EXT_A_RATE_48K;

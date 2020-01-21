@@ -23,6 +23,8 @@
 
 #define	TEST_CMD_TIMESTAMP			"ts"
 
+#define	TEST_CMD_TIMERS				"timers"
+
 
 int testIgmp(void);
 int testDipSwitch(void);
@@ -36,6 +38,8 @@ int testSC(void );
 int testI2c(void);
 int testRs232(void);
 
+int testTimers(void);
+
 
 int	cmnSysSpiTest(void);;
 
@@ -44,7 +48,8 @@ static void _usage(char* base)
 	printf("%s: \n\tTest command line utility.\n"\
 		"\t%s -c command "
 		"\t\t Current command:  " \
-		"\n\t\t\t"TEST_CMD_IGMP", "TEST_CMD_DIP_SWITCH", "TEST_CMD_LEDS", "TEST_CMD_SW1", "TEST_CMD_SECURE_CHIP", "TEST_CMD_I2C ", "TEST_CMD_SPI ", "TEST_CMD_CLOCK ", "TEST_CMD_TIMESTAMP" \n", 
+		"\n\t\t\t"TEST_CMD_IGMP", "TEST_CMD_DIP_SWITCH", "TEST_CMD_LEDS", "TEST_CMD_SW1", "TEST_CMD_SECURE_CHIP
+		", "TEST_CMD_I2C ", "TEST_CMD_SPI ", "TEST_CMD_CLOCK ", "TEST_CMD_TIMESTAMP ", "TEST_CMD_TIMERS" \n", 
 		  base, base);
 
 	exit(-1);
@@ -162,8 +167,11 @@ int main(int argc, char *argv[])
 	}
 	else if(IS_STRING_EQUAL(cmd, TEST_CMD_TIMESTAMP))
 	{	
-TRACE();
 		testTimestamp2();
+	}
+	else if(IS_STRING_EQUAL(cmd, TEST_CMD_TIMERS))
+	{	
+		testTimers();
 	}
 	else
 	{

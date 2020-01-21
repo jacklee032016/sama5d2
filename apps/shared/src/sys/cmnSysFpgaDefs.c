@@ -168,7 +168,7 @@ static StreamRegisterAddress _txStreamAudio =
 	
 };
 
-
+#if WITH_ANCILLIARY_STREAM
 static StreamRegisterAddress _txStreamAnc =
 {
 	.ip = 
@@ -214,6 +214,7 @@ static StreamRegisterAddress _txStreamAnc =
 	}
 
 };
+#endif
 
 #if EXT_FPGA_AUX_ON	
 static StreamRegisterAddress _txStreamAux =
@@ -442,6 +443,54 @@ static TxRegisterMap _TX_ADDRESS =
 #endif
 	},
 
+
+	/* clock frequency */
+	.xActive = 
+	{
+		.device = &_fpgaDevTxSystem,
+		.offset = F_REG_TX_SYS_X_ACTIVE,
+#if FPGA_DEBUG
+		.name = "txXActive",
+#endif
+	},
+	.yActive = 
+	{
+		.device = &_fpgaDevTxSystem,
+		.offset = F_REG_TX_SYS_Y_ACTIVE,
+#if FPGA_DEBUG
+		.name = "txYActive",
+#endif
+	},
+
+
+	.xTiming = 
+	{
+		.device = &_fpgaDevTxSystem,
+		.offset = F_REG_TX_SYS_X_PULSE_FRONT,
+#if FPGA_DEBUG
+		.name = "txXPulseFront",
+#endif
+	},
+
+	.yTiming = 
+	{
+		.device = &_fpgaDevTxSystem,
+		.offset = F_REG_TX_SYS_y_PULSE_FRONT,
+#if FPGA_DEBUG
+		.name = "txYPulseFront",
+#endif
+	},
+
+	.pixelCount = 
+	{
+		.device = &_fpgaDevTxSystem,
+		.offset = F_REG_TX_SYS_PIXEL_COUNT,
+#if FPGA_DEBUG
+		.name = "txPixelCount",
+#endif
+	},
+
+
 	.irCtrl = 
 	{
 		.device = &_fpgaDevTxSystem,
@@ -475,6 +524,25 @@ static TxRegisterMap _TX_ADDRESS =
 		.offset = F_REG_TX_SYS_GBE_TX_COUNT,
 #if FPGA_DEBUG
 		.name = "txGbeTxCount",
+#endif
+	},
+
+
+	.sfpCtrl = 
+	{
+		.device = &_fpgaDevTxSystem,
+		.offset = F_REG_TX_SYS_VIDEO_CTRL,
+#if FPGA_DEBUG
+		.name = "txSfpControl",
+#endif
+	},
+	
+	.videoSfpStatus = 
+	{
+		.device = &_fpgaDevTxSystem,
+		.offset = F_REG_TX_SYS_VIDEO_STATUS,
+#if FPGA_DEBUG
+		.name = "txVideoSfpStatus",
 #endif
 	},
 	
@@ -538,7 +606,9 @@ static TxRegisterMap _TX_ADDRESS =
 	/* dest address and port for every stream */
 	.streamVideo = &_txStreamVideo,
 	.streamAudio = &_txStreamAudio,
+#if WITH_ANCILLIARY_STREAM
 	.streamAnc = &_txStreamAnc,
+#endif
 #if EXT_FPGA_AUX_ON	
 	.streamAux = &_txStreamAux,
 #endif
@@ -644,7 +714,7 @@ static StreamRegisterAddress _rxStreamAudio =
 	
 };
 
-
+#if WITH_ANCILLIARY_STREAM
 static StreamRegisterAddress _rxStreamAnc =
 {
 	.ip = 
@@ -690,6 +760,7 @@ static StreamRegisterAddress _rxStreamAnc =
 	}
 	
 };
+#endif
 
 
 #if EXT_FPGA_AUX_ON	
@@ -802,7 +873,7 @@ static MediaRegisterAddress _rxMediaAddress =
 	.channels = 
 	{
 		.device = &_fpgaDevRxSystem,
-		.offset = F_REG_RX_SYS_AUDIO_INPUT,
+		.offset = F_REG_RX_SYS_A_CHANNELS,
 #if FPGA_DEBUG
 		.name = "rxMediaChannel",
 #endif
@@ -811,7 +882,7 @@ static MediaRegisterAddress _rxMediaAddress =
 	.audioRate = 
 	{
 		.device = &_fpgaDevRxSystem,
-		.offset = F_REG_RX_SYS_AUDIO_MASK,
+		.offset = F_REG_RX_SYS_A_RATE,
 #if FPGA_DEBUG
 		.name = "rxMediaAudioRate",
 #endif
@@ -820,7 +891,7 @@ static MediaRegisterAddress _rxMediaAddress =
 	.pktSize = 
 	{
 		.device = &_fpgaDevRxSystem,
-		.offset = F_REG_RX_SYS_AUDIO_SELECT,
+		.offset = F_REG_RX_SYS_A_PACKET_SIZE,
 #if FPGA_DEBUG
 		.name = "rxMediaPktSize",
 #endif
@@ -922,6 +993,52 @@ static RxRegisterMap _RX_ADDRESS =
 	},
 
 
+	/* clock frequency */
+	.xActive = 
+	{
+		.device = &_fpgaDevRxSystem,
+		.offset = F_REG_RX_SYS_X_ACTIVE,
+#if FPGA_DEBUG
+		.name = "rxXActive",
+#endif
+	},
+	.yActive = 
+	{
+		.device = &_fpgaDevRxSystem,
+		.offset = F_REG_RX_SYS_Y_ACTIVE,
+#if FPGA_DEBUG
+		.name = "rxYActive",
+#endif
+	},
+
+	.xTiming = 
+	{
+		.device = &_fpgaDevRxSystem,
+		.offset = F_REG_RX_SYS_X_PULSE_FRONT,
+#if FPGA_DEBUG
+		.name = "rxXPulseFront",
+#endif
+	},
+
+	.yTiming = 
+	{
+		.device = &_fpgaDevRxSystem,
+		.offset = F_REG_RX_SYS_y_PULSE_FRONT,
+#if FPGA_DEBUG
+		.name = "rxYPulseFront",
+#endif
+	},
+
+	.pixelCount = 
+	{
+		.device = &_fpgaDevRxSystem,
+		.offset = F_REG_RX_SYS_PIXEL_COUNT,
+#if FPGA_DEBUG
+		.name = "rxPixelCount",
+#endif
+	},
+
+
 	.irCtrl = 
 	{
 		.device = &_fpgaDevRxSystem,
@@ -952,9 +1069,27 @@ static RxRegisterMap _RX_ADDRESS =
 	.gbeTxCount = 
 	{
 		.device = &_fpgaDevRxSystem,
-		.offset = F_REG_RX_SYS_GBE_TX_COUNT,
+		.offset = F_REG_RX_SYS_GBE_TX_COUNT,	
 #if FPGA_DEBUG
 		.name = "rxGbeTxCount",
+#endif
+	},
+	
+	.sfpCtrl = 
+	{
+		.device = &_fpgaDevRxSystem,
+		.offset = F_REG_TX_SYS_VIDEO_CTRL, /* register 0x01 */
+#if FPGA_DEBUG
+		.name = "rxSfpControl",
+#endif
+	},
+	
+	.videoSfpStatus = 
+	{
+		.device = &_fpgaDevRxSystem,
+		.offset = F_REG_RX_SYS_VIDEO_STATUS,
+#if FPGA_DEBUG
+		.name = "rxVideoSfpStatus",
 #endif
 	},
 	
@@ -1017,7 +1152,9 @@ static RxRegisterMap _RX_ADDRESS =
 	/* dest address and port for every stream */
 	.streamVideo = &_rxStreamVideo,
 	.streamAudio = &_rxStreamAudio,
+#if WITH_ANCILLIARY_STREAM
 	.streamAnc = &_rxStreamAnc,
+#endif
 #if EXT_FPGA_AUX_ON	
 	.streamAux = &_rxStreamAux,
 #endif

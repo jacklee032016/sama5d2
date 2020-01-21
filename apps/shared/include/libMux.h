@@ -46,7 +46,8 @@
 
 #define	MUX_SYSTEM_CONFIG_DATA			CONFIG_FILE_HOME_PROJECT"muxConfig.dat"
 
-#define	MUX_SYSTEM_INIT_FLAGS			CONFIG_FILE_HOME_PROJECT"flags.dat"
+/* create configuration data and MAC address, update system configuration, and then exit */
+#define	MUX_SYSTEM_INIT_FLAGS			CONFIG_FILE_HOME_PROJECT"firstFlags.dat"	
 
 #define	MUX_SYSTEM_SYS_CONFIG			CONFIG_FILE_HOME_PROJECT"muxSys.conf"
 
@@ -1188,6 +1189,8 @@ extern	CmnThread  threadSdpReceiver;
 extern	CmnThread  threadButton;
 extern	CmnThread  threadLed;
 extern	CmnThread  threadPoll;
+
+extern	CmnThread  threadTestPin;
 
 
 MuxPlugIn *cmnMuxPluginFind(MuxMain *muxMain, MUX_PLUGIN_TYPE type);

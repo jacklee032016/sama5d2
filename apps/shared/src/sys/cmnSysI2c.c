@@ -644,8 +644,8 @@ int	cmnSysI2cTestEp91a6(void)
 
 int	cmnSysI2cTestMcp4716(void)
 {
-#define	MCP4617_CMD_RESET		0x06
-#define	MCP4617_CMD_WAKEUP		0x09
+#define	MCP4617_CMD_RESET		0x06	/* sec 5.3.7, p.48; sec 6.6 p56 */
+#define	MCP4617_CMD_WAKEUP		0x09	/* p.57 */
 
 	unsigned int regAddr;
 	unsigned char value;
@@ -653,9 +653,15 @@ int	cmnSysI2cTestMcp4716(void)
 	int ret;
 
 	EXT_INFOF("MCP4716 test...");
+#if 0
 	regAddr = 0x00;
 	value = MCP4617_CMD_WAKEUP;
 	ret = MCP4716_WRITE(regAddr, &value, 1);
+#else	
+	regAddr = MCP4617_CMD_WAKEUP;
+	value = MCP4617_CMD_WAKEUP;
+	ret = MCP4716_WRITE(regAddr, &value, 0);
+#endif
 	if(ret == EXIT_FAILURE)
 	{
 		EXT_ERRORF("MCP4716 wakeup failed");
@@ -664,6 +670,7 @@ int	cmnSysI2cTestMcp4716(void)
 
 	EXT_INFOF("\tMCP4716 wakeup OK!");
 
+	regAddr = 0x00;
 	ret = MCP4716_READ(regAddr, data, sizeof(data));
 	if(ret == EXIT_FAILURE)
 	{

@@ -15,7 +15,10 @@ int main(int argc, char *argv[])
 
 	memset(runCfg, 0, sizeof(EXT_RUNTIME_CFG));
 
-	cmnSysCfgFromFactory(runCfg);
+	if(cmnSysCfgRead(runCfg, EXT_CFG_MAIN) == EXIT_FAILURE)
+	{
+		cmnSysCfgFromFactory(runCfg);
+	}
 
 	if(sysFpgaInit(runCfg)== EXIT_FAILURE)
 	{

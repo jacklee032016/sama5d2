@@ -102,8 +102,14 @@ typedef	enum
 
 #define	F_REG_TX_SYS_IR_DEMODULATION			0x05
 
-#define	F_REG_TX_SYS_X_ACTIVE						0x06	/* width */
-#define	F_REG_TX_SYS_Y_ACTIVE						0x08	/* height */
+/* clock frequency */
+#define	F_REG_TX_SYS_X_ACTIVE						0x06	/*  */
+#define	F_REG_TX_SYS_Y_ACTIVE						0x08	/*  */
+
+#define	F_REG_TX_SYS_X_PULSE_FRONT				0x0A	// 10
+#define	F_REG_TX_SYS_y_PULSE_FRONT				0x0E	// 14
+#define	F_REG_TX_SYS_PIXEL_COUNT					INVALIDATE_VALUE_U8	// 
+
 
 /* statistics */
 #define	F_REG_TX_SYS_STATISTICS_VIDEO			0x16
@@ -249,9 +255,13 @@ typedef	enum
 
 #define	F_REG_RX_SYS_IR_DEMODULATION			0x05
 
-/* read only , not used now */
+/* clock frequency */
 #define	F_REG_RX_SYS_X_ACTIVE					0x06	/* width */
 #define	F_REG_RX_SYS_Y_ACTIVE					0x08	/* height */
+#define	F_REG_RX_SYS_X_PULSE_FRONT				0x0A	// 10
+#define	F_REG_RX_SYS_y_PULSE_FRONT				0x0E	// 14
+#define	F_REG_RX_SYS_PIXEL_COUNT					0x28	// 40
+
 
 /* statistics */
 #define	F_REG_RX_SYS_STATISTICS_VIDEO			0x16
@@ -263,6 +273,9 @@ typedef	enum
 #define	F_REG_RX_SYS_GBE_RX_COUNT				0x22
 #define	F_REG_RX_SYS_GBE_TX_COUNT				0x24
 
+#define	F_REG_RX_SYS_MB_VIDEO_COLOR_DEPTH		0x2C	/* 10/12/14/16 */
+#define	F_REG_RX_SYS_MB_VIDEO_COLOR_FORMAT	0x2D	/* RGB/YCbCr */
+
 #define	F_REG_RX_SYS_AUDIO_SELECT				0x1A
 #define	F_REG_RX_SYS_AUDIO_MASK					0x1B
 #define	F_REG_RX_SYS_AUDIO_INPUT					0x1C
@@ -270,24 +283,29 @@ typedef	enum
 #define	F_REG_RX_SYS_VERSION						0x1D
 #define	F_REG_RX_SYS_REVISION						0x1E
 
-#define	F_REG_RX_SYS_YEAR							66
-#define	F_REG_RX_SYS_MONTH						67
-#define	F_REG_RX_SYS_DAY							68
-#define	F_REG_RX_SYS_HOUR						69
-#define	F_REG_RX_SYS_MINUTE						70
 
-#define	F_REG_RX_SYS_V_WIDTH						71
-#define	F_REG_RX_SYS_V_HEIGHT					73
+#define	F_REG_RX_SYS_YEAR							0x42	// 66
+#define	F_REG_RX_SYS_MONTH						0x43	// 67
+#define	F_REG_RX_SYS_DAY							0x44	// 68
+#define	F_REG_RX_SYS_HOUR						0x45	// 69
+#define	F_REG_RX_SYS_MINUTE						0x46	// 70
 
-#define	F_REG_RX_SYS_V_FRAMERATE				75
-#define	F_REG_RX_SYS_V_COLORSPACE				76		/* sampling */
-#define	F_REG_RX_SYS_V_DEPTH						77
-#define	F_REG_RX_SYS_V_INTLC_SEGM				78
-#define	F_REG_RX_SYS_V_PARAM_UPDATE				79
+#define	F_REG_RX_SYS_V_WIDTH						0x47	// 71
+#define	F_REG_RX_SYS_V_HEIGHT					0x49	//73
 
+#define	F_REG_RX_SYS_V_FRAMERATE				0x4B	// 75
+#define	F_REG_RX_SYS_V_COLORSPACE				0x4C	// 76		/* sampling */
+#define	F_REG_RX_SYS_V_DEPTH						0x4D	// 77
+#define	F_REG_RX_SYS_V_INTLC_SEGM				0x4E	// 78
+#define	F_REG_RX_SYS_V_PARAM_UPDATE				0x4F	// 79
 
-#define	F_REG_RX_SYS_MB_VIDEO_COLOR_DEPTH		0x2C	/* 10/12/14/16 */
-#define	F_REG_RX_SYS_MB_VIDEO_COLOR_FORMAT	0x2D	/* RGB/YCbCr */
+#define	F_REG_RX_SYS_A_CHANNELS					0x50	// 80
+#define	F_REG_RX_SYS_A_RATE						0x51	// 81, 0:48K(default), 1:32K; 2:44K; 3:48K; 4:88K; 5:96K;6:176K; 7: 192K;
+
+#define	F_REG_RX_SYS_A_PACKET_SIZE				0x52	// 82, 0:1ms; 1: 125ms;
+
+#define	F_REG_RX_SYS_VIDEO_STATUS				0x53	// 0x83; b7:video; b1:SFP#2; b0: SFP#1
+
 
 /* RTP specific: 0x66 */
 #define	F_REG_RX_RTP_VIDEO_PAYLOAD_TYPE			0x00
@@ -305,46 +323,33 @@ typedef	enum
 /*
 *  For RX, only local MAC, local IP, local video port, local audio port, and multicast video/audio IP/port are configured 
 */
-#define	F_REG_RX_NET_LOCAL_MAC					0x04	/* 6 bytes */	
-#define	F_REG_RX_NET_DEST_MAC					0x0A	/* 6 bytes */	
+#define	F_REG_RX_NET_LOCAL_MAC					0x00	/* 6 bytes */	
 
-#define	F_REG_RX_NET_LOCAL_VIDEO_IP				0x10
-#define	F_REG_RX_NET_DEST_VIDEO_IP				0x14
+#define	F_REG_RX_NET_LOCAL_VIDEO_IP				0x06
+/* following actually are multicast ports */
+#define	F_REG_RX_NET_LOCAL_VIDEO_PORT			0x0A
+#define	F_REG_RX_NET_LOCAL_AUDIO_PORT			0x0C
 
+
+#define	F_REG_RX_NET_MCAST_VIDEO					0x0E	/* 4 bytes now, not in border of 16 bytes */
+#define	F_REG_RX_NET_MCAST_AUDIO				0x12
+
+
+#define	F_REG_RX_NET_DEST_MAC					F_REG_TX_NET_LOCAL_VIDEO_IP	
 #define	F_REG_RX_NET_LOCAL_AUDIO_IP				F_REG_TX_NET_LOCAL_VIDEO_IP
-#define	F_REG_RX_NET_DEST_AUDIO_IP				0x18
 
+#define	F_REG_RX_NET_MCAST_ANC					INVALIDATE_VALUE_U8
+#define	F_REG_RX_NET_MCAST_AUX					INVALIDATE_VALUE_U8
 
-#define	F_REG_RX_NET_LOCAL_VIDEO_PORT			0x20
-#define	F_REG_RX_NET_DEST_VIDEO_PORT			0x22
-
-#define	F_REG_RX_NET_LOCAL_AUDIO_PORT			0x24
-#define	F_REG_RX_NET_DEST_AUDIO_PORT			0x26
-
-#define	F_REG_RX_NET_LOCAL_ANC_PORT				0x28
-#define	F_REG_RX_NET_DEST_ANC_PORT				0x2A
-
+#define	F_REG_RX_NET_DEST_MAC_ANC				INVALIDATE_VALUE_U8
+#define	F_REG_RX_NET_DEST_IP_ANC					INVALIDATE_VALUE_U8
+#define	F_REG_RX_NET_DEST_ANC_PORT				INVALIDATE_VALUE_U8
+#define	F_REG_RX_NET_DEST_MAC_AUX				INVALIDATE_VALUE_U8
+#define	F_REG_RX_NET_DEST_IP_AUX					INVALIDATE_VALUE_U8
 #define	F_REG_RX_NET_DEST_AUX_PORT				INVALIDATE_VALUE_U8
 
-#define	F_REG_RX_NET_QOS_OFS						0x2C
 
-#define	F_REG_RX_NET_MCAST_VIDEO					0x2E	/* 3 bytes, not in border of 16 bytes */
-#define	F_REG_RX_NET_MCAST_AUDIO				0x31
-#define	F_REG_RX_NET_MCAST_ANC					0x34
-#define	F_REG_RX_NET_MCAST_AUX					0x37
-
-
-#define	F_REG_RX_NET_DEST_MAC_ANC				0x3A
-#define	F_REG_RX_NET_DEST_IP_ANC					0x40
-#define	F_REG_RX_NET_DEST_MAC_AUX				0x44
-#define	F_REG_RX_NET_DEST_IP_AUX					0x4A
-
-
-
-
-
-#define	EXT_FPGA_REG_VERSION						29
-
+/* for both TX/RX */
 #define	EXT_FPGA_TX_FLAGS							0x80	/* in version info */
 
 #define	EXT_FPGA_REG_REVISION						30
@@ -356,23 +361,6 @@ typedef	enum
 #define	EXT_FPGA_REG_HOUR						35
 #define	EXT_FPGA_REG_MINUTE						36
 
-
-#define	EXT_FPGA_REG_IP							52
-#define	EXT_FPGA_REG_MAC							56
-#define	EXT_FPGA_REG_PORT_VIDEO					62
-#define	EXT_FPGA_REG_PORT_AUDIO					76
-
-#define	EXT_FPGA_REG_PORT_ANC_DT				80
-#define	EXT_FPGA_REG_PORT_ANC_ST				84
-
-/* for only TX */
-#define	EXT_FPGA_REG_DEST_IP						64
-#define	EXT_FPGA_REG_DEST_MAC					68
-#define	EXT_FPGA_REG_DEST_PORT_VIDEO			74
-#define	EXT_FPGA_REG_DEST_PORT_AUDIO			78
-
-#define	EXT_FPGA_REG_DEST_PORT_ANC_DT			82
-#define	EXT_FPGA_REG_DEST_PORT_ANC_ST			86
 
 #else
 #error 	Not support board definition
@@ -459,12 +447,22 @@ typedef	struct
 	FpgaI2cAddress			rtpTimestampVideo;
 	FpgaI2cAddress			rtpTimestampAudio;
 
+	/* clock frequency */
+	FpgaI2cAddress			xActive;
+	FpgaI2cAddress			yActive;
+	FpgaI2cAddress			xTiming;
+	FpgaI2cAddress			yTiming;
+	FpgaI2cAddress			pixelCount;
+
 	FpgaI2cAddress			irCtrl;
 	FpgaI2cAddress			irDemodulation;
 
 	FpgaI2cAddress			gbeRxCount;
 	FpgaI2cAddress			gbeTxCount;
 	
+	FpgaI2cAddress			sfpCtrl;			/* SFP control */
+	FpgaI2cAddress			videoSfpStatus;
+
 	/* local address and port */
 	FpgaI2cAddress			localMac;
 	FpgaI2cAddress			localIp;
@@ -479,7 +477,9 @@ typedef	struct
 	/* dest address and port for every stream */
 	StreamRegisterAddress		*streamVideo;
 	StreamRegisterAddress		*streamAudio;
+#if WITH_ANCILLIARY_STREAM
 	StreamRegisterAddress		*streamAnc;
+#endif
 #if EXT_FPGA_AUX_ON	
 	StreamRegisterAddress		*streamAux;
 #endif
@@ -498,11 +498,21 @@ typedef	struct
 	FpgaI2cAddress			rtpTimestampVideo;
 	FpgaI2cAddress			rtpTimestampAudio;
 
+	/* clock frequency */
+	FpgaI2cAddress			xActive;
+	FpgaI2cAddress			yActive;
+	FpgaI2cAddress			xTiming;
+	FpgaI2cAddress			yTiming;
+	FpgaI2cAddress			pixelCount;
+
 	FpgaI2cAddress			irCtrl;
 	FpgaI2cAddress			irDemodulation;
 
 	FpgaI2cAddress			gbeRxCount;
 	FpgaI2cAddress			gbeTxCount;
+
+	FpgaI2cAddress			sfpCtrl;			/* SFP control */
+	FpgaI2cAddress			videoSfpStatus;
 	
 	FpgaI2cAddress			localMac;
 	FpgaI2cAddress			localIp;
@@ -516,7 +526,9 @@ typedef	struct
 	/* dest address and port for every stream */
 	StreamRegisterAddress		*streamVideo;
 	StreamRegisterAddress		*streamAudio;
+#if WITH_ANCILLIARY_STREAM
 	StreamRegisterAddress		*streamAnc;
+#endif
 #if EXT_FPGA_AUX_ON	
 	StreamRegisterAddress		*streamAux;
 #endif
@@ -546,7 +558,9 @@ typedef	struct	_FpgaConfig
 
 	CmnMultiGroup 				*groupVideoMgr;
 	CmnMultiGroup 				*groupAudioMgr;
+#if WITH_ANCILLIARY_STREAM
 	CmnMultiGroup 				*groupAncMgr;
+#endif
 }FpgaConfig;
 
 

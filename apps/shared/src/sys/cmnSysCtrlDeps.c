@@ -220,6 +220,8 @@ int cmnSysEthernetConfig( EXT_RUNTIME_CFG *cfg )
 		res += fprintf(f, "iface %s inet static\n\taddress %s\n", MUX_ETH_DEVICE, cmnSysNetAddress(cfg->local.ip) );
 		res += fprintf(f, "\tnetmask %s\n", cmnSysNetAddress(cfg->ipMask) );
 		res += fprintf(f, "\tnetwork %s\n",  cmnSysNetAddress(netAddress) );
+		netAddress = cfg->local.ip | ( ~ cfg->ipMask );
+		res += fprintf(f, "\tbroadcast %s\n",  cmnSysNetAddress(netAddress) );
 		res += fprintf(f, "\tgateway %s\n", cmnSysNetAddress(cfg->ipGateway) );
 		res += fprintf(f, "\thwaddress ether %02x:%02x:%02x:%02x:%02x:%02x\n", 
 			cfg->local.mac.address[0], cfg->local.mac.address[1], cfg->local.mac.address[2], cfg->local.mac.address[3], cfg->local.mac.address[4], cfg->local.mac.address[5]);

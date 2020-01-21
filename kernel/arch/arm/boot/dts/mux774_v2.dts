@@ -592,7 +592,8 @@
 						 /* Mux774 */
 						 <PIN_PB7__GPIO>, /* LINK. 09.15, 2019. JL */
 						 <PIN_PB9__GPIO>, /* ACT on 774 */
-						 <PIN_PB24__GPIO>; /* PTP Sync sigal; 11.25, 2019. JL */
+						 <PIN_PB24__GPIO>, /* PTP Sync sigal; 11.25, 2019. JL */
+						 <PIN_PB25__GPIO>; /* test pin; 01.13, 2020. JL */
 					bias-pull-up;
 				};
 
@@ -836,6 +837,12 @@
 		signal {
 			label = "signal";
 			gpios = <&pioA PIN_PB24 GPIO_ACTIVE_HIGH>; 
+			/*default-state = "on";	*/
+		};
+
+		test {
+			label = "test";
+			gpios = <&pioA PIN_PB25 GPIO_ACTIVE_HIGH>; 
 			/*default-state = "on";	*/
 		};
 	};

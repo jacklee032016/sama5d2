@@ -281,7 +281,6 @@ static int _sdpReceiverMainLoop(CmnThread *th)
 		/* what is the appropriate thing to do here on EBADF */
 		if (errno == EINTR)
 		{
-TRACE();	
 			return EXIT_SUCCESS;
 		}
 		else if (errno != EBADF)
@@ -300,7 +299,6 @@ TRACE();
 	pollfd = pfds;
 	index = 0;
 
-TRACE();	
 	for(i=0; i < count; i++)
 	{
 		int isTimer = 0;
@@ -358,15 +356,12 @@ TRACE();
 						if(res == _SDP_RV_OK)
 						{
 							SDPC_SEND_EVENT(sdpClient, SDPC_EVENT_RECV);				
-TRACE();
 						}
 						else if(res == _SDP_RV_ERROR)
 						{
 							SDPC_SEND_EVENT(sdpClient, SDPC_EVENT_ERROR);				
-TRACE();
 						}
 						
-TRACE();
 						/* others, continue to receive more packets */
 					}
 				}
@@ -383,11 +378,9 @@ TRACE();
 					exit(1);
 				}
 				
-TRACE();
 			}
 			cmn_mutex_unlock(sdpClient->lock);
 
-TRACE();
 			index++;
 		}
 		else
@@ -395,7 +388,6 @@ TRACE();
 			EXT_ERRORF("SDPC poll fd %d has not found SdpClient", pollfd->fd);
 		}
 
-		TRACE();
 		
 		pollfd++;
 	}

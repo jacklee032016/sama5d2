@@ -43,9 +43,32 @@ static void termExit(void)
 	exit(1);
 }
 
+/* SIGTERM, when kill or reboot */
 static void sigTermHandler(int sig)
 {
+	MUX_ERROR("SIG_TERM received" );
+	
+	MuxPlugIn *plugin = _muxMain.plugins;
+
+	recvSigalTerminal = TRUE;
+	while(plugin)
+	{
+		if(plugin->enable)
+		{
+			MUX_INFO("plugin '%s' exiting", plugin->name );
+			plugin->signalExit(plugin, 1);
+		}
+		
+		plugin = plugin->next;
+	}
+
+	termExit();
+}
+
+static void otherSigalsHandler(int sig)
+{
 //	SYSTEM_SIGNAL_EXIT();
+	MUX_ERROR("Other signals received" );
 	
 	MuxPlugIn *plugin = _muxMain.plugins;
 
@@ -87,8 +110,8 @@ static void termInit(MuxMain	*muxMain)
 		}
 	}
 
-	signal(SIGINT , sigTermHandler); /* Interrupt (ANSI).  */
-	signal(SIGQUIT, sigTermHandler); /* Quit (POSIX).  */
+	signal(SIGINT , otherSigalsHandler); /* Interrupt (ANSI).  */
+	signal(SIGQUIT, otherSigalsHandler); /* Quit (POSIX).  */
 	signal(SIGTERM, sigTermHandler); /* Termination (ANSI).  */
 	
 	/*  register a function to be called at normal program termination */
@@ -314,7 +337,7 @@ int main(int argc, char **argv)
 
 	}
 
-	if(EXT_IS_TX(&muxMain->runCfg) )
+//	if(EXT_IS_TX(&muxMain->runCfg) )
 	{
 		res =  muxMain->initThread(muxMain, &threadPoll, muxMain);
 		if(res < 0)
@@ -354,6 +377,15 @@ int main(int argc, char **argv)
 		MUX_ERROR("failed when '%s' initializing", threadLed.name );
 		exit(1);
 	}
+
+#if 0
+	res =  muxMain->initThread(muxMain, &threadTestPin, muxMain);
+	if(res < 0)
+	{
+		MUX_ERROR("failed when '%s' initializing", threadTestPin.name );
+		exit(1);
+	}
+#endif
 
 	/* add polling timer */
 	if(muxMain->isClientPolling)

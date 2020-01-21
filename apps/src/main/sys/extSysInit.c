@@ -114,9 +114,9 @@ int32_t	extSystemInit(MuxMain		*muxMain)
 		if(cmnSysCheckFirstRunFlags() )
 		{
 			unsigned char *address;
-			MUX_INFO("This is first startup after this %s board has been programmed. System will initialized based on hardware. ",  (EXT_IS_TX(runCfg))?"TX":"RX");
+			MUX_WARN("This is first startup after this %s board has been programmed. System will initialized based on hardware. ",  (EXT_IS_TX(runCfg))?"TX":"RX");
 			address = cmnSysRandomMacAddress();
-			MUX_INFO("New random MAC: %02x:%02x:%02x:%02x:%02x:%02x", address[0], address[1], address[2], address[3], address[4], address[5]);
+			MUX_WARN("New random MAC: %02x:%02x:%02x:%02x:%02x:%02x", address[0], address[1], address[2], address[3], address[4], address[5]);
 			memcpy(runCfg->local.mac.address, address, EXT_MAC_ADDRESS_LENGTH);
 			cmn_free(address);
 
@@ -128,7 +128,7 @@ int32_t	extSystemInit(MuxMain		*muxMain)
 			cmnSysEthernetConfig(runCfg);
 			cmnSysCfgSave(runCfg, EXT_CFG_MAIN);
 
-			MUX_INFO("Please reboot to make it effective after it finished"EXT_NEW_LINE );
+			MUX_WARN("Please reboot to make it effective after it finished"EXT_NEW_LINE );
 			return EXIT_FAILURE;	/* quit from running */
 		}
 

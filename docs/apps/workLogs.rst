@@ -2,6 +2,19 @@ Work logs for Application Development
 #########################################
 
 
+12.18, 2019
+---------------------------
+* PTP UTC 37 seconds to suit the requirement of PTP server in Radio Canada;
+* Poll PTP state and offset, and update FPGA register differently when PTP is locked or not;
+* APIs updates:
+   * show PTP offset (nanosecond);
+   * show and modify TTL field for audio/video streams
+   * Need FPGA support to update to the streams;
+* TTL field of SDP will change as the API update it;
+* Test PTP offset in every 2 seconds for 5 days:
+   * stable offset is smaller than +-50 us;
+   
+
 12.06, 2019
 ---------------------------
 * web pages update;

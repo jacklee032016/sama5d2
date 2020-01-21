@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
 	ret = cmnSysCfgRead(runCfg, EXT_CFG_MAIN);
 	if(ret == EXIT_FAILURE)
 	{/* TX/RX must be get before default configuration*/
-
+		/* no configuration is found, so no SFP needed to be configured */
 		MUX_INFO("Please reboot to make it effective after it finished"EXT_NEW_LINE );
 		return EXIT_FAILURE;	/* quit from running */
 	}

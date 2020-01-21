@@ -35,7 +35,7 @@ static int _sdpParsePort(char *data, uint32_t size, const char *mediaKey, uint16
 	return p-data;
 }
 
-static int _sdpParseIp(char *data, uint32_t size, uint32_t *ip)
+static int _sdpParseIp(char *data, uint32_t size, uint32_t *ip, uint8_t *ttl)
 {
 	int index = 0;
 	char *p, *pnext;
@@ -72,6 +72,13 @@ static int _sdpParseIp(char *data, uint32_t size, uint32_t *ip)
 	}
 	p = pnext+1;
 
+	if(cmnUtilsParseInt8(p, ttl)== EXIT_FAILURE)
+	{
+//		*ttl = SDP_P_MEDIA_TTL_AUDIO;	
+		*ttl = INVALIDATE_VALUE_U8;	
+		EXT_ERRORF("TTL in SDP stream parsing failed");
+	}
+
 	return p - data;
 }
 
@@ -107,7 +114,8 @@ static int _sdpParseAudioStream(struct SDP_CLIENT *sdpClient, EXT_RUNTIME_CFG *r
 		return EXIT_FAILURE;
 	}
 	p++;
-	
+
+	/* audio depth: L24/48000/1 */
 	index = p -data;
 	pnext = strnstr(data+index, "/", size - index);
 	if(pnext== NULL)
@@ -236,6 +244,7 @@ static char __sdpVideoParams(EXT_RUNTIME_CFG *rxCfg, char *key, char *value)
 			EXT_ERRORF("Not support frame rate '%s' for SDP video stream", value);
 			return EXIT_FAILURE;
 		}
+		printf("frame rate '%s(%d)' for SDP video stream", value, rxCfg->runtime.vFrameRate);
 	}
 
 	/* integer directly */
@@ -399,9 +408,10 @@ static int _sdpParseVideoStream(struct SDP_CLIENT *sdpClient, EXT_RUNTIME_CFG	*r
 
 	if(SDP_IS_DEBUG(sdpClient->sdpCtx))
 	{
-		SDPC_INFO_MSG(sdpClient, " Parsed SDP Video params:"EXT_NEW_LINE"IP:%s; Port:%d; ColorSpace:%s; width:%d; height:%d; framerate:%s; depth:%d; isInterlace:%d;"EXT_NEW_LINE,
-			cmnSysNetAddress(rxCfg->dest.ip), rxCfg->dest.vport, CMN_FIND_V_COLORSPACE(rxCfg->runtime.vColorSpace),  
-			rxCfg->runtime.vWidth, rxCfg->runtime.vHeight, CMN_FIND_V_FRAME_RATE(rxCfg->runtime.vFrameRate), rxCfg->runtime.vDepth, rxCfg->runtime.vIsInterlaced);
+		SDPC_INFO_MSG(sdpClient, " Parsed SDP Video params:"EXT_NEW_LINE"IP:%s; Port:%d; ColorSpace:%s(%d); width:%d; height:%d; framerate:%s(%d); depth:%d; isInterlace:%d;"EXT_NEW_LINE,
+			cmnSysNetAddress(rxCfg->dest.ip), rxCfg->dest.vport, CMN_FIND_V_COLORSPACE(rxCfg->runtime.vColorSpace),  rxCfg->runtime.vColorSpace, 
+			rxCfg->runtime.vWidth, rxCfg->runtime.vHeight, CMN_FIND_V_FRAME_RATE(rxCfg->runtime.vFrameRate), rxCfg->runtime.vFrameRate, 
+			rxCfg->runtime.vDepth, rxCfg->runtime.vIsInterlaced);
 	}
 	
 	return EXIT_SUCCESS;
@@ -451,6 +461,7 @@ int sdpResponseParse(struct SDP_CLIENT *sdpClient)
 	int index = 0;
 	uint16_t 	port;
 	uint32_t 	ip;
+	uint8_t ttl;
 	char type = _SDP_TYPE_UNKNOWN;
 	int err = EXIT_SUCCESS;
 	char* p;
@@ -484,7 +495,7 @@ int sdpResponseParse(struct SDP_CLIENT *sdpClient)
 		return EXIT_FAILURE;
 	}
 
-	index += _sdpParseIp(data+index, size-index, &ip);
+	index += _sdpParseIp(data+index, size-index, &ip, &ttl);
 	if(ip == IPADDR_NONE)
 	{
 		SDPC_MSG(sdpClient, "SDPC %s#%d: No IP address for SDP %s stream", (sdpClient)->name,  (sdpClient)->reqs, (type==_SDP_TYPE_AUDIO)?"audio":"video");
@@ -495,19 +506,24 @@ int sdpResponseParse(struct SDP_CLIENT *sdpClient)
 	{
 		rxCfg->dest.audioIp = ip;
 		rxCfg->dest.aport = port;
+		rxCfg->runtime.ttlAudio = ttl;
 		err = _sdpParseAudioStream(sdpClient, rxCfg, data+index, size-index);
 	}
 	else if(type == _SDP_TYPE_VIDEO)
 	{
 		rxCfg->dest.ip = ip;
 		rxCfg->dest.vport = port;
+		rxCfg->runtime.ttlVideo = ttl;
 		err = _sdpParseVideoStream(sdpClient, rxCfg, data+index, size-index);
 	}
 	else
 	{
+#if WITH_ANCILLIARY_STREAM
 		rxCfg->dest.ancIp = ip;
 		rxCfg->dest.dport = port;
 		err = _sdpParseAncStream(sdpClient, rxCfg, data+index, size-index);
+#else
+#endif
 	}
 
 	return err;

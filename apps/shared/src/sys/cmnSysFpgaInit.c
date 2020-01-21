@@ -14,6 +14,7 @@ FILE *offsetFp = NULL;
 #endif
 
 static char _fpgaVersion[128];
+static char _fpgaBuild[128];
 
 /* read hw info, such as TX or RX, version */
 static int _sysFpgaReadHwInfo(FpgaConfig 	*fpga)
@@ -39,13 +40,21 @@ static int _sysFpgaReadHwInfo(FpgaConfig 	*fpga)
 }
 
 
+unsigned char _fpgaTimeFormat(unsigned char value)
+{
+	unsigned char _newValue = 0;
 
+	_newValue = (value)/16*10 + (value%16);
+
+	return _newValue;
+}
 
 /* check hw info and read TX/RX */
 int	sysFpgaCheck(EXT_RUNTIME_CFG *runCfg )
 {
 	FpgaConfig 	*fpga =  &_fpgaConfig;
 	FpgaBuildTimeAddress				*buildTimeAddr = NULL;
+	unsigned char value;
 	
 	fpga->runCfg = runCfg;
 	runCfg->fpgaCfg = fpga;
@@ -65,16 +74,23 @@ int	sysFpgaCheck(EXT_RUNTIME_CFG *runCfg )
 		buildTimeAddr = fpga->rxAddress->buildTime;
 	}
 	
-#if 1	
-	_extFpgaReadByte(&buildTimeAddr->year, &runCfg->runtime.year);
-	_extFpgaReadByte(&buildTimeAddr->month, &runCfg->runtime.month);
-	_extFpgaReadByte(&buildTimeAddr->day, &runCfg->runtime.day);
-	_extFpgaReadByte(&buildTimeAddr->hour, &runCfg->runtime.hour);
-	_extFpgaReadByte(&buildTimeAddr->minute, &runCfg->runtime.minute);
+	_extFpgaReadByte(&buildTimeAddr->year, &value);
+	runCfg->runtime.year = _fpgaTimeFormat(value);
 
-	EXT_DEBUGF(MUX_DEBUG_FPGA, "version:0x%x; revision:0x%x, build:%2d-%2d-20%2d %2d:%2d", 
+	_extFpgaReadByte(&buildTimeAddr->month, &value);
+	runCfg->runtime.month = _fpgaTimeFormat(value);
+	
+	_extFpgaReadByte(&buildTimeAddr->day, &value);
+	runCfg->runtime.day = _fpgaTimeFormat(value);
+	
+	_extFpgaReadByte(&buildTimeAddr->hour, &value);
+	runCfg->runtime.hour = _fpgaTimeFormat(value);
+	
+	_extFpgaReadByte(&buildTimeAddr->minute, &value);
+	runCfg->runtime.minute = _fpgaTimeFormat(value);
+
+	EXT_DEBUGF(MUX_DEBUG_FPGA, "version:0x%x; revision:0x%x, build:%02d-%2d-20%2d %2d:%2d", 
 		runCfg->runtime.version, runCfg->runtime.revision, runCfg->runtime.month, runCfg->runtime.day, runCfg->runtime.year,runCfg->runtime.hour, runCfg->runtime.minute );
-#endif
 
 	return EXIT_SUCCESS;
 }
@@ -106,10 +122,10 @@ char *sysFgpaBuilt(void)
 	EXT_RUNTIME_CFG *runCfg = fpga->runCfg;
 	MuxRunTimeParam *mediaParams = &runCfg->runtime;
 	
-	index += snprintf(_fpgaVersion+index, sizeof(_fpgaVersion) - index, "%02x-%02x-20%02x %02x:%02x", 
+	index += snprintf(_fpgaBuild+index, sizeof(_fpgaBuild) - index, "%02d-%02d-20%02d %02d:%02d", 
 		mediaParams->month, mediaParams->day, mediaParams->year, mediaParams->hour, mediaParams->minute);
 
-	return _fpgaVersion;
+	return _fpgaBuild;
 }
 
 
@@ -157,7 +173,6 @@ int _debugOneStreamRx(char *label, StreamRegisterAddress *streamAddr, char *data
 int sysFpgaRegistersDebug( char *data, unsigned int size)
 {
 	int index = 0;
-//	unsigned char val;
 	unsigned short port = 0;
 	unsigned int	intValue;
 	EXT_MAC_ADDRESS destMac;
@@ -180,6 +195,8 @@ int sysFpgaRegistersDebug( char *data, unsigned int size)
 	if(EXT_IS_TX(runCfg) )
 	{
 		addrMedia = fpga->txAddress->media;
+
+//		sysFpgaVideoForced();/* use in regRead command */
 		
 		_extFpgaReadInteger(&fpga->txAddress->localIp, (unsigned char *)&intValue);
 		index += snprintf(data+index, size-index, EXT_NEW_LINE"Local :"EXT_NEW_LINE"\tIP\t: %s", cmnSysNetAddress(intValue));
@@ -224,16 +241,19 @@ int sysFpgaRegistersDebug( char *data, unsigned int size)
 #endif		
 
 		index += snprintf(data+index, size-index, EXT_NEW_LINE"Statistics\t:" );
-		_extFpgaReadShort(&fpga->rxAddress->streamVideo->count,  (unsigned char *)&videoCount);
-		_extFpgaReadShort(&fpga->rxAddress->streamAudio->count,  (unsigned char *)&audioCount);
+		_extFpgaReadShort(&fpga->txAddress->streamVideo->count,  (unsigned char *)&videoCount);
+		_extFpgaReadShort(&fpga->txAddress->streamAudio->count,  (unsigned char *)&audioCount);
 		index += snprintf(data+index, size-index, "Video: %d;\tAudio: %d;", videoCount, audioCount);
 
-		_extFpgaReadShort(&fpga->rxAddress->gbeRxCount,  (unsigned char *)&videoCount);
-		_extFpgaReadShort(&fpga->rxAddress->gbeTxCount,  (unsigned char *)&audioCount);
-		index += snprintf(data+index, size-index, "\tGBE: tx: %d;\trx: %d"EXT_NEW_LINE, audioCount, videoCount);
+		_extFpgaReadShort(&fpga->txAddress->gbeRxCount,  (unsigned char *)&videoCount);
+		_extFpgaReadShort(&fpga->txAddress->gbeTxCount,  (unsigned char *)&audioCount);
+		_extFpgaReadByte(&fpga->txAddress->videoSfpStatus, &_chVal);
+		index += snprintf(data+index, size-index, "\tGBE: tx: %d;\trx: %d; VideoSFP:%x"EXT_NEW_LINE, audioCount, videoCount, _chVal);
 
+#if 0
 		FPGA_I2C_READ(EXT_FPGA_REG_SDI_STATUS, &_chVal, 1);
 		index += snprintf(data+index, size-index, "\tLockReg :%02x;"EXT_NEW_LINE, _chVal );
+#endif
 
 	}
 	else
@@ -269,7 +289,8 @@ int sysFpgaRegistersDebug( char *data, unsigned int size)
 
 		_extFpgaReadShort(&fpga->rxAddress->gbeRxCount,  (unsigned char *)&videoCount);
 		_extFpgaReadShort(&fpga->rxAddress->gbeTxCount,  (unsigned char *)&audioCount);
-		index += snprintf(data+index, size-index, "\tGBE: tx: %d;\trx: %d"EXT_NEW_LINE, audioCount, videoCount);
+		_extFpgaReadByte(&fpga->rxAddress->videoSfpStatus, &_chVal);
+		index += snprintf(data+index, size-index, "\tGBE: tx: %d;\trx: %d; VideoSFP: %x"EXT_NEW_LINE, audioCount, videoCount, _chVal);
 
 	}
 
@@ -334,7 +355,6 @@ int	sysFpgaInit(EXT_RUNTIME_CFG *runCfg )
 	fpga->runCfg = runCfg;
 	runCfg->fpgaCfg = fpga;
 	
-//	_fpgaRegisterWrite(EXT_FPGA_REG_PORT_AUDIO, (unsigned char *)&runCfg->local.aport, 2);
 
 #if 0	
 	if(! IS_SECURITY_CHIP_EXIST(runCfg->muxMain) || cmnSysScValidate(runCfg->muxMain->scf)== EXIT_FAILURE)
@@ -366,11 +386,19 @@ int	sysFpgaInit(EXT_RUNTIME_CFG *runCfg )
 		{
 			fpga->groupAudioMgr = cmnSysNetMGroupInit(MUX_ETH_DEVICE, NULL);
 		}
+		else
+		{
+			fpga->groupAudioMgr = fpga->groupVideoMgr;
+		}
 
+//		EXT_INFOF("videoGroupMgr:%p; audioGroupMgr:%p", fpga->groupVideoMgr, fpga->groupAudioMgr);
+
+#if WITH_ANCILLIARY_STREAM
 		if(runCfg->dest.ip != runCfg->dest.ancIp && runCfg->dest.audioIp != runCfg->dest.ancIp)
 		{
 			fpga->groupAncMgr = cmnSysNetMGroupInit(MUX_ETH_DEVICE, NULL);
 		}
+#endif
 	}
 
 	fpga->opProtocolCtrl(fpga);
@@ -410,37 +438,42 @@ int	sysFpgaInit(EXT_RUNTIME_CFG *runCfg )
 
 int	sysFpgaReadVideoStatus(void)
 {
-#if 0
 	FpgaConfig 	*fpga =  &_fpgaConfig;
-	FpgaI2cAddress		*reg;
-	unsigned short _shortValue;
+	unsigned char _chValue;
 
 	if(fpga->runCfg == NULL)
 		return EXT_FALSE;
+#if 1
+	FpgaI2cAddress		*reg;
 	
 	if(EXT_IS_TX(fpga->runCfg) )
 	{
-		reg = &fpga->txAddress->media->width;
+		reg = &fpga->txAddress->videoSfpStatus;
 	}
 	else
 	{
-		reg = &fpga->rxAddress->media->width;
+		reg = &fpga->rxAddress->videoSfpStatus;
 	}
 
-	_extFpgaReadShort(reg, &_shortValue);
-	if(_shortValue)
-	{
-		return EXT_TRUE;
-	}
+	_extFpgaReadByte(reg, &_chValue);
 #else
-	unsigned char _chValue;
-	FPGA_I2C_READ(F_REG_TX_SYS_VIDEO_STATUS, &_chValue, sizeof(_chValue));
+	unsigned char 	_regAddr;
+	if(EXT_IS_TX(fpga->runCfg) )
+	{
+		_regAddr = F_REG_TX_SYS_VIDEO_STATUS;
+	}
+	else
+	{
+		_regAddr = F_REG_RX_SYS_VIDEO_STATUS;
+	}
+	
+	FPGA_I2C_READ(_regAddr, &_chValue, sizeof(_chValue));
+#endif
 //	EXT_INFOF("Video Status:0x%x", _chValue);
 	if((_chValue&0x80) )
 	{
 		return EXT_TRUE;
 	}
-#endif
 	return EXT_FALSE;
 }
 
@@ -448,45 +481,54 @@ int	sysFpgaReadVideoStatus(void)
 int	sysFpgaReadSfpStatus(void)
 {
 	FpgaConfig 	*fpga =  &_fpgaConfig;
+	unsigned char _chValue;
 	if(fpga->runCfg == NULL)
 		return EXT_FALSE;
-#if 0
-	FpgaI2cAddress		*reg, *reg2;
-	unsigned short rxCount, txCount;
-
-
+#if 1
+	FpgaI2cAddress		*reg;
 	
 	if(EXT_IS_TX(fpga->runCfg) )
 	{
-		reg = &fpga->txAddress->gbeRxCount;
-		reg2 = &fpga->txAddress->gbeTxCount;
+		reg = &fpga->txAddress->videoSfpStatus;
 	}
 	else
 	{
-		reg = &fpga->rxAddress->gbeRxCount;
-		reg2 = &fpga->rxAddress->gbeTxCount;
+		reg = &fpga->rxAddress->videoSfpStatus;
 	}
 
-	_extFpgaReadShort(reg, &rxCount);
-	_extFpgaReadShort(reg2, &txCount);
-
-	if( (rxCount!= INVALIDATE_VALUE_U16) &&(txCount != INVALIDATE_VALUE_U16) && (rxCount+txCount)!= 0 )
-	{
-		return EXT_TRUE;
-	}
+	_extFpgaReadByte(reg, &_chValue);
 #else
-	unsigned char _chValue;
-	FPGA_I2C_READ(F_REG_TX_SYS_VIDEO_STATUS, &_chValue, sizeof(_chValue));
+	unsigned char 	_regAddr;
+	if(EXT_IS_TX(fpga->runCfg) )
+	{
+		_regAddr = F_REG_TX_SYS_VIDEO_STATUS;
+	}
+	else
+	{
+		_regAddr = F_REG_RX_SYS_VIDEO_STATUS;
+	}
+
+	FPGA_I2C_READ(_regAddr, &_chValue, sizeof(_chValue));
+#endif
 	_chValue = _chValue&0x03;
 //	EXT_INFOF("Video SFP:0x%x; configuration: %d", _chValue, fpga->runCfg->sfpCfg );
-	if((_chValue == 1 && fpga->runCfg->sfpCfg == EXT_SFP_CFG_FIRST)  ||
-		(_chValue == 2 && fpga->runCfg->sfpCfg == EXT_SFP_CFG_SECOND) ||
-		(_chValue == 3 && (fpga->runCfg->sfpCfg == EXT_SFP_CFG_DOUBLE || fpga->runCfg->sfpCfg == EXT_SFP_CFG_SPLIT) ) )
+	if(EXT_IS_TX(fpga->runCfg) )
 	{
-//		EXT_INFOF("SFP LED ON");
-		return EXT_TRUE;
+		if((_chValue == 1 && fpga->runCfg->sfpCfg == EXT_SFP_CFG_FIRST)  ||
+			(_chValue == 2 && fpga->runCfg->sfpCfg == EXT_SFP_CFG_SECOND) ||
+			(_chValue == 3 && (fpga->runCfg->sfpCfg == EXT_SFP_CFG_DOUBLE || fpga->runCfg->sfpCfg == EXT_SFP_CFG_SPLIT) ) )
+		{
+	//		EXT_INFOF("SFP LED ON");
+			return EXT_TRUE;
+		}
 	}
-#endif
+	else
+	{
+		if( (_chValue == 2 && fpga->runCfg->sfpCfg == EXT_SFP_CFG_SECOND) ||_chValue == 1)
+		{
+			return EXT_TRUE;
+		}
+	}
 
 	return EXT_FALSE;
 }
@@ -606,42 +648,71 @@ int sysFpgaCfgSfpWhenBoot(void)
 	FpgaConfig 	*fpga =  &_fpgaConfig;
 	EXT_RUNTIME_CFG *runCfg = fpga->runCfg;
 	unsigned char _chVal, _ch2 =0;
+
+	FpgaI2cAddress		*reg;
+
 	char *sfp = "Port1";
-	
-	if(runCfg->sfpCfg == EXT_SFP_CFG_SECOND)
+
+	if(EXT_IS_TX(runCfg) )
 	{
-		_ch2 = 0x40;
-		sfp = "Port2";
-	}
-	else if(runCfg->sfpCfg == EXT_SFP_CFG_DOUBLE)
-	{
-		_ch2 = 0x10;
-		sfp = "Double";
-	}
-	else if(runCfg->sfpCfg == EXT_SFP_CFG_SPLIT)
-	{
-		_ch2 = 0x20;
-		sfp = "Split";
-	}
-#if 0	
-	else if(runCfg->sfpCfg == EXT_SFP_CFG_FIRST )
-		0x00;
-#endif
+		reg = &fpga->txAddress->sfpCtrl;
 		
-	if(runCfg->isConvert)
-	{
-		EXT_INFOF("Read cfg:%p", runCfg);
-		_chVal = 0x80|_ch2 ;
-		FPGA_I2C_WRITE(F_REG_TX_SYS_VIDEO_CTRL, &_chVal, sizeof(_chVal));
+		if(runCfg->sfpCfg == EXT_SFP_CFG_SECOND)
+		{
+			_ch2 = 0x40;
+			sfp = "Port2";
+		}
+		else if(runCfg->sfpCfg == EXT_SFP_CFG_DOUBLE)
+		{
+			_ch2 = 0x10;
+			sfp = "Double";
+		}
+		else if(runCfg->sfpCfg == EXT_SFP_CFG_SPLIT)
+		{
+			_ch2 = 0x20;
+			sfp = "Split";
+		}
+#if 0	
+		else if(runCfg->sfpCfg == EXT_SFP_CFG_FIRST )
+			0x00;
+#endif
+			
+		if(runCfg->isConvert)
+		{
+			EXT_INFOF("Read cfg:%p", runCfg);
+			_chVal = 0x80|_ch2 ;
+		}
+		else
+		{
+			_chVal = 0x00|_ch2;
+		}
+		
+		_extFpgaWriteByte(reg, &_chVal);
+		
+		_extFpgaReadByte(reg, &_chVal );
+		MUX_INFO("SFP is configured as '%s(0x%2x)'", sfp, _chVal);	
 	}
 	else
-	{
-		_chVal = 0x00|_ch2;
-		FPGA_I2C_WRITE(F_REG_TX_SYS_VIDEO_CTRL, &_chVal, sizeof(_chVal));
+	{/* ??? */
+#if 1
+		reg = &fpga->rxAddress->sfpCtrl;
+		_extFpgaReadByte(reg, &_chVal );
+
+		sfp = "Port1";
+		if(runCfg->sfpCfg == EXT_SFP_CFG_SECOND)
+		{/* port A*/
+			_chVal |= 0x80;
+			
+			sfp = "Port2";
+		}
+
+		_extFpgaWriteByte(reg, &_chVal);
+		MUX_INFO("SFP is configured as '%s(0x%2x)'", sfp, _chVal);	
+#else		
+		/* nothing to do for fiber port on RX */
+#endif
 	}
-	
-	FPGA_I2C_READ(F_REG_TX_SYS_VIDEO_CTRL, &_chVal, sizeof(_chVal));
-	MUX_INFO("SFP is configured as '%s(0x%2x)'", sfp, _chVal);	
+
 
 	return EXIT_SUCCESS;
 }

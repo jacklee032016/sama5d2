@@ -303,8 +303,9 @@ static int _cmnSysJsonUpdateVideo(EXT_RUNTIME_CFG *runCfg, cJSON *obj)
 
 	CJSON_REPLACE_STRING(obj, FIELD_VIDEO_SESSION_ID, (const char *)runCfg->runtime.vSession );
 
-	EXT_INFOF("Update cfg:%p; %dx%d; fps:%d; ColorSpace:%d; depth:%d; intlc:%d", 
-		runCfg, runCfg->runtime.vWidth, runCfg->runtime.vHeight, runCfg->runtime.vFrameRate, runCfg->runtime.vColorSpace, runCfg->runtime.vDepth, runCfg->runtime.vIsInterlaced);
+//	EXT_INFOF("Update cfg:%p; %dx%d; fps:%d; ColorSpace:%d; depth:%d; intlc:%d", 
+//		runCfg, runCfg->runtime.vWidth, runCfg->runtime.vHeight, runCfg->runtime.vFrameRate, runCfg->runtime.vColorSpace, runCfg->runtime.vDepth, runCfg->runtime.vIsInterlaced);
+
 	
 	CJSON_REPLACE_INTEGRE(obj, FIELD_SDP_PAYLOAD_TYPE, runCfg->runtime.rtpTypeVideo);
 	

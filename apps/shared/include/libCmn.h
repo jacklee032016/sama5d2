@@ -146,6 +146,8 @@
 #define	UNIT_K_HZ						1000
 #define	UNIT_M_HZ						((UNIT_K_HZ)*(UNIT_K_HZ))
 
+#define	UNIT_B_HZ						((UNIT_K_HZ)*(UNIT_M_HZ))
+
 
 #define	CMNLIB_OPS_DEBUG						0x01
 #define	CMNLIB_OPS_OTHER						0x02
@@ -577,6 +579,7 @@ char *strnstr(const char *haystack, const char *needle, size_t len);
 #define	CMN_THREAD_NAME_BUTTON				"muxButton"
 #define	CMN_THREAD_NAME_LED					"muxLed"
 #define	CMN_THREAD_NAME_POLL				"muxPoll"
+#define	CMN_THREAD_NAME_TEST_PIN			"muxPinCtrl"
 
 
 #define	WITH_ANCILLIARY_STREAM			0

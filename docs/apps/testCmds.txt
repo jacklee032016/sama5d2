@@ -1,0 +1,68 @@
+apiClient -c set -d '{"system":{"forceStream":1}}'
+apiClient -c set -d '{"system":{"forceStream":0}}'
+
+apiClient -c set -d '{"system":{"isDhcp":0}}'
+
+apiClient -c set -d '{"system":{"ip":"192.168.166.66", "mask": "255.255.0.0"}}'
+apiClient -c set -d '{"system":{"ip":"192.168.168.66", "mask": "255.255.255.0"}}'
+                       
+                        
+"sdp":	[{
+				"media":	"video",
+				"ip":	"192.168.168.66",
+				"port":	80,
+				"uri":	"api/video/sdp"
+			}, {
+				"media":	"audio",
+				"ip":	"192.168.168.66",
+				"port":	80,
+				"uri":	"api/audio/sdp"
+			}],
+
+
+               },
+                "video":        [{
+                                "ip":   "239.100.1.1",
+                                "port": 48000,
+                                "sdp":  "api/video/sdp",
+                                "height":       1080,
+                                "width":        1920,
+                                "fps":  "60",
+                                "colorSpace":   "YCbCr-4:2:2",
+                                "depth":        12,
+                                "payloadType":  96,
+                                "intlce":       3,
+                                "sessionID":    "11-1681119529",
+                                "TTL":  32
+                        }],
+                "audio":        [{
+                                "ip":   "239.100.1.2",
+                                "port": 48010,
+                                "sdp":  "api/audio/sdp",
+                                "sample":       "48000",
+
+
+apiClient -c set -d '{"sdp":[{"media":"video", "ip":"192.168.168.104"},{"media":"audio", "ip":"192.168.168.104"}]}'
+
+apiClient -c set -d '{"sdp":[{"media":"video", "ip":"192.168.168.102"},{"media":"audio", "ip":"192.168.168.102"}]}'
+
+apiClient -c set -d '{"sdp":[{"media":"video", "ip":"192.168.168.103"},{"media":"audio", "ip":"192.168.168.103"}]}'
+
+apiClient -c set -d '{"sdp":[{"media":"video", "ip":"192.168.168.66"},{"media":"audio", "ip":"192.168.168.66"}]}'
+
+apiClient -c set -d '{"video":{"ip":"225.192.0.9"}}'
+
+apiClient -c set -d '{"video":{"ip":"225.192.0.10"}}'
+
+apiClient -c set -d '{"audio":{"ip":"226.2.0.1"}}'
+
+
+100
+000
+000
+
+
+route add -net 239.100.1.1 netmask 240.0.0.0 eth0
+
+ip addr add 239.100.1.1/32 dev eth0 autojoin
+

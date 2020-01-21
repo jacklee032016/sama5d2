@@ -392,14 +392,21 @@ static int _cmnSysNetMcastJoin(CmnMultiGroup *_group, char *groupIp)
 	return EXIT_SUCCESS;
 }
 
-static CmnMultiGroup _mGroup;
+//static CmnMultiGroup _mGroup;
 
 CmnMultiGroup *cmnSysNetMGroupInit(const char *devName, char *groupIp)
 {
-	CmnMultiGroup *_group = &_mGroup;	
+	CmnMultiGroup *_group = NULL; //&_mGroup;	
 	struct sockaddr_in addr;
 //	int ttl = 10;
 	int on = 1;
+
+	_group = cmn_malloc(sizeof(CmnMultiGroup));
+	if(_group == NULL)
+	{
+		EXT_ERRORF("mcast mgr allocation failed");
+		return NULL;
+	}
 	
 	memset(_group, 0, sizeof(CmnMultiGroup));
 	_group->address = INVALIDATE_VALUE_U32;

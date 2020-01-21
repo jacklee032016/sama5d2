@@ -151,6 +151,8 @@ char *sysFgpaBuilt(void);
 int	sysFpgaReadIrDemodulation(unsigned char *freq);
 
 int sysFpgaTxPollUpdateParams(void *data);
+int sysFpgaReadClockParams(void *data);
+int sysFpgaPollThreadInit(void *data);
 
 
 int cmnSysJsonUpdate(MuxMain *muxMain);

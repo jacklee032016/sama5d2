@@ -221,7 +221,8 @@
 
 #define	EXT_MEDIA_PORT_RANGE					10		/* range of RTP port */
 
-#define	EXT_MEDIA_PORT_TX_VIDEO				40000
+//#define	EXT_MEDIA_PORT_TX_VIDEO				40000
+#define	EXT_MEDIA_PORT_TX_VIDEO				10000		/*01.06, 2019, as requirement from FPGA */
 #define	EXT_MEDIA_PORT_TX_AUDIO				40010
 #define	EXT_MEDIA_PORT_TX_DATA				40020
 #define	EXT_MEDIA_PORT_TX_STREA				40030
@@ -260,8 +261,8 @@
 
 enum EXT_SFP_CFG_T
 {
-	EXT_SFP_CFG_FIRST = 1,		/* port 1 */
-	EXT_SFP_CFG_SECOND,		/* port 2 */
+	EXT_SFP_CFG_FIRST = 1,		/* port 1; RX: port-B */
+	EXT_SFP_CFG_SECOND,		/* port 2; RX: port-A  */
 	EXT_SFP_CFG_DOUBLE,		/* duplicate in 2 ports */
 	EXT_SFP_CFG_SPLIT			/* split video into 2 ports */
 };

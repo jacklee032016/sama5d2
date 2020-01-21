@@ -215,22 +215,26 @@ int	sysFpgaRxConfig(FpgaConfig *fpga)
 	FPGA_WRITE(&fpga->rxAddress->localMac, address, EXT_MAC_ADDRESS_LENGTH);
 
 	/* dest multi Video */
-	_extFpgaWrite3Bytes(&fpga->rxAddress->streamVideo->ip, &vCfg->ip);
+//	_extFpgaWrite3Bytes(&fpga->rxAddress->streamVideo->ip, &vCfg->ip);
+	_extFpgaWriteInteger(&fpga->rxAddress->streamVideo->ip, &vCfg->ip);
 	_extFpgaWriteShort(&fpga->rxAddress->streamVideo->port, (unsigned char *)&vCfg->vport );
 
 	/* dest multi Audio */
-	_extFpgaWrite3Bytes(&fpga->rxAddress->streamAudio->ip, &vCfg->audioIp);
+//	_extFpgaWrite3Bytes(&fpga->rxAddress->streamAudio->ip, &vCfg->audioIp);
+	_extFpgaWriteInteger(&fpga->rxAddress->streamAudio->ip, &vCfg->audioIp);
 	_extFpgaWriteShort(&fpga->rxAddress->streamAudio->port, (unsigned char *)&vCfg->aport );
 
 	/* dest multi Anx */
 #if WITH_ANCILLIARY_STREAM
-	_extFpgaWrite3Bytes(&fpga->rxAddress->streamAnc->ip, &vCfg->ancIp);
+//	_extFpgaWrite3Bytes(&fpga->rxAddress->streamAnc->ip, &vCfg->ancIp);
+	_extFpgaWriteInteger(&fpga->rxAddress->streamAnc->ip, &vCfg->ancIp);
 	_extFpgaWriteShort(&fpga->rxAddress->streamAnc->port, (unsigned char *)&vCfg->dport );
 #endif
 
 #if EXT_FPGA_AUX_ON	
 	/* dest multi Aux */
-	_extFpgaWrite3Bytes(&fpga->rxAddress->streamAux->ip, &vCfg->auxIp);
+//	_extFpgaWrite3Bytes(&fpga->rxAddress->streamAux->ip, &vCfg->auxIp);
+	_extFpgaWriteInteger(&fpga->rxAddress->streamAux->ip, &vCfg->auxIp);
 	_extFpgaWriteShort(&fpga->rxAddress->streamAnc->port, (unsigned char *)&vCfg->sport );
 #endif
 
@@ -284,14 +288,26 @@ int	sysFpgaRxConfig(FpgaConfig *fpga)
 		{
 			EXT_ERRORF("Join video multicast group '%s' failed", cmnSysNetAddress(runCfg->dest.ip));
 		}
+		EXT_INFOF("Join video multicast group '%s'", cmnSysNetAddress(runCfg->dest.ip));
 	}
 	
 	if(fpga->groupAudioMgr )
 	{
-		if(fpga->groupAudioMgr->changeGroup(fpga->groupAudioMgr, cmnSysNetAddress(runCfg->dest.audioIp) ) )
+		if(fpga->groupAudioMgr !=  fpga->groupVideoMgr )
 		{
-			EXT_ERRORF("Join audio multicast group '%s' failed", cmnSysNetAddress(runCfg->dest.audioIp));
+//			EXT_INFOF("Join audio multicast group '%s'...", cmnSysNetAddress(runCfg->dest.audioIp));
+			if(fpga->groupAudioMgr->changeGroup(fpga->groupAudioMgr, cmnSysNetAddress(runCfg->dest.audioIp) ) )
+			{
+				EXT_ERRORF("Join audio multicast group '%s' failed", cmnSysNetAddress(runCfg->dest.audioIp));
+			}
+			EXT_INFOF("Join audio multicast group '%s'", cmnSysNetAddress(runCfg->dest.audioIp));
 		}
+#if 0
+		else
+		{
+			EXT_ERRORF("audio/video multicast group mgr is same");
+		}
+#endif		
 	}
 
 #if WITH_ANCILLIARY_STREAM
@@ -317,9 +333,8 @@ int	sysFpgaRxConfig(FpgaConfig *fpga)
 
 int sysFpgaTxReadParams(FpgaConfig *fpga)
 {
-	unsigned char _chValue;
+//	unsigned char _chValue;
 	
-
 	EXT_RUNTIME_CFG *runCfg = fpga->runCfg;
 	EXT_INFOF("Read cfg:%p", runCfg);
 
@@ -381,7 +396,7 @@ int sysFpgaTxReadParams(FpgaConfig *fpga)
 	/* write timestamp */
 //	FPGA_UPDATE_PTP_TIMESTAMP(fpga);
 
-	_chValue = 0x40; /* 10.30, 2019. TX write to select audio channel from Audio input, not I2S */
+//	_chValue = 0x40; /* 10.30, 2019. TX write to select audio channel from Audio input, not I2S */
 	_extFpgaWriteByte(&fpga->txAddress->media->channels, &runCfg->runtime.aChannels);
 
 	sysFpgaVideoForced();
@@ -412,19 +427,70 @@ int sysFpgaTxWriteParams(FpgaConfig *fpga)
 	return EXIT_SUCCESS;
 }
 
-int	_rxUpdateAudioParams(EXT_RUNTIME_CFG *runCfg)
+/* refer to _txUpdateParams() */
+static int	_rxUpdateAudioParams(EXT_RUNTIME_CFG *runCfg, MediaRegisterAddress *mediaAddrs)
 {
 	/* 11.04, 2019, change as following */
-	unsigned char _chVal;
+//	unsigned char _chVal;
+	unsigned char _aDpeth, _aSampleRate, _aCh, _aPktSize;
+	
+	/* aDepth store 24/16bit. eg. SDP data format after SDP parsing */
+	if(runCfg->runtime.aDepth != 24)
+	{
+		MUX_ERROR("Audio: depth: %d, not 24bit depth, no support audio depth", runCfg->runtime.aDepth );
+		_aDpeth = 3;/*24*/
+	}
+	else
+	{
+		_aDpeth = 3;/*24*/
+	}
+	
 
-	unsigned char depth = ((_chVal>> 6) & 0x03);
-	runCfg->runtime.aDepth = (depth ==0x03)? 24:0;
-	unsigned char sampleRate = ( (_chVal>>3) &0x07);
-	runCfg->runtime.aSampleRate; /* 2: 44.1K; 3: 48K; 5: 96K */
-//	unsigned char 
-	runCfg->runtime.aChannels = (_chVal&0x07)+1;
+	/* aSample store 2/3/5, eg. FPGA data format after SDP parsing, */
+	if(runCfg->runtime.aSampleRate != EXT_A_RATE_44K && 
+		runCfg->runtime.aSampleRate != EXT_A_RATE_48K && 
+		runCfg->runtime.aSampleRate != EXT_A_RATE_96K  )
+	{
+		MUX_ERROR("Audio:sample rate: %d, no support sample rate", runCfg->runtime.aSampleRate );
+		_aSampleRate = EXT_A_RATE_48K;
+	}
+	else
+	{
+		_aSampleRate = runCfg->runtime.aSampleRate; /* 2: 44.1K; 3: 48K; 5: 96K */
+	}
 
-	FPGA_I2C_READ(F_REG_RX_SYS_AUDIO_SELECT, &_chVal, 1);
+	/* aChannel save result from SDP */
+	if(runCfg->runtime.aChannels != 8  )
+	{
+//		MUX_ERROR("Audio: channel: %d, no support channel number", runCfg->runtime.aChannels);
+		_aCh = runCfg->runtime.aChannels -1;
+	}
+	else
+	{
+		_aCh = runCfg->runtime.aChannels -1;
+	}
+
+	if(runCfg->runtime.aPktSize != EXT_A_PKT_SIZE_1MS && 
+		runCfg->runtime.aPktSize != EXT_A_PKT_SIZE_125US   )
+	{
+		MUX_ERROR("Audio:PacketSize: %d, no support Packet Size", runCfg->runtime.aPktSize );
+		_aPktSize = EXT_A_PKT_SIZE_1MS;
+	}
+	else
+	{
+		_aPktSize = runCfg->runtime.aPktSize;
+	}
+
+#if 1
+	_extFpgaWriteByte(&mediaAddrs->channels, &_aCh );
+	_extFpgaWriteByte(&mediaAddrs->audioRate, &_aSampleRate);
+	_extFpgaWriteByte(&mediaAddrs->pktSize, &_aPktSize);
+#else
+	_chVal = (_aDpeth<<6)|(_aSampleRate<<3)|_aCh;
+
+	FPGA_I2C_WRITE(F_REG_RX_SYS_AUDIO_SELECT, &_chVal, 1);
+#endif
+
 
 	return EXIT_SUCCESS;
 }
@@ -474,13 +540,6 @@ int sysFpgaRxWriteParams(FpgaConfig *fpga)
 
 		_extFpgaWriteByte(&fpga->rxAddress->media->intl, &runCfg->runtime.vIsInterlaced);
 
-#if 0
-		_extFpgaWriteByte(&fpga->rxAddress->media->channels, &runCfg->runtime.aChannels);
-		_extFpgaWriteByte(&fpga->rxAddress->media->audioRate, &runCfg->runtime.aSampleRate);
-		_extFpgaWriteByte(&fpga->rxAddress->media->pktSize, &runCfg->runtime.aPktSize);
-#else
-
-#endif
 
 		_extFpgaWriteByte(&fpga->rxAddress->streamVideo->rtpPayload, &runCfg->runtime.rtpTypeVideo);
 		_extFpgaWriteByte(&fpga->rxAddress->streamAudio->rtpPayload, &runCfg->runtime.rtpTypeAudio);
@@ -490,12 +549,14 @@ int sysFpgaRxWriteParams(FpgaConfig *fpga)
 #endif
 		
 		/* third, start it */
+		EXT_DEBUGF(MUX_DEBUG_FPGA, "RX write:%dx%d, fps:%d; cs:%d; depth:%d; intlc:%d; ", 
+			runCfg->runtime.vWidth, runCfg->runtime.vHeight, runCfg->runtime.vFrameRate, runCfg->runtime.vColorSpace, runCfg->runtime.vDepth, runCfg->runtime.vIsInterlaced);
+
+		_rxUpdateAudioParams(runCfg, fpga->rxAddress->media );
+
 		//FPGA_I2C_WRITE(EXT_FPGA_REG_PARAM_STATUS, &_chValue, 1);
 		_chValue = INVALIDATE_VALUE_U8;
 		_extFpgaWriteByte(&fpga->rxAddress->media->paramStatus, &_chValue);
-
-		EXT_DEBUGF(MUX_DEBUG_FPGA, "RX write:%dx%d, fps:%d; cs:%d; depth:%d; intlc:%d; ", 
-			runCfg->runtime.vWidth, runCfg->runtime.vHeight, runCfg->runtime.vFrameRate, runCfg->runtime.vColorSpace, runCfg->runtime.vDepth, runCfg->runtime.vIsInterlaced);
 
 	}
 
@@ -503,7 +564,7 @@ int sysFpgaRxWriteParams(FpgaConfig *fpga)
 }
 
 
-int	_txUpdateParams(EXT_RUNTIME_CFG *runCfg)
+static int	_txUpdateParams(EXT_RUNTIME_CFG *runCfg)
 {
 	/* 11.04, 2019, change as following */
 #if 1	
@@ -555,8 +616,16 @@ int fpgaReadParamRegisters(MediaRegisterAddress *addrMedia, EXT_RUNTIME_CFG *run
 		runCfg->runtime.vWidth, runCfg->runtime.vHeight, runCfg->runtime.vFrameRate);
 
 #if 1
-	_extFpgaReadByte(&addrMedia->colorSpace, &runCfg->runtime.vColorSpace);
-	_extFpgaReadByte(&addrMedia->vDepth, &runCfg->runtime.vDepth);
+	if(runCfg->isConvert )
+	{
+		runCfg->runtime.vColorSpace = EXT_V_COLORSPACE_YCBCR_422;
+		runCfg->runtime.vDepth = EXT_V_DEPTH_10;
+	}
+	else
+	{
+		_extFpgaReadByte(&addrMedia->colorSpace, &runCfg->runtime.vColorSpace);
+		_extFpgaReadByte(&addrMedia->vDepth, &runCfg->runtime.vDepth);
+	}
 	EXT_DEBUGF(MUX_DEBUG_FPGA, "depth:%d(0x%x); ColorSpace:%s(0x%x)", 
 		CMN_INT_FIND_NAME_V_DEPTH(runCfg->runtime.vDepth), runCfg->runtime.vDepth, 
 		CMN_FIND_V_COLORSPACE(runCfg->runtime.vColorSpace), runCfg->runtime.vColorSpace);
@@ -596,7 +665,7 @@ int fpgaReadParamRegisters(MediaRegisterAddress *addrMedia, EXT_RUNTIME_CFG *run
 	}
 	else
 	{
-		EXT_ERRORF("RX not support audio read now!!!");
+//		EXT_ERRORF("RX not support audio read now!!!");
 	}
 
 #else
@@ -718,6 +787,281 @@ int sysFpgaTxPollUpdateParams(void *data)
 		_extFpgaWriteByte(&fpga->txAddress->media->paramStatus, &_chValue);
 
 		SYS_UPDATE_SESSION_ID();
+	}
+
+	return EXIT_SUCCESS;
+}
+
+/* align seq_req bit of RESET register */
+static void _sysFpgaVideoEnable(FpgaI2cAddress *enableReg, unsigned char isEnble)
+{	
+	unsigned char _chValue;
+//	byte data_write[1];
+	
+	_extFpgaReadByte(enableReg, &_chValue);
+//	I2C_Read_feedback(0x60, 0x0, data_write, 1);	
+	if(isEnble)
+	{
+		_chValue &= ~0x20;
+	}
+	else
+	{
+		_chValue |= 0x20;	/* write 1 to begin pulse align */
+	}
+//	I2C_Write_feedback(0x60, 0x0, data_write, 1);
+	_extFpgaWriteByte(enableReg, &_chValue);
+}
+
+
+#define	DISPLAY_RESYNC(reg)	\
+	do{_sysFpgaVideoEnable(reg, EXT_FALSE); \
+		_sysFpgaVideoEnable(reg, EXT_TRUE); }while(0)
+
+
+static void _sysFpgaDisplayCtrl(FpgaI2cAddress *reg, unsigned char isBlank)
+{
+	unsigned char _chValue;
+
+	_extFpgaReadByte(reg, &_chValue);
+	if(isBlank )
+	{
+		_chValue |= 0x80;
+	}
+	else
+	{
+		_chValue &= ~0x80;
+	}
+
+	_extFpgaWriteByte(reg, &_chValue);
+}
+
+
+struct VcxoStatus
+{
+	int		dac;
+	int		newDac;
+	int		dacI;
+	int		initFlag;
+
+	unsigned int		xTemp;
+	unsigned int		yTemp;
+	unsigned int		width;
+	unsigned int		height;
+	unsigned int		pixelDelta;
+
+	int		value;
+};
+
+struct VcxoStatus		_vcxoStatus=
+{
+	0,
+	0,
+	0,
+	0,
+	0
+};
+
+#define __min(a,b)		(((a)<(b))?(a):(b))
+#define __max(a,b)		(((a)>(b))?(a):(b))
+
+#define	CLIPPING(lo, a, hi)		__max((lo), __min((a), (hi)))
+
+#define		DAC_MAX				2047
+#define		DAC_MIN				-(DAC_MAX)
+#define		DAC_MAX_STEP			(DAC_MAX/16)
+
+#define		DAC_I_SH				4
+#define		PIXEL_DELTA_SH			3
+
+
+
+int  cmnSysDacWriteVoltage(int  dac)
+{	
+	unsigned char   data[2];	
+	unsigned int  udac;
+	unsigned char offAddress = 0;
+	int ret;
+
+	dac = CLIPPING(DAC_MIN, dac, DAC_MAX);
+	udac = 0x7ff + dac;
+	/* p.50, figure 6-1
+	* command 2-bit: b7-b6 = 00
+	* power down 2-bit: b5-b4 = 00
+	* data bit: 4-bit: only 2 bit for 4716,
+	*/
+#if 0	
+	unsigned char   cmd;
+	unsigned char   pd;
+	cmd = 0;
+	pd = 0;
+	data[0] = ((cmd & 0X03) << 6) | ((pd & 0X03) << 4) | ((udac >> 8) & 0x0f);
+#endif
+	data[0] = ((udac >> 8) & 0x0f);
+	data[1] = udac;
+	//printf("data[0] = 0x%d, data[1] = 0x%d\n", data[0], data[1]);	
+
+	ret = MCP4716_WRITE(offAddress, data, 2);
+	if(ret == EXIT_FAILURE)
+	{
+		EXT_ERRORF("MCP4716 write voltage failed");
+	}
+
+	return ret;	
+}
+
+/* return EXT_TRUE: param changed */
+static int	_checkRxParams(FpgaConfig 	*fpga)
+{
+	struct VcxoStatus *vcxo = &_vcxoStatus;
+
+	unsigned int pixDeltaCount;
+	unsigned short width, height;
+
+	_extFpgaReadShort(&fpga->rxAddress->xActive, &width); /* X */
+	_extFpgaReadShort(&fpga->rxAddress->yActive, &height); /* Y */
+
+
+	_extFpgaReadInteger(&fpga->rxAddress->pixelCount, &pixDeltaCount);
+
+	if( /* xTemp!= vcxo->xTemp || yTemp!= vcxo->yTemp || */ width!= vcxo->width || height != vcxo->height || pixDeltaCount != vcxo->pixelDelta )
+	{
+#if 0
+		EXT_DEBUGF(EXT_DBG_ON, "RX params changed: xTime:%d(%d); yTime:%d(%d); xActive: %d(%d); yActive:%d(%d); pixelDelta:%d(%d)", 
+			xTemp, vcxo->xTemp, yTemp, vcxo->yTemp, width, vcxo->width, height, vcxo->height, pixDeltaCount, vcxo->pixelDelta );
+		
+		vcxo->xTemp = xTemp;
+		vcxo->yTemp = yTemp;
+#else
+		EXT_DEBUGF(EXT_DBG_ON, "RX params changed: xActive: %d(%d); yActive:%d(%d); pixelDelta:%d(%d)", 
+			width, vcxo->width, height, vcxo->height, pixDeltaCount, vcxo->pixelDelta );
+
+#endif
+		vcxo->width = width;
+		vcxo->height = height;
+		vcxo->pixelDelta = pixDeltaCount;
+
+		return EXT_TRUE;
+	}
+
+	return EXT_FALSE;
+}
+
+
+/* read params for tuning frequency of clock generator, for RX only */
+int sysFpgaReadClockParams(void *data)
+{
+	FpgaConfig 	*fpga =  (FpgaConfig 	*)data;
+	struct VcxoStatus *vcxo = &_vcxoStatus;
+
+//	unsigned int	xFront, xPulse, xBack;
+//	unsigned int	yFront, yPulse, yBack;
+	unsigned int xTotal, yTotal, total;
+	int pixelDeltaCount;
+
+	EXT_ASSERT((fpga != NULL), "FPAG failed: %p", data);
+	EXT_ASSERT((fpga->runCfg!= NULL), "FPAG Initialization failed: %p", data);
+		
+	EXT_RUNTIME_CFG *runCfg = fpga->runCfg;
+
+	if( EXT_IS_TX(runCfg))
+	{
+		return EXIT_SUCCESS;
+	}
+
+	if(_checkRxParams( fpga) == EXT_FALSE)
+	{
+		return EXIT_SUCCESS;
+	}
+	pixelDeltaCount = vcxo->pixelDelta;
+
+#if 0
+	xFront = (vcxo->xTemp >> 0)  & 0x7FF;
+	xPulse = (vcxo->xTemp >> 11) & 0x3FF;
+	xBack  = (vcxo->xTemp >> 21) & 0x3FF;
+
+	yFront = (vcxo->yTemp >> 0)  & 0x7FF;
+	yPulse = (vcxo->yTemp >> 11) & 0x3FF;
+	yBack  = (vcxo->yTemp >> 21) & 0x3FF;
+#endif
+
+	xTotal = vcxo->width;// + (xFront + xPulse + xBack);
+	yTotal = vcxo->height;// + (yFront + yPulse + yBack);		
+	
+	total = xTotal*yTotal;
+
+#if 0
+	EXT_DEBUGF(EXT_DBG_ON, "X: %d=%d+%d+%d+%d; Y: %d=%d+%d+%d+%d; Total: %d, deltaCount:%d", 
+		xTotal, vcxo->width, xFront, xPulse, xBack	, 
+		yTotal, vcxo->height, yFront, yPulse, yBack, 
+		total, pixelDeltaCount);
+#else
+	EXT_DEBUGF(EXT_DBG_ON, "X: %d; Y: %d; Total: %d, deltaCount:%d", 
+		xTotal, yTotal, total, pixelDeltaCount);
+#endif	
+	if (pixelDeltaCount < total ) 
+	{
+		// wrap around when pix_delta is just pas the zero
+		if (pixelDeltaCount > (total/2) ) 
+		{/* negative value */
+			pixelDeltaCount = pixelDeltaCount - total;
+		}
+
+		vcxo->newDac = CLIPPING(DAC_MIN, (pixelDeltaCount>>PIXEL_DELTA_SH),  DAC_MAX);
+		vcxo->dac = CLIPPING(vcxo->dac-DAC_MAX_STEP, vcxo->newDac, vcxo->dac+DAC_MAX_STEP); // limit DAC steps    
+
+		//signal integration when proportionnal DAC value is in range
+		vcxo->dacI = CLIPPING(DAC_MIN<<DAC_I_SH, (vcxo->dacI + vcxo->newDac), DAC_MAX<<DAC_I_SH);
+		vcxo->value = vcxo->dac + (vcxo->dacI >> DAC_I_SH);
+		cmnSysDacWriteVoltage(vcxo->value);
+
+		// reset HDMI out engine and resync to start of stream
+		if ((pixelDeltaCount > (4*xTotal)) || (-pixelDeltaCount > (4*xTotal)) || abs(vcxo->value)>=DAC_MAX ) 
+		{
+			if(vcxo->initFlag == 0)
+			{
+				DISPLAY_RESYNC(&fpga->rxAddress->reset );
+
+				//reset dac
+				vcxo->dac = 0;
+				vcxo->dacI = 0;
+				cmnSysDacWriteVoltage(0);
+				
+				usleep(30000);   // wait for 1 frame before enabling display
+				_sysFpgaDisplayCtrl(&fpga->rxAddress->sfpCtrl, EXT_FALSE);
+
+				EXT_INFOF("fine tune enable video");
+				vcxo->initFlag = 30; // 30x 100 msec = 3 second
+			}
+			else 
+			{
+				if(vcxo->initFlag != 0)
+				{
+					vcxo->initFlag--;
+				}
+			}
+		}
+		else 
+		{
+			vcxo->initFlag = 30; // adjust for 3 second delay to reset, 30x 100 msec
+		}
+	}					
+
+
+	return EXIT_SUCCESS;
+}
+
+int sysFpgaPollThreadInit(void *data)
+{
+	FpgaConfig 	*fpga =  (FpgaConfig 	*)data;
+	struct VcxoStatus *vcxo = &_vcxoStatus;
+	
+	EXT_ASSERT((fpga != NULL), "FPAG failed: %p", data);
+
+	EXT_ASSERT((fpga->runCfg!= NULL), "FPAG Initialization failed: %p", data);
+
+	if(EXT_IS_TX(fpga->runCfg) )
+	{
+		memset(vcxo, 0, sizeof(struct VcxoStatus));
 	}
 
 	return EXIT_SUCCESS;

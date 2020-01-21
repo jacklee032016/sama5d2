@@ -5,7 +5,7 @@
 include $(ROOT_DIR)/Makefile.pre
 
 CODE_SUBDIRS = \
-					api
+			api
 
 
 C_FLAGS += $(SHARED_CFLAGS)
@@ -37,6 +37,7 @@ MUX_SRC += \
 		api/cmnMuxCtrl.c \
 		api/cmnMuxClient.c \
 		extThreadBtn.c \
+		cmnMuxThreadClocks.c \
 
 #		cmnMuxDs.c \
 #		cmnMuxConfigWeb.c	\

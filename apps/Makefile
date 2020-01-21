@@ -63,9 +63,9 @@ endif
 #	APP_DIRS += src/uenvs
 	APP_DIRS += src/tests
 
-
 	APP_DIRS += ptp/programs
 #	APP_DIRS += ptp/phc
+
 
 SUBDIRS += $(SHARED_DIRS)
 
